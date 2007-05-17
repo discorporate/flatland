@@ -1,0 +1,16 @@
+*Status:* pre-release development
+
+TODO:
+
+- schema
+  Status: semi-stable
+  - Element-like methods on Schema- friend or foe?
+  - Add 'export' method
+
+- validation
+  Status: Heavy flux, trying on different approaches and sugars.
+  - Optional strategy-objects or exceptions for things like Optional
+
+- test suite
+  Status: sad
+  - flesh out, port from 'springy'
