@@ -1,6 +1,6 @@
 import re
 
-from flatland import schema, valid
+from flatland import schema, valid, exc
 
 
 VISA = 'Visa',
@@ -33,7 +33,7 @@ class CreditCardNumber(schema.Long):
         value = _from_string(value)
 
         if value is None:
-            raise schema.ParseError
+            raise exc.ParseError
 
         return value
 
