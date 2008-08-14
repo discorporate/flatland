@@ -1,20 +1,25 @@
+import datetime
+import logging
+import operator
+import re
+import weakref
+import xml.sax.saxutils
 from collections import defaultdict
 from types import NoneType
-import datetime, logging, new, operator, re, sys, weakref
-import xml.sax.saxutils
+
 from util import lateproperty, lazyproperty, GetitemGetattrProxy
 
-__all__ = ['Scalar', 'String',
+__all__ = ('Scalar', 'String',
            'Integer', 'Long', 'Float',
            'Boolean',
            'Date', 'Time',
            'Ref',
            'List', 'Dict', 'Form',
-           'Array',
-           'Compound']
+           'Array')
 
 class ParseError(Exception):
     pass
+
 
 class MetaSchema(type):
     def __init__(self, name, bases, class_dict):
@@ -34,16 +39,17 @@ class MetaSchema(type):
         node_cls = class_dict['Element']
         n = node_cls.__name__ = '%s.%s' % (name, node_cls.__name__)
         type.__init__(self, name, bases, class_dict)
-        
+
+
 class Schema(object):
     __metaclass__ = MetaSchema
-    
+
     def __init__(self, name, **kw):
         if not isinstance(name, (unicode, NoneType)):
             name = unicode(name, errors='strict')
         self.name = name
         self.label = kw.get('label', name)
-        
+
         self.default = kw.get('default', None)
 
         self.validators = kw.get('validators', None)
@@ -61,7 +67,7 @@ class Schema(object):
             self.errors = []
             self.warnings = []
 
-        ##  Hierarchy 
+        ##  Hierarchy
         def _get_parent(self):
             return self._parent
         def _set_parent(self, parent):
@@ -70,7 +76,7 @@ class Schema(object):
                 self._parent = None
             else:
                 self._parent = weakref.proxy(parent)
-            
+
         parent = property(_get_parent, _set_parent)
 
         name = property(lambda self: self.schema.name)
@@ -126,7 +132,7 @@ class Schema(object):
                 return None
 
             return [None if step in (u'""', u"''") else step for step in steps]
-            
+
 
         ## Errors and warnings- any node can have them.
         def add_error(self, message):
@@ -150,7 +156,7 @@ class Schema(object):
                 if (isinstance(node, Scalar.Element) and
                     not isinstance(node, (Compound.Element, Ref.Element))):
                     data.append((node.fq_name(sep), value(node)))
-            
+
             self.apply(serialize, pairs)
             return pairs
 
@@ -166,17 +172,17 @@ class Schema(object):
                 pairs = pairs.items()
 
             return self._set_flat(pairs, sep)
-                
+
         def _set_flat(self, pairs, sep):
             raise NotImplementedError()
 
         def validate(self, state=None, recurse=True, validators=None):
             if not recurse:
                 return self._validate(state, validators=validators)
-                
+
             def collector(node, _):
                 return node._validate(state=state, validators=None)
-            
+
             return reduce(operator.and_, self.apply(collector, None), True)
 
         def _validate(self, state=None, validators=None):
@@ -195,7 +201,8 @@ class Schema(object):
                     return False
 
             return valid
-                     
+
+
 class Scalar(Schema):
 
     def parse(self, node, value):
@@ -212,11 +219,11 @@ class Scalar(Schema):
         or compatible type.  *Must* return a Unicode object, always.
         """
         return unicode(value)
-    
+
     class Element(Schema.Element):
         def __init__(self, schema, **kw):
             super(Scalar.Element, self).__init__(schema, **kw)
-        
+
             self._u = u''
             self._value = None
 
@@ -322,7 +329,7 @@ class Scalar(Schema):
         #    if not self.immutable:
         #        raise TypeError('Element is unhashable')
         #    return hash(self.value)
-        
+
         def __nonzero__(self):
             return True if self.u and self.value else False
 
@@ -365,6 +372,7 @@ class String(Scalar):
             return unicode(value).strip()
         else:
             return unicode(value)
+
 
 class Number(Scalar):
     type_ = None
@@ -411,7 +419,7 @@ class Boolean(Scalar):
         super(Scalar, self).__init__(name, **kw)
         assert isinstance(true, unicode)
         assert isinstance(false, unicode)
-        
+
         self.true = true
         self.false = false
 
@@ -468,7 +476,8 @@ class Temporal(Scalar):
             return self.format % GetitemGetattrProxy(value)
         else:
             return unicode(value)
-            
+
+
 class DateTime(Temporal):
     type_ = datetime.datetime
     regex = re.compile(ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) '
@@ -476,6 +485,7 @@ class DateTime(Temporal):
     format = (u'%(year)04i-%(month)02i-%(day)02i '
               u'%(hour)02i:%(minute)02i:%(second)02i')
     used = ('year', 'month', 'day', 'hour', 'minute', 'second')
+
 
 class Date(Temporal):
     type_ = datetime.date
@@ -502,10 +512,10 @@ class Ref(Scalar):
 
     def parse(self, node, value):
         return node.target.schema.parse(node, value)
-        
+
     def serialize(self, node, value):
         return node.target.schema.serialize(node, value)
-            
+
     class Element(Scalar.Element):
         @lazyproperty
         def target(self):
@@ -540,6 +550,7 @@ class Container(Schema):
         super(Container, self).__init__(name, **kw)
         self.spec = None
 
+
 class Sequence(Container):
     def __init__(self, name, *args, **kw):
         super(Sequence, self).__init__(name, **kw)
@@ -572,14 +583,14 @@ class Sequence(Container):
             elif not path:
                 return self
             raise KeyError()
-                
+
 
 class List(Sequence):
     def __init__(self, name, *schema, **kw):
         super(List, self).__init__(name, **kw)
 
         self.prune_empty = kw.get('prune_empty', True)
-        
+
         assert len(schema) > 0
         if len(schema) > 1:
             self.spec = Dict(None, *schema)
@@ -602,7 +613,7 @@ class List(Sequence):
             member = self.schema.spec.new(parent=wrapper, **kw)
             wrapper.node = member
             return wrapper
-            
+
         def append(self, value):
             list.append(self, self._new_slot(value=value))
 
@@ -629,7 +640,7 @@ class List(Sequence):
         def __delitem__(self, index):
             list.__delitem__(self, index)
             self._renumber()
-        
+
         def pop(self, index=-1):
             value = list.pop(self, index)
             self._renumber()
@@ -646,7 +657,7 @@ class List(Sequence):
         def sort(self, *args, **kw):
             raise ValueError('List object may not be reordered.')
         reverse = sort
-        
+
         def __getslice__(self, i, j):
             slice = list.__getslice__(self, i, j)
             return [slot.node for slot in slice]
@@ -678,7 +689,7 @@ class List(Sequence):
 
             if depth_first:
                 r.extend([func(self, data)])
-                
+
             return r
 
         def _set_flat(self, pairs, sep):
@@ -708,7 +719,7 @@ class List(Sequence):
 
             if not slots:
                 return
-                    
+
             # FIXME: lossy, not-lossy. allow maxidx on not-lossy
             # Only implementing lossy here.
 
@@ -744,12 +755,12 @@ class List(Sequence):
                 r = []
             else:
                 r = [func(self, data)]
-                
+
             r.extend(self.node.apply(func, data))
 
             if depth_first:
                 r.extend([func(self, data)])
-                
+
             return r
 
 
@@ -794,8 +805,10 @@ class Array(Sequence, Scalar):
                         continue
                     self.set(value)
 
+
 class Mapping(Container):
     pass
+
 
 class Dict(Mapping):
     def __init__(self, name, *specs, **kw):
@@ -811,7 +824,7 @@ class Dict(Mapping):
     class Element(Mapping.Element, dict):
         def __init__(self, schema, **kw):
             super(Dict.Element, self).__init__(schema, **kw)
-            
+
             for key, spec in schema.fields.items():
                 dict.__setitem__(self, key, spec.new(parent=self))
 
@@ -819,7 +832,7 @@ class Dict(Mapping):
                 self.set(schema.default)
             elif 'value' in kw:
                 self.set(kw['value'])
-            
+
         def __setitem__(self, key, value):
             if not self.has_key(key):
                 raise KeyError(u'May not set unknown key "%s" on Dict "%s"' %
@@ -855,7 +868,7 @@ class Dict(Mapping):
                 r = []
             else:
                 r = [func(self, data)]
-                
+
             for child in [self[key].apply(func, data) for key in self]:
                 r.extend(child)
 
@@ -883,15 +896,15 @@ class Dict(Mapping):
                             raise KeyError(u'Dict "%s" schema does not allow '
                                            u'key "%s".' % (self.name, key))
                         continue
-                    
+
                     self[key] = value
-                    
+
                 if policy == 'strict' and len(items) <> len(my_fields):
                     got = set([key for key, _ in items])
                     need = u', '.join([unicode(i) for i in my_fields - got])
                     raise KeyError(u'strict-mode Dict requires all keys for '
                                    u'a set() operation, missing "%s".' % need)
-            
+
             else:
                 raise ValueError(u'Inappropriate value type to populate '
                                  u'Dict "%s": %s' % (self.name, type(value)))
@@ -962,53 +975,4 @@ class Form(Dict):
         assert members
         super(Form, self).__init__(name, *members, **kw)
 
-                
-class Compound(Scalar, Mapping):
-    def __init__(self, name, *specs, **kw):
-        super(Compound, self).__init__(name, **kw)
 
-        self.fields = {}
-        for spec in specs:
-            if hasattr(spec, 'name') and spec.name:
-                self.fields[spec.name] = spec
-        self.specs = specs
-
-    def compose(self, node):
-        raise NotImplementedError()
-
-    def explode(self, node, value):
-        raise NotImplementedError()
-        
-    class Element(Scalar.Element, Dict.Element):
-        def _get_u(self):
-            u, value = self.compose()
-            return u
-
-        def _set_u(self, value):
-            self.explode(value)
-
-        def _get_value(self):
-            u, value = self.compose()
-            return value
-
-        def _set_value(self, value):
-            self.explode(value)
-
-        def compose(self):
-            return self.schema.compose(self)
-        
-        def explode(self, value):
-            return self.schema.explode(self, value)
-
-        def set(self, value):
-            self.explode(value)
-
-        def _el(self, path):
-            if path:
-                return self[path[0]]._el(path[1:])
-            elif not path:
-                return self
-            raise KeyError()
-
-        def _set_flat(self, pairs, sep):
-            Dict.Element._set_flat(self, pairs, sep)

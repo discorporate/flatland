@@ -8,7 +8,7 @@ DISCOVER = 'Discover',
 
 class CreditCardNumber(schema.Long):
     DEFAULT_TYPES = (VISA, MASTERCARD, AMEX)
-    
+
     def __init__(self, name, **kw):
         validators = [
             self.Present(),
@@ -21,7 +21,7 @@ class CreditCardNumber(schema.Long):
         super(CreditCardNumber, self).__init__(name, **kw)
 
         self.accepted = kw.pop('types', self.DEFAULT_TYPES)
-    
+
     def parse(self, node, value):
         if value is None:
             return None
@@ -62,11 +62,11 @@ class CreditCardNumber(schema.Long):
                 types = ' and '.join(label for label, in accepted)
             else:
                 types = accepted[0][0]
-                               
+
             return u'We accept %s' % types
-                
+
         not_accepted = valid.message(_formatter)
-        
+
         def validate(self, node, state):
             type_ = _card_type(node.value)
             if type_ in node.schema.accepted:
@@ -125,4 +125,3 @@ def _pretty_print(number):
         return u'%s-%s-%s-%s' % (s[0:4], s[4:7], s[7:10], s[10:13])
     else:
         return s
-
