@@ -1,15 +1,16 @@
 from flatland.util import GetitemGetattrMultiProxy, re_ucompile
 
+
 def message(format, bucket='error', result=None):
     assert bucket in ('error', 'warning')
-    
+
     if result is None:
         result = False if bucket == 'error' else True
 
     return (format, bucket, result)
 
 class Validator(object):
-    
+
     def __call__(self, node, state):
         return self.validate(node, state)
 
@@ -38,18 +39,18 @@ class Validator(object):
             message = format(node, state)
         else:
             message = format % GetitemGetattrMultiProxy(node, self)
-        
+
         if bucket == 'error':
             node.add_error(message)
         elif bucket == 'warning':
             node.add_warning(message)
-            
+
         return result
 
 
 class Present(Validator):
     missing = message(u'%(label)s may not be blank.')
-    
+
     def validate(self, node, state):
         if node.u <> u'':
             return True
@@ -58,7 +59,7 @@ class Present(Validator):
 
 class Converted(Validator):
     correct = message(u'%(label)s is not correct.')
-    
+
     def validate(self, node, state):
         if node.value is not None:
             return True
@@ -104,7 +105,5 @@ class LengthBetween(Validator):
 
 class HumanName(Validator):
     # \w but not [\d_]
-    
+
     pass
-
-
