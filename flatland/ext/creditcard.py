@@ -1,5 +1,7 @@
-from flatland import schema, valid
 import re
+
+from flatland import schema, valid
+
 
 VISA = 'Visa',
 MASTERCARD = 'MasterCard',
