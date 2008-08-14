@@ -82,7 +82,8 @@ class Schema(object):
         name = property(lambda self: self.schema.name)
         label = property(lambda self: self.schema.label)
 
-        def _get_path(self):
+        @property
+        def path(self):
             "A tuple of node names, starting at this node's topmost parent."
             p, node = [], self
             while node is not None:
@@ -91,16 +92,14 @@ class Schema(object):
                 node = node.parent
             return tuple(reversed(p))
 
-        path = property(_get_path)
-
-        def _get_root(self):
+        @property
+        def root(self):
             node = self
             while node is not None:
                 if node.parent is None:
                     break
                 node = node.parent
             return node
-        root = property(_get_root)
 
         def fq_name(self, sep='_'):
             """
@@ -252,11 +251,16 @@ class Scalar(Schema):
 
         u = lateproperty(_get_u, _set_u)
 
-        # Sugar: xml-escaped string value.
-        x = property(lambda self: xml.sax.saxutils.escape(self.u))
+        @property
+        def x(self):
+            """Sugar: xml-escaped string value."""
+            return xml.sax.saxutils.escape(self.u)
 
         # Sugar: xml-attribute-escaped string value.
-        xa = property(lambda self: xml.sax.saxutils.quoteattr(self.u)[1:-1])
+        @property
+        def xa(self):
+            """Sugar: xml-attribute-escaped string value."""
+            return xml.sax.saxutils.quoteattr(self.u)[1:-1]
 
         ## Native representation
         def _get_value(self):
