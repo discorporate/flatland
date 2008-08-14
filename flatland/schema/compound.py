@@ -1,7 +1,10 @@
-import schema
+from flatland.schema.base import Scalar
+from flatland.schema.container import Mapping, Dict
+from flatland.schema import scalar
+import flatland.exc as exc
 
 
-class Compound(schema.Scalar, schema.Mapping):
+class Compound(Scalar, Mapping):
     def __init__(self, name, *specs, **kw):
         super(Compound, self).__init__(name, **kw)
 
@@ -17,7 +20,7 @@ class Compound(schema.Scalar, schema.Mapping):
     def explode(self, node, value):
         raise NotImplementedError()
 
-    class Element(schema.Scalar.Element, schema.Dict.Element):
+    class Element(Scalar.Element, Dict.Element):
         def _get_u(self):
             u, value = self.compose()
             return u
@@ -52,7 +55,7 @@ class Compound(schema.Scalar, schema.Mapping):
             Dict.Element._set_flat(self, pairs, sep)
 
 
-class DateYYYYMMDD(Compound, schema.Date):
+class DateYYYYMMDD(Compound, scalar.Date):
     def __init__(self, name, *specs, **kw):
         assert len(specs) <= 3
         specs = list(specs)
@@ -72,16 +75,16 @@ class DateYYYYMMDD(Compound, schema.Date):
                           for label, spec
                           in zip(self.used, self.specs)] )
             as_str = self.format % data
-            value = schema.Date.parse(self, node, as_str)
+            value = scalar.Date.parse(self, node, as_str)
             return as_str, value
-        except (schema.ParseError, TypeError):
+        except (exc.ParseError, TypeError):
             return None, None
 
     def explode(self, node, value):
         try:
-            value = schema.Date.parse(self, node, value)
+            value = scalar.Date.parse(self, node, value)
             for attrib, spec in zip(self.used, self.specs):
                 node[spec.name].set(getattr(value, attrib))
-        except (schema.ParseError, TypeError):
+        except (exc.ParseError, TypeError):
             for spec in self.specs:
                 node[spec.name].set(None)
