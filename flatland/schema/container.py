@@ -1,11 +1,15 @@
 import re
 from collections import defaultdict
 
-from flatland.schema.base import Schema, Scalar, Container
+from flatland.schema.base import Schema, MetaSchema
+from flatland.schema import scalar
 
 
 __all__ = 'List', 'Array', 'Dict', 'Form'
 
+
+class Container(Schema):
+    pass
 
 class Sequence(Container):
     def __init__(self, name, *args, **kw):
@@ -220,7 +224,7 @@ class List(Sequence):
             return r
 
 
-class Array(Sequence, Scalar):
+class Array(Sequence, scalar.Scalar):
     def __init__(self, array_of, **kw):
         assert isinstance(array_of, Scalar)
         super(Array, self).__init__(array_of.name, **kw)
@@ -228,7 +232,7 @@ class Array(Sequence, Scalar):
         self.spec = array_of
         self.prune_empty = kw.get('prune_empty', True)
 
-    class Element(Sequence.Element, Scalar.Element):
+    class Element(Sequence.Element, scalar.Scalar.Element):
         def set(self, value):
             self.append(value)
 
@@ -402,11 +406,19 @@ class Dict(Mapping):
             raise KeyError()
 
 
+class MetaForm(MetaSchema):
+    def __call__(cls, *args, **kw):
+        form = cls.__new__(cls)
+        form.__init__(*args, **kw)
+        return form.node()
+
 class Form(Dict):
     """
     Schemas are the most common top-level mapping.  They behave like
     Dicts, but do not need to be named.  FIXME: Also magic schema holder.
     """
+    __metaclass__ = MetaForm
+
     def __init__(self, *args, **kw):
         if args and isinstance(args[0], basestring):
             args = list(args)

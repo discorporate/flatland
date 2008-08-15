@@ -17,31 +17,29 @@ class SimpleSchema2(Form):
                                   creditcard.MASTERCARD)),
               String('name')]
 
-schema = SimpleSchema()
-schema2 = SimpleSchema2()
 
 def test_simple():
-    data = schema.new()
+    data = SimpleSchema()
     data.set_flat({})
     assert not data.validate()
     assert data.el('num').errors
     e1 = list(data.el('num').errors)
 
-    data = schema.new()
+    data = SimpleSchema()
     data.set_flat({'num': 'asdf'})
     assert not data.validate()
     assert data['num'].errors
     assert data['num'].errors != e1
     e2 = list(data['num'].errors)
 
-    data = schema.new()
+    data = SimpleSchema()
     data.set_flat({'num': '1234'})
     assert not data.validate()
     assert data['num'].errors
     assert data['num'].errors == e2
     e3 = list(data['num'].errors)
 
-    data = schema.new()
+    data = SimpleSchema()
     data.set_flat({'num': '4100000000000009'})
     assert not data.validate()
     assert data['num'].errors
@@ -49,7 +47,7 @@ def test_simple():
     e4 = list(data['num'].errors)
 
 
-    data = schema.new()
+    data = SimpleSchema()
     data.set_flat({'num': '4100000000000001'})
     assert data.validate()
     assert isinstance(data['num'].value, long)
@@ -57,7 +55,7 @@ def test_simple():
     
 
 def test_subclass():
-    data = schema2.new()
+    data = SimpleSchema2()
 
     data.set_flat({})
     assert not data.validate()
