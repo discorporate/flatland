@@ -1,8 +1,3 @@
-# Copyright 2006 Virtuous, Inc.
-# All rights reserved.
-#
-# Author: Jason Kirtland <jason@virtuous.com>
-
 from genshi.core import Stream
 from genshi.template import MarkupTemplate
 __all__ = ['genshi_add_to_context', 'genshi_wrap_nodes']
@@ -14,7 +9,7 @@ def genshi_add_to_context(fieldset, context, key='forms', unnamed='form'):
     if not key in context:
       context[key] = {}
     context[key][fieldset.name] = genshi_wrap_nodes(fieldset.data, key)
-    
+
 def genshi_wrap_nodes(node, prefix=''):
   """Proxies a node tree for use in a Genshi context.  Access the original node
   with the .node property, or values with .str and .native.  Collection node
@@ -46,7 +41,7 @@ def genshi_wrap_nodes(node, prefix=''):
     nodexpr = attributes.get('thing')
     wrappednode = Expression(nodexpr).evaluate(context)
 """
-    
+
   if node.is_container:
     return Container(node, prefix)
   elif node.is_compound:
@@ -83,7 +78,7 @@ class Indexable(Wrapped):
 
 class Compound(Scalar, Indexable):
   pass
-  
+
 class Container(Indexable):
   def __iter__(self):
     return iter(self.node)

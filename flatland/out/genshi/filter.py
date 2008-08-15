@@ -1,8 +1,3 @@
-# Copyright 2006 Virtuous, Inc.
-# All rights reserved.
-#
-# Author: Jason Kirtland <jason@virtuous.com>
-#
 # TODO:
 #  Populate multi-value elements (checkbox, select) when Springy
 #  supports list values.
@@ -89,7 +84,7 @@ class SpringyForm(TagListener):
 
 class ImmediateVarDirective(object):
   name = 'set'
-  
+
   def start(self, event, context):
     kind, (tag, attrs), pos = event
     attrs = Attrs(attrs)
@@ -114,7 +109,7 @@ class ImmediateVarDirective(object):
 
 class ScopedVarDirective(ImmediateVarDirective):
   name = 'with'
-  
+
   def start(self, event, context):
     context.push({})
     return ImmediateVarDirective.start(self, event, context)
@@ -156,7 +151,7 @@ class DecoratedElementDirective(object):
 
     # Set <... value=""> or tag-specific equivalent.
     stream = set_value(tag, attrs, stream, context, node)
-    
+
     # Re-assemble the start event.
     start = (start_kind, (start_tag, attrs), start_pos)
 
@@ -185,10 +180,10 @@ def set_tabindex(tag, attrs, context):
       tabindex += 1
       context[CTX_CUR_TABINDEX] = tabindex
 
-def set_domid(tag, attrs, context, el): 
+def set_domid(tag, attrs, context, el):
   scoped   = parse_bool(context.get(CTX_AUTO_DOMID, False))
   override = parse_trool(consume_attribute(attrs, F_ID, 'auto'))
-  
+
   if ( ((override is not False & scoped) and tag.localname in AUTODOMID) or
        (override is True)):
     current = attrs.get('id', None)
@@ -264,7 +259,7 @@ def set_value(tag, attrs, stream, context, node):
   return stream
 
 def _set_stream_value(text):
-  return Stream([(TEXT, text, (None, -1, -1))])  
+  return Stream([(TEXT, text, (None, -1, -1))])
 
 def _set_simple_value(override, attrs, node):
   current = attrs.get('value')
@@ -285,7 +280,7 @@ def _set_mixed_value(override, attrs, stream, node):
 
 def _set_input(override, attrs, node):
   type = attrs.get('type', 'text').lower()
-  
+
   for case in switch(type):
     if case('text', 'password', 'hidden'):
       _set_simple_value(override, attrs, node)
@@ -313,7 +308,7 @@ def _set_input(override, attrs, node):
 
 def _set_select(override, attrs, stream, node):
   return OptionToggler(node.str)(stream)
-  
+
 class OptionToggler(TagListener):
   __slots__ = ['value']
 
@@ -349,7 +344,7 @@ class OptionToggler(TagListener):
     start = kind, (tag, attrs), pos
 
     return start, end, stream
-    
+
 
 ######################################################################
 
@@ -364,7 +359,7 @@ def domid_for_unbound(tag, attrs):
       fmt = context.get(CTX_FMT_DOMID, DEFAULT_DOMID_FMT)
       return fmt % name
   return None
-  
+
 
 _not_found = []
 def consume_attribute(attributes, name, default=None):
@@ -401,7 +396,7 @@ def parse_trool(value):
   if value in NO:    return False
   if value in MAYBE: return Maybe
   return Maybe
-  
+
 def parse_int(text):
   if type(text) is int: return text
   try:
