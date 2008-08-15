@@ -1,8 +1,3 @@
-# Copyright 2006 Virtuous, Inc.
-# All rights reserved.
-#
-# Author: Jason Kirtland <jason@virtuous.com>
-
 from genshi.core import Namespace, Stream, Attrs, END, START
 
 __all__ = ['TagListener', 'default_start', 'default_end']
@@ -10,12 +5,12 @@ __all__ = ['TagListener', 'default_start', 'default_end']
 class TagListener(object):
   """A Stream filter that operates on tag open/close events.  Events are
   buffered and close event handlers may modify or replace the tag and all of
-  its children.  
+  its children.
   """
 
   def __prep__(self, stream, context):
     """___prep__(stream, context) -> stream, context
-    Filtering and setup hook called before processing begins."""    
+    Filtering and setup hook called before processing begins."""
 
     return stream, context
 
@@ -33,7 +28,7 @@ class TagListener(object):
 
     for event in eb.events:
       yield event
-  
+
   def inspect(self, event, context):
     """inspect(event, context) -> False | (callable | None, callable | None)
 
@@ -72,7 +67,7 @@ class TagListener(object):
 
       def self_remover(start, event, stream, context, history):
         return None, None, stream
-    
+
     """
     return False
 
@@ -103,7 +98,7 @@ class ChildRemover(TagListener):
         if attr in self.NAMESPACE:
           return (default_start, self.end)
 
-    return False      
+    return False
 
   def end(self, start, event, stream, context, history):
     """I remove all children."""
@@ -118,7 +113,7 @@ class EventBuffer(object):
 
   def push(self, event, listen=False, context=None):
     kind, data, pos = event
-    
+
     if kind is START:
       if listen:
         on_start, on_end = listen
@@ -159,4 +154,3 @@ class EventBuffer(object):
       self.streams[-1].append(event)
 
   events = property(lambda s: s.streams[-1], lambda s,v: None)
-
