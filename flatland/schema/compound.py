@@ -1,10 +1,9 @@
-from flatland.schema.base import Scalar
-from flatland.schema.container import Mapping, Dict
 from flatland.schema import scalar
+from flatland.schema.container import Mapping, Dict
 import flatland.exc as exc
 
 
-class Compound(Scalar, Mapping):
+class Compound(scalar.Scalar, Mapping):
     def __init__(self, name, *specs, **kw):
         super(Compound, self).__init__(name, **kw)
 
@@ -20,7 +19,7 @@ class Compound(Scalar, Mapping):
     def explode(self, node, value):
         raise NotImplementedError()
 
-    class Element(Scalar.Element, Dict.Element):
+    class Element(scalar.Scalar.Element, Dict.Element):
         def _get_u(self):
             u, value = self.compose()
             return u

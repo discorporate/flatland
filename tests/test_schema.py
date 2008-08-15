@@ -51,11 +51,8 @@ def test_string_node():
     
 
 def test_path():
-    s = schema.Form('root',
+    n = schema.Form('root',
                     schema.String('node'),
                     schema.Dict('dict', schema.String('dict_node')))
-
-    # instantiate
-    n = s.node()
 
     assert n.el(['dict', 'dict_node']).path == ('root', 'dict', 'dict_node')
