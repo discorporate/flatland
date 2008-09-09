@@ -1,6 +1,13 @@
 """Schema components."""
+from __future__ import absolute_import
 
-from flatland.schema.scalar import (
+import flatland.schema.base
+import flatland.schema.scalar
+import flatland.schema.container
+import flatland.schema.compound
+
+
+from .scalar import (
     Boolean,
     Date,
     Float,
@@ -10,5 +17,13 @@ from flatland.schema.scalar import (
     String,
     Time,
     )
-from flatland.schema.container import Array, Dict, Form, List
-from flatland.schema.compound import Compound, DateYYYYMMDD
+from .container import (
+    Array,
+    Dict,
+    Form,
+    List
+    )
+from .compound import (
+    Compound,
+    DateYYYYMMDD
+    )

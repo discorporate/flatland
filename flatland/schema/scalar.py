@@ -1,8 +1,11 @@
+from __future__ import absolute_import
+
 import datetime
 import re
 import xml.sax.saxutils
 
-from flatland.schema.base import Schema
+from .base import Schema
+from .node import Node
 from flatland.util import lateproperty, lazyproperty, GetitemGetattrProxy
 import flatland.exc as exc
 
@@ -11,7 +14,142 @@ __all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean', 'Date', 'Time',
            'Ref')
 
 
+class _ScalarNode(Node):
+    flattenable = True
+
+    def __init__(self, schema, **kw):
+        Node.__init__(self, schema, **kw)
+
+        self._u = u''
+        self._value = None
+
+        if 'value' in kw:
+            self.set(kw['value'])
+        # This prevents sub-types from implementing special sauce
+        # for default value of None, but it does make construction
+        # faster.
+        elif schema.default is not None:
+            self.set(schema.default)
+
+    ## String representation
+    def _get_u(self):
+        return self._u
+
+    def _set_u(self, ustr):
+        #if self.immutable:
+        #    raise ValueError('Element is immutable')
+        if ustr is None:
+            self._u = u''
+        elif not isinstance(ustr, unicode):
+            raise ValueError(u"Value must be a unicode value, got %s" %
+                             repr(ustr))
+        else:
+            self._u = ustr
+
+    u = lateproperty(_get_u, _set_u)
+
+    @property
+    def x(self):
+        """Sugar: xml-escaped string value."""
+        return xml.sax.saxutils.escape(self.u)
+
+    # Sugar: xml-attribute-escaped string value.
+    @property
+    def xa(self):
+        """Sugar: xml-attribute-escaped string value."""
+        return xml.sax.saxutils.quoteattr(self.u)[1:-1]
+
+    ## Native representation
+    def _get_value(self):
+        return self._value
+    def _set_value(self, value):
+        #if self.immutable:
+        #    raise ValueError('Element is immutable')
+        self._value = value
+    value = lateproperty(_get_value, _set_value)
+
+    def _el(self, path):
+        if not path:
+            return self
+        raise KeyError()
+
+    ## Multi-value Maintenance
+    def set(self, value):
+        try:
+            value = self.value = self.parse(value)
+        except exc.ParseError:
+            pass
+
+        if value is None:
+            self.u = u''
+        else:
+            self.u = self.serialize(value)
+
+    def parse(self, value):
+        return self.schema.parse(self, value)
+
+    def serialize(self, value):
+        return self.schema.serialize(self, value)
+
+    def _set_flat(self, pairs, sep):
+        for key, value in pairs:
+            if key == self.name:
+                self.set(value)
+                break
+
+    def __eq__(self, other):
+        """
+        Overloaded comparison: when comparing nodes, compare name and
+        value. When comparing non-nodes, coerce our value into something
+        comparable.
+        """
+        if ((type(self) is type(other)) or isinstance(other, _ScalarNode)):
+            if self.name == other.name:
+                if self.u == other.u:
+                    if self.value == other.value:
+                        return True
+            return False
+        elif isinstance(other, _RefNode):
+            if self.path == other.schema.path:
+                if self.u == other.u:
+                    if self.value == other.value:
+                        return True
+            return False
+        elif isinstance(other, Node):
+            return False
+        else:
+            if isinstance(other, basestring):
+                if isinstance(self.value, basestring):
+                    return self.value == other
+                else:
+                    return self.u == other
+            else:
+                return self.value == other
+
+    def __nonzero__(self):
+        return True if self.u and self.value else False
+
+    def _validate(self, state=None, validators=None):
+        if self.schema.optional and self.u == u'':
+            return True
+        else:
+            return super(_ScalarNode, self)._validate(state, validators)
+
+    ## Debugging
+    def __unicode__(self):
+        return u'%s=%s' % (self.name, self.u)
+
+    def __str__(self):
+        return '%s=%s' % (self.name.encode('unicode-escape'),
+                          self.u.encode('unicode-escape'))
+
+    def __repr__(self):
+        return u"%s(%s, value=%s)" % (type(self).__name__,
+                                       repr(self.name), repr(self.value))
+
+
 class Scalar(Schema):
+    node_type = _ScalarNode
 
     def parse(self, node, value):
         """
@@ -27,146 +165,6 @@ class Scalar(Schema):
         or compatible type.  *Must* return a Unicode object, always.
         """
         return unicode(value)
-
-    class Element(Schema.Element):
-        flattenable = True
-
-        def __init__(self, schema, **kw):
-            super(Scalar.Element, self).__init__(schema, **kw)
-
-            self._u = u''
-            self._value = None
-
-            if 'value' in kw:
-                self.set(kw['value'])
-            # This prevents sub-types from implementing special sauce
-            # for default value of None, but it does make construction
-            # faster.
-            elif schema.default is not None:
-                self.set(schema.default)
-
-        ## String representation
-        def _get_u(self):
-            return self._u
-
-        def _set_u(self, ustr):
-            #if self.immutable:
-            #    raise ValueError('Element is immutable')
-            if ustr is None:
-                self._u = u''
-            elif not isinstance(ustr, unicode):
-                raise ValueError(u"Value must be a unicode value, got %s" %
-                                 repr(ustr))
-            else:
-                self._u = ustr
-
-        u = lateproperty(_get_u, _set_u)
-
-        @property
-        def x(self):
-            """Sugar: xml-escaped string value."""
-            return xml.sax.saxutils.escape(self.u)
-
-        # Sugar: xml-attribute-escaped string value.
-        @property
-        def xa(self):
-            """Sugar: xml-attribute-escaped string value."""
-            return xml.sax.saxutils.quoteattr(self.u)[1:-1]
-
-        ## Native representation
-        def _get_value(self):
-            return self._value
-        def _set_value(self, value):
-            #if self.immutable:
-            #    raise ValueError('Element is immutable')
-            self._value = value
-        value = lateproperty(_get_value, _set_value)
-
-        def _el(self, path):
-            if not path:
-                return self
-            raise KeyError()
-
-        ## Multi-value Maintenance
-        def set(self, value):
-            try:
-                value = self.value = self.parse(value)
-            except exc.ParseError:
-                pass
-
-            if value is None:
-                self.u = u''
-            else:
-                self.u = self.serialize(value)
-
-        def parse(self, value):
-            return self.schema.parse(self, value)
-
-        def serialize(self, value):
-            return self.schema.serialize(self, value)
-
-        def _set_flat(self, pairs, sep):
-            for key, value in pairs:
-                if key == self.name:
-                    self.set(value)
-                    break
-
-        def __eq__(self, other):
-            """
-            Overloaded comparison: when comparing nodes, compare name and
-            value. When comparing non-nodes, coerce our value into something
-            comparable.
-            """
-            if ((type(self) is type(other)) or isinstance(other, Scalar.Element)):
-                if self.name == other.name:
-                    if self.u == other.u:
-                        if self.value == other.value:
-                            return True
-                return False
-            elif isinstance(other, Ref.Element):
-                if self.path == other.schema.path:
-                    if self.u == other.u:
-                        if self.value == other.value:
-                            return True
-                return False
-            elif isinstance(other, Schema.Element):
-                return False
-            else:
-                if isinstance(other, basestring):
-                    if isinstance(self.value, basestring):
-                        return self.value == other
-                    else:
-                        return self.u == other
-                else:
-                    return self.value == other
-
-        #def __hash__(self):
-        #    if not self.immutable:
-        #        raise TypeError('Element is unhashable')
-        #    return hash(self.value)
-
-        def __nonzero__(self):
-            return True if self.u and self.value else False
-
-        def _validate(self, state=None, validators=None):
-            if self.schema.optional and self.u == u'':
-                return True
-            else:
-                return super(Scalar.Element, self)._validate(state, validators)
-
-        ## Debugging
-        def __unicode__(self):
-            return u'%s=%s' % (self.name, self.u)
-
-        def __str__(self):
-            return '%s=%s' % (self.name.encode('unicode-escape'),
-                              self.u.encode('unicode-escape'))
-
-        def __repr__(self):
-            return u"%s(%s, value=%s)" % (type(self).__name__,
-                                           repr(self.name), repr(self.value))
-
-
 
 
 class String(Scalar):
@@ -318,13 +316,42 @@ class Time(Temporal):
     used = ('hour', 'minute', 'second')
 
 
-class Ref(Scalar):
+class _RefNode(Node):
     flattenable = False
+
+    @lazyproperty
+    def target(self):
+        return self.root.el(self.schema.path)
+
+    def _get_u(self):
+        return self.target._get_u()
+
+    def _set_u(self, ustr):
+        if self.schema.writable == 'ignore':
+            return
+        elif self.schema.writable:
+            self.target._set_u(ustr)
+        else:
+            raise ValueError(u'Ref "%s" is not writable.' % self.name)
+
+    def _get_value(self):
+        return self.target._get_value()
+
+    def _set_value(self, value):
+        if self.schema.writable == 'ignore':
+            return
+        elif self.schema.writable:
+            self.target._set_value(value)
+        else:
+            raise ValueError(u'Ref "%s" is not writable.' % self.name)
+
+class Ref(Scalar):
+    node_type = _RefNode
 
     def __init__(self, name, path, writable='ignore', sep='.', **kw):
         super(Ref, self).__init__(name, **kw)
 
-        self.path = self.Element._parse_node_path(path, sep)
+        self.path = self.node_type._parse_node_path(path, sep)
         assert self.path is not None
 
         self.writable = writable
@@ -334,30 +361,3 @@ class Ref(Scalar):
 
     def serialize(self, node, value):
         return node.target.schema.serialize(node, value)
-
-    class Element(Scalar.Element):
-        @lazyproperty
-        def target(self):
-            return self.root.el(self.schema.path)
-
-        def _get_u(self):
-            return self.target._get_u()
-
-        def _set_u(self, ustr):
-            if self.schema.writable == 'ignore':
-                return
-            elif self.schema.writable:
-                self.target._set_u(ustr)
-            else:
-                raise ValueError(u'Ref "%s" is not writable.' % self.name)
-
-        def _get_value(self):
-            return self.target._get_value()
-
-        def _set_value(self, value):
-            if self.schema.writable == 'ignore':
-                return
-            elif self.schema.writable:
-                self.target._set_value(value)
-            else:
-                raise ValueError(u'Ref "%s" is not writable.' % self.name)

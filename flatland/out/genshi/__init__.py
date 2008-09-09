@@ -193,5 +193,4 @@ from nodewrapper import genshi_add_to_context, genshi_wrap_nodes
 from filter import genshi_springy_filter
 
 
-__all__ = ['genshi_add_to_context',
-           'genshi_springy_filter']
+__all__ = 'genshi_add_to_context', 'genshi_springy_filter'
