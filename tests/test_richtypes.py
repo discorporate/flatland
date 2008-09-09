@@ -46,13 +46,12 @@ def test_simple():
     assert data['num'].errors != e3
     e4 = list(data['num'].errors)
 
-
     data = SimpleSchema()
     data.set_flat({'num': '4100000000000001'})
     assert data.validate()
     assert isinstance(data['num'].value, long)
     assert data['num'].u == '4100-0000-0000-0001'
-    
+
 
 def test_subclass():
     data = SimpleSchema2()

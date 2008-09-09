@@ -1,3 +1,4 @@
+import operator
 import re
 
 # From ASPN Cookbook, modified?  Lost reference.
@@ -23,6 +24,12 @@ class lazyproperty(object):
         value = self._deferred(obj)
         setattr(obj, self._deferred.func_name, value)
         return value
+
+class writable_property(property):
+    def __init__(self, fn, attr=None, fdel=None, doc=None):
+        fget = operator.attrgetter(attr or ('_' + fn.__name__))
+        doc = doc or fn.__doc__
+        property.__init__(self, fget, fn, fdel, doc)
 
 class GetitemGetattrProxy(object):
     __slots__ = ['target']
@@ -72,3 +79,42 @@ def luhn10(number):
         sum += r // 10 + r % 10 + z
 
     return 0 == sum % 10
+
+# From ASPN Cookbook (#410692)
+class switch(object):
+    def __init__(self, value):
+        self.value = value
+        self.fall = False
+
+    def __iter__(self):
+        """Return the match method once, then stop"""
+        yield self.match
+        raise StopIteration
+
+    def match(self, *args):
+        """Indicate whether or not to enter a case suite"""
+        if self.fall or not args:
+            return True
+        elif self.value in args: # changed for v1.5, see below
+            self.fall = True
+            return True
+        else:
+            return False
+
+class trool(object):
+  def __and__(self, other):
+    if type(other) is trool: return False
+    if type(other) is not bool: return False
+    return other
+  __or__ = __and__
+  __rand__ = __and__
+  __ror__ = __and__
+
+  def __nonzero__(self):
+    return False
+
+  def __str__(self):
+    return 'Maybe'
+  __repr__ = __str__
+
+Maybe = trool()
