@@ -3,9 +3,8 @@ from __future__ import absolute_import
 import re
 from collections import defaultdict
 
-from .base import Schema
+from .base import Schema, Node
 from .scalar import Scalar, _ScalarNode
-from .node import Node
 
 
 __all__ = 'List', 'Array', 'Dict', 'Form'
@@ -27,6 +26,7 @@ class _SequenceNode(Node, list):
                              'sequence: %s' % type(value))
     def append(self, value):
         list.append(self, self.schema.spec.new(value=value))
+
     def extend(self, *values):
         for v in values:
             self.append(v)
@@ -77,6 +77,7 @@ class _ListNode(_SequenceNode):
     def extend(self, *values):
         for v in values:
             self.append(v)
+
     def __getitem__(self, index):
         return list.__getitem__(self, index).node
 
@@ -85,11 +86,12 @@ class _ListNode(_SequenceNode):
         slot.set(value)
 
     def __iter__(self):
-        for i in list.__iter__(self):
-            yield i.node
+        return list.__iter__(self)
+        #for i in list.__iter__(self):
+        #    yield i.node
 
-    ## index, count, __contains__:
-    # handled by __eq__ proxy on Slot
+    # index, count, __contains__
+    # - handled by __eq__ proxy on Slot
 
     ## Reordering methods
     # Optimizing __delitem__ or pop when removing only the last item
@@ -202,10 +204,14 @@ class _Slot(Node):
     name = property(lambda self: self._name, _set_name)
 
     def __repr__(self):
-        return u'<ListSlot[%s] for %s>' % (self.name, repr(self.node))
+        return u'<ListSlot[%s] for %r>' % (self.name, self.node)
 
     def __eq__(self, other):
         return self.node == other
+
+    def __ne__(self, other):
+        print "ne ing"
+        return self.node != other
 
     def apply(self, func, data=None, depth_first=False):
         if depth_first:
@@ -226,12 +232,20 @@ class List(Sequence):
     slot_type = _Slot
 
     def __init__(self, name, *schema, **kw):
+        """
+
+        default:
+          Optional, number of child elements to build out by default.
+
+        """
         super(List, self).__init__(name, **kw)
 
+        # TODO: why? maybe only ok for non-Dict?
         self.prune_empty = kw.get('prune_empty', True)
 
-        assert len(schema) > 0
-        if len(schema) > 1:
+        if not len(schema):
+            raise TypeError
+        elif len(schema) > 1:
             self.spec = Dict(None, *schema)
         else:
             self.spec = schema[0]
@@ -274,16 +288,24 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
 
 
 class Array(Sequence, Scalar):
-    """An ordered, homogeneous Container."""
+    """An ordered, homogeneous Container.
+
+    Arrays take on the name of their child.  When used as a scalar,
+    they act as their last member.  All values are available when used
+    as a sequence.
+
+    TODO: is any of that a good idea? if so, should it be first rather
+    than last?
+
+    """
 
     node_type = _ArrayNode
 
     def __init__(self, array_of, **kw):
         assert isinstance(array_of, Scalar)
+        self.prune_empty = kw.pop('prune_empty', True)
         super(Array, self).__init__(array_of.name, **kw)
-
         self.spec = array_of
-        self.prune_empty = kw.get('prune_empty', True)
 
 
 

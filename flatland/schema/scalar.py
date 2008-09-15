@@ -4,8 +4,7 @@ import datetime
 import re
 import xml.sax.saxutils
 
-from .base import Schema
-from .node import Node
+from .base import Schema, Node
 from flatland.util import lateproperty, lazyproperty, GetitemGetattrProxy
 import flatland.exc as exc
 
@@ -14,17 +13,23 @@ __all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean', 'Date', 'Time',
            'Ref')
 
 
+# FIXME
+unspecified = object()
+
 class _ScalarNode(Node):
     flattenable = True
 
     def __init__(self, schema, **kw):
+        value = kw.pop('value', unspecified)
+
         Node.__init__(self, schema, **kw)
 
         self._u = u''
         self._value = None
 
-        if 'value' in kw:
-            self.set(kw['value'])
+        if value is not unspecified:
+            self.set(value)
+        # TODO: wtf does the comment below mean?
         # This prevents sub-types from implementing special sauce
         # for default value of None, but it does make construction
         # faster.
@@ -116,7 +121,7 @@ class _ScalarNode(Node):
                         return True
             return False
         elif isinstance(other, Node):
-            return False
+            return NotImplemented
         else:
             if isinstance(other, basestring):
                 if isinstance(self.value, basestring):
@@ -125,6 +130,9 @@ class _ScalarNode(Node):
                     return self.u == other
             else:
                 return self.value == other
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __nonzero__(self):
         return True if self.u and self.value else False
@@ -136,33 +144,36 @@ class _ScalarNode(Node):
             return super(_ScalarNode, self)._validate(state, validators)
 
     ## Debugging
-    def __unicode__(self):
+    def XXX__unicode__(self):
         return u'%s=%s' % (self.name, self.u)
 
-    def __str__(self):
+    def __unicode__(self):
+        return self.u
+
+    def XXX__str__(self):
         return '%s=%s' % (self.name.encode('unicode-escape'),
                           self.u.encode('unicode-escape'))
 
     def __repr__(self):
-        return u"%s(%s, value=%s)" % (type(self).__name__,
-                                       repr(self.name), repr(self.value))
+        return '<%s %r; value=%r>' % (
+            type(self.schema).__name__, self.name, self.value)
 
 
 class Scalar(Schema):
     node_type = _ScalarNode
 
     def parse(self, node, value):
-        """
-        Given any value, try to coerce it into native format.
+        """Given any value, try to coerce it into native format.
+
         Raises ParseError on failure.
         """
         raise NotImplementedError()
 
     def serialize(self, node, value):
-        """
-        Given any value, try to coerce it into a Unicode representation for
-        this type.  No special effort is made to coerce values not of native
-        or compatible type.  *Must* return a Unicode object, always.
+        """Given any value, coerce it into a Unicode representation.
+
+        No special effort is made to coerce values not of native or
+        compatible type.  *Must* return a Unicode object, always.
         """
         return unicode(value)
 
@@ -207,7 +218,7 @@ class Number(Scalar):
             native = self.type_(value)
             if not self.signed:
                 if native < 0:
-                    return None
+                    raise exc.ParseError()
             return native
         except ValueError:
             raise exc.ParseError()
@@ -229,7 +240,12 @@ class Float(Number):
     type_ = float
     format = u'%f'
 
+# TODO: Decimal
+
 class Boolean(Scalar):
+    true_synonyms = (u'on', u'true', u'True', u'1')
+    false_synonyms = (u'off', u'false', u'False', u'0', u'')
+
     def __init__(self, name, true=u'1', false=u'', **kw):
         super(Scalar, self).__init__(name, **kw)
         assert isinstance(true, unicode)
@@ -239,18 +255,14 @@ class Boolean(Scalar):
         self.false = false
 
     def parse(self, node, value):
-        if value in (self.true, u'on', u'true', u'True', u'1'):
+        if value == self.true or value in self.true_synonyms:
             return True
-        if value in (self.false, u'off', u'false', u'False', u'0'):
+        if value == self.false or value in self.false_synonyms:
             return False
-
-        return False
+        return None
 
     def serialize(self, node, value):
-        if value:
-            return self.true
-        else:
-            return self.false
+        return self.true if value else self.false
 
 class Temporal(Scalar):
     type_ = None
@@ -281,7 +293,7 @@ class Temporal(Scalar):
             try:
                 args = [int(match.group(f)) for f in self.used]
                 return self.type_(*args)
-            except TypeError:
+            except (TypeError, ValueError), ex:
                 raise exc.ParseError()
         else:
             raise exc.ParseError()
