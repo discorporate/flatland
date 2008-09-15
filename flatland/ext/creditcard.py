@@ -20,9 +20,9 @@ class CreditCardNumber(schema.Long):
         ]
 
         kw.setdefault('validators', validators)
+        self.accepted = kw.pop('types', self.DEFAULT_TYPES)
         super(CreditCardNumber, self).__init__(name, **kw)
 
-        self.accepted = kw.pop('types', self.DEFAULT_TYPES)
 
     def parse(self, node, value):
         if value is None:

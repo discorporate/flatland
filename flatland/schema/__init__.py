@@ -10,6 +10,7 @@ import flatland.schema.compound
 from .scalar import (
     Boolean,
     Date,
+    DateTime,
     Float,
     Integer,
     Long,

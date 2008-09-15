@@ -14,3 +14,35 @@ TODO:
 - test suite
   Status: sad
   - flesh out, port from 'springy'
+
+
+
+Springy Stuff
+=============
+  - from_blank
+  - from_defaults
+
+  Schema.blank()
+  Schema.prototype()
+
+  flat_apply
+  flat_str
+  flat_native
+  flat_nodes
+
+  - test suite for defaulting & springyness (expand-o, defaulting structures)
+
+
+New Stuff
+=========
+ - Complete validation story; message() constructor for error/warning is bogus
+ - Babelable validation
+ - Babelable field labels
+ - Consider for Nodes: __unicode__, __html__, __json__
+ - Consider uniform .u/.value for all Node types
+
+
+Misc
+====
+
+ - Questionable python sweep (__slots__ e.g.)
