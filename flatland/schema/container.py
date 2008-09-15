@@ -10,6 +10,9 @@ from .scalar import Scalar, _ScalarNode
 __all__ = 'List', 'Array', 'Dict', 'Form'
 
 
+# FIXME
+unspecified = object()
+
 class Container(Schema):
     """Holds other schema items."""
 
@@ -17,22 +20,34 @@ class Container(Schema):
 class _SequenceNode(Node, list):
     def set(self, value):
         if isinstance(value, (list, tuple)) or hasattr(value, 'next'):
-            self._clear()
+            # wtf!
+            del self[:]
             self.extend(*value)
         elif value is None:
-            self._clear()
+            # wtf part 2!
+            del self[:]
         else:
             raise ValueError('Inappropriate value type to populate a '
                              'sequence: %s' % type(value))
-    def append(self, value):
-        list.append(self, self.schema.spec.new(value=value))
 
-    def extend(self, *values):
-        for v in values:
+    def append(self, value):
+        if not isinstance(value, Node):
+            value = self.schema.spec.new(value=value)
+        list.append(self, value)
+
+    def extend(self, iterable):
+        for v in iterable:
             self.append(v)
-    def _clear(self):
-        while len(self):
-            self.pop()
+
+    def __setitem__(self, index, value):
+        if not isinstance(value, Node):
+            value = self.schema.spec.new(value=value)
+        list.__setitem__(self, index, value)
+
+    def insert(self, index, value):
+        if not isinstance(value, Node):
+            value = self.schema.spec.new(value=value)
+        list.insert(index, value)
 
     def _el(self, path):
         if path and path[0].isdigit():
@@ -65,25 +80,49 @@ class _ListNode(_SequenceNode):
                 wrapper.node = member
                 list.append(self, wrapper)
 
-    def _new_slot(self, **kw):
+    def _new_slot(self, value=unspecified, **kw):
         wrapper = self.schema.slot_type(len(self), self)
-        member = self.schema.spec.new(parent=wrapper, **kw)
+        if value is unspecified:
+            member = self.schema.spec.new(parent=wrapper, **kw)
+        elif isinstance(value, Node):
+            member = value
+            member.parent=wrapper
+        else:
+            member = self.schema.spec.new(parent=wrapper, value=value, **kw)
         wrapper.node = member
         return wrapper
 
-    def append(self, value):
-        list.append(self, self._new_slot(value=value))
+    @property
+    def _slots(self):
+        """An iterator of the ListNode's otherwise hidden Slots."""
+        return list.__iter__(self)
 
-    def extend(self, *values):
-        for v in values:
+    def append(self, value):
+        list.append(self, self._new_slot(value))
+
+    def extend(self, iterable):
+        for v in iterable:
             self.append(v)
 
     def __getitem__(self, index):
+        if isinstance(index, slice):
+            return [item.node for item in list.__getitem__(self, index)]
         return list.__getitem__(self, index).node
 
+    def __getslice__(self, i, j):
+        return self.__getitem__(slice(i, j))
+
     def __setitem__(self, index, value):
-        slot = self[index]
-        slot.set(value)
+        if isinstance(index, slice):
+            value = [self._new_slot(item) for item in value]
+            list.__setitem__(self, index, value)
+            self._renumber()
+        else:
+            slot = self[index]
+            slot.set(value)
+
+    def __setslice__(self, i, j, sequence):
+        return self.__setitem__(slice(i, j), sequence)
 
     def __iter__(self):
         return list.__iter__(self)
@@ -97,8 +136,12 @@ class _ListNode(_SequenceNode):
     # Optimizing __delitem__ or pop when removing only the last item
     # doesn't seem worth it.
     def __delitem__(self, index):
+        # slices ok
         list.__delitem__(self, index)
         self._renumber()
+
+    def __delslice__(self, i, j):
+        return self.__delitem__(slice(i, j))
 
     def pop(self, index=-1):
         value = list.pop(self, index)
@@ -106,7 +149,7 @@ class _ListNode(_SequenceNode):
         return value
 
     def insert(self, index, value):
-        list.insert(self, index, value)
+        list.insert(self, index, self._new_slot(value))
         self._renumber()
 
     def remove(self, value):
@@ -114,23 +157,8 @@ class _ListNode(_SequenceNode):
         self._renumber()
 
     def sort(self, *args, **kw):
-        raise ValueError('List object may not be reordered.')
+        raise TypeError('List object may not be reordered.')
     reverse = sort
-
-    def __getslice__(self, i, j):
-        slice = list.__getslice__(self, i, j)
-        return [slot.node for slot in slice]
-
-    def __setslice__(self, i, j, value):
-        raise NotImplementedError('FIXME')
-
-    def __delslice__(self, i, j):
-        list.__delslice__(self, i, j)
-        self._renumber()
-
-    def _clear(self):
-        while len(self):
-            self.pop()
 
     def _renumber(self):
         for idx in xrange(0, len(self)):
@@ -152,7 +180,7 @@ class _ListNode(_SequenceNode):
         return r
 
     def _set_flat(self, pairs, sep):
-        self._clear()
+        del self[:]
 
         if not pairs:
             return
@@ -210,7 +238,6 @@ class _Slot(Node):
         return self.node == other
 
     def __ne__(self, other):
-        print "ne ing"
         return self.node != other
 
     def apply(self, func, data=None, depth_first=False):
@@ -227,7 +254,7 @@ class _Slot(Node):
 
 
 class List(Sequence):
-    """An ordered, heterogeneous Container."""
+    """An ordered, homogeneous Container."""
     node_type = _ListNode
     slot_type = _Slot
 
@@ -276,6 +303,9 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
         self[-1].value = value
 
     def __nonzero__(self):
+        # FIXME: this is a little troubling, given that it may not
+        # match the appearance of the node in a scalar context.
+        # (further: list context? scalar context? what is this, perl?)
         return len(self)
 
     def _set_flat(self, pairs, sep):
@@ -288,7 +318,7 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
 
 
 class Array(Sequence, Scalar):
-    """An ordered, homogeneous Container.
+    """An unordered, homogeneous Container, for multivalued form elements.
 
     Arrays take on the name of their child.  When used as a scalar,
     they act as their last member.  All values are available when used
