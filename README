@@ -7,6 +7,9 @@ TODO:
   - Element-like methods on Schema- friend or foe?
   - Add 'export' method
 
+- binops on container nodes aren't implemented yet and will probably
+  fail in colorful ways.
+
 - validation
   Status: Heavy flux, trying on different approaches and sugars.
   - Optional strategy-objects or exceptions for things like Optional

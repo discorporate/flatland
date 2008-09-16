@@ -5,48 +5,56 @@ from collections import defaultdict
 
 from .base import Schema, Node
 from .scalar import Scalar, _ScalarNode
-
+from flatland import util
+from flatland.util import Unspecified
 
 __all__ = 'List', 'Array', 'Dict', 'Form'
 
-
-# FIXME
-unspecified = object()
 
 class Container(Schema):
     """Holds other schema items."""
 
 
-class _SequenceNode(Node, list):
-    def set(self, value):
-        if isinstance(value, (list, tuple)) or hasattr(value, 'next'):
-            # wtf!
-            del self[:]
-            self.extend(*value)
-        elif value is None:
-            # wtf part 2!
-            del self[:]
-        else:
-            raise ValueError('Inappropriate value type to populate a '
-                             'sequence: %s' % type(value))
+def _argument_to_node(index):
+    @util.decorator
+    def transform(fn, self, *args, **kw):
+        target = args[index]
+        if target is not None and not isinstance(target, Node):
+            args = list(args)
+            args[index] = self.schema.spec.new(value=target)
+        return fn(self, *args, **kw)
+    return transform
 
+
+class _SequenceNode(Node, list):
+    def set(self, iterable):
+        del self[:]
+        self.extend(iterable)
+
+    @_argument_to_node(0)
     def append(self, value):
-        if not isinstance(value, Node):
-            value = self.schema.spec.new(value=value)
         list.append(self, value)
 
     def extend(self, iterable):
         for v in iterable:
             self.append(v)
 
+    # the slice protocol really uglies this up
     def __setitem__(self, index, value):
-        if not isinstance(value, Node):
-            value = self.schema.spec.new(value=value)
+        if isinstance(index, slice):
+            value = list(item if isinstance(item, Node)
+                         else self.schema.spec.new(value=item)
+                         for item in value)
+        else:
+            if not isinstance(value, Node):
+                value = self.schema.spec.new(value=value)
         list.__setitem__(self, index, value)
 
+    def __setslice__(self, i, j, value):
+        self.__setitem__(slice(i, j), value)
+
+    @_argument_to_node(1)
     def insert(self, index, value):
-        if not isinstance(value, Node):
-            value = self.schema.spec.new(value=value)
         list.insert(index, value)
 
     def _el(self, path):
@@ -64,25 +72,24 @@ class Sequence(Container):
 
     node_type = _SequenceNode
 
-    def __init__(self, name, *args, **kw):
+    def __init__(self, name, **kw):
         super(Sequence, self).__init__(name, **kw)
-        self.spec = args
+        self.spec = None
 
 
 class _ListNode(_SequenceNode):
-    def __init__(self, schema, **kw):
-        super(_ListNode, self).__init__(schema, **kw)
+    def __init__(self, schema, parent=None, value=Unspecified):
+        _SequenceNode.__init__(self, schema, parent=parent)
 
-        if schema.default:
-            for i in xrange(0, schema.default):
-                wrapper = self.schema.slot_type(i, self)
-                member = schema.spec.new(parent=wrapper)
-                wrapper.node = member
-                list.append(self, wrapper)
+        if value is not Unspecified:
+            self.extend(value)
+        elif schema.default:
+            for idx in xrange(0, schema.default):
+                list.append(self, self._new_slot())
 
-    def _new_slot(self, value=unspecified, **kw):
+    def _new_slot(self, value=Unspecified, **kw):
         wrapper = self.schema.slot_type(len(self), self)
-        if value is unspecified:
+        if value is Unspecified:
             member = self.schema.spec.new(parent=wrapper, **kw)
         elif isinstance(value, Node):
             member = value
@@ -161,8 +168,8 @@ class _ListNode(_SequenceNode):
     reverse = sort
 
     def _renumber(self):
-        for idx in xrange(0, len(self)):
-            list.__getitem__(self, idx).name = idx
+        for idx, node in enumerate(self):
+            node.name = idx
 
     def apply(self, func, data=None, depth_first=False):
         if depth_first:
@@ -318,7 +325,7 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
 
 
 class Array(Sequence, Scalar):
-    """An unordered, homogeneous Container, for multivalued form elements.
+    """A transparent homogeneous Container, for multivalued form elements.
 
     Arrays take on the name of their child.  When used as a scalar,
     they act as their last member.  All values are available when used
@@ -326,6 +333,10 @@ class Array(Sequence, Scalar):
 
     TODO: is any of that a good idea? if so, should it be first rather
     than last?
+
+    A `el.set(val)` on an Array element will add `val` to the Array.
+    To set a full set of value at once, assign using slice syntax:
+    `el[:] = [...]`
 
     """
 
@@ -336,7 +347,6 @@ class Array(Sequence, Scalar):
         self.prune_empty = kw.pop('prune_empty', True)
         super(Array, self).__init__(array_of.name, **kw)
         self.spec = array_of
-
 
 
 class Mapping(Container):
@@ -356,33 +366,44 @@ class _DictNode(Node, dict):
             self.set(kw['value'])
 
     def __setitem__(self, key, value):
-        if not self.has_key(key):
-            raise KeyError(u'May not set unknown key "%s" on Dict "%s"' %
+        if not key in self:
+            raise TypeError(u'May not set unknown key "%s" on Dict "%s"' %
                            (key, self.name))
         self[key].set(value)
 
+    def __delitem__(self, key):
+        # this may be overly pedantic
+        if key not in self:
+            raise KeyError(key)
+        raise TypeError('Dict keys are immutable.')
+
     def clear(self):
-        raise AssertionError('Dict keys are immutable.')
-    popitem = clear
+        raise TypeError('Dict keys are immutable.')
+
+    def popitem(self):
+        raise TypeError('Dict keys are immutable.')
 
     def pop(self, key):
-        raise KeyError('Dict keys are immutable.')
+        if key not in self:
+            raise KeyError(key)
+        raise TypeError('Dict keys are immutable.')
 
-    def update(self, dictish=None, **attribs):
+    def update(self, dictish=None, **kwargs):
         if dictish is not None:
-            self.set(dictish, policy='subset')
-        if attribs:
-            self.set(attribs, policy='subset')
+            for key, value in util.to_pairs(dictish):
+                self[key] = value
+        for key, value in kwargs.iteritems():
+            self[key] = value
 
-    # punt: setdefault semantics don't make sense here- the key will
-    # always be present.
     def setdefault(self, key, default=None):
-        raise KeyError('Dict keys are immutable.')
+        # The key will always either be present or not creatable.
+        raise TypeError('Dict keys are immutable.')
 
     def get(self, key, default=None):
         if key not in self:
             raise KeyError(u'Immutable Dict "%s" schema does not contain '
                            u'key "%s".' % (self.name, key))
+        # default will never be used.
         return self[key]
 
     def apply(self, func, data=None, depth_first=False):
@@ -400,42 +421,45 @@ class _DictNode(Node, dict):
 
     def set(self, value, policy=None):
         if value is None:
-            for key in self.keys():
+            for key in self.iterkeys():
                 self[key] = None
-        elif isinstance(value, dict) or hasattr(value, 'items'):
-            my_fields = set(self.keys())
+            return
 
-            if policy is not None:
-                assert policy in ('strict', 'subset', 'duck')
-            else:
-                policy = self.schema.policy
+        pairs = util.to_pairs(value)
+        my_fields = set(self.iterkeys())
 
-            items = list(value.items())
-
-            for key, value in items:
-                if key not in my_fields:
-                    if policy <> 'duck':
-                        raise KeyError(u'Dict "%s" schema does not allow '
-                                       u'key "%s".' % (self.name, key))
-                    continue
-
-                self[key] = value
-
-            if policy == 'strict' and len(items) <> len(my_fields):
-                got = set([key for key, _ in items])
-                need = u', '.join([unicode(i) for i in my_fields - got])
-                raise KeyError(u'strict-mode Dict requires all keys for '
-                               u'a set() operation, missing "%s".' % need)
-
+        if policy is not None:
+            assert policy in ('strict', 'subset', 'duck')
         else:
-            raise ValueError(u'Inappropriate value type to populate '
-                             u'Dict "%s": %s' % (self.name, type(value)))
+            policy = self.schema.policy
+
+        # not really convinced yet that these modes are required
+
+        seen = set()
+        for key, value in pairs:
+            if key not in self:
+                if policy != 'duck':
+                    raise KeyError(
+                        'Dict "%s" schema does not allow key "%r"' % (
+                            self.name, key))
+                continue
+            self[key] = value
+            seen.add(key)
+
+        if policy == 'strict':
+            required = set(self.iterkeys())
+            if seen != required:
+                missing = required - seen
+                raise TypeError(
+                    'strict-mode Dict requires all keys for '
+                    'a set() operation, missing %s.' % (
+                        ','.join(repr(key) for key in missing)))
 
     def _set_flat(self, pairs, sep):
-        possibles = []
         if self.name is None:
             possibles = pairs  # accept all
         else:
+            possibles = []
             prefix = self.name + sep
             plen = len(prefix)
             for key, value in pairs:
@@ -474,8 +498,10 @@ class Dict(Mapping):
     node_type = _DictNode
 
     def __init__(self, name, *specs, **kw):
+        if not specs:
+            raise TypeError()
+
         Mapping.__init__(self, name, **kw)
-        self.spec = None
         self.fields = {}
         for spec in specs:
             self.fields[spec.name] = spec
@@ -484,12 +510,12 @@ class Dict(Mapping):
         assert self.policy in ('strict', 'subset', 'duck')
 
 
-
 class MetaForm(type):
     def __call__(cls, *args, **kw):
         form = cls.__new__(cls)
         form.__init__(*args, **kw)
         return form.node()
+
 
 class Form(Dict):
     """
