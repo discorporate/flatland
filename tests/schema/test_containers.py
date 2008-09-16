@@ -4,14 +4,11 @@ from flatland import schema
 
 
 def test_sequence():
-    s = schema.container.Sequence('s',
-                                  schema.String('a'),
-                                  schema.String('b'))
+    assert_raises(TypeError, schema.container.Sequence, 's',
+                  schema.String('a'))
 
-    n = s.new()
-    # No, should be sequence of 1 schema
-    # right?
-    # self.schema.spec.new() is busted if not
+    s = schema.container.Sequence('s')
+    assert hasattr(s, 'spec')
 
 def test_list_linear_set_scalars():
     s = schema.List('l', schema.String('s'))
@@ -62,6 +59,35 @@ def test_list_default():
     n = factory(0)
     eq_(len(n), 0)
     eq_(n, [])
+
+def test_list_set():
+    def new_node(**kw):
+        s = schema.List('l', schema.Integer('i'))
+        return s.node(**kw)
+
+    n = new_node()
+    assert list(n) == []
+    assert_raises(TypeError, n.set, 1)
+    assert_raises(TypeError, n.set, None)
+
+    n = new_node()
+    n.set(range(3))
+    assert list(n) == [0, 1, 2]
+
+    n = new_node()
+    n.set(xrange(3))
+    assert list(n) == [0, 1, 2]
+
+    n = new_node(value=[0, 1, 2])
+    assert list(n) == [0, 1, 2]
+
+    n = new_node()
+    n.extend([1,2,3])
+    assert list(n) == [1, 2, 3]
+    n.set([4, 5, 6])
+    assert list(n) == [4, 5, 6]
+    n.set([])
+    assert list(n) == []
 
 def test_list_access():
     s = schema.List('l', schema.Integer('i'))
@@ -242,8 +268,84 @@ def test_array_mutation():
     eq_(list(n), [])
     eq_(n, u'')
 
+    n[:] = u'abc'
+    eq_(list(n), [u'a', u'b', u'c'])
+    eq_(n, u'c')
 
-# arg wtf Sequence.set([1,2,3]) is a set_all()??!?
+def test_dict():
+    assert_raises(TypeError, schema.Dict, 's')
 
+def test_dict_immutable_keys():
+    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
+    n = s.node()
 
+    assert_raises(TypeError, n.__setitem__, 'z', 123)
+    assert_raises(TypeError, n.__delitem__, u'x')
+    assert_raises(KeyError, n.__delitem__, u'z')
+    assert_raises(TypeError, n.setdefault, u'x', 123)
+    assert_raises(TypeError, n.setdefault, u'z', 123)
+    assert_raises(TypeError, n.pop, u'x')
+    assert_raises(KeyError, n.pop, u'z')
+    assert_raises(TypeError, n.popitem)
+    assert_raises(TypeError, n.clear)
 
+def test_dict_reads():
+    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
+    n = s.node()
+
+    n[u'x'] = 10
+    n[u'y'] = 20
+
+    eq_(n[u'x'], 10)
+    eq_(n[u'y'], 20)
+
+    # the values are unhashable Nodes, so this is a little painful
+    assert set(n.keys()) == set(u'xy')
+    eq_(set([(u'x', 10), (u'y', 20)]),
+        set([(_[0], _[1].value) for _ in n.items()]))
+    eq_(set([10, 20]), set([_.value for _ in n.values()]))
+
+    eq_(n.get(u'x'), 10)
+    n[u'x'] = None
+    eq_(n.get(u'x'), None)
+    eq_(n.get(u'x', 'default is never used'), None)
+
+    assert_raises(KeyError, n.get, u'z')
+    assert_raises(KeyError, n.get, u'z', 'even with a default')
+
+def test_dict_update():
+    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
+    n = s.node()
+
+    def value_dict(node):
+        return dict((k, v.value) for k, v in node.iteritems())
+
+    n.update(x=20, y=30)
+    assert dict(x=20, y=30) == value_dict(n)
+
+    n.update({u'y': 40})
+    assert dict(x=20, y=40) == value_dict(n)
+
+    n.update()
+    assert dict(x=20, y=40) == value_dict(n)
+
+    n.update((_, 100) for _ in u'xy')
+    assert dict(x=100, y=100) == value_dict(n)
+
+    n.update([(u'x', 1)], y=2)
+    assert dict(x=1, y=2) == value_dict(n)
+
+    n.update([(u'x', 10), (u'y', 10)], x=20, y=20)
+    assert dict(x=20, y=20) == value_dict(n)
+
+    assert_raises(TypeError, n.update, z=1)
+    assert_raises(TypeError, n.update, x=1, z=1)
+    assert_raises(TypeError, n.update, {u'z': 1})
+    assert_raises(TypeError, n.update, {u'x': 1, u'z': 1})
+    assert_raises(TypeError, n.update, ((u'z', 1),))
+    assert_raises(TypeError, n.update, ((u'x', 1), (u'z', 1)))
+
+def test_dict_set():
+    def new_node(**kw):
+        s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
+        return s.node(**kw)
