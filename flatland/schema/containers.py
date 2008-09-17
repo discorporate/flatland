@@ -221,17 +221,18 @@ class _ListNode(_SequenceNode):
         prune = self.schema.prune_empty
 
         for key, value in pairs:
+            if value == u'' and prune:
+                continue
             m = regex.match(key)
-            if m:
-                try:
-                    slot = long(m.group(1))
-                    if value == u'' and prune:
-                        continue
-                    slots[slot].append((key[len(m.group(0)):], value))
+            if not m:
+                continue
+            try:
+                slot = long(m.group(1))
+                slots[slot].append((key[len(m.group(0)):], value))
+            except TypeError:
                 # Ignore keys with outrageously large indexes- they
                 # aren't valid data for us.
-                except TypeError:
-                    pass
+                pass
 
         if not slots:
             return
