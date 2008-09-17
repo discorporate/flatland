@@ -2,12 +2,11 @@
 from __future__ import absolute_import
 
 import flatland.schema.base
-import flatland.schema.scalar
-import flatland.schema.container
+import flatland.schema.scalars
+import flatland.schema.containers
 import flatland.schema.compound
 
-
-from .scalar import (
+from .scalars import (
     Boolean,
     Date,
     DateTime,
@@ -18,7 +17,7 @@ from .scalar import (
     String,
     Time,
     )
-from .container import (
+from .containers import (
     Array,
     Dict,
     Form,
