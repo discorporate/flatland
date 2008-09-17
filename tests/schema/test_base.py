@@ -43,7 +43,6 @@ def test_schema_optional():
     assert s.optional
 
 def test_node():
-
     s = base.Schema(u'abc', label=u'ABC')
     n = s.node()
 
@@ -55,12 +54,28 @@ def test_node():
     eq_(n.root, n)
     eq_(n.fq_name(), u'abc')
 
+def test_node_message_buckets():
+    s = base.Schema(u'abc', label=u'ABC')
+    n = s.node()
+
+    n.add_error('error')
+    eq_(n.errors, ['error'])
+    n.add_error('error')
+    eq_(n.errors, ['error'])
+
+    n.add_warning('warning')
+    eq_(n.warnings, ['warning'])
+    n.add_warning('warning')
+    eq_(n.warnings, ['warning'])
+
 def test_node_abstract():
     s = base.Schema(None)
     n = s.node()
 
     assert_raises(NotImplementedError, n.set, None)
     assert_raises(NotImplementedError, n.set_flat, ())
+    assert_raises(NotImplementedError, n.el, 'foo')
+    assert_raises(KeyError, n.el, None)
 
 def test_node_validation():
     ok = lambda item, data: True
