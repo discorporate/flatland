@@ -1,11 +1,13 @@
 import operator
-
+from flatland.util import Unspecified
 
 NoneType = type(None)
-unspecified = object()
+
 
 class Node(object):
     flattenable = False
+    value = None
+    u = u''
 
     def __init__(self, schema, parent=None):
         self.schema = schema
@@ -148,16 +150,16 @@ class Schema(object):
     node_type = Node
     validators = ()
 
-    def __init__(self, name, label=unspecified, default=None,
-                 validators=unspecified, optional=False):
+    def __init__(self, name, label=Unspecified, default=None,
+                 validators=Unspecified, optional=False):
         if not isinstance(name, (unicode, NoneType)):
             name = unicode(name, errors='strict')
 
         self.name = name
-        self.label = name if label is unspecified else label
+        self.label = name if label is Unspecified else label
         self.default = default
 
-        if validators is not unspecified:
+        if validators is not Unspecified:
             self.validators = list(validators)
         self.optional = optional
 

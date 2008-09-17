@@ -8,7 +8,6 @@ from .base import Schema, Node
 from flatland.util import (
     Unspecified,
     as_mapping,
-    late_binding_property,
     lazy_property,
     )
 import flatland.exc as exc
@@ -29,9 +28,6 @@ class _ScalarNode(Node):
 
         Node.__init__(self, schema, **kw)
 
-        self._u = u''
-        self._value = None
-
         if value is not unspecified:
             self.set(value)
         # TODO: wtf does the comment below mean?
@@ -41,22 +37,43 @@ class _ScalarNode(Node):
         elif schema.default is not None:
             self.set(schema.default)
 
-    ## String representation
-    def _get_u(self):
-        return self._u
+    def set(self, value):
+        """Assign the native and Unicode value.
 
-    def _set_u(self, ustr):
-        #if self.immutable:
-        #    raise ValueError('Element is immutable')
-        if ustr is None:
-            self._u = u''
-        elif not isinstance(ustr, unicode):
-            raise ValueError(u"Value must be a unicode value, got %s" %
-                             repr(ustr))
+        Attempts to adapt the given value and assigns this element's
+        `.value` and `.u` attributes in tandem.  Returns True if the
+        adaptation was successful.
+
+        If adaptation succeeds, `.value` will contain the adapted
+        native value and `.u` will contain a Unicode serialized
+        version of it. A native value of None will be represented as
+        u'' in `.u`.
+
+        If adaptation fails, `.value` will be None and `.u` will
+        contain `unicode(value)` or u'' for none.
+
+        """
+
+        try:
+            # adapt and normalize the value, if possible
+            value = self.value = self.schema.parse(self, value)
+        except exc.ParseError:
+            self.value = None
+            if value is None:
+                self.u = u''
+            elif isinstance(value, unicode):
+                self.u = value
+            else:
+                self.u = unicode(value, errors='replace')
+            return False
+
+        # stringify it, possibly storing what we received verbatim or
+        # a normalized version of it.
+        if value is None:
+            self.u = u''
         else:
-            self._u = ustr
-
-    u = late_binding_property(_get_u, _set_u)
+            self.u = self.schema.serialize(self, value)
+        return True
 
     @property
     def x(self):
@@ -69,37 +86,10 @@ class _ScalarNode(Node):
         """Sugar: xml-attribute-escaped string value."""
         return xml.sax.saxutils.quoteattr(self.u)[1:-1]
 
-    ## Native representation
-    def _get_value(self):
-        return self._value
-    def _set_value(self, value):
-        #if self.immutable:
-        #    raise ValueError('Element is immutable')
-        self._value = value
-    value = late_binding_property(_get_value, _set_value)
-
     def _el(self, path):
         if not path:
             return self
         raise KeyError()
-
-    ## Multi-value Maintenance
-    def set(self, value):
-        try:
-            value = self.value = self.parse(value)
-        except exc.ParseError:
-            pass
-
-        if value is None:
-            self.u = u''
-        else:
-            self.u = self.serialize(value)
-
-    def parse(self, value):
-        return self.schema.parse(self, value)
-
-    def serialize(self, value):
-        return self.schema.serialize(self, value)
 
     def _set_flat(self, pairs, sep):
         for key, value in pairs:
@@ -148,16 +138,8 @@ class _ScalarNode(Node):
         else:
             return super(_ScalarNode, self)._validate(state, validators)
 
-    ## Debugging
-    def XXX__unicode__(self):
-        return u'%s=%s' % (self.name, self.u)
-
     def __unicode__(self):
         return self.u
-
-    def XXX__str__(self):
-        return '%s=%s' % (self.name.encode('unicode-escape'),
-                          self.u.encode('unicode-escape'))
 
     def __repr__(self):
         return '<%s %r; value=%r>' % (
@@ -165,12 +147,40 @@ class _ScalarNode(Node):
 
 
 class Scalar(Schema):
+    """The most common type, a single value such as a string or number.
+
+    Scalar subclasses are responsible for translating most data types
+    in and out of Python native form: strings, numbers, dates, times,
+    Boolean values, etc.  Any data which is represented by a single
+    key, value pair is a likely Scalar.
+
+    Scalar subclasses have two responsibilities: provide a method to
+    adapt a value to native Python form, and provide a method to
+    serialize the native form to a Unicode string.
+
+    Scalar element instances have a number of properties:
+
+      el.u
+        Unicode value representation
+      el.value
+        Native value representation
+      el.x
+        XML-escaped Unicode value representation
+      el.xa
+        XML attribute-escaped Unicode value representation
+
+    Elements can be equality compared (==) to their Unicode representation,
+    their native representation or other elements.
+
+    """
+
     node_type = _ScalarNode
 
     def parse(self, node, value):
         """Given any value, try to coerce it into native format.
 
-        Raises ParseError on failure.
+        Returns the native format or raises ParseError on failure.
+
         """
         raise NotImplementedError()
 
@@ -178,7 +188,10 @@ class Scalar(Schema):
         """Given any value, coerce it into a Unicode representation.
 
         No special effort is made to coerce values not of native or
-        compatible type.  *Must* return a Unicode object, always.
+        a compatible type.
+
+        *Must* return a Unicode object, always.
+
         """
         return unicode(value)
 
@@ -209,10 +222,10 @@ class Number(Scalar):
     type_ = None
     format = u'%s'
 
-    def __init__(self, name, signed=True, format=None, **kw):
+    def __init__(self, name, signed=True, format=Unspecified, **kw):
         super(Number, self).__init__(name, **kw)
         self.signed = signed
-        if format is not None:
+        if format is not Unspecified:
             assert isinstance(format, unicode)
             self.format = format
 
@@ -312,8 +325,9 @@ class Temporal(Scalar):
 
 class DateTime(Temporal):
     type_ = datetime.datetime
-    regex = re.compile(ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) '
-                       ur'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
+    regex = re.compile(
+        ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) '
+        ur'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
     format = (u'%(year)04i-%(month)02i-%(day)02i '
               u'%(hour)02i:%(minute)02i:%(second)02i')
     used = ('year', 'month', 'day', 'hour', 'minute', 'second')
@@ -321,19 +335,21 @@ class DateTime(Temporal):
 
 class Date(Temporal):
     type_ = datetime.date
-    regex = re.compile(ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$')
+    regex = re.compile(
+        ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$')
     format = u'%(year)04i-%(month)02i-%(day)02i'
     used = ('year', 'month', 'day')
 
 
 class Time(Temporal):
     type_ = datetime.time
-    regex = re.compile(ur'^(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
+    regex = re.compile(
+        ur'^(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
     format = u'%(hour)02i:%(minute)02i:%(second)02i'
     used = ('hour', 'minute', 'second')
 
 
-class _RefNode(Node):
+class _RefNode(_ScalarNode):
     flattenable = False
 
     @lazy_property
@@ -341,26 +357,32 @@ class _RefNode(Node):
         return self.root.el(self.schema.path)
 
     def _get_u(self):
-        return self.target._get_u()
+        return self.target.u
 
     def _set_u(self, ustr):
         if self.schema.writable == 'ignore':
             return
         elif self.schema.writable:
-            self.target._set_u(ustr)
+            self.target.u = ustr
         else:
-            raise ValueError(u'Ref "%s" is not writable.' % self.name)
+            raise TypeError(u'Ref "%s" is not writable.' % self.name)
+
+    u = property(_get_u, _set_u)
+    del _get_u, _set_u
 
     def _get_value(self):
-        return self.target._get_value()
+        return self.target.value
 
     def _set_value(self, value):
         if self.schema.writable == 'ignore':
             return
         elif self.schema.writable:
-            self.target._set_value(value)
+            self.target.value = value
         else:
-            raise ValueError(u'Ref "%s" is not writable.' % self.name)
+            raise TypeError(u'Ref "%s" is not writable.' % self.name)
+
+    value = property(_get_value, _set_value)
+    del _get_value, _set_value
 
 class Ref(Scalar):
     node_type = _RefNode
