@@ -13,8 +13,8 @@ from flatland.util import (
 import flatland.exc as exc
 
 
-__all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean', 'Date', 'Time',
-           'Ref')
+__all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean',
+           'DateTime', 'Date', 'Time', 'Ref')
 
 
 # FIXME
@@ -234,7 +234,6 @@ class Number(Scalar):
     :arg signed: if ``False``, disallow negative numbers
     :arg format: override the class's default serialization format
 
-
     Subclasses provide :attr:`type_` and :attr:`format` attributes for
     :meth:`adapt` and :meth:`serialize`.
 
@@ -299,6 +298,15 @@ class Float(Number):
 # TODO: Decimal
 
 class Boolean(Scalar):
+    """Field type for Python's bool.
+
+
+    :arg name: field name
+    :arg true: The Unicode serialization for True
+    :arg false: The Unicode serialization for False
+
+    """
+
     true_synonyms = (u'on', u'true', u'True', u'1')
     false_synonyms = (u'off', u'false', u'False', u'0', u'')
 
@@ -311,6 +319,17 @@ class Boolean(Scalar):
         self.false = false
 
     def adapt(self, element, value):
+        """Coerce value to bool.
+
+        If value is a string, returns True if the value is in
+        :attr:`true_synonyms`, False if in :attr:`false_synonyms` and
+        None otherwise.
+
+        For non-string values, equivalent to ``bool(value)``.
+        """
+
+        if not isinstance(value, basestring):
+            return bool(value)
         if value == self.true or value in self.true_synonyms:
             return True
         if value == self.false or value in self.false_synonyms:
@@ -318,28 +337,29 @@ class Boolean(Scalar):
         return None
 
     def serialize(self, element, value):
+        """Convert bool(value) to a canonical string representation.
+
+        Will return either :attr:`self.true` or :attr:`self.false`.
+
+        """
         return self.true if value else self.false
 
 class Temporal(Scalar):
+    """Base for datetime-based date and time fields."""
+
     type_ = None
     regex = None
     format = None
     used = None
 
-    def __init__(self, name, **kw):
-        super(Temporal, self).__init__(name, **kw)
-
-        if 'type_' in kw:
-            self.type_ = kw['type_']
-        if 'regex' in kw:
-            self.regex = kw['regex']
-        if 'format' in kw:
-            assert isinstance(kw['format'], unicode)
-            self.format = kw['format']
-        if 'used' in kw:
-            self.used = kw['used']
-
     def adapt(self, element, value):
+        """Coerces value to a native type.
+
+        If *value* is an instance of :attr:`type_`, returns it
+        unchanged.  If a string, attempts to parse it and construct a
+        :attr:`type` as described in the attribute documentation.
+
+        """
         if isinstance(value, self.type_):
             return value
         elif isinstance(value, basestring):
@@ -355,6 +375,13 @@ class Temporal(Scalar):
             raise exc.AdaptationError()
 
     def serialize(self, element, value):
+        """Serializes value to string.
+
+        If *value* is an instance of :attr:`type`, formats it as
+        described in the attribute documentation.  Otherwise returns
+        ``unicode(value)``.
+
+        """
         if isinstance(value, self.type_):
             return self.format % as_mapping(value)
         else:
@@ -362,6 +389,12 @@ class Temporal(Scalar):
 
 
 class DateTime(Temporal):
+    """Field type for Python datetime.datetime.
+
+    Serializes to and from YYYY-MM-DD HH:MM:SS format.
+
+    """
+
     type_ = datetime.datetime
     regex = re.compile(
         ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) '
@@ -372,6 +405,12 @@ class DateTime(Temporal):
 
 
 class Date(Temporal):
+    """Field type for Python datetime.date.
+
+    Serializes to and from YYYY-MM-DD format.
+
+    """
+
     type_ = datetime.date
     regex = re.compile(
         ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$')
@@ -380,6 +419,12 @@ class Date(Temporal):
 
 
 class Time(Temporal):
+    """Field type for Python datetime.time.
+
+    Serializes to and from HH:MM:SS format.
+
+    """
+
     type_ = datetime.time
     regex = re.compile(
         ur'^(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
@@ -395,6 +440,7 @@ class _RefElement(_ScalarElement):
         return self.root.el(self.schema.path)
 
     def _get_u(self):
+        """The Unicode representation of the reference target."""
         return self.target.u
 
     def _set_u(self, ustr):
@@ -409,6 +455,7 @@ class _RefElement(_ScalarElement):
     del _get_u, _set_u
 
     def _get_value(self):
+        """The native value representation of the reference target."""
         return self.target.value
 
     def _set_value(self, value):
@@ -424,6 +471,8 @@ class _RefElement(_ScalarElement):
 
 
 class Ref(Scalar):
+    """A functional reference to another element."""
+
     element_type = _RefElement
 
     def __init__(self, name, path, writable='ignore', sep='.', **kw):

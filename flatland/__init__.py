@@ -19,3 +19,10 @@ from schema import (
     Time,
     )
 import valid
+
+
+__version__ = '0.0.2'
+__version_info__ = (0, 0, 2)
+
+__author__ = 'jason kirtland <jek@discorporate.us>'
+
