@@ -355,15 +355,15 @@ class Mapping(Container):
 
 class _DictNode(Node, dict):
     def __init__(self, schema, **kw):
+        value = kw.pop('value', Unspecified)
         Node.__init__(self, schema, **kw)
-
-        for key, spec in schema.fields.items():
-            dict.__setitem__(self, key, spec.new(parent=self))
 
         if schema.default:
             self.set(schema.default)
-        elif 'value' in kw:
-            self.set(kw['value'])
+        elif value is not Unspecified:
+            self.set(value)
+        else:
+            self._reset()
 
     def __setitem__(self, key, value):
         if not key in self:
@@ -379,6 +379,11 @@ class _DictNode(Node, dict):
 
     def clear(self):
         raise TypeError('Dict keys are immutable.')
+
+    def _reset(self):
+        """Set all child nodes to their defaults."""
+        for key, spec in self.schema.fields.items():
+            dict.__setitem__(self, key, spec.new(parent=self))
 
     def popitem(self):
         raise TypeError('Dict keys are immutable.')
@@ -420,13 +425,8 @@ class _DictNode(Node, dict):
         return r
 
     def set(self, value, policy=None):
-        if value is None:
-            for key in self.iterkeys():
-                self[key] = None
-            return
-
         pairs = util.to_pairs(value)
-        my_fields = set(self.iterkeys())
+        self._reset()
 
         if policy is not None:
             assert policy in ('strict', 'subset', 'duck')
@@ -434,6 +434,7 @@ class _DictNode(Node, dict):
             policy = self.schema.policy
 
         # not really convinced yet that these modes are required
+        # only testing 'subset' policy
 
         seen = set()
         for key, value in pairs:
@@ -496,17 +497,21 @@ class Dict(Mapping):
     """A mapping Container with named members."""
 
     node_type = _DictNode
+    policy = 'subset'
 
     def __init__(self, name, *specs, **kw):
         if not specs:
             raise TypeError()
+
+        policy = kw.pop('policy', Unspecified)
 
         Mapping.__init__(self, name, **kw)
         self.fields = {}
         for spec in specs:
             self.fields[spec.name] = spec
 
-        self.policy = kw.get('policy', 'subset')
+        if policy is not Unspecified:
+            self.policy = policy
         assert self.policy in ('strict', 'subset', 'duck')
 
 
@@ -547,5 +552,4 @@ class Form(Dict):
 
         assert members
         Dict.__init__(self, name, *members, **kw)
-
 

@@ -1,7 +1,7 @@
 from nose.tools import eq_, assert_raises, set_trace
 
 from flatland import schema
-
+from flatland.util import Unspecified
 
 def test_sequence():
     assert_raises(TypeError, schema.container.Sequence, 's',
@@ -345,7 +345,104 @@ def test_dict_update():
     assert_raises(TypeError, n.update, ((u'z', 1),))
     assert_raises(TypeError, n.update, ((u'x', 1), (u'z', 1)))
 
-def test_dict_set():
-    def new_node(**kw):
-        s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-        return s.node(**kw)
+
+class DictSetTest(object):
+    policy = Unspecified
+    x_default = Unspecified
+    y_default = Unspecified
+    empty = None
+
+    def new_schema(self):
+        dictkw, x_kw, y_kw = {}, {}, {}
+        if self.policy is not Unspecified:
+            dictkw['policy'] = self.policy
+        if self.x_default is not Unspecified:
+            x_kw['default'] = self.x_default
+        if self.y_default is not Unspecified:
+            y_kw['default'] = self.y_default
+
+        return schema.Dict(u's',
+                           schema.Integer(u'x', **x_kw),
+                           schema.Integer(u'y', **y_kw),
+                           **dictkw)
+    def new_node(self, schema=Unspecified, **kw):
+        if schema is Unspecified:
+            schema = self.new_schema()
+        return schema.node(**kw)
+
+    def value_dict(self, node):
+        return dict((k, v.value) for k, v in node.iteritems())
+
+    def dict_eq_(self, node, wanted):
+        as_dict = self.value_dict(node)
+        eq_(as_dict, wanted)
+
+    def test_empty_sets(self):
+        n = self.new_node()
+        self.dict_eq_(n, self.empty)
+        n.set({})
+        self.dict_eq_(n, self.empty)
+
+        n = self.new_node(value={})
+        self.dict_eq_(n, self.empty)
+
+        n = self.new_node(value=iter(()))
+        self.dict_eq_(n, self.empty)
+
+        n = self.new_node(value=())
+        self.dict_eq_(n, self.empty)
+
+    def test_half_set(self):
+        wanted = dict(self.empty, x=123)
+
+        n = self.new_node()
+        n.set(dict(x=123))
+        self.dict_eq_(n, wanted)
+
+        n = self.new_node()
+        n.set([(u'x', 123)])
+        self.dict_eq_(n, wanted)
+
+    def test_full_set(self):
+        wanted = {u'x': 101, u'y': 102}
+
+        n = self.new_node()
+        n.set(wanted)
+        self.dict_eq_(n, wanted)
+
+        n = self.new_node()
+        n.set(dict(x=101, y=102))
+        self.dict_eq_(n, wanted)
+
+        n = self.new_node()
+        n.set([(u'x', 101), (u'y', 102)])
+        self.dict_eq_(n, wanted)
+
+        n = self.new_node(value=wanted)
+        self.dict_eq_(n, wanted)
+
+    def test_over_set(self):
+        too_much = {u'x': 1, u'y': 2, u'z': 3}
+
+        n = self.new_node()
+        assert_raises(KeyError, n.set, too_much)
+        assert_raises(KeyError, self.new_node, value=too_much)
+
+    def test_total_miss(self):
+        miss = {u'z': 3}
+
+        n = self.new_node()
+        assert_raises(KeyError, n.set, miss)
+        assert_raises(KeyError, self.new_node, value=miss)
+
+class TestEmptyDictSet(DictSetTest):
+    empty = {u'x': None, u'y': None}
+
+class TestHalfDefaultDictSet(DictSetTest):
+    x_default = 10
+    empty = {u'x': 10, u'y': None}
+
+class TestDefaultDictSet(DictSetTest):
+    x_default = 10
+    y_default = 20
+    empty = {u'x': 10, u'y': 20}
