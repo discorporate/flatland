@@ -6,6 +6,7 @@ from schema import (
     Boolean,
     Compound,
     Date,
+    DateTime,
     DateYYYYMMDD,
     Dict,
     Float,

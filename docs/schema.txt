@@ -1,0 +1,111 @@
+======================
+:mod:`flatland.schema`
+======================
+
+Fields
+------
+
+.. autoclass:: flatland.schema.base.Schema
+   :members:
+
+.. autoclass:: flatland.schema.base.Node
+   :members:
+
+   .. attribute:: schema
+
+      The :class:`Schema` that constructed the element.
+
+   .. attribute:: parent
+
+      An owning element, or None if element is topmost or not a member
+      of a hierarchy..
+
+   .. attribute:: value
+
+      The element's native Python value.  Only validation routines
+      should write this attribute directly: use :meth:`set` to update
+      the element's value.
+
+   .. attribute:: u
+
+      A Unicode representation of the element's value.  As in
+      :attr:`value`, writing directly to this attribute should be
+      restricted to validation routines.
+
+   .. attribute:: errors = []
+
+      A list of validation error messages.
+
+   .. attribute:: warnings = []
+
+      A list of validation warning messages.
+
+
+Simple Fields
+-------------
+
+.. autoclass:: flatland.schema.scalars.Scalar
+   :members:
+
+Strings
+-------
+
+.. currentmodule:: flatland
+
+.. autoclass:: String
+   :show-inheritance:
+   :members:
+
+
+Numbers
+-------
+
+.. autoclass:: flatland.schema.scalars.Number
+   :show-inheritance:
+   :members:
+
+   .. attribute:: type_ = None
+
+   .. attribute:: format = "%s"
+
+.. currentmodule:: flatland
+
+.. autoclass:: Integer
+   :show-inheritance:
+
+   .. attribute:: type_ = int
+
+   .. attribute:: format = "%i"
+
+.. autoclass:: Long
+   :show-inheritance:
+
+   .. attribute:: type_ = long
+
+   .. attribute:: format = "%i"
+
+.. autoclass:: Float
+   :show-inheritance:
+
+   .. attribute:: type_ = float
+
+   .. attribute:: format = "%f"
+
+Temporal
+--------
+
+.. autoclass:: flatland.schema.scalars.Temporal
+   :show-inheritance:
+   :members:
+
+.. currentmodule:: flatland
+
+.. autoclass:: DateTime
+   :show-inheritance:
+
+.. autoclass:: Date
+   :show-inheritance:
+
+.. autoclass:: Time
+   :show-inheritance:
+

@@ -78,17 +78,6 @@ class _ScalarNode(Node):
             self.u = self.schema.serialize(self, value)
         return True
 
-    @property
-    def x(self):
-        """Sugar: xml-escaped string value."""
-        return xml.sax.saxutils.escape(self.u)
-
-    # Sugar: xml-attribute-escaped string value.
-    @property
-    def xa(self):
-        """Sugar: xml-attribute-escaped string value."""
-        return xml.sax.saxutils.quoteattr(self.u)[1:-1]
-
     def _el(self, path):
         if not path:
             return self
@@ -165,17 +154,6 @@ class Scalar(Schema):
     adapt a value to native Python form, and provide a method to
     serialize the native form to a Unicode string.
 
-    Scalar element instances have a number of properties:
-
-      el.u
-        Unicode value representation
-      el.value
-        Native value representation
-      el.x
-        XML-escaped Unicode value representation
-      el.xa
-        XML attribute-escaped Unicode value representation
-
     Elements can be equality compared (==) to their Unicode representation,
     their native representation or other elements.
 
@@ -204,11 +182,27 @@ class Scalar(Schema):
 
 
 class String(Scalar):
+    """A regular old Unicode string.
+
+    :arg name: field name
+    :arg strip: if ``True``, strip leading and trailing whitespace
+                during normalization.
+
+    """
+
     def __init__(self, name, strip=True, **kw):
         super(String, self).__init__(name, **kw)
         self.strip = strip
 
     def adapt(self, node, value):
+        """Return a Unicode representation.
+
+        If ``strip=True``, leading and trailing whitespace will be
+        removed.
+
+        :returns: ``unicode(value)`` or ``None``
+
+        """
         if value is None:
             return None
         elif self.strip:
@@ -217,6 +211,14 @@ class String(Scalar):
             return unicode(value)
 
     def serialize(self, node, value):
+        """Return a Unicode representation.
+
+        If ``strip=True``, leading and trailing whitespace will be
+        removed.
+
+        :returns: ``unicode(value)`` or ``u'' if value == None``
+
+        """
         if value is None:
             return u''
         elif self.strip:
@@ -226,6 +228,18 @@ class String(Scalar):
 
 
 class Number(Scalar):
+    """Base for numeric fields.
+
+    :arg name: field name
+    :arg signed: if ``False``, disallow negative numbers
+    :arg format: override the class's default serialization format
+
+
+    Subclasses provide :attr:`type_` and :attr:`format` attributes for
+    :meth:`adapt` and :meth:`serialize`.
+
+    """
+
     type_ = None
     format = u'%s'
 
@@ -237,6 +251,11 @@ class Number(Scalar):
             self.format = format
 
     def adapt(self, node, value):
+        """Generic numeric coercion.
+
+        Attempt to convert *value* using the class's :attr:`type_` callable.
+
+        """
         if value is None:
             return None
         try:
@@ -250,19 +269,30 @@ class Number(Scalar):
             return native
 
     def serialize(self, node, value):
+        """Generic numeric serialization.
+
+        Converts *value* to a string using Python's string formatting
+        function and the :attr:`format` as the template.  The *value*
+        is provided to the format as a single, positional format
+        argument.
+
+        """
         if type(value) is self.type_:
             return self.format % value
         return unicode(value)
 
 class Integer(Number):
+    """Field type for Python's int."""
     type_ = int
     format = u'%i'
 
 class Long(Number):
+    """Field type for Python's long."""
     type_ = long
     format = u'%i'
 
 class Float(Number):
+    """Field type for Python's float."""
     type_ = float
     format = u'%f'
 
