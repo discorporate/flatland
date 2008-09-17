@@ -21,6 +21,7 @@ TODO:
       to be roundtripable in Python using any encoding
   - consider springy's .from_blank(), a node-tainting construction
     method that uses no defaults at any depth in the tree.
+  - create w/ prefix?  was sure that was still in there.
 
 - validation
   Status: Heavy flux, trying on different approaches and sugars.
