@@ -6,7 +6,10 @@ Fields
 ------
 
 .. autoclass:: flatland.schema.base.Schema
-   :members:
+   :members: new, node
+
+   .. attribute:: validators = []
+
 
 .. autoclass:: flatland.schema.base.Node
    :members:
