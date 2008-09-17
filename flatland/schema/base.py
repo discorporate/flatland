@@ -6,6 +6,20 @@ NoneType = type(None)
 
 
 class Node(object):
+    """TODO
+
+
+    Elements can be supplied to template environments and used to
+    great effect there: elements contain all of the information needed
+    to display or redisplay a HTML form field, including errors
+    specific to a field.
+
+    The :attr:`.u`, :attr:`.x`, :attr:`.xa` and :meth:`el` members are
+    especially useful in templates and have shortened names to help
+    preserve your sanity when used in markup.
+
+    """
+
     flattenable = False
     value = None
     u = u''
