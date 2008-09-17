@@ -57,6 +57,7 @@ class Present(Validator):
 
         return self.failure(node, state, 'missing')
 
+
 class Converted(Validator):
     correct = message(u'%(label)s is not correct.')
 
@@ -65,6 +66,7 @@ class Converted(Validator):
             return True
 
         return self.failure(node, state, 'correct')
+
 
 class ShorterThan(Validator):
     exceeded = message(u'%(label)s may not exceed %(maxlength)s characters.')
@@ -78,6 +80,7 @@ class ShorterThan(Validator):
         return True
 NoLongerThan = ShorterThan
 
+
 class LongerThan(Validator):
     short = message(u'%(label)s must be at least %(minlength)s characters.')
 
@@ -88,6 +91,7 @@ class LongerThan(Validator):
         if len(node.u) < self.minlength:
             return self.failure(node, state, 'short')
         return True
+
 
 class LengthBetween(Validator):
     breached = message(u'%(label)s must be between %(minlength)s and '
@@ -102,6 +106,7 @@ class LengthBetween(Validator):
         if l < self.minlength or l > self.maxlength:
             return self.failure(node, state, 'breached')
         return True
+
 
 class HumanName(Validator):
     # \w but not [\d_]
