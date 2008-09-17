@@ -322,6 +322,7 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
         self[-1].u = value
 
     u = property(_get_u, _set_u)
+    del _get_u, _set_u
 
     def _get_value(self):
         if not self:
@@ -334,6 +335,7 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
         self[-1].value = value
 
     value = property(_get_value, _set_value)
+    del _get_value, _set_value
 
     def __nonzero__(self):
         # FIXME: this is a little troubling, given that it may not

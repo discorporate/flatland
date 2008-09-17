@@ -12,12 +12,16 @@ class _CompoundNode(scalars._ScalarNode, containers._DictNode):
     def _set_u(self, value):
         self.explode(value)
 
+    u = property(_get_u, _set_u)
+
     def _get_value(self):
-        u, value = self.compose()
+        u, value = self.schema.compose(self)
         return value
 
     def _set_value(self, value):
-        self.explode(value)
+        self.schema.explode(value)
+
+    value = property(_get_value, _set_value)
 
     def compose(self):
         return self.schema.compose(self)
@@ -26,7 +30,7 @@ class _CompoundNode(scalars._ScalarNode, containers._DictNode):
         return self.schema.explode(self, value)
 
     def set(self, value):
-        self.explode(value)
+        self.schema.explode(self, value)
 
     def _el(self, path):
         if path:
