@@ -68,7 +68,7 @@ class Node(object):
     def _parse_node_path(self, path, sep):
         if isinstance(path, basestring):
             steps = path.split(sep)
-        elif isinstance(path, (list, tuple)) or hasattr('next', path):
+        elif isinstance(path, (list, tuple)) or hasattr(path, 'next'):
             steps = path
         else:
             return None

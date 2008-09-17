@@ -509,3 +509,10 @@ def test_nested_dict_as_unicode():
     eq_(n.value, {u'd': {u'x': 10}})
     eq_(n.u, u"{u'd': {u'x': u'10'}}")
 
+def test_dict_el():
+    # stub
+    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
+    n = s.node()
+
+    assert n.el('x').name == u'x'
+    assert_raises(KeyError, n.el, 'not_x')
