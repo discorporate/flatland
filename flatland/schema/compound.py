@@ -82,16 +82,16 @@ class DateYYYYMMDD(Compound, scalars.Date):
                           for label, spec
                           in zip(self.used, self.specs)] )
             as_str = self.format % data
-            value = scalars.Date.parse(self, node, as_str)
+            value = scalars.Date.adapt(self, node, as_str)
             return as_str, value
-        except (exc.ParseError, TypeError):
+        except (exc.AdaptationError, TypeError):
             return None, None
 
     def explode(self, node, value):
         try:
-            value = scalars.Date.parse(self, node, value)
+            value = scalars.Date.adapt(self, node, value)
             for attrib, spec in zip(self.used, self.specs):
                 node[spec.name].set(getattr(value, attrib))
-        except (exc.ParseError, TypeError):
+        except (exc.AdaptationError, TypeError):
             for spec in self.specs:
                 node[spec.name].set(None)

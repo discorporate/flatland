@@ -1,3 +1,4 @@
 
-class ParseError(Exception):
-    """TODO"""
+
+class AdaptationError(Exception):
+    """A value could not be coerced into native format."""

@@ -56,8 +56,8 @@ class _ScalarNode(Node):
 
         try:
             # adapt and normalize the value, if possible
-            value = self.value = self.schema.parse(self, value)
-        except exc.ParseError:
+            value = self.value = self.schema.adapt(self, value)
+        except exc.AdaptationError:
             self.value = None
             if value is None:
                 self.u = u''
@@ -183,10 +183,10 @@ class Scalar(Schema):
 
     node_type = _ScalarNode
 
-    def parse(self, node, value):
+    def adapt(self, node, value):
         """Given any value, try to coerce it into native format.
 
-        Returns the native format or raises ParseError on failure.
+        Returns the native format or raises AdaptationError on failure.
 
         """
         raise NotImplementedError()
@@ -208,7 +208,7 @@ class String(Scalar):
         super(String, self).__init__(name, **kw)
         self.strip = strip
 
-    def parse(self, node, value):
+    def adapt(self, node, value):
         if value is None:
             return None
         elif self.strip:
@@ -236,17 +236,17 @@ class Number(Scalar):
             assert isinstance(format, unicode)
             self.format = format
 
-    def parse(self, node, value):
+    def adapt(self, node, value):
         if value is None:
             return None
         try:
             native = self.type_(value)
         except (ValueError, TypeError):
-            raise exc.ParseError()
+            raise exc.AdaptationError()
         else:
             if not self.signed:
                 if native < 0:
-                    raise exc.ParseError()
+                    raise exc.AdaptationError()
             return native
 
     def serialize(self, node, value):
@@ -280,7 +280,7 @@ class Boolean(Scalar):
         self.true = true
         self.false = false
 
-    def parse(self, node, value):
+    def adapt(self, node, value):
         if value == self.true or value in self.true_synonyms:
             return True
         if value == self.false or value in self.false_synonyms:
@@ -309,20 +309,20 @@ class Temporal(Scalar):
         if 'used' in kw:
             self.used = kw['used']
 
-    def parse(self, node, value):
+    def adapt(self, node, value):
         if isinstance(value, self.type_):
             return value
         elif isinstance(value, basestring):
             match = self.regex.match(value)
             if not match:
-                raise exc.ParseError()
+                raise exc.AdaptationError()
             try:
                 args = [int(match.group(f)) for f in self.used]
                 return self.type_(*args)
             except (TypeError, ValueError), ex:
-                raise exc.ParseError()
+                raise exc.AdaptationError()
         else:
-            raise exc.ParseError()
+            raise exc.AdaptationError()
 
     def serialize(self, node, value):
         if isinstance(value, self.type_):
@@ -404,8 +404,8 @@ class Ref(Scalar):
 
         self.writable = writable
 
-    def parse(self, node, value):
-        return node.target.schema.parse(node, value)
+    def adapt(self, node, value):
+        return node.target.schema.adapt(node, value)
 
     def serialize(self, node, value):
         return node.target.schema.serialize(node, value)

@@ -24,7 +24,7 @@ class CreditCardNumber(schema.Long):
         super(CreditCardNumber, self).__init__(name, **kw)
 
 
-    def parse(self, node, value):
+    def adapt(self, node, value):
         if value is None:
             return None
         elif isinstance(value, (int, long)):
@@ -33,7 +33,7 @@ class CreditCardNumber(schema.Long):
         value = _from_string(value)
 
         if value is None:
-            raise exc.ParseError
+            raise exc.AdaptationError()
 
         return value
 
