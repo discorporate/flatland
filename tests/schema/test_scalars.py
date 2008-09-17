@@ -30,7 +30,7 @@ def test_scalar_set_flat():
     """Scalars take on the first value if duplicates are present."""
 
     class SimpleScalar(schema.scalars.Scalar):
-        def parse(self, node, value):
+        def adapt(self, node, value):
             return value
 
     data = ((u'a', 1),
