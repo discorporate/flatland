@@ -19,6 +19,14 @@ def test_list_linear_set_scalars():
     eq_(len(n), len(pairs))
     eq_(n, list(pair[1] for pair in pairs))
 
+def test_list_set_empty():
+    s = schema.List('l', schema.String('s'))
+    n = s.node()
+
+    pairs = ((u'l_galump', u'foo'), (u'l_snorgle', u'bar'))
+    n.set_flat(pairs)
+    eq_(len(n), 0)
+    eq_(n, [])
 
 def test_list_lossy_set_scalars():
     s = schema.List('l', schema.String('s'))
@@ -200,6 +208,26 @@ def test_list_unimplemented():
     assert_raises(TypeError, n.sort)
     assert_raises(TypeError, n.reverse)
 
+def test_list_slots():
+    s = schema.List('l', schema.String('s'))
+    n = s.node(value=[u'x'])
+    for slot in n._slots:
+        # don't really care what it says, just no crashy.
+        assert repr(slot)
+        assert slot == u'x'
+        assert slot != u'y'
+
+def test_list_u():
+    s = schema.List('l', schema.String('s'))
+    n = s.node()
+    n[:] = [u'x', u'x']
+    eq_(n.u, u"[u'x', u'x']")
+
+def test_list_value():
+    s = schema.List('l', schema.String('s'))
+    n = s.node()
+    n[:] = [u'x', u'x']
+    eq_(n.value, [u'x', u'x'])
 
 def test_array_pruned_set_scalars():
     s = schema.Array(schema.String('s'))
@@ -271,6 +299,30 @@ def test_array_mutation():
     n[:] = u'abc'
     eq_(list(n), [u'a', u'b', u'c'])
     eq_(n, u'c')
+
+    n.insert(1, u'z')
+    eq_(list(n), [u'a', u'z', u'b', u'c'])
+    eq_(n, u'c')
+
+    # bogosity
+    n.u = u'z'
+    eq_(list(n), [u'a', u'z', u'b', u'c', u'z'])
+
+    # bogosity part 2
+    del n[:]
+    n.value = u'abc'
+    eq_(list(n), [u'abc'])
+
+def test_array_el():
+    s = schema.Array(schema.String('s'))
+    n = s.node()
+    n[:] = u'abc'
+    eq_(list(n), [u'a', u'b', u'c'])
+
+    eq_(n.el('0'), u'a')
+    eq_(n.el('2'), u'c')
+
+    assert_raises(KeyError, n.el, 'a')
 
 def test_dict():
     assert_raises(TypeError, schema.Dict, 's')
@@ -492,6 +544,26 @@ class TestDefaultDictSet(DictSetTest):
     x_default = 10
     y_default = 20
     empty = {u'x': 10, u'y': 20}
+
+def test_dict_valid_policies():
+    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
+    n = s.node()
+
+    assert_raises(AssertionError, n.set, {}, policy='bogus')
+
+def test_dict_strict():
+    # a mini test, this policy thing may get whacked
+    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'),
+                    policy='strict')
+
+    n = s.node()
+    n.set({u'x': 123, u'y': 456})
+
+    n = s.node()
+    assert_raises(TypeError, n.set, {u'x': 123})
+
+    n = s.node()
+    assert_raises(KeyError, n.set, {u'x': 123, u'y': 456, u'z': 7})
 
 def test_dict_as_unicode():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))

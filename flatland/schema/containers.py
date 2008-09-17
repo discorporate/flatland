@@ -31,7 +31,7 @@ def _argument_to_node(index):
     @util.decorator
     def transform(fn, self, *args, **kw):
         target = args[index]
-        if target is not None and not isinstance(target, Node):
+        if not isinstance(target, Node):
             args = list(args)
             args[index] = self.schema.spec.new(value=target)
         return fn(self, *args, **kw)
@@ -67,22 +67,17 @@ class _SequenceNode(_ContainerNode, list):
 
     @_argument_to_node(1)
     def insert(self, index, value):
-        list.insert(index, value)
+        list.insert(self, index, value)
 
     def _el(self, path):
         if path and path[0].isdigit():
             idx = int(path[0])
             if idx < len(self):
                 return self[idx]._el(path[1:])
+        # FIXME: is this reachable?
         elif not path:
             return self
         raise KeyError()
-
-    @property
-    def u(self):
-        return u'[%s]' % ', '.join(value.u if isinstance(value, _ContainerNode)
-                                           else repr(value.u)
-                                   for value in self)
 
     @property
     def value(self):
@@ -246,6 +241,12 @@ class _ListNode(_SequenceNode):
             list.append(self, slot)
             slot.node.set_flat(slots[slot_index], sep)
 
+    @property
+    def u(self):
+        return u'[%s]' % ', '.join(
+            value.u if isinstance(value.node, _ContainerNode)
+                    else repr(value.u)
+            for value in self)
 
 class _Slot(_ContainerNode):
     schema = Schema(None)

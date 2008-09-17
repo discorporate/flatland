@@ -131,9 +131,6 @@ class Node(object):
                 return True
         validators = self.schema.validators
 
-        if not isinstance(validators, (tuple, list)):
-            validators = validators,
-
         valid = True
         for v in validators:
             valid &= bool(v(self, state))

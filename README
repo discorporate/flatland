@@ -40,7 +40,9 @@ TODO:
 
 - test suite
   Status: getting better
-  - flesh out, port from 'springy'
+  - schema coverage pretty good, need compound fields
+
+
 
 - springy / formmodel bitbucket
   Old things and patterns to consider

@@ -69,3 +69,31 @@ def test_custom_validation():
     assert not f.validate()
     assert f['age'].errors == ['age must be at least 30.']
 
+
+
+def test_child_validation():
+    s = fl.Dict('s', fl.Integer('x', validators=[valid.Present()]))
+    n = s.node()
+
+    assert not n.validate()
+
+    n.set({u'x': 10})
+
+    assert n.validate()
+
+def test_nested_validation():
+    s = fl.Dict('d1',
+                fl.Integer('x', validators=[valid.Present()]),
+                fl.Dict('d2',
+                        fl.Integer('x2', validators=[valid.Present()])))
+    n = s.node()
+
+    assert not n.validate()
+
+    n['x'].set(1)
+    assert not n.validate()
+    assert n.validate(recurse=False)
+
+    n.el('d2.x2').set(2)
+    assert n.validate()
+
