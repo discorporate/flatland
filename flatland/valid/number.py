@@ -1,53 +1,55 @@
 from __future__ import division
+import types
 from base import Validator, message
 import flatland.util as util
-import types
+
+
 
 class NANPnxx(Validator):
     """Integer"""
-    
-    def validate(self, node, state):
-        if node.value is None:
+
+    def validate(self, element, state):
+        if element.value is None:
             return False
 
-        nxx = node.value
+        nxx = element.value
 
         if nxx < 200 or nxx in (311, 411, 511, 611, 711, 811, 911,
                                 555, 990, 959, 958, 950, 700,
                                 976,):
             return False
 
-        node.u = unicode(nxx)
+        element.u = unicode(nxx)
         return True
 
 class NANPnpa_nxx(Validator):
-    "A compound validator; checks the combined validity of npa and nxx nodes."
-    
+    "Validates npa and nxx compound elements."
+
     incomplete = message(False)
     invalid = message(u'The %(label)s can not be verified.')
-        
-    def __init__(self, npa_node, nxx_node, errors_to=None,
+
+    def __init__(self, npa_element, nxx_element, errors_to=None,
                  lookup='aq', method='valid_npanxx'):
-        assert isinstance(npa_node, basestring)
-        assert isinstance(nxx_node, basestring)
+        assert isinstance(npa_element, basestring)
+        assert isinstance(nxx_element, basestring)
         assert isinstance(errors_to, (basestring, types.NoneType))
 
         super(NANPnpa_nxx, self).__init__()
 
-        self.npa = npa_node
-        self.nxx = nxx_node
+        self.npa = npa_element
+        self.nxx = nxx_element
         self.lookup = lookup
         self.method = method
 
-    def validate(self, node, state):
-        npa = node.el(self.npa).value
-        nxx = node.el(self.nxx).value
+    def validate(self, element, state):
+        npa = element.el(self.npa).value
+        nxx = element.el(self.nxx).value
 
         if self.errors_to:
-            err = node.el(self.errors_to)
+            err = element.el(self.errors_to)
         else:
-            err = node
-        
+            err = element
+
         if npa is None or nxx is None:
             return self.failure(err, state, 'incomplete')
 
@@ -60,24 +62,23 @@ class NANPnpa_nxx(Validator):
 
         # catch exceptions here?
         valid = getattr(lookup, self.method)(npa, nxx)
-        
+
         if not valid:
             return self.failure(err, state, 'invalid')
 
         return true
-        
+
 
 class Luhn10(Validator):
-    """Int or Long"""    
+    """Int or Long"""
     invalid = message('The %(label)s was not entered correctly.')
 
-    def validate(self, node, state):
-        num = node.value
+    def validate(self, element, state):
+        num = element.value
         if num is None:
-            return self.failure(node, state, 'invalid')
+            return self.failure(element, state, 'invalid')
 
         if util.luhn10(num):
             return True
 
-        return self.failure(node, state, 'invalid')
-        
+        return self.failure(element, state, 'invalid')

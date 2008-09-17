@@ -2,21 +2,21 @@
 :mod:`flatland.schema`
 ======================
 
-Fields
-------
+Field Schemas and Elements
+--------------------------
 
-.. autoclass:: flatland.schema.base.Schema
-   :members: new, node
+.. autoclass:: flatland.schema.base.FieldSchema
+   :members: new
 
    .. attribute:: validators = []
 
 
-.. autoclass:: flatland.schema.base.Node
+.. autoclass:: flatland.schema.base.Element
    :members:
 
    .. attribute:: schema
 
-      The :class:`Schema` that constructed the element.
+      The :class:`FieldSchema` that constructed the element.
 
    .. attribute:: parent
 

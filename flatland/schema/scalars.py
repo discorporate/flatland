@@ -4,7 +4,7 @@ import datetime
 import re
 import xml.sax.saxutils
 
-from .base import Schema, Node
+from .base import FieldSchema, Element
 from flatland.util import (
     Unspecified,
     as_mapping,
@@ -20,13 +20,13 @@ __all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean', 'Date', 'Time',
 # FIXME
 unspecified = object()
 
-class _ScalarNode(Node):
+class _ScalarElement(Element):
     flattenable = True
 
     def __init__(self, schema, **kw):
         value = kw.pop('value', unspecified)
 
-        Node.__init__(self, schema, **kw)
+        Element.__init__(self, schema, **kw)
 
         if value is not unspecified:
             self.set(value)
@@ -91,27 +91,27 @@ class _ScalarNode(Node):
 
     def __eq__(self, other):
         """
-        Overloaded comparison: when comparing nodes, compare name and
-        value. When comparing non-nodes, coerce our value into something
-        comparable.
+        Overloaded comparison: when comparing elements, compare name
+        and value. When comparing non-elements, coerce our value into
+        something comparable.
         """
 
         # ugh
-        if isinstance(self, _RefNode) and isinstance(other, Node):
+        if isinstance(self, _RefElement) and isinstance(other, Element):
             return self.target is other
-        if ((type(self) is type(other)) or isinstance(other, _ScalarNode)):
+        if ((type(self) is type(other)) or isinstance(other, _ScalarElement)):
             if self.name == other.name:
                 if self.u == other.u:
                     if self.value == other.value:
                         return True
             return False
-        elif isinstance(other, _RefNode):
+        elif isinstance(other, _RefElement):
             if self.path == other.schema.path:
                 if self.u == other.u:
                     if self.value == other.value:
                         return True
             return False
-        elif isinstance(other, Node):
+        elif isinstance(other, Element):
             return NotImplemented
         else:
             if isinstance(other, basestring):
@@ -132,7 +132,7 @@ class _ScalarNode(Node):
         if self.schema.optional and self.u == u'':
             return True
         else:
-            return super(_ScalarNode, self)._validate(state, validators)
+            return super(_ScalarElement, self)._validate(state, validators)
 
     def __unicode__(self):
         return self.u
@@ -142,7 +142,7 @@ class _ScalarNode(Node):
             type(self.schema).__name__, self.name, self.value)
 
 
-class Scalar(Schema):
+class Scalar(FieldSchema):
     """The most common type, a single value such as a string or number.
 
     Scalar subclasses are responsible for translating most data types
@@ -154,14 +154,14 @@ class Scalar(Schema):
     adapt a value to native Python form, and provide a method to
     serialize the native form to a Unicode string.
 
-    Elements can be equality compared (==) to their Unicode representation,
-    their native representation or other elements.
+    Elements can be equality compared (==) to their Unicode
+    representation, their native representation or other elements.
 
     """
 
-    node_type = _ScalarNode
+    element_type = _ScalarElement
 
-    def adapt(self, node, value):
+    def adapt(self, element, value):
         """Given any value, try to coerce it into native format.
 
         Returns the native format or raises AdaptationError on failure.
@@ -169,7 +169,7 @@ class Scalar(Schema):
         """
         raise NotImplementedError()
 
-    def serialize(self, node, value):
+    def serialize(self, element, value):
         """Given any value, coerce it into a Unicode representation.
 
         No special effort is made to coerce values not of native or
@@ -194,7 +194,7 @@ class String(Scalar):
         super(String, self).__init__(name, **kw)
         self.strip = strip
 
-    def adapt(self, node, value):
+    def adapt(self, element, value):
         """Return a Unicode representation.
 
         If ``strip=True``, leading and trailing whitespace will be
@@ -210,7 +210,7 @@ class String(Scalar):
         else:
             return unicode(value)
 
-    def serialize(self, node, value):
+    def serialize(self, element, value):
         """Return a Unicode representation.
 
         If ``strip=True``, leading and trailing whitespace will be
@@ -250,7 +250,7 @@ class Number(Scalar):
             assert isinstance(format, unicode)
             self.format = format
 
-    def adapt(self, node, value):
+    def adapt(self, element, value):
         """Generic numeric coercion.
 
         Attempt to convert *value* using the class's :attr:`type_` callable.
@@ -268,7 +268,7 @@ class Number(Scalar):
                     raise exc.AdaptationError()
             return native
 
-    def serialize(self, node, value):
+    def serialize(self, element, value):
         """Generic numeric serialization.
 
         Converts *value* to a string using Python's string formatting
@@ -310,14 +310,14 @@ class Boolean(Scalar):
         self.true = true
         self.false = false
 
-    def adapt(self, node, value):
+    def adapt(self, element, value):
         if value == self.true or value in self.true_synonyms:
             return True
         if value == self.false or value in self.false_synonyms:
             return False
         return None
 
-    def serialize(self, node, value):
+    def serialize(self, element, value):
         return self.true if value else self.false
 
 class Temporal(Scalar):
@@ -339,7 +339,7 @@ class Temporal(Scalar):
         if 'used' in kw:
             self.used = kw['used']
 
-    def adapt(self, node, value):
+    def adapt(self, element, value):
         if isinstance(value, self.type_):
             return value
         elif isinstance(value, basestring):
@@ -354,7 +354,7 @@ class Temporal(Scalar):
         else:
             raise exc.AdaptationError()
 
-    def serialize(self, node, value):
+    def serialize(self, element, value):
         if isinstance(value, self.type_):
             return self.format % as_mapping(value)
         else:
@@ -387,7 +387,7 @@ class Time(Temporal):
     used = ('hour', 'minute', 'second')
 
 
-class _RefNode(_ScalarNode):
+class _RefElement(_ScalarElement):
     flattenable = False
 
     @lazy_property
@@ -424,18 +424,18 @@ class _RefNode(_ScalarNode):
 
 
 class Ref(Scalar):
-    node_type = _RefNode
+    element_type = _RefElement
 
     def __init__(self, name, path, writable='ignore', sep='.', **kw):
         super(Ref, self).__init__(name, **kw)
 
-        self.path = self.node_type._parse_node_path(path, sep)
+        self.path = self.element_type._parse_element_path(path, sep)
         assert self.path is not None
 
         self.writable = writable
 
-    def adapt(self, node, value):
-        return node.target.schema.adapt(node, value)
+    def adapt(self, element, value):
+        return element.target.schema.adapt(element, value)
 
-    def serialize(self, node, value):
-        return node.target.schema.serialize(node, value)
+    def serialize(self, element, value):
+        return element.target.schema.serialize(element, value)

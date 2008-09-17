@@ -1,6 +1,7 @@
+import re
 from flatland.util import re_ucompile
 from base import Validator, message
-import re
+
 
 class NANPphone(Validator):
     invalid = message(u'The %(label)s is not valid.')
@@ -16,27 +17,26 @@ class NANPphone(Validator):
         super(NANPphone, self).__init__()
         self.extensions = extensions
 
-    def validate(self, node, state):
-        value = node.u if node.value is None else node.value
+    def validate(self, element, state):
+        value = element.u if element.value is None else element.value
         value = self.re_cleaner.sub('', value)
 
         if value == u'':
-            return self.failure(node, state, 'invalid')
+            return self.failure(element, state, 'invalid')
 
         if not self.re_lowbit.match(value):
             # Translate to single-byte numbers.
             value = unicode(str(long(value)))
 
         if len(value) < 10:
-            return self.failure(node, state, 'invalid')
+            return self.failure(element, state, 'invalid')
         elif len(value) == 10 or self.extensions == 'strip':
             value = self.fmt_line % (value[0:3], value[3:6], value[6:10])
         else:
             if not self.extensions:
-                return self.failure(node, state, 'noext')
+                return self.failure(element, state, 'noext')
             value = self.fmt_ext % (value[0:3], value[3:6], value[6:10],
                                     value[10:])
 
-        node.set(value)
+        element.set(value)
         return True
-

@@ -24,16 +24,16 @@ class Age(fl.Integer):
             if maxage is not None:
                 self.maxage = maxage
 
-        def validate(self, node, state):
-            age = node.value
+        def validate(self, element, state):
+            age = element.value
             if age < self.minage:
-                return self.failure(node, state, 'too_young')
+                return self.failure(element, state, 'too_young')
             elif age == self.minage:
-                return self.failure(node, state, 'at_min')
+                return self.failure(element, state, 'at_min')
             elif age == self.maxage:
-                return self.failure(node, state, 'at_max')
+                return self.failure(element, state, 'at_max')
             elif age > self.maxage:
-                return self.failure(node, state, 'too_old')
+                return self.failure(element, state, 'too_old')
             return True
 
     validators = (valid.Present(),
@@ -73,7 +73,7 @@ def test_custom_validation():
 
 def test_child_validation():
     s = fl.Dict('s', fl.Integer('x', validators=[valid.Present()]))
-    n = s.node()
+    n = s.new()
 
     assert not n.validate()
 
@@ -86,7 +86,7 @@ def test_nested_validation():
                 fl.Integer('x', validators=[valid.Present()]),
                 fl.Dict('d2',
                         fl.Integer('x2', validators=[valid.Present()])))
-    n = s.node()
+    n = s.new()
 
     assert not n.validate()
 

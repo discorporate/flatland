@@ -3,8 +3,8 @@ from __future__ import absolute_import
 import re
 from collections import defaultdict
 
-from .base import Schema, Node
-from .scalars import Scalar, _ScalarNode
+from .base import FieldSchema, Element
+from .scalars import Scalar, _ScalarElement
 from flatland import util
 from flatland.util import Unspecified
 
@@ -12,18 +12,18 @@ from flatland.util import Unspecified
 __all__ = 'List', 'Array', 'Dict'
 
 
-class _ContainerNode(Node):
-    """Holds other nodes."""
+class _ContainerElement(Element):
+    """Holds other elements."""
 
 
-class Container(Schema):
+class Container(FieldSchema):
     """Holds other schema items."""
 
-    node_type = _ContainerNode
+    element_type = _ContainerElement
 
 
-def _argument_to_node(index):
-    """Argument filter, transforms a positional argument to a Node.
+def _argument_to_element(index):
+    """Argument filter, transforms a positional argument to a Element.
 
     Index counts up from 0, not including self.
 
@@ -31,19 +31,19 @@ def _argument_to_node(index):
     @util.decorator
     def transform(fn, self, *args, **kw):
         target = args[index]
-        if not isinstance(target, Node):
+        if not isinstance(target, Element):
             args = list(args)
             args[index] = self.schema.spec.new(value=target)
         return fn(self, *args, **kw)
     return transform
 
 
-class _SequenceNode(_ContainerNode, list):
+class _SequenceElement(_ContainerElement, list):
     def set(self, iterable):
         del self[:]
         self.extend(iterable)
 
-    @_argument_to_node(0)
+    @_argument_to_element(0)
     def append(self, value):
         list.append(self, value)
 
@@ -54,18 +54,18 @@ class _SequenceNode(_ContainerNode, list):
     # the slice protocol really uglies this up
     def __setitem__(self, index, value):
         if isinstance(index, slice):
-            value = list(item if isinstance(item, Node)
+            value = list(item if isinstance(item, Element)
                          else self.schema.spec.new(value=item)
                          for item in value)
         else:
-            if not isinstance(value, Node):
+            if not isinstance(value, Element):
                 value = self.schema.spec.new(value=value)
         list.__setitem__(self, index, value)
 
     def __setslice__(self, i, j, value):
         self.__setitem__(slice(i, j), value)
 
-    @_argument_to_node(1)
+    @_argument_to_element(1)
     def insert(self, index, value):
         list.insert(self, index, value)
 
@@ -87,16 +87,16 @@ class _SequenceNode(_ContainerNode, list):
 class Sequence(Container):
     """Base of sequence-like Containers."""
 
-    node_type = _SequenceNode
+    element_type = _SequenceElement
 
     def __init__(self, name, **kw):
         super(Sequence, self).__init__(name, **kw)
         self.spec = None
 
 
-class _ListNode(_SequenceNode):
+class _ListElement(_SequenceElement):
     def __init__(self, schema, parent=None, value=Unspecified):
-        _SequenceNode.__init__(self, schema, parent=parent)
+        _SequenceElement.__init__(self, schema, parent=parent)
 
         if value is not Unspecified:
             self.extend(value)
@@ -108,17 +108,17 @@ class _ListNode(_SequenceNode):
         wrapper = self.schema.slot_type(len(self), self)
         if value is Unspecified:
             member = self.schema.spec.new(parent=wrapper, **kw)
-        elif isinstance(value, Node):
+        elif isinstance(value, Element):
             member = value
             member.parent=wrapper
         else:
             member = self.schema.spec.new(parent=wrapper, value=value, **kw)
-        wrapper.node = member
+        wrapper.element = member
         return wrapper
 
     @property
     def _slots(self):
-        """An iterator of the ListNode's otherwise hidden Slots."""
+        """An iterator of the ListElement's otherwise hidden Slots."""
         return list.__iter__(self)
 
     def append(self, value):
@@ -130,8 +130,8 @@ class _ListNode(_SequenceNode):
 
     def __getitem__(self, index):
         if isinstance(index, slice):
-            return [item.node for item in list.__getitem__(self, index)]
-        return list.__getitem__(self, index).node
+            return [item.element for item in list.__getitem__(self, index)]
+        return list.__getitem__(self, index).element
 
     def __getslice__(self, i, j):
         return self.__getitem__(slice(i, j))
@@ -151,7 +151,7 @@ class _ListNode(_SequenceNode):
     def __iter__(self):
         return list.__iter__(self)
         #for i in list.__iter__(self):
-        #    yield i.node
+        #    yield i.element
 
     # index, count, __contains__
     # - handled by __eq__ proxy on Slot
@@ -185,8 +185,8 @@ class _ListNode(_SequenceNode):
     reverse = sort
 
     def _renumber(self):
-        for idx, node in enumerate(self):
-            node.name = idx
+        for idx, element in enumerate(self):
+            element.name = idx
 
     def apply(self, func, data=None, depth_first=False):
         if depth_first:
@@ -194,8 +194,8 @@ class _ListNode(_SequenceNode):
         else:
             r = [func(self, data)]
 
-        for child in [node.apply(func, data)
-                      for node in list.__iter__(self)]:
+        for child in [element.apply(func, data)
+                      for element in list.__iter__(self)]:
             r.extend(child)
 
         if depth_first:
@@ -239,22 +239,22 @@ class _ListNode(_SequenceNode):
         for slot_index in sorted(slots):
             slot = self._new_slot()
             list.append(self, slot)
-            slot.node.set_flat(slots[slot_index], sep)
+            slot.element.set_flat(slots[slot_index], sep)
 
     @property
     def u(self):
         return u'[%s]' % ', '.join(
-            value.u if isinstance(value.node, _ContainerNode)
+            value.u if isinstance(value.element, _ContainerElement)
                     else repr(value.u)
             for value in self)
 
-class _Slot(_ContainerNode):
-    schema = Schema(None)
+class _Slot(_ContainerElement):
+    schema = FieldSchema(None)
 
     def __init__(self, name, parent):
         self.name = name
         self.parent = parent
-        self.node = None
+        self.element = None
 
     def _set_name(self, name):
         if isinstance(name, int):
@@ -265,20 +265,20 @@ class _Slot(_ContainerNode):
 
     @property
     def u(self):
-        return self.node.u
+        return self.element.u
 
     @property
     def value(self):
-        return self.node.value
+        return self.element.value
 
     def __repr__(self):
-        return u'<ListSlot[%s] for %r>' % (self.name, self.node)
+        return u'<ListSlot[%s] for %r>' % (self.name, self.element)
 
     def __eq__(self, other):
-        return self.node == other
+        return self.element == other
 
     def __ne__(self, other):
-        return self.node != other
+        return self.element != other
 
     def apply(self, func, data=None, depth_first=False):
         if depth_first:
@@ -286,7 +286,7 @@ class _Slot(_ContainerNode):
         else:
             r = [func(self, data)]
 
-        r.extend(self.node.apply(func, data))
+        r.extend(self.element.apply(func, data))
 
         if depth_first:
             r.extend([func(self, data)])
@@ -294,7 +294,7 @@ class _Slot(_ContainerNode):
 
 class List(Sequence):
     """An ordered, homogeneous Container."""
-    node_type = _ListNode
+    element_type = _ListElement
     slot_type = _Slot
 
     def __init__(self, name, *schema, **kw):
@@ -317,7 +317,7 @@ class List(Sequence):
             self.spec = schema[0]
 
 
-class _ArrayNode(_SequenceNode, _ScalarNode):
+class _ArrayElement(_SequenceElement, _ScalarElement):
     def set(self, value):
         self.append(value)
 
@@ -349,7 +349,7 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
 
     def __nonzero__(self):
         # FIXME: this is a little troubling, given that it may not
-        # match the appearance of the node in a scalar context.
+        # match the appearance of the element in a scalar context.
         # (further: list context? scalar context? what is this, perl?)
         return len(self)
 
@@ -378,7 +378,7 @@ class Array(Sequence, Scalar):
 
     """
 
-    node_type = _ArrayNode
+    element_type = _ArrayElement
 
     def __init__(self, array_of, **kw):
         assert isinstance(array_of, Scalar)
@@ -391,10 +391,10 @@ class Mapping(Container):
     """Base of mapping-like Containers."""
 
 
-class _DictNode(_ContainerNode, dict):
+class _DictElement(_ContainerElement, dict):
     def __init__(self, schema, **kw):
         value = kw.pop('value', Unspecified)
-        Node.__init__(self, schema, **kw)
+        Element.__init__(self, schema, **kw)
 
         if schema.default:
             self.set(schema.default)
@@ -419,7 +419,7 @@ class _DictNode(_ContainerNode, dict):
         raise TypeError('Dict keys are immutable.')
 
     def _reset(self):
-        """Set all child nodes to their defaults."""
+        """Set all child elements to their defaults."""
         for key, spec in self.schema.fields.items():
             dict.__setitem__(self, key, spec.new(parent=self))
 
@@ -532,7 +532,7 @@ class _DictNode(_ContainerNode, dict):
 
     @property
     def u(self):
-        pairs = ((key, value.u if isinstance(value, _ContainerNode)
+        pairs = ((key, value.u if isinstance(value, _ContainerElement)
                                else repr(value.u))
                   for key, value in self.iteritems())
         return u'{%s}' % ', '.join("%r: %s" % (k, v) for k, v in pairs)
@@ -544,7 +544,7 @@ class _DictNode(_ContainerNode, dict):
 class Dict(Mapping):
     """A mapping Container with named members."""
 
-    node_type = _DictNode
+    element_type = _DictElement
     policy = 'subset'
 
     def __init__(self, name, *specs, **kw):

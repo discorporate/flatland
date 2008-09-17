@@ -11,13 +11,13 @@ def message(format, bucket='error', result=None):
 
 class Validator(object):
 
-    def __call__(self, node, state):
-        return self.validate(node, state)
+    def __call__(self, element, state):
+        return self.validate(element, state)
 
-    def validate(self, node, state):
+    def validate(self, element, state):
         return False
 
-    def failure(self, node, state, key=None, message=None):
+    def failure(self, element, state, key=None, message=None):
         assert key or message
         if key and not hasattr(self, key):
             raise AssertionError('Message key "%s" not defined on %s.' %
@@ -26,9 +26,9 @@ class Validator(object):
             if message is False:
                 return False
             elif callable(message):
-                node.add_error(message(node, state))
+                element.add_error(message(element, state))
             else:
-                node.add_error(message)
+                element.add_error(message)
             return False
 
         format, bucket, result = getattr(self, key)
@@ -36,14 +36,14 @@ class Validator(object):
         if format is False:
             return result
         elif callable(format):
-            message = format(node, state)
+            message = format(element, state)
         else:
-            message = format % as_cascaded_mapping(node, self)
+            message = format % as_cascaded_mapping(element, self)
 
         if bucket == 'error':
-            node.add_error(message)
+            element.add_error(message)
         elif bucket == 'warning':
-            node.add_warning(message)
+            element.add_warning(message)
 
         return result
 
@@ -51,21 +51,21 @@ class Validator(object):
 class Present(Validator):
     missing = message(u'%(label)s may not be blank.')
 
-    def validate(self, node, state):
-        if node.u != u'':
+    def validate(self, element, state):
+        if element.u != u'':
             return True
 
-        return self.failure(node, state, 'missing')
+        return self.failure(element, state, 'missing')
 
 
 class Converted(Validator):
     correct = message(u'%(label)s is not correct.')
 
-    def validate(self, node, state):
-        if node.value is not None:
+    def validate(self, element, state):
+        if element.value is not None:
             return True
 
-        return self.failure(node, state, 'correct')
+        return self.failure(element, state, 'correct')
 
 
 class ShorterThan(Validator):
@@ -74,9 +74,9 @@ class ShorterThan(Validator):
     def __init__(self, maxlength):
         self.maxlength = maxlength
 
-    def validate(self, node, state):
-        if len(node.u) > self.maxlength:
-            return self.failure(node, state, 'exceeded')
+    def validate(self, element, state):
+        if len(element.u) > self.maxlength:
+            return self.failure(element, state, 'exceeded')
         return True
 NoLongerThan = ShorterThan
 
@@ -87,9 +87,9 @@ class LongerThan(Validator):
     def __init__(self, minlength):
         self.minlength = minlength
 
-    def validate(self, node, state):
-        if len(node.u) < self.minlength:
-            return self.failure(node, state, 'short')
+    def validate(self, element, state):
+        if len(element.u) < self.minlength:
+            return self.failure(element, state, 'short')
         return True
 
 
@@ -101,10 +101,10 @@ class LengthBetween(Validator):
         self.minlength = minlength
         self.maxlength = maxlength
 
-    def validate(self, node, state):
-        l = len(node.u)
+    def validate(self, element, state):
+        l = len(element.u)
         if l < self.minlength or l > self.maxlength:
-            return self.failure(node, state, 'breached')
+            return self.failure(element, state, 'breached')
         return True
 
 

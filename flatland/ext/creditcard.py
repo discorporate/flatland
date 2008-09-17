@@ -24,7 +24,7 @@ class CreditCardNumber(schema.Long):
         super(CreditCardNumber, self).__init__(name, **kw)
 
 
-    def adapt(self, node, value):
+    def adapt(self, element, value):
         if value is None:
             return None
         elif isinstance(value, (int, long)):
@@ -37,7 +37,7 @@ class CreditCardNumber(schema.Long):
 
         return value
 
-    def serialize(self, node, value):
+    def serialize(self, element, value):
         if value is None:
             return u''
         elif isinstance(value, long):
@@ -55,8 +55,8 @@ class CreditCardNumber(schema.Long):
         pass
 
     class AcceptedType(valid.Validator):
-        def _formatter(node, state):
-            accepted = node.schema.accepted
+        def _formatter(element, state):
+            accepted = element.schema.accepted
             if len(accepted) > 2:
                 types = (', '.join(label for label, in accepted) +
                        ', and ' + accepted[-1][0])
@@ -69,12 +69,12 @@ class CreditCardNumber(schema.Long):
 
         not_accepted = valid.message(_formatter)
 
-        def validate(self, node, state):
-            type_ = _card_type(node.value)
-            if type_ in node.schema.accepted:
+        def validate(self, element, state):
+            type_ = _card_type(element.value)
+            if type_ in element.schema.accepted:
                 return True
 
-            return self.failure(node, state, 'not_accepted')
+            return self.failure(element, state, 'not_accepted')
 
 _re_visa = re.compile(r'^4\d{12}\d{3}?$')
 _re_mc   = re.compile(r'^5[1-5]\d{14}$')

@@ -9,7 +9,7 @@ def test_ref_binops():
                     schema.Integer('main'),
                     schema.Ref('aux', 'main'),
                     schema.Integer('other'))
-    n = s.node()
+    n = s.new()
     n['main'].set(5)
 
     assert n['aux'] == u'5'
@@ -36,7 +36,7 @@ def test_ref_writable_ignore():
                     schema.Integer('main'),
                     schema.Ref('aux', 'main'))
 
-    n = s.node()
+    n = s.new()
     n['aux'] = 6
     assert n['main'] == None
 
@@ -45,7 +45,7 @@ def test_ref_writable():
                     schema.Integer('main'),
                     schema.Ref('aux', 'main', writable=True))
 
-    n = s.node()
+    n = s.new()
     n['aux'] = 6
     assert n['main'] == 6
 
@@ -54,7 +54,7 @@ def test_ref_not_writable():
                     schema.Integer('main'),
                     schema.Ref('aux', 'main', writable=False))
 
-    n = s.node()
+    n = s.new()
     assert_raises(TypeError, n['aux'].set, 6)
 
 

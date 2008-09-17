@@ -7,12 +7,12 @@ __all__ = 'Form',
 
 
 class MetaForm(type):
-    """Form() returns a Node, not a Form(Schema) instance."""
+    """Form() returns an Element, not a Form(FieldSchema) instance."""
 
     def __call__(cls, *args, **kw):
         form = cls.__new__(cls)
         form.__init__(*args, **kw)
-        return form.node()
+        return form.new()
 
 
 class Form(containers.Dict):

@@ -1,17 +1,18 @@
+from nose.tools import eq_
 import flatland.schema as schema
 
 def test_dict():
     s = schema.Dict('dict', schema.String('k1'), schema.String('k2'))
-    sn = s.node()
+    sn = s.new()
 
     assert s
     assert sn
 
 
-def test_string_node():
-    n1 = schema.String('item').node()
-    n2 = schema.String('item', default=None).node()
-    n3 = schema.String('item', default=u'').node()
+def test_string_element():
+    n1 = schema.String('item').new()
+    n2 = schema.String('item', default=None).new()
+    n3 = schema.String('item', default=u'').new()
 
     assert n1.value == None
     assert n1.u == u''
@@ -32,8 +33,8 @@ def test_string_node():
     assert n1 != n3
     assert n2 != n3
 
-    n4 = schema.String('item', default=u'  ', strip=True).node()
-    n5 = schema.String('item', default=u'  ', strip=False).node()
+    n4 = schema.String('item', default=u'  ', strip=True).new()
+    n5 = schema.String('item', default=u'  ', strip=False).new()
 
     assert n4 != n5
 
@@ -52,7 +53,8 @@ def test_string_node():
 
 def test_path():
     n = schema.Form('root',
-                    schema.String('node'),
-                    schema.Dict('dict', schema.String('dict_node')))
+                    schema.String('element'),
+                    schema.Dict('dict', schema.String('dict_element')))
 
-    assert n.el(['dict', 'dict_node']).path == ('root', 'dict', 'dict_node')
+    eq_(n.el(['dict', 'dict_element']).path,
+        ('root', 'dict', 'dict_element'))
