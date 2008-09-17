@@ -8,14 +8,26 @@ from .scalar import Scalar, _ScalarNode
 from flatland import util
 from flatland.util import Unspecified
 
+
 __all__ = 'List', 'Array', 'Dict', 'Form'
+
+
+class _ContainerNode(Node):
+    """Holds other nodes."""
 
 
 class Container(Schema):
     """Holds other schema items."""
 
+    node_type = _ContainerNode
+
 
 def _argument_to_node(index):
+    """Argument filter, transforms a positional argument to a Node.
+
+    Index counts up from 0, not including self.
+
+    """
     @util.decorator
     def transform(fn, self, *args, **kw):
         target = args[index]
@@ -26,7 +38,7 @@ def _argument_to_node(index):
     return transform
 
 
-class _SequenceNode(Node, list):
+class _SequenceNode(_ContainerNode, list):
     def set(self, iterable):
         del self[:]
         self.extend(iterable)
@@ -65,6 +77,16 @@ class _SequenceNode(Node, list):
         elif not path:
             return self
         raise KeyError()
+
+    @property
+    def u(self):
+        return u'[%s]' % ', '.join(value.u if isinstance(value, _ContainerNode)
+                                           else repr(value.u)
+                                   for value in self)
+
+    @property
+    def value(self):
+        return list(value.value for value in self)
 
 
 class Sequence(Container):
@@ -223,7 +245,7 @@ class _ListNode(_SequenceNode):
             slot.node.set_flat(slots[slot_index], sep)
 
 
-class _Slot(Node):
+class _Slot(_ContainerNode):
     schema = Schema(None)
 
     def __init__(self, name, parent):
@@ -299,6 +321,8 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
         self.append(None)
         self[-1].u = value
 
+    u = property(_get_u, _set_u)
+
     def _get_value(self):
         if not self:
             return None
@@ -308,6 +332,8 @@ class _ArrayNode(_SequenceNode, _ScalarNode):
     def _set_value(self, value):
         self.append(None)
         self[-1].value = value
+
+    value = property(_get_value, _set_value)
 
     def __nonzero__(self):
         # FIXME: this is a little troubling, given that it may not
@@ -353,7 +379,7 @@ class Mapping(Container):
     """Base of mapping-like Containers."""
 
 
-class _DictNode(Node, dict):
+class _DictNode(_ContainerNode, dict):
     def __init__(self, schema, **kw):
         value = kw.pop('value', Unspecified)
         Node.__init__(self, schema, **kw)
@@ -475,9 +501,9 @@ class _DictNode(Node, dict):
             return
 
         # FIXME: pivot on length of pairs: top loop either fields or pairs
-        fields = list(self.keys())
+        # FIXME2: wtf does that mean
 
-        for field in fields:
+        for field in self:
             accum = []
             for key, value in possibles:
                 if key.startswith(field):
@@ -492,6 +518,16 @@ class _DictNode(Node, dict):
             return self
         raise KeyError()
 
+    @property
+    def u(self):
+        pairs = ((key, value.u if isinstance(value, _ContainerNode)
+                               else repr(value.u))
+                  for key, value in self.iteritems())
+        return u'{%s}' % ', '.join("%r: %s" % (k, v) for k, v in pairs)
+
+    @property
+    def value(self):
+        return dict((key, value.value) for key, value in self.iteritems())
 
 class Dict(Mapping):
     """A mapping Container with named members."""
@@ -516,6 +552,8 @@ class Dict(Mapping):
 
 
 class MetaForm(type):
+    """Form() returns a Node, not a Form(Schema) instance."""
+
     def __call__(cls, *args, **kw):
         form = cls.__new__(cls)
         form.__init__(*args, **kw)
@@ -525,8 +563,24 @@ class MetaForm(type):
 class Form(Dict):
     """
     Schemas are the most common top-level mapping.  They behave like
-    Dicts, but do not need to be named.  FIXME: Also magic schema holder.
+    Dicts, but do not need to be named.
+
+    FIXME: Also magic schema holder.
+
+    FIXME2: Assuming this means an inner class to do definitions on.
+            Hard to do in a way that maintains the spirit of named,
+            nested structures and DRY, e.g.
+
+              class MyForm(Form):
+                  class schema:
+                      name = String('name')
+                      addresses = List('addresses',
+                                       Dict('address',
+                                            String('street1'),
+                                            String('street2')))
+
     """
+
     __metaclass__ = MetaForm
 
     def __init__(self, *args, **kw):
@@ -541,6 +595,8 @@ class Form(Dict):
             members.extend(args)
         else:
             members = args
+        if not members:
+            raise TypeError('a schema is required')
 
         if hasattr(self, 'validators'):
             if 'validators' in kw:
@@ -550,6 +606,5 @@ class Form(Dict):
             else:
                 kw['validators'] = self.validators[:]
 
-        assert members
         Dict.__init__(self, name, *members, **kw)
 
