@@ -7,7 +7,7 @@ unspecified = object()
 class Node(object):
     flattenable = False
 
-    def __init__(self, schema, parent=None, **kw):
+    def __init__(self, schema, parent=None):
         self.schema = schema
         self.parent = parent
 

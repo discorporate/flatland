@@ -2,7 +2,9 @@ from __future__ import absolute_import
 
 from . import containers
 
+
 __all__ = 'Form',
+
 
 class MetaForm(type):
     """Form() returns a Node, not a Form(Schema) instance."""
@@ -14,11 +16,12 @@ class MetaForm(type):
 
 
 class Form(containers.Dict):
-    """
-    Schemas are the most common top-level mapping.  They behave like
+    """A collection of named fields or schema items.
+
+    Forms are the most common top-level mapping.  They behave like
     Dicts, but do not need to be named.
 
-    FIXME: Also magic schema holder.
+    FIXME: Also magic schema holder?
 
     FIXME2: Assuming this means an inner class to do definitions on.
             Hard to do in a way that maintains the spirit of named,
@@ -38,8 +41,7 @@ class Form(containers.Dict):
 
     def __init__(self, *args, **kw):
         if args and isinstance(args[0], basestring):
-            args = list(args)
-            name = args.pop(0)
+            name, args = args[0], args[1:]
         else:
             name = None
 

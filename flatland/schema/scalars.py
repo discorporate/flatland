@@ -5,7 +5,12 @@ import re
 import xml.sax.saxutils
 
 from .base import Schema, Node
-from flatland.util import lateproperty, lazyproperty, GetitemGetattrProxy
+from flatland.util import (
+    Unspecified,
+    as_mapping,
+    late_binding_property,
+    lazy_property,
+    )
 import flatland.exc as exc
 
 
@@ -51,7 +56,7 @@ class _ScalarNode(Node):
         else:
             self._u = ustr
 
-    u = lateproperty(_get_u, _set_u)
+    u = late_binding_property(_get_u, _set_u)
 
     @property
     def x(self):
@@ -71,7 +76,7 @@ class _ScalarNode(Node):
         #if self.immutable:
         #    raise ValueError('Element is immutable')
         self._value = value
-    value = lateproperty(_get_value, _set_value)
+    value = late_binding_property(_get_value, _set_value)
 
     def _el(self, path):
         if not path:
@@ -300,7 +305,7 @@ class Temporal(Scalar):
 
     def serialize(self, node, value):
         if isinstance(value, self.type_):
-            return self.format % GetitemGetattrProxy(value)
+            return self.format % as_mapping(value)
         else:
             return unicode(value)
 
@@ -331,7 +336,7 @@ class Time(Temporal):
 class _RefNode(Node):
     flattenable = False
 
-    @lazyproperty
+    @lazy_property
     def target(self):
         return self.root.el(self.schema.path)
 
