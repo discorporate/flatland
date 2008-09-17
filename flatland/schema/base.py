@@ -5,7 +5,7 @@ from flatland.util import Unspecified
 NoneType = type(None)
 
 
-class Node(object):
+class Element(object):
     """TODO
 
 
@@ -43,29 +43,29 @@ class Node(object):
 
     @property
     def path(self):
-        "A tuple of node names, starting at this node's topmost parent."
-        p, node = [], self
-        while node is not None:
-            if node.name is not None:
-                p.append(node.name)
-            node = node.parent
+        "A tuple of element names, starting at this element's topmost parent."
+        p, element = [], self
+        while element is not None:
+            if element.name is not None:
+                p.append(element.name)
+            element = element.parent
 
         return tuple(reversed(p))
 
     @property
     def root(self):
-        """The top-most parent of this node."""
-        node = self
-        while node is not None:
-            if node.parent is None:
+        """The top-most parent of this element."""
+        element = self
+        while element is not None:
+            if element.parent is None:
                 break
-            node = node.parent
-        return node
+            element = element.parent
+        return element
 
     def fq_name(self, sep='_'):
-        """Return the node's path as a string.
+        """Return the element's path as a string.
 
-        Joins this node's :attr:`path` with *sep* and returns the
+        Joins this element's :attr:`path` with *sep* and returns the
         fully qualified, flattened name.
 
         """
@@ -77,7 +77,7 @@ class Node(object):
           >>> form.el('addresses.0.street1')
 
         """
-        search = self._parse_node_path(path, sep)
+        search = self._parse_element_path(path, sep)
         if search is None:
             raise KeyError(u'No element at "%s".' % path)
 
@@ -90,7 +90,7 @@ class Node(object):
         raise NotImplementedError()
 
     @classmethod
-    def _parse_node_path(self, path, sep):
+    def _parse_element_path(self, path, sep):
         if isinstance(path, basestring):
             steps = path.split(sep)
         elif isinstance(path, (list, tuple)) or hasattr(path, 'next'):
@@ -100,14 +100,14 @@ class Node(object):
 
         return [None if step in (u'""', u"''") else step for step in steps]
 
-    ## Errors and warnings- any node can have them.
+    ## Errors and warnings- any element can have them.
     def add_error(self, message):
-        "Register an error message on this node, ignoring duplicates."
+        "Register an error message on this element, ignoring duplicates."
         if message not in self.errors:
             self.errors.append(message)
 
     def add_warning(self, message):
-        "Register a warning message on this node, ignoring duplicates."
+        "Register a warning message on this element, ignoring duplicates."
         if message not in self.warnings:
             self.warnings.append(message)
 
@@ -127,7 +127,7 @@ class Node(object):
 
         Encodes the element hierarchy in a *sep*-separated name
         string, paired with any representation of the element you
-        like.  The default is the Unicode value of the node, and the
+        like.  The default is the Unicode value of the element, and the
         output of the default :meth:`flatten` can be round-tripped
         with :meth:`set_flat`.
 
@@ -140,15 +140,15 @@ class Node(object):
 
         """
         pairs = []
-        def serialize(node, data):
-            if node.flattenable:
-                data.append((node.fq_name(sep), value(node)))
+        def serialize(element, data):
+            if element.flattenable:
+                data.append((element.fq_name(sep), value(element)))
 
         self.apply(serialize, pairs)
         return pairs
 
     def set(self, value):
-        """Set the node's value.
+        """Set the element's value.
 
         TODO: value is type-specific.
 
@@ -156,10 +156,10 @@ class Node(object):
         raise NotImplementedError()
 
     def set_flat(self, pairs, sep='_'):
-        """Set node values from pairs, expanding the element tree as needed.
+        """Set element values from pairs, expanding the element tree as needed.
 
         Given a sequence of name/value tuples or a dict, build out a
-        structured tree of value nodes.
+        structured tree of value elements.
 
         """
         if hasattr(pairs, 'items'):
@@ -175,8 +175,8 @@ class Node(object):
         if not recurse:
             return self._validate(state, validators=validators)
 
-        def collector(node, _):
-            return node._validate(state=state, validators=None)
+        def collector(element, _):
+            return element._validate(state=state, validators=None)
 
         return reduce(operator.and_, self.apply(collector, None), True)
 
@@ -208,7 +208,7 @@ class Node(object):
         raise TypeError('%s object is unhashable', self.__class__.__name__)
 
 
-class Schema(object):
+class FieldSchema(object):
     """Base of all fields.
 
     :arg name: the Unicode name of the field.
@@ -222,7 +222,7 @@ class Schema(object):
                     value has been set.
 
     """
-    node_type = Node
+    element_type = Element
     validators = ()
 
     def __init__(self, name, label=Unspecified, default=None,
@@ -243,6 +243,7 @@ class Schema(object):
 
         Also, rename.
         """
-        return self.node_type(self, *args, **kw)
+        return self.element_type(self, *args, **kw)
     node = new
+    create_element = new
 

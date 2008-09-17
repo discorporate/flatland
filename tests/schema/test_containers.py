@@ -3,6 +3,7 @@ from nose.tools import eq_, assert_raises, set_trace
 from flatland import schema
 from flatland.util import Unspecified
 
+
 def test_sequence():
     assert_raises(TypeError, schema.containers.Sequence, 's',
                   schema.String('a'))
@@ -12,7 +13,7 @@ def test_sequence():
 
 def test_list_linear_set_scalars():
     s = schema.List('l', schema.String('s'))
-    n = s.node()
+    n = s.new()
 
     pairs = list(('l_%s_s' % i, 'val%s' % i) for i in xrange(1, 10))
     n.set_flat(pairs)
@@ -21,7 +22,7 @@ def test_list_linear_set_scalars():
 
 def test_list_set_empty():
     s = schema.List('l', schema.String('s'))
-    n = s.node()
+    n = s.new()
 
     pairs = ((u'l_galump', u'foo'), (u'l_snorgle', u'bar'))
     n.set_flat(pairs)
@@ -30,7 +31,7 @@ def test_list_set_empty():
 
 def test_list_lossy_set_scalars():
     s = schema.List('l', schema.String('s'))
-    n = s.node()
+    n = s.new()
 
     pairs = list(('l_%s_s' % i, 'val%s' % i) for i in xrange(1, 10, 2))
     n.set_flat(pairs)
@@ -38,12 +39,12 @@ def test_list_lossy_set_scalars():
     eq_(len(n), len(pairs))
     eq_(n, list(pair[1] for pair in pairs))
 
-    # lossy won't insert empty nodes
+    # lossy won't insert empty elements
     eq_(n[1].value, pairs[1][1])
 
 def test_list_linear_set_dict():
     s = schema.List('l', schema.String('x'), schema.String('y'))
-    n = s.node()
+    n = s.new()
 
     pairs = ((u'l_0_x', u'x0'), (u'l_0_y', u'y0'),
              (u'l_1_x', u'x1'), (u'l_1_y', u'y1'),
@@ -58,7 +59,7 @@ def test_list_linear_set_dict():
 def test_list_default():
     def factory(count):
         s = schema.List('l', schema.String('s', default=u'val'), default=count)
-        return s.node()
+        return s.new()
 
     n = factory(3)
     eq_(len(n), 3)
@@ -69,27 +70,27 @@ def test_list_default():
     eq_(n, [])
 
 def test_list_set():
-    def new_node(**kw):
+    def new_element(**kw):
         s = schema.List('l', schema.Integer('i'))
-        return s.node(**kw)
+        return s.new(**kw)
 
-    n = new_node()
+    n = new_element()
     assert list(n) == []
     assert_raises(TypeError, n.set, 1)
     assert_raises(TypeError, n.set, None)
 
-    n = new_node()
+    n = new_element()
     n.set(range(3))
     assert list(n) == [0, 1, 2]
 
-    n = new_node()
+    n = new_element()
     n.set(xrange(3))
     assert list(n) == [0, 1, 2]
 
-    n = new_node(value=[0, 1, 2])
+    n = new_element(value=[0, 1, 2])
     assert list(n) == [0, 1, 2]
 
-    n = new_node()
+    n = new_element()
     n.extend([1,2,3])
     assert list(n) == [1, 2, 3]
     n.set([4, 5, 6])
@@ -99,42 +100,42 @@ def test_list_set():
 
 def test_list_access():
     s = schema.List('l', schema.Integer('i'))
-    n = s.node()
+    n = s.new()
 
     pairs = ((u'l_0_i', u'10'), (u'l_1_i', u'11'), (u'l_2_i', u'12'),)
     n.set_flat(pairs)
 
-    nodes = list(schema.Integer('i').node(value=val)
+    elements = list(schema.Integer('i').new(value=val)
                  for val in (u'10', u'11', u'12'))
 
     assert len(n) == 3
-    assert n[0] == nodes[0]
-    assert n[1] == nodes[1]
-    assert n[2] == nodes[2]
+    assert n[0] == elements[0]
+    assert n[1] == elements[1]
+    assert n[2] == elements[2]
 
-    assert n[:0] == nodes[:0]
-    assert n[:1] == nodes[:1]
-    assert n[0:5] == nodes[0:5]
-    assert n[-2:-1] == nodes[-2:-1]
+    assert n[:0] == elements[:0]
+    assert n[:1] == elements[:1]
+    assert n[0:5] == elements[0:5]
+    assert n[-2:-1] == elements[-2:-1]
 
     assert n[0] in n
-    assert nodes[0] in n
+    assert elements[0] in n
     assert u'10' in n
     assert 10 in n
 
-    assert n.count(nodes[0]) == 1
+    assert n.count(elements[0]) == 1
     assert n.count(u'10') == 1
     assert n.count(10) == 1
 
-    assert n.index(nodes[0]) == 0
+    assert n.index(elements[0]) == 0
     assert n.index(u'10') == 0
     assert n.index(10) == 0
 
 def test_list_mutation():
     s = schema.List('l', schema.Integer('i'))
-    n = s.node()
+    n = s.new()
 
-    new_node = lambda val: schema.Integer('i').node(value=val)
+    new_element = lambda val: schema.Integer('i').new(value=val)
 
     def order_ok():
         slot_names = list(_.name for _ in n._slots)
@@ -144,8 +145,8 @@ def test_list_mutation():
     assert not n
     order_ok()
 
-    # FIXME:? seems to want parsable data, not nodes
-    n.append(new_node(u'0'))
+    # FIXME:? seems to want parsable data, not elements
+    n.append(new_element(u'0'))
     assert n == [0]
     order_ok()
 
@@ -185,7 +186,7 @@ def test_list_mutation():
 
 def test_list_mutate_slices():
     s = schema.List('l', schema.Integer('i'))
-    n = s.node()
+    n = s.new()
     canary = []
 
     n.extend([u'3', u'4'])
@@ -203,14 +204,14 @@ def test_list_mutate_slices():
 
 def test_list_unimplemented():
     s = schema.List('l', schema.Integer('i'))
-    n = s.node()
+    n = s.new()
 
     assert_raises(TypeError, n.sort)
     assert_raises(TypeError, n.reverse)
 
 def test_list_slots():
     s = schema.List('l', schema.String('s'))
-    n = s.node(value=[u'x'])
+    n = s.new(value=[u'x'])
     for slot in n._slots:
         # don't really care what it says, just no crashy.
         assert repr(slot)
@@ -219,19 +220,19 @@ def test_list_slots():
 
 def test_list_u():
     s = schema.List('l', schema.String('s'))
-    n = s.node()
+    n = s.new()
     n[:] = [u'x', u'x']
     eq_(n.u, u"[u'x', u'x']")
 
 def test_list_value():
     s = schema.List('l', schema.String('s'))
-    n = s.node()
+    n = s.new()
     n[:] = [u'x', u'x']
     eq_(n.value, [u'x', u'x'])
 
 def test_array_pruned_set_scalars():
     s = schema.Array(schema.String('s'))
-    n = s.node()
+    n = s.new()
 
     pairs = list((u's', u'val%s' % i if i %2 else u'')
                  for i in xrange(1, 10))
@@ -244,7 +245,7 @@ def test_array_pruned_set_scalars():
 
 def test_array_unpruned_set_scalars():
     s = schema.Array(schema.String('s'), prune_empty=False)
-    n = s.node()
+    n = s.new()
 
     pairs = list((u's', u'val%s' % i if i %2 else u'')
                  for i in xrange(1, 10))
@@ -256,9 +257,9 @@ def test_array_unpruned_set_scalars():
 
 def test_array_mutation():
     s = schema.Array(schema.String('s'))
-    new_node = s.node
+    new_element = s.new
 
-    n = new_node()
+    n = new_element()
     assert not n
 
     n.set(u'a')
@@ -272,7 +273,7 @@ def test_array_mutation():
     n[1] = u'c'
     assert list(n) == [u'a', u'c']
 
-    n[1] = new_node(value='b')
+    n[1] = new_element(value='b')
     assert list(n) == [u'a', u'b']
 
     n.remove(u'b')
@@ -315,7 +316,7 @@ def test_array_mutation():
 
 def test_array_el():
     s = schema.Array(schema.String('s'))
-    n = s.node()
+    n = s.new()
     n[:] = u'abc'
     eq_(list(n), [u'a', u'b', u'c'])
 
@@ -329,7 +330,7 @@ def test_dict():
 
 def test_dict_immutable_keys():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.node()
+    n = s.new()
 
     assert_raises(TypeError, n.__setitem__, 'z', 123)
     assert_raises(TypeError, n.__delitem__, u'x')
@@ -343,7 +344,7 @@ def test_dict_immutable_keys():
 
 def test_dict_reads():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.node()
+    n = s.new()
 
     n[u'x'] = 10
     n[u'y'] = 20
@@ -351,7 +352,7 @@ def test_dict_reads():
     eq_(n[u'x'], 10)
     eq_(n[u'y'], 20)
 
-    # the values are unhashable Nodes, so this is a little painful
+    # the values are unhashable Elements, so this is a little painful
     assert set(n.keys()) == set(u'xy')
     eq_(set([(u'x', 10), (u'y', 20)]),
         set([(_[0], _[1].value) for _ in n.items()]))
@@ -367,10 +368,10 @@ def test_dict_reads():
 
 def test_dict_update():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.node()
+    n = s.new()
 
-    def value_dict(node):
-        return dict((k, v.value) for k, v in node.iteritems())
+    def value_dict(element):
+        return dict((k, v.value) for k, v in element.iteritems())
 
     n.update(x=20, y=30)
     assert dict(x=20, y=30) == value_dict(n)
@@ -417,20 +418,20 @@ class DictSetTest(object):
                            schema.Integer(u'x', **x_kw),
                            schema.Integer(u'y', **y_kw),
                            **dictkw)
-    def new_node(self, schema=Unspecified, **kw):
+    def new_element(self, schema=Unspecified, **kw):
         if schema is Unspecified:
             schema = self.new_schema()
-        return schema.node(**kw)
+        return schema.new(**kw)
 
-    def value_dict(self, node):
-        return dict((k, v.value) for k, v in node.iteritems())
+    def value_dict(self, element):
+        return dict((k, v.value) for k, v in element.iteritems())
 
-    def dict_eq_(self, node, wanted):
-        as_dict = self.value_dict(node)
+    def dict_eq_(self, element, wanted):
+        as_dict = self.value_dict(element)
         eq_(as_dict, wanted)
 
     def test_empty_sets(self):
-        n = self.new_node()
+        n = self.new_element()
         self.dict_eq_(n, self.empty)
         eq_(n.value, self.empty)
 
@@ -438,17 +439,17 @@ class DictSetTest(object):
         self.dict_eq_(n, self.empty)
         eq_(n.value, self.empty)
 
-        n = self.new_node(value={})
+        n = self.new_element(value={})
         self.dict_eq_(n, self.empty)
 
-        n = self.new_node(value=iter(()))
+        n = self.new_element(value=iter(()))
         self.dict_eq_(n, self.empty)
 
-        n = self.new_node(value=())
+        n = self.new_element(value=())
         self.dict_eq_(n, self.empty)
 
     def test_empty_set_flat(self):
-        n = self.new_node()
+        n = self.new_element()
         n.set_flat(())
         self.dict_eq_(n, self.empty)
         eq_(n.value, self.empty)
@@ -456,12 +457,12 @@ class DictSetTest(object):
     def test_half_set(self):
         wanted = dict(self.empty, x=123)
 
-        n = self.new_node()
+        n = self.new_element()
         n.set(dict(x=123))
         self.dict_eq_(n, wanted)
         eq_(n.value, wanted)
 
-        n = self.new_node()
+        n = self.new_element()
         n.set([(u'x', 123)])
         self.dict_eq_(n, wanted)
 
@@ -469,7 +470,7 @@ class DictSetTest(object):
         wanted = dict(self.empty, x=123)
 
         pairs = ((u's_x', u'123'),)
-        n = self.new_node()
+        n = self.new_element()
         n.set_flat(pairs)
         self.dict_eq_(n, wanted)
         eq_(n.value, wanted)
@@ -477,27 +478,27 @@ class DictSetTest(object):
     def test_full_set(self):
         wanted = {u'x': 101, u'y': 102}
 
-        n = self.new_node()
+        n = self.new_element()
         n.set(wanted)
         self.dict_eq_(n, wanted)
         eq_(n.value, wanted)
 
-        n = self.new_node()
+        n = self.new_element()
         n.set(dict(x=101, y=102))
         self.dict_eq_(n, wanted)
 
-        n = self.new_node()
+        n = self.new_element()
         n.set([(u'x', 101), (u'y', 102)])
         self.dict_eq_(n, wanted)
 
-        n = self.new_node(value=wanted)
+        n = self.new_element(value=wanted)
         self.dict_eq_(n, wanted)
 
     def test_full_set_flat(self):
         wanted = {u'x': 101, u'y': 102}
         pairs = ((u's_x', u'101'), (u's_y', u'102'))
 
-        n = self.new_node()
+        n = self.new_element()
         n.set_flat(pairs)
         self.dict_eq_(n, wanted)
         eq_(n.value, wanted)
@@ -505,15 +506,15 @@ class DictSetTest(object):
     def test_over_set(self):
         too_much = {u'x': 1, u'y': 2, u'z': 3}
 
-        n = self.new_node()
+        n = self.new_element()
         assert_raises(KeyError, n.set, too_much)
-        assert_raises(KeyError, self.new_node, value=too_much)
+        assert_raises(KeyError, self.new_element, value=too_much)
 
     def test_over_set_flat(self):
         wanted = dict(self.empty, x=123)
 
         pairs = ((u's_x', u'123'), (u's_z', u'nope'))
-        n = self.new_node()
+        n = self.new_element()
         n.set_flat(pairs)
         self.dict_eq_(n, wanted)
         eq_(n.value, wanted)
@@ -521,14 +522,14 @@ class DictSetTest(object):
     def test_total_miss(self):
         miss = {u'z': 3}
 
-        n = self.new_node()
+        n = self.new_element()
         assert_raises(KeyError, n.set, miss)
-        assert_raises(KeyError, self.new_node, value=miss)
+        assert_raises(KeyError, self.new_element, value=miss)
 
     def test_total_miss_flat(self):
         pairs = (('miss', u'10'),)
 
-        n = self.new_node()
+        n = self.new_element()
         n.set_flat(pairs)
         self.dict_eq_(n, self.empty)
         eq_(n.value, self.empty)
@@ -547,7 +548,7 @@ class TestDefaultDictSet(DictSetTest):
 
 def test_dict_valid_policies():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.node()
+    n = s.new()
 
     assert_raises(AssertionError, n.set, {}, policy='bogus')
 
@@ -556,18 +557,18 @@ def test_dict_strict():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'),
                     policy='strict')
 
-    n = s.node()
+    n = s.new()
     n.set({u'x': 123, u'y': 456})
 
-    n = s.node()
+    n = s.new()
     assert_raises(TypeError, n.set, {u'x': 123})
 
-    n = s.node()
+    n = s.new()
     assert_raises(KeyError, n.set, {u'x': 123, u'y': 456, u'z': 7})
 
 def test_dict_as_unicode():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.node()
+    n = s.new()
     n.set(dict(x=1, y=2))
 
     uni = n.u
@@ -576,7 +577,7 @@ def test_dict_as_unicode():
 
 def test_nested_dict_as_unicode():
     s = schema.Dict(u's', schema.Dict('d', schema.Integer(u'x', default=10)))
-    n = s.node()
+    n = s.new()
 
     eq_(n.value, {u'd': {u'x': 10}})
     eq_(n.u, u"{u'd': {u'x': u'10'}}")
@@ -584,7 +585,7 @@ def test_nested_dict_as_unicode():
 def test_dict_el():
     # stub
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.node()
+    n = s.new()
 
     assert n.el('x').name == u'x'
     assert_raises(KeyError, n.el, 'not_x')

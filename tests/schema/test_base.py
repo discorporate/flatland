@@ -5,46 +5,46 @@ from flatland.schema import base
 
 def test_schema_naming():
     for arg in (u'unicode', 'sysencoding', None):
-        s = base.Schema(arg)
+        s = base.FieldSchema(arg)
         eq_(s.name, arg)
         eq_(s.label, arg)
 
     for arg in (u'unicode', 'sysencoding', None):
-        s = base.Schema(arg, label=u'fleem')
+        s = base.FieldSchema(arg, label=u'fleem')
         eq_(s.name, arg)
         eq_(s.label, u'fleem')
 
 def test_schema_validators():
     """Validators may be inherited or supplied at construction."""
 
-    s = base.Schema(None)
+    s = base.FieldSchema(None)
     assert not s.validators
 
-    s = base.Schema(None, validators=(123, 456))
+    s = base.FieldSchema(None, validators=(123, 456))
     eq_(s.validators, [123, 456])
 
-    s = base.Schema(None, validators=xrange(3))
+    s = base.FieldSchema(None, validators=xrange(3))
     eq_(s.validators, list(xrange(3)))
 
     canary = object()
-    s = base.Schema(None, default=canary)
+    s = base.FieldSchema(None, default=canary)
     assert s.default is canary
 
 def test_schema_optional():
     """Required is the default."""
 
-    s = base.Schema(None)
+    s = base.FieldSchema(None)
     assert not s.optional
 
-    s = base.Schema(None, optional=False)
+    s = base.FieldSchema(None, optional=False)
     assert not s.optional
 
-    s = base.Schema(None, optional=True)
+    s = base.FieldSchema(None, optional=True)
     assert s.optional
 
-def test_node():
-    s = base.Schema(u'abc', label=u'ABC')
-    n = s.node()
+def test_element():
+    s = base.FieldSchema(u'abc', label=u'ABC')
+    n = s.new()
 
     eq_(n.name, u'abc')
     eq_(n.label, u'ABC')
@@ -54,9 +54,9 @@ def test_node():
     eq_(n.root, n)
     eq_(n.fq_name(), u'abc')
 
-def test_node_message_buckets():
-    s = base.Schema(u'abc', label=u'ABC')
-    n = s.node()
+def test_element_message_buckets():
+    s = base.FieldSchema(u'abc', label=u'ABC')
+    n = s.new()
 
     n.add_error('error')
     eq_(n.errors, ['error'])
@@ -68,16 +68,16 @@ def test_node_message_buckets():
     n.add_warning('warning')
     eq_(n.warnings, ['warning'])
 
-def test_node_abstract():
-    s = base.Schema(None)
-    n = s.node()
+def test_element_abstract():
+    s = base.FieldSchema(None)
+    n = s.new()
 
     assert_raises(NotImplementedError, n.set, None)
     assert_raises(NotImplementedError, n.set_flat, ())
     assert_raises(NotImplementedError, n.el, 'foo')
     assert_raises(KeyError, n.el, None)
 
-def test_node_validation():
+def test_element_validation():
     ok = lambda item, data: True
     not_ok = lambda item, data: False
 
@@ -86,19 +86,19 @@ def test_node_validation():
                             (False, (not_ok,)),
                             (False, (ok, not_ok,)),
                             (False, (ok, not_ok, ok,))):
-        s = base.Schema(None, validators=validators)
-        n = s.node()
+        s = base.FieldSchema(None, validators=validators)
+        n = s.new()
         assert bool(n.validate()) is res
 
-    node = None
-    def got_node(item, data):
-        assert item is node, repr(item)
+    element = None
+    def got_element(item, data):
+        assert item is element, repr(item)
         return True
-    s = base.Schema(None, validators=(got_node,))
-    node = s.node()
-    node.validate()
+    s = base.FieldSchema(None, validators=(got_element,))
+    element = s.new()
+    element.validate()
 
-def test_node_validator_return():
+def test_element_validator_return():
     """Validator returns don't have to be actual bool() instances."""
 
     class Bool(object):
@@ -118,26 +118,26 @@ def test_node_validator_return():
     no = lambda *a: Bool(False)
 
     for validator in true, one, yes:
-        s = base.Schema(None, validators=(validator,))
-        n = s.node()
+        s = base.FieldSchema(None, validators=(validator,))
+        n = s.new()
         assert n.validate()
 
     for validator in false, zero, none, no:
-        s = base.Schema(None, validators=(validator,))
-        n = s.node()
+        s = base.FieldSchema(None, validators=(validator,))
+        n = s.new()
         assert not n.validate()
 
 def XXXtest_simple_nesting():
     # no, nesting is not so easily fooled
-    s1 = base.Schema(u'1')
-    s2 = base.Schema(u'2')
-    s3a = base.Schema(u'3a')
-    s3b = base.Schema(u'3b')
+    s1 = base.FieldSchema(u'1')
+    s2 = base.FieldSchema(u'2')
+    s3a = base.FieldSchema(u'3a')
+    s3b = base.FieldSchema(u'3b')
 
-    n1 = s1.node()
-    n2 = s2.node(parent=n1)
-    n3a = s3a.node(parent=n2)
-    n3b = s3b.node(parent=n2)
+    n1 = s1.new()
+    n2 = s2.new(parent=n1)
+    n3a = s3a.new(parent=n2)
+    n3b = s3b.new(parent=n2)
 
     eq_(n1.path, (u'1',))
     eq_(n2.path, (u'1', u'2',))

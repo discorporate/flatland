@@ -4,7 +4,7 @@ from . import scalars, containers
 from flatland import exc
 
 
-class _CompoundNode(scalars._ScalarNode, containers._DictNode):
+class _CompoundElement(scalars._ScalarElement, containers._DictElement):
     def _get_u(self):
         u, value = self.compose()
         return u
@@ -40,11 +40,11 @@ class _CompoundNode(scalars._ScalarNode, containers._DictNode):
         raise KeyError()
 
     def _set_flat(self, pairs, sep):
-        containers._DictNode._set_flat(self, pairs, sep)
+        containers._DictElement._set_flat(self, pairs, sep)
 
 
 class Compound(scalars.Scalar, containers.Mapping):
-    node_type = _CompoundNode
+    element_type = _CompoundElement
 
     def __init__(self, name, *specs, **kw):
         super(Compound, self).__init__(name, **kw)
@@ -55,10 +55,10 @@ class Compound(scalars.Scalar, containers.Mapping):
                 self.fields[spec.name] = spec
         self.specs = specs
 
-    def compose(self, node):
+    def compose(self, element):
         raise NotImplementedError()
 
-    def explode(self, node, value):
+    def explode(self, element, value):
         raise NotImplementedError()
 
 
@@ -76,22 +76,22 @@ class DateYYYYMMDD(Compound, scalars.Date):
 
         super(DateYYYYMMDD, self).__init__(name, *specs, **kw)
 
-    def compose(self, node):
+    def compose(self, element):
         try:
-            data = dict( [(label, node[spec.name].value)
+            data = dict( [(label, element[spec.name].value)
                           for label, spec
                           in zip(self.used, self.specs)] )
             as_str = self.format % data
-            value = scalars.Date.adapt(self, node, as_str)
+            value = scalars.Date.adapt(self, element, as_str)
             return as_str, value
         except (exc.AdaptationError, TypeError):
             return None, None
 
-    def explode(self, node, value):
+    def explode(self, element, value):
         try:
-            value = scalars.Date.adapt(self, node, value)
+            value = scalars.Date.adapt(self, element, value)
             for attrib, spec in zip(self.used, self.specs):
-                node[spec.name].set(getattr(value, attrib))
+                element[spec.name].set(getattr(value, attrib))
         except (exc.AdaptationError, TypeError):
             for spec in self.specs:
-                node[spec.name].set(None)
+                element[spec.name].set(None)
