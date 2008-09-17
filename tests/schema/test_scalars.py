@@ -67,10 +67,6 @@ def test_string():
         eq_(unicode(node), expected)
         eq_(node.value, expected)
 
-def test_number():
-    node = schema.scalars.Number(None).node()
-    assert_raises(TypeError, node.set, 'anything')
-
 def validate_node_set(type_, raw, value, uni, schema_opts={}):
     node = type_('i', **schema_opts).node()
     node.set(raw)
@@ -78,6 +74,14 @@ def validate_node_set(type_, raw, value, uni, schema_opts={}):
     eq_(node.u, uni)
     eq_(unicode(node), uni)
     eq_(node.__nonzero__(), bool(uni and value))
+
+def test_scalar_set():
+    # a variety of scalar set() failure cases, shoved through Integer
+    for spec in (
+        ([],         None, u'[]'),
+        ('\xef\xf0', None, ur'\ufffd\ufffd'),
+        (None,       None, u'')):
+        yield (validate_node_set, schema.Integer) + spec
 
 def test_integer():
     for spec in ((u'123',    123,  u'123'),
@@ -91,7 +95,9 @@ def test_integer():
                  (u' +123 ', 123,  u'123'),
                  (u' -123 ', -123, u'-123'),
                  (u'+123',   123,  u'123', dict(signed=False)),
-                 (u'-123',   None, u'-123', dict(signed=False))):
+                 (u'-123',   None, u'-123', dict(signed=False)),
+                 (123,       123,  u'123'),
+                 (-123,      None, u'-123', dict(signed=False))):
         yield (validate_node_set, schema.Integer) + spec
 
 def test_long():
@@ -178,4 +184,3 @@ def test_datetime():
         (u'2010-13-22 09:09:09', None, u'2010-13-22 09:09:09')):
         yield (validate_node_set, schema.DateTime) + spec
 
-# Ref can't be tested without containers (or mocked containers)

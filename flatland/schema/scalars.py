@@ -64,7 +64,10 @@ class _ScalarNode(Node):
             elif isinstance(value, unicode):
                 self.u = value
             else:
-                self.u = unicode(value, errors='replace')
+                try:
+                    self.u = unicode(value)
+                except UnicodeDecodeError:
+                    self.u = unicode(value, errors='replace')
             return False
 
         # stringify it, possibly storing what we received verbatim or
@@ -103,6 +106,10 @@ class _ScalarNode(Node):
         value. When comparing non-nodes, coerce our value into something
         comparable.
         """
+
+        # ugh
+        if isinstance(self, _RefNode) and isinstance(other, Node):
+            return self.target is other
         if ((type(self) is type(other)) or isinstance(other, _ScalarNode)):
             if self.name == other.name:
                 if self.u == other.u:
@@ -234,12 +241,13 @@ class Number(Scalar):
             return None
         try:
             native = self.type_(value)
+        except (ValueError, TypeError):
+            raise exc.ParseError()
+        else:
             if not self.signed:
                 if native < 0:
                     raise exc.ParseError()
             return native
-        except ValueError:
-            raise exc.ParseError()
 
     def serialize(self, node, value):
         if type(value) is self.type_:
@@ -383,6 +391,7 @@ class _RefNode(_ScalarNode):
 
     value = property(_get_value, _set_value)
     del _get_value, _set_value
+
 
 class Ref(Scalar):
     node_type = _RefNode

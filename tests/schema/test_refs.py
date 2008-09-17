@@ -4,15 +4,32 @@ from nose.tools import eq_, assert_raises
 from flatland import schema
 
 
-def test_ref_simple():
+def test_ref_binops():
     s = schema.Dict('d',
                     schema.Integer('main'),
-                    schema.Ref('aux', 'main'))
+                    schema.Ref('aux', 'main'),
+                    schema.Integer('other'))
     n = s.node()
     n['main'].set(5)
-    eq_(n['aux'], u'5')
-    eq_(n['aux'].value, 5)
-    eq_(n['aux'].u, u'5')
+
+    assert n['aux'] == u'5'
+    assert n['aux'].value == 5
+    assert n['aux'].u == u'5'
+    assert u'5' == n['aux']
+    assert 5 == n['aux'].value
+    assert u'5' == n['aux'].u
+
+    assert n['aux'] != u'6'
+    assert n['aux'].value != 6
+    assert n['aux'].u != u'6'
+    assert u'6' != n['aux']
+    assert 6 != n['aux']
+    assert u'6' != n['aux']
+
+    assert n['aux'] == n['main']
+    assert n['main'] == n['aux']
+    assert n['aux'] != n['other']
+    assert n['other'] != n['aux']
 
 def test_ref_writable_ignore():
     s = schema.Dict('d',
