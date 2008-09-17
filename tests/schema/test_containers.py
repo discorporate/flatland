@@ -4,10 +4,10 @@ from flatland import schema
 from flatland.util import Unspecified
 
 def test_sequence():
-    assert_raises(TypeError, schema.container.Sequence, 's',
+    assert_raises(TypeError, schema.containers.Sequence, 's',
                   schema.String('a'))
 
-    s = schema.container.Sequence('s')
+    s = schema.containers.Sequence('s')
     assert hasattr(s, 'spec')
 
 def test_list_linear_set_scalars():

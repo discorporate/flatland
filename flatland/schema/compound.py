@@ -1,10 +1,10 @@
 from __future__ import absolute_import
 
-from . import container, scalar
+from . import scalars, containers
 from flatland import exc
 
 
-class _CompoundNode(scalar._ScalarNode, container._DictNode):
+class _CompoundNode(scalars._ScalarNode, containers._DictNode):
     def _get_u(self):
         u, value = self.compose()
         return u
@@ -36,10 +36,10 @@ class _CompoundNode(scalar._ScalarNode, container._DictNode):
         raise KeyError()
 
     def _set_flat(self, pairs, sep):
-        container._DictNode._set_flat(self, pairs, sep)
+        containers._DictNode._set_flat(self, pairs, sep)
 
 
-class Compound(scalar.Scalar, container.Mapping):
+class Compound(scalars.Scalar, containers.Mapping):
     node_type = _CompoundNode
 
     def __init__(self, name, *specs, **kw):
@@ -58,17 +58,17 @@ class Compound(scalar.Scalar, container.Mapping):
         raise NotImplementedError()
 
 
-class DateYYYYMMDD(Compound, scalar.Date):
+class DateYYYYMMDD(Compound, scalars.Date):
     def __init__(self, name, *specs, **kw):
         assert len(specs) <= 3
         specs = list(specs)
 
         if len(specs) == 0:
-            specs.append(scalar.Integer('year', format=u'%04i'))
+            specs.append(scalars.Integer('year', format=u'%04i'))
         if len(specs) == 1:
-            specs.append(scalar.Integer('month', format=u'%02i'))
+            specs.append(scalars.Integer('month', format=u'%02i'))
         if len(specs) == 2:
-            specs.append(scalar.Integer('day', format=u'%02i'))
+            specs.append(scalars.Integer('day', format=u'%02i'))
 
         super(DateYYYYMMDD, self).__init__(name, *specs, **kw)
 
@@ -78,14 +78,14 @@ class DateYYYYMMDD(Compound, scalar.Date):
                           for label, spec
                           in zip(self.used, self.specs)] )
             as_str = self.format % data
-            value = scalar.Date.parse(self, node, as_str)
+            value = scalars.Date.parse(self, node, as_str)
             return as_str, value
         except (exc.ParseError, TypeError):
             return None, None
 
     def explode(self, node, value):
         try:
-            value = scalar.Date.parse(self, node, value)
+            value = scalars.Date.parse(self, node, value)
             for attrib, spec in zip(self.used, self.specs):
                 node[spec.name].set(getattr(value, attrib))
         except (exc.ParseError, TypeError):

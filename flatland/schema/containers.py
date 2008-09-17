@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 
 from .base import Schema, Node
-from .scalar import Scalar, _ScalarNode
+from .scalars import Scalar, _ScalarNode
 from flatland import util
 from flatland.util import Unspecified
 

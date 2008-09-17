@@ -5,13 +5,13 @@ from flatland import schema
 
 
 def test_scalar_abstract():
-    sc = schema.scalar.Scalar('foo')
+    sc = schema.scalars.Scalar('foo')
 
     node = sc.new()
     assert_raises(NotImplementedError, node.set, 'blagga')
 
 def test_scalar_assignments_are_independent():
-    sc = schema.scalar.Scalar('foo')
+    sc = schema.scalars.Scalar('foo')
 
     node = sc.new()
     assert not node.u
@@ -29,7 +29,7 @@ def test_scalar_assignments_are_independent():
 def test_scalar_set_flat():
     """Scalars take on the first value if duplicates are present."""
 
-    class SimpleScalar(schema.scalar.Scalar):
+    class SimpleScalar(schema.scalars.Scalar):
         def parse(self, node, value):
             return value
 
@@ -68,7 +68,7 @@ def test_string():
         eq_(node.value, expected)
 
 def test_number():
-    node = schema.scalar.Number(None).node()
+    node = schema.scalars.Number(None).node()
     assert_raises(TypeError, node.set, 'anything')
 
 def validate_node_set(type_, raw, value, uni, schema_opts={}):
