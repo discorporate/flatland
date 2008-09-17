@@ -221,6 +221,7 @@ class _ListNode(_SequenceNode):
         prune = self.schema.prune_empty
 
         for key, value in pairs:
+            print key, value
             if value == u'' and prune:
                 continue
             m = regex.match(key)
@@ -240,7 +241,7 @@ class _ListNode(_SequenceNode):
         # FIXME: lossy, not-lossy. allow maxidx on not-lossy
         # Only implementing lossy here.
 
-        for slot_index in sorted(slots.keys()):
+        for slot_index in sorted(slots):
             slot = self._new_slot()
             list.append(self, slot)
             slot.node.set_flat(slots[slot_index], sep)
@@ -260,6 +261,14 @@ class _Slot(_ContainerNode):
         self._name = name
 
     name = property(lambda self: self._name, _set_name)
+
+    @property
+    def u(self):
+        return self.node.u
+
+    @property
+    def value(self):
+        return self.node.value
 
     def __repr__(self):
         return u'<ListSlot[%s] for %r>' % (self.name, self.node)
@@ -281,7 +290,6 @@ class _Slot(_ContainerNode):
         if depth_first:
             r.extend([func(self, data)])
         return r
-
 
 class List(Sequence):
     """An ordered, homogeneous Container."""
