@@ -380,8 +380,11 @@ class DictSetTest(object):
     def test_empty_sets(self):
         n = self.new_node()
         self.dict_eq_(n, self.empty)
+        eq_(n.value, self.empty)
+
         n.set({})
         self.dict_eq_(n, self.empty)
+        eq_(n.value, self.empty)
 
         n = self.new_node(value={})
         self.dict_eq_(n, self.empty)
@@ -392,16 +395,32 @@ class DictSetTest(object):
         n = self.new_node(value=())
         self.dict_eq_(n, self.empty)
 
+    def test_empty_set_flat(self):
+        n = self.new_node()
+        n.set_flat(())
+        self.dict_eq_(n, self.empty)
+        eq_(n.value, self.empty)
+
     def test_half_set(self):
         wanted = dict(self.empty, x=123)
 
         n = self.new_node()
         n.set(dict(x=123))
         self.dict_eq_(n, wanted)
+        eq_(n.value, wanted)
 
         n = self.new_node()
         n.set([(u'x', 123)])
         self.dict_eq_(n, wanted)
+
+    def test_half_set_flat(self):
+        wanted = dict(self.empty, x=123)
+
+        pairs = ((u's_x', u'123'),)
+        n = self.new_node()
+        n.set_flat(pairs)
+        self.dict_eq_(n, wanted)
+        eq_(n.value, wanted)
 
     def test_full_set(self):
         wanted = {u'x': 101, u'y': 102}
@@ -409,6 +428,7 @@ class DictSetTest(object):
         n = self.new_node()
         n.set(wanted)
         self.dict_eq_(n, wanted)
+        eq_(n.value, wanted)
 
         n = self.new_node()
         n.set(dict(x=101, y=102))
@@ -421,6 +441,15 @@ class DictSetTest(object):
         n = self.new_node(value=wanted)
         self.dict_eq_(n, wanted)
 
+    def test_full_set_flat(self):
+        wanted = {u'x': 101, u'y': 102}
+        pairs = ((u's_x', u'101'), (u's_y', u'102'))
+
+        n = self.new_node()
+        n.set_flat(pairs)
+        self.dict_eq_(n, wanted)
+        eq_(n.value, wanted)
+
     def test_over_set(self):
         too_much = {u'x': 1, u'y': 2, u'z': 3}
 
@@ -428,12 +457,29 @@ class DictSetTest(object):
         assert_raises(KeyError, n.set, too_much)
         assert_raises(KeyError, self.new_node, value=too_much)
 
+    def test_over_set_flat(self):
+        wanted = dict(self.empty, x=123)
+
+        pairs = ((u's_x', u'123'), (u's_z', u'nope'))
+        n = self.new_node()
+        n.set_flat(pairs)
+        self.dict_eq_(n, wanted)
+        eq_(n.value, wanted)
+
     def test_total_miss(self):
         miss = {u'z': 3}
 
         n = self.new_node()
         assert_raises(KeyError, n.set, miss)
         assert_raises(KeyError, self.new_node, value=miss)
+
+    def test_total_miss_flat(self):
+        pairs = (('miss', u'10'),)
+
+        n = self.new_node()
+        n.set_flat(pairs)
+        self.dict_eq_(n, self.empty)
+        eq_(n.value, self.empty)
 
 class TestEmptyDictSet(DictSetTest):
     empty = {u'x': None, u'y': None}
@@ -446,3 +492,20 @@ class TestDefaultDictSet(DictSetTest):
     x_default = 10
     y_default = 20
     empty = {u'x': 10, u'y': 20}
+
+def test_dict_as_unicode():
+    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
+    n = s.node()
+    n.set(dict(x=1, y=2))
+
+    uni = n.u
+
+    assert uni in (u"{u'x': u'1', u'y': u'2'}", "{u'y': u'2', u'x': u'1'}")
+
+def test_nested_dict_as_unicode():
+    s = schema.Dict(u's', schema.Dict('d', schema.Integer(u'x', default=10)))
+    n = s.node()
+
+    eq_(n.value, {u'd': {u'x': 10}})
+    eq_(n.u, u"{u'd': {u'x': u'10'}}")
+
