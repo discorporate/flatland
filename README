@@ -3,49 +3,61 @@
 TODO:
 
 - schema
-  Status: semi-stable
-  - Element-like methods on Schema- friend or foe?
-  - Add 'export' method
-
-- binops on container nodes aren't implemented yet and will probably
-  fail in colorful ways.
+  Status: mostly stable
+  - May rename Schema and Node; mostly internal
+  - Probably push validate to Schema
+  - Change .node()/.new() to .create() or similar
+  - Tighten up the patterns for the main entry point, Form
+    - See what inheritable forms look like. Additive only?
+  - el.raw ; unprocessed input?
+    - Had this before and it was handy.
+    - But it's reconstructable from fq_name() and the original input source.
+  - binops on container nodes aren't implemented yet and will probably
+    fail in colorful ways.
+  - Babelable field labels
+  - Consider for Nodes: __html__, __json__
+    - html is probably the .x
+    - the .u on containers is close to json, except it spits out u'python'
+      to be roundtripable in Python using any encoding
+  - consider springy's .from_blank(), a node-tainting construction
+    method that uses no defaults at any depth in the tree.
 
 - validation
   Status: Heavy flux, trying on different approaches and sugars.
   - Optional strategy-objects or exceptions for things like Optional
+  - Work in Babel mesaging
+  - Overhaul the error vs. warnings at the same time (current is bogus)
+
+- docs
+  Status: minimal
+  - Sphinx
+
+- genshi template support
+  Status: port not started
+  - Need to port both to flatland and to modern Genshi
+  - flatland nodes are usable in templates as-is. the template support
+    is just whiz-bang.
 
 - test suite
-  Status: sad
+  Status: getting better
   - flesh out, port from 'springy'
 
-
-
-Springy Stuff
-=============
+- springy / formmodel bitbucket
+  Old things and patterns to consider
   - from_blank
   - from_defaults
+  - Schema.prototype()
+  - flat_apply
+  - flat_str
+  - flat_native
+  - flat_nodes
 
-  Schema.blank()
-  Schema.prototype()
-
-  flat_apply
-  flat_str
-  flat_native
-  flat_nodes
-
-  - test suite for defaulting & springyness (expand-o, defaulting structures)
-
-
-New Stuff
-=========
- - Complete validation story; message() constructor for error/warning is bogus
- - Babelable validation
- - Babelable field labels
- - Consider for Nodes: __unicode__, __html__, __json__
- - Consider uniform .u/.value for all Node types
-
-
-Misc
-====
-
+- general tasks
  - Questionable python sweep (__slots__ e.g.)
+ - probably need a trac
+ - migrate to hg or git
+ - bump out a 0.2
+ - improve the package long_description and make sure it's still true
+
+
+
