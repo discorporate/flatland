@@ -1,4 +1,4 @@
-from flatland.util import GetitemGetattrMultiProxy, re_ucompile
+from flatland.util import as_cascaded_mapping, re_ucompile
 
 
 def message(format, bucket='error', result=None):
@@ -38,7 +38,7 @@ class Validator(object):
         elif callable(format):
             message = format(node, state)
         else:
-            message = format % GetitemGetattrMultiProxy(node, self)
+            message = format % as_cascaded_mapping(node, self)
 
         if bucket == 'error':
             node.add_error(message)

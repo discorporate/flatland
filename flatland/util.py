@@ -11,7 +11,7 @@ except ImportError:
 
 
 # From ASPN Cookbook, modified?  Lost reference.
-class lateproperty(property):
+class late_binding_property(property):
     __doc__ = property.__dict__['__doc__'] # see bug #576990
 
     def __init__(self, fget=None, fset=None, fdel=None, doc=None):
@@ -23,11 +23,12 @@ class lateproperty(property):
             fdel = lambda s, n=fdel.__name__: getattr(s, n)()
         property.__init__(self, fget, fset, fdel, doc)
 
-# From ASPN Cookbook (#36302)
-class lazyproperty(object):
+# derived from ASPN Cookbook (#36302)
+class lazy_property(object):
     def __init__(self, deferred):
         self._deferred = deferred
-    def __get__(self, obj, _=None):
+
+    def __get__(self, obj, cls):
         if obj is None:
             return self
         value = self._deferred(obj)
@@ -40,38 +41,61 @@ class writable_property(property):
         doc = doc or fn.__doc__
         property.__init__(self, fget, fn, fdel, doc)
 
-class GetitemGetattrProxy(object):
-    __slots__ = ['target']
+class as_mapping(object):
+    """Provide a mapping view of an instance.
+
+    Similar to vars(), but effective on extension types and will
+    invoke descriptors on access.
+
+    """
+
+    __slots__ = 'target',
+
     def __init__(self, target):
         self.target = target
 
-    def __getitem__(self, key):
-        if hasattr(self.target, key):
-            return getattr(self.target, key)
-        raise KeyError(u'No key "%s"' % key)
+    def __getitem__(self, item):
+        try:
+            return getattr(self.target, item)
+        except AttributeError:
+            raise KeyError(item)
 
-    def has_key(self, key):
-        return hasattr(self.target, key)
-    __contains__ = has_key
+    def __contains__(self, item):
+        return hasattr(self.target, item)
 
-class GetitemGetattrMultiProxy(object):
-    __slots__ = ['targets']
+    def __iter__(self):
+        return dir(self.target)
+
+
+class as_cascaded_mapping(object):
+    """Provide a unified mapping view over multiple instances."""
+
+    __slots__ = 'targets',
+
     def __init__(self, *targets):
-        assert targets
         self.targets = targets
 
-    def __getitem__(self, key):
-        for t in self.targets:
-            if hasattr(t, key):
-                return getattr(t, key)
-        raise KeyError(u'No key "%s"' % key)
+    def __getitem__(self, item):
+        for target in self.targets:
+            try:
+                return getattr(target, item)
+            except AttributeError:
+                pass
+        raise KeyError(item)
 
-    def has_key(self, key):
-        for t in self.targets:
-            if hasattr(t, key):
-                return True
-        return False
-    __contains__ = has_key
+    def __contains__(self, item):
+        try:
+            self[item]
+            return True
+        except KeyError:
+            return False
+
+    def __iter__(self):
+        keys = set()
+        for target in self.targets:
+            keys |= set(dir(target))
+        return iter(keys)
+
 
 def re_ucompile(pattern, flags=0):
     return re.compile(pattern, flags | re.UNICODE)
