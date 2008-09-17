@@ -52,7 +52,7 @@ class Present(Validator):
     missing = message(u'%(label)s may not be blank.')
 
     def validate(self, node, state):
-        if node.u <> u'':
+        if node.u != u'':
             return True
 
         return self.failure(node, state, 'missing')

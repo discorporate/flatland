@@ -6,8 +6,8 @@ def test_dict():
 
     assert s
     assert sn
-    
-    
+
+
 def test_string_node():
     n1 = schema.String('item').node()
     n2 = schema.String('item', default=None).node()
@@ -29,26 +29,26 @@ def test_string_node():
     assert not n3
 
     assert n1 == n2
-    assert n1 <> n3
-    assert n2 <> n3
+    assert n1 != n3
+    assert n2 != n3
 
     n4 = schema.String('item', default=u'  ', strip=True).node()
     n5 = schema.String('item', default=u'  ', strip=False).node()
 
-    assert n4 <> n5
+    assert n4 != n5
 
     assert n4.u == u''
     assert n4.value == u''
     n4.set(u'  ')
     assert n4.u == u''
     assert n4.value == u''
-    
+
     assert n5.u == u'  '
     assert n5.value == u'  '
     n5.set(u'  ')
     assert n5.u == u'  '
     assert n5.value == u'  '
-    
+
 
 def test_path():
     n = schema.Form('root',
