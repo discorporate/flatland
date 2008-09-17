@@ -6,19 +6,18 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   forms
+   schema
+   scalars
+   datetimes
+   references
+   compound
+   containers
+
+
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-Modules
-=======
-
-.. toctree::
-   :maxdepth: 2
-
-   schema
-
-

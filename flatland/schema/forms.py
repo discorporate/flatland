@@ -19,7 +19,7 @@ class Form(containers.Dict):
     """A collection of named fields or schema items.
 
     Forms are the most common top-level mapping.  They behave like
-    Dicts, but do not need to be named.
+    :class:`flatland.Dict`, but do not need to be named.
 
     FIXME: Also magic schema holder?
 
@@ -27,13 +27,16 @@ class Form(containers.Dict):
             Hard to do in a way that maintains the spirit of named,
             nested structures and DRY, e.g.
 
-              class MyForm(Form):
-                  class schema:
-                      name = String('name')
-                      addresses = List('addresses',
-                                       Dict('address',
-                                            String('street1'),
-                                            String('street2')))
+    ::
+
+      # e.g. FIXME2
+      class MyForm(Form):
+          class schema:
+              name = String('name')
+              addresses = List('addresses',
+                               Dict('address',
+                                    String('street1'),
+                                    String('street2')))
 
     """
 

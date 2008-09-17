@@ -1,9 +1,6 @@
-======================
-:mod:`flatland.schema`
-======================
-
+==========================
 Field Schemas and Elements
---------------------------
+==========================
 
 .. autoclass:: flatland.schema.base.FieldSchema
    :members: new
@@ -42,73 +39,3 @@ Field Schemas and Elements
    .. attribute:: warnings = []
 
       A list of validation warning messages.
-
-
-Simple Fields
--------------
-
-.. autoclass:: flatland.schema.scalars.Scalar
-   :members:
-
-Strings
--------
-
-.. currentmodule:: flatland
-
-.. autoclass:: String
-   :show-inheritance:
-   :members:
-
-
-Numbers
--------
-
-.. autoclass:: flatland.schema.scalars.Number
-   :show-inheritance:
-   :members:
-
-   .. attribute:: type_ = None
-
-   .. attribute:: format = "%s"
-
-.. currentmodule:: flatland
-
-.. autoclass:: Integer
-   :show-inheritance:
-
-   .. attribute:: type_ = int
-
-   .. attribute:: format = "%i"
-
-.. autoclass:: Long
-   :show-inheritance:
-
-   .. attribute:: type_ = long
-
-   .. attribute:: format = "%i"
-
-.. autoclass:: Float
-   :show-inheritance:
-
-   .. attribute:: type_ = float
-
-   .. attribute:: format = "%f"
-
-Temporal
---------
-
-.. autoclass:: flatland.schema.scalars.Temporal
-   :show-inheritance:
-   :members:
-
-.. currentmodule:: flatland
-
-.. autoclass:: DateTime
-   :show-inheritance:
-
-.. autoclass:: Date
-   :show-inheritance:
-
-.. autoclass:: Time
-   :show-inheritance:
-
