@@ -1,6 +1,6 @@
 #!/bin/env python
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 import sys
 
@@ -9,21 +9,22 @@ if sys.version_info < (2, 5):
     print "Python 2.5 or higher is required."
     sys.exit(1)
 
-setup(name = "flatland",
-      version = "0.0.2",
-      packages = ['flatland'],
-      zip_safe = True,
+setup(name="flatland",
+      version="0.0.2",
+      packages=find_packages(exclude=['tests.*', 'tests']),
+
+      zip_safe=True,
 
       tests_require=['nose'],
       # for tests, prefer 'setup.py nosetests' or just 'nosetests tests'
       test_suite='nose.collector',
 
-      author = 'Jason Kirtland',
-      author_email = 'jek@discorporate.us',
-      description = 'HTML form management and validation',
+      author='Jason Kirtland',
+      author_email='jek@discorporate.us',
+      description='HTML form management and validation',
       keywords='wsgi web http webapps form forms validation roundtrip',
 
-      long_description = """
+      long_description="""
 Flatland manages the mapping between structured Python application data and
 the flat key/value namespace of forms.  Features include:
 
@@ -44,10 +45,14 @@ the form hierarchy and validation status.  Flatland tries to provide both
 pythonic data access in application code and also simple and foolproof data
 access in Web templates.
 
-http://svn.discorporate.us/repo/flatland/trunk#egg=flatland-dev
+The hg `flatland tip`_ can be installed via ``easy_install
+flatland==dev``.
+
+.. _flatland tip: http://bitbucket.org/jek/flatland/get/tip.zip#egg=flatland-dev
+
       """,
 
-      license = 'MIT License',
+      license='MIT License',
       url='http://discorporate.us/jek/projects/flatland/',
       classifiers=['Development Status :: 3 - Alpha',
                    'Environment :: Web Environment',
