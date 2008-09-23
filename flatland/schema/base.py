@@ -238,12 +238,20 @@ class FieldSchema(object):
             self.validators = list(validators)
         self.optional = optional
 
-    def new(self, *args, **kw):
-        """TODO
-
-        Also, rename.
-        """
+    def create_element(self, *args, **kw):
+        """TODO"""
         return self.element_type(self, *args, **kw)
-    node = new
-    create_element = new
+    new = create_element
 
+    def from_flat(self, pairs, **kw):
+        element = self.create_element(**kw)
+        element.set_flat(pairs)
+        return element
+
+    def from_value(self, value, **kw):
+        element = self.create_element(**kw)
+        element.set(value)
+        return element
+
+    def from_defaults(self, **kw):
+        return self.create_element(**kw)

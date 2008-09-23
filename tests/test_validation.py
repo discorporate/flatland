@@ -45,31 +45,26 @@ class ThirtySomething(Age):
                   Age.IsNumber(),
                   Age.ValidAge(30, 39))
 
+
 def test_custom_validation():
     class MyForm(fl.Form):
         schema = [ThirtySomething('age')]
 
-    f = MyForm()
-    f.set_flat({})
+    f = MyForm.from_flat({})
     assert not f.validate()
     assert f['age'].errors == ['age may not be blank.']
 
-    f = MyForm()
-    f.set_flat({u'age': u''})
+    f = MyForm.from_flat({u'age': u''})
     assert not f.validate()
     assert f['age'].errors == ['age may not be blank.']
 
-    f = MyForm()
-    f.set_flat({u'age': u'crunch'})
+    f = MyForm.from_flat({u'age': u'crunch'})
     assert not f.validate()
     assert f['age'].errors == ['age is not a valid number.']
 
-    f = MyForm()
-    f.set_flat({u'age': u'10'})
+    f = MyForm.from_flat({u'age': u'10'})
     assert not f.validate()
     assert f['age'].errors == ['age must be at least 30.']
-
-
 
 def test_child_validation():
     s = fl.Dict('s', fl.Integer('x', validators=[valid.Present()]))

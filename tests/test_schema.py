@@ -52,9 +52,10 @@ def test_string_element():
 
 
 def test_path():
-    n = schema.Form('root',
+    s = schema.Dict('root',
                     schema.String('element'),
                     schema.Dict('dict', schema.String('dict_element')))
+    n = s.create_element()
 
     eq_(n.el(['dict', 'dict_element']).path,
         ('root', 'dict', 'dict_element'))

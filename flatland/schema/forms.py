@@ -6,15 +6,6 @@ from . import containers
 __all__ = 'Form',
 
 
-class MetaForm(type):
-    """Form() returns an Element, not a Form(FieldSchema) instance."""
-
-    def __call__(cls, *args, **kw):
-        form = cls.__new__(cls)
-        form.__init__(*args, **kw)
-        return form.new()
-
-
 class Form(containers.Dict):
     """A collection of named fields or schema items.
 
@@ -40,20 +31,10 @@ class Form(containers.Dict):
 
     """
 
-    __metaclass__ = MetaForm
-
-    def __init__(self, *args, **kw):
-        if args and isinstance(args[0], basestring):
-            name, args = args[0], args[1:]
-        else:
-            name = None
-
-        if hasattr(self, 'schema'):
-            members = self.schema[:]
-            members.extend(args)
-        else:
-            members = args
-        if not members:
+    def __init__(self, name=None, **kw):
+        try:
+            members = self.schema
+        except AttributeError:
             raise TypeError('a schema is required')
 
         if hasattr(self, 'validators'):
@@ -66,3 +47,18 @@ class Form(containers.Dict):
 
         containers.Dict.__init__(self, name, *members, **kw)
 
+    @classmethod
+    def from_flat(cls, items, **kw):
+        element = cls(**kw).create_element()
+        element.set_flat(items)
+        return element
+
+    @classmethod
+    def from_value(cls, value, **kw):
+        element = cls(**kw).create_element()
+        element.set(value)
+        return element
+
+    @classmethod
+    def from_defaults(cls, **kw):
+        return cls(**kw).create_element()
