@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import itertools
 import re
 from collections import defaultdict
 
@@ -78,6 +79,10 @@ class _SequenceElement(_ContainerElement, list):
         elif not path:
             return self
         raise KeyError()
+
+    @property
+    def children(self):
+        return iter(self)
 
     @property
     def value(self):
@@ -203,6 +208,10 @@ class _ListElement(_SequenceElement):
 
         return r
 
+    @property
+    def children(self):
+        return iter(child.element for child in self)
+
     def _set_flat(self, pairs, sep):
         del self[:]
 
@@ -216,7 +225,6 @@ class _ListElement(_SequenceElement):
         prune = self.schema.prune_empty
 
         for key, value in pairs:
-            print key, value
             if value == u'' and prune:
                 continue
             m = regex.match(key)
@@ -461,6 +469,10 @@ class _DictElement(_ContainerElement, dict):
         if depth_first:
             r.extend([func(self, data)])
         return r
+
+    @property
+    def children(self):
+        return self.itervalues()
 
     def set(self, value, policy=None):
         pairs = util.to_pairs(value)

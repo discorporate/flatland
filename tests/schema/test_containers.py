@@ -589,3 +589,51 @@ def test_dict_el():
 
     assert n.el('x').name == u'x'
     assert_raises(KeyError, n.el, 'not_x')
+
+def test_mixed_all_children():
+    data = {'A1': 1,
+            'A2': 2,
+            'A3': { 'A3B1': { 'A3B1C1': 1,
+                              'A3B1C2': 2, },
+                    'A3B2': { 'A3B2C1': 1 },
+                    'A3B3': [ ['A3B3C0D0', 'A3B3C0D1'],
+                              ['A3B3C1D0', 'A3B3C1D1'],
+                              ['A3B3C2D0', 'A3B3C2D1'] ] } }
+
+    s = schema.Dict(
+        'R',
+        schema.String('A1'),
+        schema.String('A2'),
+        schema.Dict('A3',
+                    schema.Dict('A3B1',
+                                schema.String('A3B1C1'),
+                                schema.String('A3B1C2')),
+                    schema.Dict('A3B2',
+                                schema.String('A3B2C1')),
+                    schema.List('A3B3',
+                                schema.List('A3B3Cx',
+                                            schema.String('A3B3x')))))
+    top = s.from_value(data)
+
+    names = list(e.name for e in top.all_children)
+
+    assert set(names[0:3]) == set(['A1', 'A2', 'A3'])
+    assert set(names[3:6]) == set(['A3B1', 'A3B2', 'A3B3'])
+    # same-level order the intermediates isn't important
+    assert set(names[12:]) == set(['A3B3x'])
+    assert len(names[12:]) == 6
+
+def test_corrupt_all_children():
+    """all_children won't spin out if the graph becomes cyclic."""
+    s = schema.List('R', schema.String('A1'))
+    e = s.create_element()
+
+    e.append('x')
+    e.append('y')
+    dupe = schema.String('A1').create_element(value='z')
+    e.append(dupe)
+    e.append(dupe)
+
+    assert list(_.value for _ in e.children) == list('xyzz')
+    assert list(_.value for _ in e.all_children) == list('xyz')
+
