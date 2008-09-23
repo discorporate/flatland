@@ -24,8 +24,7 @@ class SimpleForm1(fl.Form):
 
 
 def test_straight_parse():
-    f = SimpleForm1()
-    f.set_flat(REQUEST_DATA)
+    f = SimpleForm1.from_flat(REQUEST_DATA)
     eq_(set(f.flatten()),
         set(((u'fname', u'FN'),
              (u'surname', u'SN'),
@@ -39,7 +38,7 @@ def test_straight_parse():
 
 def test_namespaced_parse():
     def load(fn):
-        f = SimpleForm1('ns')
+        f = SimpleForm1.from_defaults(name='ns')
         fn(f)
         return f
 

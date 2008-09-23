@@ -19,44 +19,37 @@ class SimpleSchema2(Form):
 
 
 def test_simple():
-    data = SimpleSchema()
-    data.set_flat({})
+    data = SimpleSchema.from_flat({})
     assert not data.validate()
     assert data.el('num').errors
     e1 = list(data.el('num').errors)
 
-    data = SimpleSchema()
-    data.set_flat({'num': 'asdf'})
+    data = SimpleSchema.from_flat({'num': 'asdf'})
     assert not data.validate()
     assert data['num'].errors
     assert data['num'].errors != e1
     e2 = list(data['num'].errors)
 
-    data = SimpleSchema()
-    data.set_flat({'num': '1234'})
+    data = SimpleSchema.from_flat({'num': '1234'})
     assert not data.validate()
     assert data['num'].errors
     assert data['num'].errors == e2
     e3 = list(data['num'].errors)
 
-    data = SimpleSchema()
-    data.set_flat({'num': '4100000000000009'})
+    data = SimpleSchema.from_flat({'num': '4100000000000009'})
     assert not data.validate()
     assert data['num'].errors
     assert data['num'].errors != e3
     e4 = list(data['num'].errors)
 
-    data = SimpleSchema()
-    data.set_flat({'num': '4100000000000001'})
+    data = SimpleSchema.from_flat({'num': '4100000000000001'})
     assert data.validate()
     assert isinstance(data['num'].value, long)
     assert data['num'].u == '4100-0000-0000-0001'
 
 
 def test_subclass():
-    data = SimpleSchema2()
-
-    data.set_flat({})
+    data = SimpleSchema2.from_flat({})
     assert not data.validate()
     assert data['num'].errors
     err = data['num'].errors[0]
