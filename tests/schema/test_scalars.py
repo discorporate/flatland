@@ -160,10 +160,12 @@ def test_boolean():
 def test_date():
     t = datetime.date
     for spec in (
-        (u'2009-10-10', t(2009, 10, 10), u'2009-10-10'),
-        (u'2010-08-02', t(2010, 8, 2), u'2010-08-02'),
-        (u'2011-8-2', None, u'2011-8-2'),
-        (u'blagga', None, u'blagga')):
+        (u'2009-10-10',   t(2009, 10, 10), u'2009-10-10'),
+        (u'2010-08-02',   t(2010, 8, 2), u'2010-08-02'),
+        (u' 2010-08-02 ', t(2010, 8, 2), u'2010-08-02'),
+        (u' 2010-08-02 ', None, u' 2010-08-02 ', dict(strip=False)),
+        (u'2011-8-2',     None, u'2011-8-2'),
+        (u'blagga',       None, u'blagga')):
         yield (validate_element_set, schema.Date) + spec
 
 def test_time():

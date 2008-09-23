@@ -1,3 +1,5 @@
+# TODO: Temporal stripping
+
 from __future__ import absolute_import
 
 import datetime
@@ -352,6 +354,10 @@ class Temporal(Scalar):
     format = None
     used = None
 
+    def __init__(self, name, strip=True, **kw):
+        Scalar.__init__(self, name, **kw)
+        self.strip = strip
+
     def adapt(self, element, value):
         """Coerces value to a native type.
 
@@ -363,6 +369,8 @@ class Temporal(Scalar):
         if isinstance(value, self.type_):
             return value
         elif isinstance(value, basestring):
+            if self.strip:
+                value = value.strip()
             match = self.regex.match(value)
             if not match:
                 raise exc.AdaptationError()
