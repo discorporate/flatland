@@ -1,3 +1,4 @@
+import collections
 import operator
 import xml.sax.saxutils
 from flatland.util import Unspecified
@@ -55,12 +56,37 @@ class Element(object):
     @property
     def root(self):
         """The top-most parent of this element."""
-        element = self
+        try:
+            return list(self.parents)[-1]
+        except IndexError:
+            return self
+
+    @property
+    def parents(self):
+        """An iterator of all parent elements."""
+        element = self.parent
         while element is not None:
-            if element.parent is None:
-                break
+            yield element
             element = element.parent
-        return element
+        raise StopIteration()
+
+    @property
+    def children(self):
+        """An iterator of immediate child elements."""
+        return iter(())
+
+    @property
+    def all_children(self):
+        """An iterator of all child elements, breadth-first."""
+
+        seen, queue = set((id(self),)), collections.deque(self.children)
+        while queue:
+            element = queue.popleft()
+            if id(element) in seen:
+                continue
+            seen.add(id(element))
+            yield element
+            queue.extend(element.children)
 
     def fq_name(self, sep='_'):
         """Return the element's path as a string.
