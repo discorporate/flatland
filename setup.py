@@ -50,7 +50,7 @@ if sys.version_info < (2, 5):
     sys.exit(1)
 
 setup(name="flatland",
-      version="0.0.2",
+      version="dev",
       packages=find_packages(exclude=['tests.*', 'tests']),
 
       zip_safe=True,
