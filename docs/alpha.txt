@@ -1,0 +1,39 @@
+============
+Alpha Status
+============
+
+*Status:* pre-release development
+
+Pending Design Decisions
+------------------------
+
+ - polymorhically comparable Elements, friend or foe (foe +1)
+ - default validation is still only roughed in and full of bogosity
+ - how best to have optional i18n in validation (including field .label)
+ - the Form sugar is still only roughed in; creation is wonky, no
+   inheritance yet.
+ - push validate() up to FieldSchema
+ - push set() up too?
+
+Also Considering
+----------------
+
+  - For Elements: __html__, __json__
+
+    - html is probably the .x
+
+    - the .u on containers is close to json, except it currently spits
+      out u'python' for strings (and the repr() of scalars, generally)
+
+  - springy's .from_blank(), a node-tainting construction method that
+    uses no defaults at any depth in the tree.
+
+  - create w/ prefix?  was sure that was still in there.
+
+  - events on set(), validation
+
+General Todos
+~~~~~~~~~~~~~
+
+ - improve the package long_description and make sure it's still true
+

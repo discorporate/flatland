@@ -1,0 +1,41 @@
+==========================
+Field Schemas and Elements
+==========================
+
+.. autoclass:: flatland.schema.base.FieldSchema
+   :members: new
+
+   .. attribute:: validators = []
+
+
+.. autoclass:: flatland.schema.base.Element
+   :members:
+
+   .. attribute:: schema
+
+      The :class:`FieldSchema` that constructed the element.
+
+   .. attribute:: parent
+
+      An owning element, or None if element is topmost or not a member
+      of a hierarchy..
+
+   .. attribute:: value
+
+      The element's native Python value.  Only validation routines
+      should write this attribute directly: use :meth:`set` to update
+      the element's value.
+
+   .. attribute:: u
+
+      A Unicode representation of the element's value.  As in
+      :attr:`value`, writing directly to this attribute should be
+      restricted to validation routines.
+
+   .. attribute:: errors = []
+
+      A list of validation error messages.
+
+   .. attribute:: warnings = []
+
+      A list of validation warning messages.
