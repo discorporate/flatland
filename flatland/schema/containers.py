@@ -22,6 +22,16 @@ class Container(FieldSchema):
 
     element_type = _ContainerElement
 
+    def validate_element(self, element, state, decending):
+        """Validates on the second, upward pass.
+
+        See :meth:`FieldSchema.validate_element`.
+        """
+        if not decending:
+            return FieldSchema.validate_element(self, element, state, decending)
+        else:
+            return None
+
 
 def _argument_to_element(index):
     """Argument filter, transforms a positional argument to a Element.
@@ -88,6 +98,9 @@ class _SequenceElement(_ContainerElement, list):
     def value(self):
         return list(value.value for value in self)
 
+    @property
+    def is_empty(self):
+        return not any(True for _ in self.children)
 
 class Sequence(Container):
     """Base of sequence-like Containers."""
@@ -552,6 +565,11 @@ class _DictElement(_ContainerElement, dict):
     @property
     def value(self):
         return dict((key, value.value) for key, value in self.iteritems())
+
+    @property
+    def is_empty(self):
+        """Mappings are never empty."""
+        return False
 
 class Dict(Mapping):
     """A mapping Container with named members."""

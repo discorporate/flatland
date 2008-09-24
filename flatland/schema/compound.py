@@ -61,6 +61,9 @@ class Compound(scalars.Scalar, containers.Mapping):
     def explode(self, element, value):
         raise NotImplementedError()
 
+    def validate_element(self, element, state, direction):
+        return containers.Mapping.validate_element(
+            self, element, state, direction)
 
 class DateYYYYMMDD(Compound, scalars.Date):
     def __init__(self, name, *specs, **kw):
