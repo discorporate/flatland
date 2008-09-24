@@ -68,7 +68,6 @@ class Validator(object):
         elif message_transform:
             message = message_transform(message)
 
-        print message
         return message % format_map
 
 
