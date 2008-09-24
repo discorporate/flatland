@@ -3,6 +3,7 @@ import operator
 import xml.sax.saxutils
 from flatland.util import Unspecified
 
+
 NoneType = type(None)
 
 
@@ -264,10 +265,15 @@ class FieldSchema(object):
 
     """
     element_type = Element
+    ugettext = None
+    ungettext = None
+    locale = None
     validators = ()
 
     def __init__(self, name, label=Unspecified, default=None,
-                 validators=Unspecified, optional=False):
+                 validators=Unspecified, optional=False,
+                 ugettext=Unspecified, ungettext=Unspecified,
+                 locale=Unspecified):
         if not isinstance(name, (unicode, NoneType)):
             name = unicode(name, errors='strict')
 
@@ -278,6 +284,11 @@ class FieldSchema(object):
         if validators is not Unspecified:
             self.validators = list(validators)
         self.optional = optional
+
+        for override in ('ugettext', 'ungettext', 'locale'):
+            value = locals()[override]
+            if value is not Unspecified:
+                setattr(self, override, value)
 
     def create_element(self, *args, **kw):
         """TODO"""

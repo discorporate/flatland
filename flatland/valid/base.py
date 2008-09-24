@@ -1,7 +1,14 @@
-from flatland.util import as_cascaded_mapping, re_ucompile
+import __builtin__
+import functools
+import operator
+from flatland.util import re_ucompile
+
 
 
 class Validator(object):
+
+    _transform_finder = operator.attrgetter('ugettext')
+    _tuple_transform_finder = operator.attrgetter('ungettext')
 
     def __call__(self, element, state):
         return self.validate(element, state)
@@ -9,23 +16,106 @@ class Validator(object):
     def validate(self, element, state):
         return False
 
-    def note_error(self, element, state, key=None, message=None):
+    def note_error(self, element, state, key=None, message=None,
+                   plural_on=None):
         message = message or getattr(self, key)
         if message:
-            element.add_error(self.expand_message(element, state, message))
+            element.add_error(
+                self.expand_message(element, state, message, plural_on))
         return False
 
-    def note_warning(self, element, state, key=None, message=None):
+    def note_warning(self, element, state, key=None, message=None,
+                     plural_on=None):
         message = message or getattr(self, key)
         if message:
-            element.add_warning(self.expand_message(element, state, message))
+            element.add_warning(
+                self.expand_message(element, state, message, plural_on))
         return False
 
-    def expand_message(self, element, state, message):
+    def find_transformer(self, element, state, message, finder):
+        transform = finder(element.schema)
+        if transform:
+            return transform
+        for parent in element.parents:
+            transform = finder(parent.schema)
+            if transform:
+                return transform
+        try:
+            return finder(__builtin__)
+        except AttributeError:
+            return None
+
+    def expand_message(self, element, state, message, n):
         if callable(message):
-            return message(element, state)
-        else:
-            return message % as_cascaded_mapping(element, self)
+            message = message(element, state)
+
+        message_transform = mapping_transform = self.find_transformer(
+            element, state, message, self._transform_finder)
+
+        format_map = as_format_mapping(
+            element, self, transform=mapping_transform)
+
+        if isinstance(message, tuple):
+            # a transformer must be present if message is a tuple
+            transform = self.find_transformer(
+                element, state, message, self._tuple_transform_finder)
+
+            single, plural, n_key = message
+            try:
+                n = format_map[n_key]
+            except KeyError:
+                n = n_key
+
+            message = transform(single, plural, n)
+        elif message_transform:
+            message = message_transform(message)
+
+        print message
+        return message % format_map
+
+
+class as_format_mapping(object):
+    """A unified, optionally transformed mapping view over multiple instances.
+
+    Allows regular instance attributes to be accessed by "%(attrname)s" in
+    string formats.  Optionally passes values through a ``transform`` (such
+    ``gettext``) before returning.
+
+    """
+
+    __slots__ = 'targets', 'transform'
+
+    def __init__(self, *targets, **kw):
+        self.targets = targets
+        self.transform = kw.pop('transform', None)
+        if kw:
+            raise TypeError('unexpected keyword argument')
+
+    def __getitem__(self, item):
+        for target in self.targets:
+            try:
+                value = getattr(target, item)
+            except AttributeError:
+                pass
+            else:
+                if self.transform:
+                    return self.transform(value)
+                else:
+                    return value
+        raise KeyError(item)
+
+    def __contains__(self, item):
+        try:
+            self[item]
+            return True
+        except KeyError:
+            return False
+
+    def __iter__(self):
+        keys = set()
+        for target in self.targets:
+            keys |= set(dir(target))
+        return iter(keys)
 
 
 class Present(Validator):
