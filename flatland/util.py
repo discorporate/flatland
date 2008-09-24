@@ -67,36 +67,6 @@ class as_mapping(object):
         return dir(self.target)
 
 
-class as_cascaded_mapping(object):
-    """Provide a unified mapping view over multiple instances."""
-
-    __slots__ = 'targets',
-
-    def __init__(self, *targets):
-        self.targets = targets
-
-    def __getitem__(self, item):
-        for target in self.targets:
-            try:
-                return getattr(target, item)
-            except AttributeError:
-                pass
-        raise KeyError(item)
-
-    def __contains__(self, item):
-        try:
-            self[item]
-            return True
-        except KeyError:
-            return False
-
-    def __iter__(self):
-        keys = set()
-        for target in self.targets:
-            keys |= set(dir(target))
-        return iter(keys)
-
-
 def re_ucompile(pattern, flags=0):
     return re.compile(pattern, flags | re.UNICODE)
 
