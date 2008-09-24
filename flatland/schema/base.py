@@ -196,29 +196,44 @@ class Element(object):
     def _set_flat(self, pairs, sep):
         raise NotImplementedError()
 
-    def validate(self, state=None, recurse=True, validators=None):
-        """TODO"""
+    @property
+    def is_empty(self):
+        return True if (self.value is None and self.u == u'') else False
+
+    def validate(self, state=None, recurse=True):
+        """Assess the validity of this element and its children.
+
+        :param state: optional, will be passed unchanged to all
+            validator callables.
+        :param recurse: if False, do not validate children.
+        :returns: True or False
+
+        Iterates through this element and all of its children,
+        invoking each element's :meth:`schema.validate_element`.  Each
+        element will be visited twice: once heading down the tree,
+        breadth-first, and again heading back up in reverse order.
+
+        Returns True if all validations pass, False if one or more
+        fail.
+
+        """
         if not recurse:
-            return self._validate(state, validators=validators)
+            return (self._validate(state, True) &
+                    self._validate(state, False))
 
-        def collector(element, _):
-            return element._validate(state=state, validators=None)
+        elements = [self] + list(self.all_children)
 
-        return reduce(operator.and_, self.apply(collector, None), True)
+        # validate down, and then back up
+        return (reduce(operator.and_, (e._validate(state, True)
+                                       for e in elements), True)
+                &
+                reduce(operator.and_, (e._validate(state, False)
+                                      for e in reversed(elements)), True))
 
-    def _validate(self, state=None, validators=None):
-        if validators is None:
-            if not self.schema.validators:
-                return True
-        validators = self.schema.validators
-
-        valid = True
-        for v in validators:
-            valid &= bool(v(self, state))
-            if not valid:
-                return False
-
-        return valid
+    def _validate(self, state, decending):
+        """Run validation, transforming None into success. Internal."""
+        res = self.schema.validate_element(self, state, decending)
+        return True if (res is None or res) else False
 
     @property
     def x(self):
@@ -268,6 +283,59 @@ class FieldSchema(object):
         """TODO"""
         return self.element_type(self, *args, **kw)
     new = create_element
+
+    def validate_element(self, element, state, decending):
+        """Assess the validity of an element.
+
+        :param element: an :class:`Element`
+        :param state: may be None, an optional value of supplied to
+            ``element.validate``
+        :param decending: a boolean, True the first time the element
+            has been seen in this run, False the next
+
+        :returns boolean: a truth value or None
+
+        The :meth:`Element.validate` process visits each element in
+        the tree twice: once heading down the tree, breadth-first, and
+        again heading back up in the reverse direction.  Scalar fields
+        will typically validate on the first pass, and containers on
+        the second.
+
+        Return no value or None to pass, accepting the element as
+        presumptively valid.
+
+        Exceptions raised by :meth:`validate_element` will not be
+        caught by :meth:`Element.validate`.
+
+        Directly modifying and normalizing :attr:`Element.value` and
+        :attr:`Element.u` within a validation routine is acceptable.
+
+        The standard implementation of validate_element is:
+
+         - If :attr:`element.is_empty` and :attr:`self.optional`,
+           return True.
+
+         - If :attr:`self.validators` is empty and
+           :attr:`element.is_empty`, return False.
+
+         - If :attr:`self.validators` is empty and not
+           :attr:`element.is_empty`, return True.
+
+         - Iterate through :attr:`self.validators`, calling each
+           member with (*element*, *state*).  If one returns a false
+           value, stop iterating and return False immediately.
+
+         - Otherwise return True.
+
+        """
+        if element.is_empty and self.optional:
+            return True
+        if not self.validators:
+            return not element.is_empty
+        for fn in self.validators:
+            if not fn(element, state):
+                return False
+        return True
 
     def from_flat(self, pairs, **kw):
         element = self.create_element(**kw)

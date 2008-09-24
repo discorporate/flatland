@@ -3,8 +3,7 @@ from flatland.ext import creditcard
 import re
 
 class SimpleSchema(Form):
-    schema = [creditcard.CreditCardNumber('num'),
-              String('name')]
+    schema = [creditcard.CreditCardNumber('num')]
 
 class MyCreditCard(creditcard.CreditCardNumber):
     class Present(creditcard.CreditCardNumber.Present):
@@ -15,7 +14,7 @@ class SimpleSchema2(Form):
                            label='Visa/MC Number',
                            types=(creditcard.VISA,
                                   creditcard.MASTERCARD)),
-              String('name')]
+              String('name', optional=True)]
 
 
 def test_simple():

@@ -130,12 +130,6 @@ class _ScalarElement(Element):
     def __nonzero__(self):
         return True if self.u and self.value else False
 
-    def _validate(self, state=None, validators=None):
-        if self.schema.optional and self.u == u'':
-            return True
-        else:
-            return super(_ScalarElement, self)._validate(state, validators)
-
     def __unicode__(self):
         return self.u
 
@@ -181,6 +175,16 @@ class Scalar(FieldSchema):
 
         """
         return unicode(value)
+
+    def validate_element(self, element, state, decending):
+        """Validates on the first, downward pass.
+
+        See :meth:`FieldSchema.validate_element`.
+        """
+        if decending:
+            return FieldSchema.validate_element(self, element, state, decending)
+        else:
+            return None
 
 
 class String(Scalar):
