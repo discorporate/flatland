@@ -4,19 +4,17 @@ from flatland import valid
 
 class Age(fl.Integer):
     class IsNumber(valid.Converted):
-        correct = valid.message(u'%(label)s is not a valid number.')
+        correct = u'%(label)s is not a valid number.'
 
     class ValidAge(valid.Validator):
         minage = 1
         maxage = 150
 
-        too_young = valid.message(u'%(label)s must be at least %(minage)s.')
-        too_old = valid.message(u'%(label)s may not be larger than %(maxage)s')
+        too_young = u'%(label)s must be at least %(minage)s.'
+        too_old = u'%(label)s may not be larger than %(maxage)s'
 
-        at_min = valid.message('%(label)s is at the minimum age.',
-                               'warning')
-        at_max = valid.message('%(label)s is at the maximum age.',
-                               'warning')
+        at_min = '%(label)s is at the minimum age.'
+        at_max = '%(label)s is at the maximum age.'
 
         def __init__(self, minage=None, maxage=None):
             if minage is not None:
@@ -27,13 +25,13 @@ class Age(fl.Integer):
         def validate(self, element, state):
             age = element.value
             if age < self.minage:
-                return self.failure(element, state, 'too_young')
+                return self.note_error(element, state, 'too_young')
             elif age == self.minage:
-                return self.failure(element, state, 'at_min')
+                return self.note_warning(element, state, 'at_min')
             elif age == self.maxage:
-                return self.failure(element, state, 'at_max')
+                return self.note_warning(element, state, 'at_max')
             elif age > self.maxage:
-                return self.failure(element, state, 'too_old')
+                return self.note_error(element, state, 'too_old')
             return True
 
     validators = (valid.Present(),

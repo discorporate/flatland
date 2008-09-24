@@ -67,14 +67,14 @@ class CreditCardNumber(schema.Long):
 
             return u'We accept %s' % types
 
-        not_accepted = valid.message(_formatter)
+        not_accepted = _formatter
 
         def validate(self, element, state):
             type_ = _card_type(element.value)
             if type_ in element.schema.accepted:
                 return True
 
-            return self.failure(element, state, 'not_accepted')
+            return self.note_error(element, state, 'not_accepted')
 
 _re_visa = re.compile(r'^4\d{12}\d{3}?$')
 _re_mc   = re.compile(r'^5[1-5]\d{14}$')

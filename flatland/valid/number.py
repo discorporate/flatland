@@ -1,6 +1,6 @@
 from __future__ import division
 import types
-from base import Validator, message
+from base import Validator
 import flatland.util as util
 
 
@@ -25,8 +25,8 @@ class NANPnxx(Validator):
 class NANPnpa_nxx(Validator):
     "Validates npa and nxx compound elements."
 
-    incomplete = message(False)
-    invalid = message(u'The %(label)s can not be verified.')
+    incomplete = None
+    invalid = u'The %(label)s can not be verified.'
 
     def __init__(self, npa_element, nxx_element, errors_to=None,
                  lookup='aq', method='valid_npanxx'):
@@ -51,7 +51,7 @@ class NANPnpa_nxx(Validator):
             err = element
 
         if npa is None or nxx is None:
-            return self.failure(err, state, 'incomplete')
+            return self.note_error(err, state, 'incomplete')
 
         # Will explode at run-time if state does not contain the lookup
         # tool.
@@ -64,21 +64,21 @@ class NANPnpa_nxx(Validator):
         valid = getattr(lookup, self.method)(npa, nxx)
 
         if not valid:
-            return self.failure(err, state, 'invalid')
+            return self.note_error(err, state, 'invalid')
 
         return true
 
 
 class Luhn10(Validator):
     """Int or Long"""
-    invalid = message('The %(label)s was not entered correctly.')
+    invalid = 'The %(label)s was not entered correctly.'
 
     def validate(self, element, state):
         num = element.value
         if num is None:
-            return self.failure(element, state, 'invalid')
+            return self.note_error(element, state, 'invalid')
 
         if util.luhn10(num):
             return True
 
-        return self.failure(element, state, 'invalid')
+        return self.note_error(element, state, 'invalid')
