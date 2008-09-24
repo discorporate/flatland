@@ -10,10 +10,8 @@ Pending Design Decisions
  - polymorhically comparable Elements, friend or foe (foe +1)
  - default validation is still only roughed in and full of bogosity
  - how best to have optional i18n in validation (including field .label)
- - the Form sugar is still only roughed in; creation is wonky, no
-   inheritance yet.
- - push validate() up to FieldSchema
- - push set() up too?
+ - the Form sugar is still only roughed in; no inheritance yet.
+ - push set() up to FieldSchema?
 
 Also Considering
 ----------------
@@ -27,8 +25,6 @@ Also Considering
 
   - springy's .from_blank(), a node-tainting construction method that
     uses no defaults at any depth in the tree.
-
-  - create w/ prefix?  was sure that was still in there.
 
   - events on set(), validation
 
