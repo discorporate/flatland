@@ -16,20 +16,18 @@ class Validator(object):
     def validate(self, element, state):
         return False
 
-    def note_error(self, element, state, key=None, message=None,
-                   plural_on=None):
+    def note_error(self, element, state, key=None, message=None):
         message = message or getattr(self, key)
         if message:
             element.add_error(
-                self.expand_message(element, state, message, plural_on))
+                self.expand_message(element, state, message))
         return False
 
-    def note_warning(self, element, state, key=None, message=None,
-                     plural_on=None):
+    def note_warning(self, element, state, key=None, message=None):
         message = message or getattr(self, key)
         if message:
             element.add_warning(
-                self.expand_message(element, state, message, plural_on))
+                self.expand_message(element, state, message))
         return False
 
     def find_transformer(self, element, state, message, finder):
@@ -45,7 +43,7 @@ class Validator(object):
         except AttributeError:
             return None
 
-    def expand_message(self, element, state, message, n):
+    def expand_message(self, element, state, message):
         if callable(message):
             message = message(element, state)
 
