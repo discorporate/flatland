@@ -7,7 +7,7 @@ class SimpleSchema(Form):
 
 class MyCreditCard(creditcard.CreditCardNumber):
     class Present(creditcard.CreditCardNumber.Present):
-        missing = valid.message(u'Yo!  You need a %(label)s!')
+        missing = u'Yo! You need a %(label)s!'
 
 class SimpleSchema2(Form):
     schema = [MyCreditCard('num',
