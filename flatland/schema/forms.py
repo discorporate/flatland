@@ -12,22 +12,7 @@ class Form(containers.Dict):
     Forms are the most common top-level mapping.  They behave like
     :class:`flatland.Dict`, but do not need to be named.
 
-    FIXME: Also magic schema holder?
-
-    FIXME2: Assuming this means an inner class to do definitions on.
-            Hard to do in a way that maintains the spirit of named,
-            nested structures and DRY, e.g.
-
-    ::
-
-      # e.g. FIXME2
-      class MyForm(Form):
-          class schema:
-              name = String('name')
-              addresses = List('addresses',
-                               Dict('address',
-                                    String('street1'),
-                                    String('street2')))
+    FIXME: doc schema attr
 
     """
 
@@ -54,7 +39,7 @@ class Form(containers.Dict):
         :param items: a sequence of ``(key, value)`` pairs, as for
            :meth:`Element.from_flat`.
 
-        :param **kw: keyword arguments will be passed to the
+        :param \*\*kw: keyword arguments will be passed to the
             :class:`Form` constructor.
 
         """
@@ -68,7 +53,7 @@ class Form(containers.Dict):
 
         :param value: any value, will be passed to :meth:`Element.set`.
 
-        :param **kw: keyword arguments will be passed to the
+        :param \*\*kw: keyword arguments will be passed to the
             :class:`Form` constructor.
 
         """
@@ -95,7 +80,7 @@ class Form(containers.Dict):
         :param rename: optional, a mapping of attribute-to-field name
             transformations.  Attributes specified in the mapping will
             be included regardless of *include* or *omit*.
-        :param **kw: keyword arguments will be passed to the
+        :param \*\*kw: keyword arguments will be passed to the
             :class:`Form` constructor.
 
         *include* and *omit* are mutually exclusive.
