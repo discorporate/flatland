@@ -89,6 +89,17 @@ class Form(containers.Dict):
         attributes as possible from *obj*.  Object attributes that do
         not correspond to field names are ignored.
 
+        Elements have two corresponding methods useful for
+        round-tripping values in and out of your domain objects.
+
+        :meth:`_DictElement.update_object` performs the inverse of
+        :meth:`from_object`, and :meth:`_DictElement.slice` is useful
+        for constructing new objects.
+
+          >>> form = UserForm.from_object(user)
+          >>> form.update_object(user, exclude=['verify_password']))
+          >>> new_user = User(**form.slice(exclude=['verify_password']))
+
         """
 
         self = cls(**kw)

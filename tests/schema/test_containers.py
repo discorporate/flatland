@@ -1,6 +1,6 @@
 from nose.tools import eq_, assert_raises, set_trace
 
-from flatland import schema
+from flatland import schema, util
 from flatland.util import Unspecified
 
 
@@ -589,6 +589,50 @@ def test_dict_el():
 
     assert n.el('x').name == u'x'
     assert_raises(KeyError, n.el, 'not_x')
+
+def test_update_object():
+    class Obj(object):
+        def __init__(self, **kw):
+            for (k, v) in kw.items():
+                setattr(self, k, v)
+
+    s = schema.Dict(u's', schema.String(u'x'), schema.String(u'y'))
+
+    o = Obj()
+    assert not hasattr(o, 'x')
+    assert not hasattr(o, 'y')
+
+    def updated_(obj_factory, initial_value, wanted=None, **update_kw):
+        e = s.create_element(value=initial_value)
+        o = obj_factory()
+        e.update_object(o, **update_kw)
+        if wanted is None:
+            wanted = initial_value
+        have = dict(o.__dict__)
+        assert have == wanted
+
+    updated_(Obj, {'x': 'X', 'y': 'Y'})
+    updated_(Obj, {'x': 'X'}, {'x': 'X', 'y': None})
+    updated_(lambda: Obj(y='Y'), {'x': 'X'}, {'x': 'X', 'y': None})
+    updated_(lambda: Obj(y='Y'), {'x': 'X'}, {'x': 'X', 'y': 'Y'}, omit=('y',))
+    updated_(lambda: Obj(y='Y'), {'x': 'X'}, {'y': 'Y'}, include=('z',))
+    updated_(Obj, {'x': 'X'}, {'y': None, 'z': 'X'}, rename=(('x', 'z'),))
+
+def test_slice():
+    s = schema.Dict(u's', schema.String(u'x'), schema.String(u'y'))
+
+    def same_(source, kw):
+        e = s.create_element(value=source)
+
+        sliced = e.slice(**kw)
+        wanted = dict(util.keyslice_pairs(e.value.items(), **kw))
+
+        assert sliced == wanted
+
+    yield same_, {'x': 'X', 'y': 'Y'}, {}
+    yield same_, {'x': 'X', 'y': 'Y'}, dict(include=['x'])
+    yield same_, {'x': 'X', 'y': 'Y'}, dict(omit=['x'])
+    yield same_, {'x': 'X', 'y': 'Y'}, dict(omit=['x'], rename={'y': 'z'})
 
 def test_mixed_all_children():
     data = {'A1': 1,
