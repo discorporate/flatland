@@ -6,22 +6,9 @@ import re
 
 try:
     import threading
-except ImportError:
+except ImportError:                                           # pragma:nocover
     import dummy_threading as threading
 
-
-# From ASPN Cookbook, modified?  Lost reference.
-class late_binding_property(property):
-    __doc__ = property.__dict__['__doc__'] # see bug #576990
-
-    def __init__(self, fget=None, fset=None, fdel=None, doc=None):
-        if fget:
-            fget = lambda s, n=fget.__name__: getattr(s, n)()
-        if fset:
-            fset = lambda s, v, n=fset.__name__: getattr(s, n)(v)
-        if fdel:
-            fdel = lambda s, n=fdel.__name__: getattr(s, n)()
-        property.__init__(self, fget, fset, fdel, doc)
 
 # derived from ASPN Cookbook (#36302)
 class lazy_property(object):
@@ -35,11 +22,6 @@ class lazy_property(object):
         setattr(obj, self._deferred.func_name, value)
         return value
 
-class writable_property(property):
-    def __init__(self, fn, attr=None, fdel=None, doc=None):
-        fget = operator.attrgetter(attr or ('_' + fn.__name__))
-        doc = doc or fn.__doc__
-        property.__init__(self, fget, fn, fdel, doc)
 
 class as_mapping(object):
     """Provide a mapping view of an instance.
@@ -64,14 +46,15 @@ class as_mapping(object):
         return hasattr(self.target, item)
 
     def __iter__(self):
-        return dir(self.target)
+        return iter(dir(self.target))
 
 
 def re_ucompile(pattern, flags=0):
+    """Compile a regex with re.UNICODE on by default."""
     return re.compile(pattern, flags | re.UNICODE)
 
 def luhn10(number):
-    assert isinstance(number, (int, long))
+    """Return True if the number passes the Luhn checksum algorithm."""
 
     sum = 0
     while number:
@@ -97,6 +80,48 @@ def to_pairs(dictlike):
     else:
         return ((key, value) for key, value in dictlike)
 
+def keyslice_pairs(pairs, include=None, omit=None, rename=None):
+    """Filter (key, value) pairs by key and return a subset.
+
+    :param pairs: an iterable of ``(key, value)`` pairs (2-tuples).
+
+    :param include: optional, a sequence of key values.  If supplied,
+        only pairs whose key is a member of this sequence will be
+        returned.
+
+    :param omit: optional, a sequence of key values. If supplied, all
+        pairs will be returned, save those whose key is a member of
+        this sequence.
+
+    :param rename: optional, a mapping or sequence of 2-tuples
+        specifying a key-to-key translation.  A pair whose key has
+        been renamed by this translation will always be emitted,
+        regardless of *include* or *omit* rules.  The mapping will be
+        converted to a dict internally, and keys must be hashable.
+
+    :returns: yields ``(key, value)`` pairs.
+
+    """
+    if include and omit:
+        raise TypeError('received include and omit, specify only one')
+
+    include = set(include) if include else False
+    omit = set(omit) if omit else False
+    rename = dict(to_pairs(rename)) if rename else False
+
+    for pair in pairs:
+        key = pair[0]
+        if rename and key in rename:
+            yield (rename[key], pair[1])
+            continue
+        if include:
+            if key not in include:
+                continue
+        elif omit:
+            if key in omit:
+                continue
+        yield pair
+
 # From ASPN Cookbook (#410692)
 class switch(object):
     def __init__(self, value):
@@ -106,7 +131,6 @@ class switch(object):
     def __iter__(self):
         """Return the match method once, then stop"""
         yield self.match
-        raise StopIteration
 
     def match(self, *args):
         """Indicate whether or not to enter a case suite"""
@@ -117,6 +141,7 @@ class switch(object):
             return True
         else:
             return False
+
 
 class trool(object):
   def __and__(self, other):
