@@ -57,5 +57,5 @@ def test_path():
                     schema.Dict('dict', schema.String('dict_element')))
     n = s.create_element()
 
-    eq_(n.el(['dict', 'dict_element']).path,
-        ('root', 'dict', 'dict_element'))
+    eq_(list(n.el(['dict', 'dict_element']).path),
+        [n, n['dict'], n['dict']['dict_element']])

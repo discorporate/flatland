@@ -80,10 +80,8 @@ class _ScalarElement(Element):
             self.u = self.schema.serialize(self, value)
         return True
 
-    def _el(self, path):
-        if not path:
-            return self
-        raise KeyError()
+    def _index(self, name):
+        raise IndexError(name)
 
     def _set_flat(self, pairs, sep):
         for key, value in pairs:

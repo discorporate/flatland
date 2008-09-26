@@ -1,15 +1,19 @@
 import collections
+import itertools
 import operator
-import xml.sax.saxutils
+
+from flatland import util
 from flatland.util import Unspecified
 
 
-NoneType = type(None)
+__all__ = 'FieldSchema', 'Element'
 
+NoneType = type(None)
+Root = util.symbol('Root')
+xml = None
 
 class Element(object):
     """TODO
-
 
     Elements can be supplied to template environments and used to
     great effect there: elements contain all of the information needed
@@ -44,19 +48,8 @@ class Element(object):
         return self.schema.label
 
     @property
-    def path(self):
-        "A tuple of element names, starting at this element's topmost parent."
-        p, element = [], self
-        while element is not None:
-            if element.name is not None:
-                p.append(element.name)
-            element = element.parent
-
-        return tuple(reversed(p))
-
-    @property
     def root(self):
-        """The top-most parent of this element."""
+        """The top-most parent of the element."""
         try:
             return list(self.parents)[-1]
         except IndexError:
@@ -70,6 +63,11 @@ class Element(object):
             yield element
             element = element.parent
         raise StopIteration()
+
+    @property
+    def path(self):
+        """An iterator of all elements from root to the Element, inclusive."""
+        return itertools.chain(reversed(list(self.parents)), (self,))
 
     @property
     def children(self):
@@ -89,43 +87,125 @@ class Element(object):
             yield element
             queue.extend(element.children)
 
-    def fq_name(self, sep='_'):
-        """Return the element's path as a string.
+    def fq_name(self, sep=u'.'):
+        """Return the fully qualified path name of the element.
 
-        Joins this element's :attr:`path` with *sep* and returns the
-        fully qualified, flattened name.
+        Returns a *sep*-separated string of :meth:`.el` compatible element
+        indexes starting from the :attr:`Element.root` (``.``) down to the
+        element.
+
+          >>> from flatland import Dict, Integer
+          >>> p = Dict('point', Integer('x'), Integer('y')).create_element()
+          >>> p.set(dict(x=10, y=20))
+          >>> p.name
+          u'point'
+          >>> p.fq_name()
+          u'.'
+          >>> p['x'].name
+          u'x'
+          >>> p['x'].fq_name()
+          u'.x'
+
+        The index used in a path may not be the :attr:`.name` of the
+        element.  For example, sequence members are referenced by their
+        numeric index.
+
+          >>> from flatland import List, String
+          >>> form = List('addresses', String('address')).create_element()
+          >>> form.set([u'uptown', u'downtown'])
+          >>> form.name
+          u'addresses'
+          >>> form.fq_name()
+          u'.'
+          >>> form[0].name
+          u'address'
+          >>> form[0].fq_name()
+          u'.0'
 
         """
-        return sep.join(self.path)
+        if not self.parent:
+            return sep
+
+        children_of_root = reversed(list(self.parents)[:-1])
+
+        parts, mask = [], None
+        for element in list(children_of_root) + [self]:
+            # allow Slot elements to mask the names of their child
+            # e.g.
+            #     <List name='l'> <Slot name='0'> <String name='s'>
+            # has an .el()/Python path of just
+            #   l.0
+            # not
+            #   l.0.s
+            if isinstance(element, Slot):
+                mask = element.name
+                continue
+            elif mask:
+                parts.append(mask)
+                mask = None
+                continue
+            parts.append(element.name)
+        return sep + sep.join(parts)
 
     def el(self, path, sep=u'.'):
-        """Find an element by string path.
+        """Find a child element by string path.
 
-          >>> form.el('addresses.0.street1')
+        :param path: a *sep*-separated string of element names, or an
+            iterable of names
+        :param sep: optional, a string separator used to parse *path*
+
+        :returns: an :class:`Element` or raises :exc:`KeyError`.
+
+          >>> contact.el('addresses.0.street1')
+
+        Given a relative path as above, :meth:`el` searches for a matching
+        path among the element's children.
+
+        If *path* begins with *sep*, the path is considered fully qualified
+        and the search is resolved from the :attr:`Element.root`.  The
+        leading *sep* will always match the root node, regardless of its
+        :attr:`.name`.
+
+          >>> form.el('.contact.addresses.0.city')
 
         """
-        search = self._parse_element_path(path, sep)
-        if search is None:
-            raise KeyError(u'No element at "%s".' % path)
-
         try:
-            return self._el(search)
-        except KeyError:
-            raise KeyError(u'No element found at "%s"' % path)
+            names = list(self._parse_element_path(path, sep)) or ()
+            if names[0] is Root:
+                element = self.root
+                names.pop(0)
+            else:
+                element = self
+            while names:
+                element = element._index(names.pop(0))
+            return element
+        except LookupError:
+            raise KeyError('No element at %r' % (path,))
 
-    def _el(self, path):
+    def _index(self, name):
+        """Return a named child or raise LookupError."""
         raise NotImplementedError()
 
     @classmethod
     def _parse_element_path(self, path, sep):
         if isinstance(path, basestring):
-            steps = path.split(sep)
-        elif isinstance(path, (list, tuple)) or hasattr(path, 'next'):
-            steps = path
+            if path == sep:
+                return [Root]
+            elif path.startswith(sep):
+                path = path[len(sep):]
+                parts = [Root]
+            else:
+                parts = []
+            parts.extend(path.split(sep))
+            return iter(parts)
         else:
+            return iter(path)
+        # fixme: nuke?
+        if isinstance(path, (list, tuple)) or hasattr(path, 'next'):
+            return path
+        else:
+            assert False
             return None
-
-        return [None if step in (u'""', u"''") else step for step in steps]
 
     ## Errors and warnings- any element can have them.
     def add_error(self, message):
@@ -142,6 +222,25 @@ class Element(object):
     def apply(self, func, data=None, depth_first=False):
         """TODO"""
         return [func(self, data)]
+
+    def flattened_name(self, sep='_'):
+        """Return the element's complete flattened name as a string.
+
+        Joins this element's :attr:`path` with *sep* and returns the fully
+        qualified, flattened name.  Encodes all :class:`Container` and other
+        structures into a single string.
+
+          >>> form = List('addresses', String('address')).create_element()
+          >>> form.set([u'uptown', u'downtown'])
+          >>> form.el('0').value
+          u'uptown'
+          >>> form.el('0').flattened_name()
+          u'addresses_0_address'
+
+        """
+        return sep.join(parent.name
+                        for parent in self.path
+                        if parent.name is not None)
 
     def flatten(self, sep=u'_', value=operator.attrgetter('u')):
         """Export an element hierarchy as a flat sequence of key, value pairs.
@@ -169,7 +268,7 @@ class Element(object):
         pairs = []
         def serialize(element, data):
             if element.flattenable:
-                data.append((element.fq_name(sep), value(element)))
+                data.append((element.flattened_name(sep), value(element)))
 
         self.apply(serialize, pairs)
         return pairs
@@ -199,6 +298,7 @@ class Element(object):
 
     @property
     def is_empty(self):
+        """True if the element has no value."""
         return True if (self.value is None and self.u == u'') else False
 
     def validate(self, state=None, recurse=True):
@@ -239,11 +339,17 @@ class Element(object):
     @property
     def x(self):
         """Sugar, the xml-escaped value of :attr:`.u`."""
+        global xml
+        if xml is None:
+            import xml.sax.saxutils
         return xml.sax.saxutils.escape(self.u)
 
     @property
     def xa(self):
         """Sugar, the xml-attribute-escaped value of :attr:`.u`."""
+        global xml
+        if xml is None:
+            import xml.sax.saxutils
         return xml.sax.saxutils.quoteattr(self.u)[1:-1]
 
     def __hash__(self):
@@ -360,3 +466,7 @@ class FieldSchema(object):
 
     def from_defaults(self, **kw):
         return self.create_element(**kw)
+
+
+class Slot(object):
+    """Marks a semi-visible Element-holding Element, like the 0 in list[0]."""

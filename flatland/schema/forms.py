@@ -97,7 +97,7 @@ class Form(containers.Dict):
         for constructing new objects.
 
           >>> form = UserForm.from_object(user)
-          >>> form.update_object(user, exclude=['verify_password']))
+          >>> form.update_object(user, exclude=['verify_password'])
           >>> new_user = User(**form.slice(exclude=['verify_password']))
 
         """
