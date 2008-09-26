@@ -50,9 +50,9 @@ def test_element():
     eq_(n.label, u'ABC')
     eq_(n.errors, [])
     eq_(n.warnings, [])
-    eq_(n.path, (u'abc',))
+    eq_(tuple(el.name for el in n.path), (u'abc',))
     eq_(n.root, n)
-    eq_(n.fq_name(), u'abc')
+    eq_(n.flattened_name(), u'abc')
 
 def test_element_message_buckets():
     s = base.FieldSchema(u'abc', label=u'ABC')
@@ -75,7 +75,7 @@ def test_element_abstract():
     assert_raises(NotImplementedError, n.set, None)
     assert_raises(NotImplementedError, n.set_flat, ())
     assert_raises(NotImplementedError, n.el, 'foo')
-    assert_raises(KeyError, n.el, None)
+    assert_raises(NotImplementedError, n.el, 'abc')
 
 def test_element_validation():
     ok = lambda item, data: True
@@ -126,38 +126,3 @@ def test_element_validator_return():
         s = base.FieldSchema(None, validators=(validator,))
         n = s.new()
         assert not n.validate()
-
-def XXXtest_simple_nesting():
-    # no, nesting is not so easily fooled
-    s1 = base.FieldSchema(u'1')
-    s2 = base.FieldSchema(u'2')
-    s3a = base.FieldSchema(u'3a')
-    s3b = base.FieldSchema(u'3b')
-
-    n1 = s1.new()
-    n2 = s2.new(parent=n1)
-    n3a = s3a.new(parent=n2)
-    n3b = s3b.new(parent=n2)
-
-    eq_(n1.path, (u'1',))
-    eq_(n2.path, (u'1', u'2',))
-    eq_(n3a.path, (u'1', u'2', u'3a'))
-    eq_(n3b.path, (u'1', u'2', u'3b'))
-
-    eq_(n1.root, n1)
-    eq_(n2.root, n1)
-    eq_(n3a.root, n1)
-    eq_(n3b.root, n1)
-
-    eq_(n1.fq_name(), u'1')
-    eq_(n2.fq_name(), u'1_2')
-    eq_(n3a.fq_name(), u'1_2_3a')
-    eq_(n3b.fq_name(), u'1_2_3b')
-
-    eq_(n1.el('1'), n1)
-    eq_(n1.el('1.2'), n2)
-    eq_(n1.el('1.2.3a'), n3a)
-    assert_raises(KeyError, n1.el, '1.2.3a.4')
-
-    eq_(n2.el('2.3b'), n3b)
-    assert_raises(KeyError, n1.el, '1.2')

@@ -1,10 +1,9 @@
 from __future__ import absolute_import
 
-import itertools
 import re
 from collections import defaultdict
 
-from .base import FieldSchema, Element
+from .base import FieldSchema, Element, Slot
 from .scalars import Scalar, _ScalarElement
 from flatland import util
 from flatland.util import Unspecified
@@ -80,15 +79,12 @@ class _SequenceElement(_ContainerElement, list):
     def insert(self, index, value):
         list.insert(self, index, value)
 
-    def _el(self, path):
-        if path and path[0].isdigit():
-            idx = int(path[0])
-            if idx < len(self):
-                return self[idx]._el(path[1:])
-        # FIXME: is this reachable?
-        elif not path:
-            return self
-        raise KeyError()
+    def _index(self, name):
+        try:
+            idx = int(name)
+        except ValueError:
+            raise IndexError(name)
+        return self[idx]
 
     @property
     def children(self):
@@ -269,7 +265,7 @@ class _ListElement(_SequenceElement):
                     else repr(value.u)
             for value in self)
 
-class _Slot(_ContainerElement):
+class _SlotElement(_ContainerElement, Slot):
     schema = FieldSchema(None)
 
     def __init__(self, name, parent):
@@ -316,7 +312,7 @@ class _Slot(_ContainerElement):
 class List(Sequence):
     """An ordered, homogeneous Container."""
     element_type = _ListElement
-    slot_type = _Slot
+    slot_type = _SlotElement
 
     def __init__(self, name, *schema, **kw):
         """
@@ -548,12 +544,8 @@ class _DictElement(_ContainerElement, dict):
             if accum:
                 self[field].set_flat(accum, sep)
 
-    def _el(self, path):
-        if path:
-            return self[path[0]]._el(path[1:])
-        elif not path:
-            return self
-        raise KeyError()
+    def _index(self, name):
+        return self[name]
 
     @property
     def u(self):

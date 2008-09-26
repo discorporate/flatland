@@ -681,3 +681,118 @@ def test_corrupt_all_children():
     assert list(_.value for _ in e.children) == list('xyzz')
     assert list(_.value for _ in e.all_children) == list('xyz')
 
+def test_naming_bogus():
+    e = schema.String('s').create_element()
+
+    assert_raises(LookupError, e.el, u'')
+    assert_raises(TypeError, e.el, None)
+    assert_raises(LookupError, e.el, ())
+    assert_raises(LookupError, e.el, iter(()))
+    assert_raises(TypeError, e.el)
+
+def test_naming_shallow():
+    s1 = schema.String('s')
+    root = s1.create_element()
+    assert root.fq_name() == '.'
+    assert root.flattened_name() == 's'
+    assert root.el('.') is root
+
+    s2 = schema.String(None)
+    root = s2.create_element()
+    assert root.fq_name() == '.'
+    assert root.flattened_name() == ''
+    assert root.el('.') is root
+    assert_raises(LookupError, root.el, ())
+    assert root.el([schema.base.Root]) is root
+
+def test_naming_dict():
+    for name, root_flat, leaf_flat in (('d', 'd', 'd_s'),
+                                       (None, '', 's')):
+        s1 = schema.Dict(name, schema.String('s'))
+        root = s1.create_element()
+        leaf = root['s']
+
+        assert root.fq_name() == '.'
+        assert root.flattened_name() == root_flat
+        assert root.el('.') is root
+
+        assert leaf.fq_name() == '.s'
+        assert leaf.flattened_name() == leaf_flat
+        assert root.el('.s') is leaf
+        assert root.el('s') is leaf
+        assert leaf.el('.s') is leaf
+        assert_raises(LookupError, leaf.el, 's')
+        assert leaf.el('.') is root
+
+        assert root.el([schema.base.Root]) is root
+        assert root.el(['s']) is leaf
+        assert root.el([schema.base.Root, 's']) is leaf
+        assert root.el(iter(['s'])) is leaf
+        assert root.el(iter([schema.base.Root, 's'])) is leaf
+
+def test_naming_dict_dict():
+    for name, root_flat, leaf_flat in (('d', 'd', 'd_d2_s'),
+                                       (None, '', 'd2_s')):
+        s1 = schema.Dict(name, schema.Dict('d2', schema.String('s')))
+        root = s1.create_element()
+        leaf = root['d2']['s']
+
+        assert root.fq_name() == '.'
+        assert root.flattened_name() == root_flat
+        assert root.el('.') is root
+
+        assert leaf.fq_name() == '.d2.s'
+        assert leaf.flattened_name() == leaf_flat
+        assert root.el('.d2.s') is leaf
+        assert root.el('d2.s') is leaf
+        assert leaf.el('.d2.s') is leaf
+        assert_raises(LookupError, leaf.el, 'd2.s')
+        assert leaf.el('.') is root
+
+        assert root.el(['d2', 's']) is leaf
+
+def test_naming_list():
+    for name, root_flat, leaf_flat in (('l', 'l', 'l_0_s'),
+                                       (None, '', '0_s')):
+        s1 = schema.List(name, schema.String('s'))
+        root = s1.create_element(value=['x'])
+        leaf = root[0]
+
+        assert root.fq_name() == '.'
+        assert root.flattened_name() == root_flat
+        assert root.el('.') is root
+
+        assert leaf.fq_name() == '.0'
+        assert leaf.flattened_name() == leaf_flat
+        assert root.el('.0') is leaf
+        assert root.el('0') is leaf
+        assert leaf.el('.0') is leaf
+        assert_raises(LookupError, leaf.el, '0')
+        assert_raises(LookupError, leaf.el, 's')
+        assert leaf.el('.') is root
+
+        assert root.el(['0']) is leaf
+
+def test_naming_list_list():
+    # make sure nested Slots-users don't bork
+    for name, root_flat, leaf_flat in (('l', 'l', 'l_0_l2_0_s'),
+                                       (None, '', '0_l2_0_s')):
+        s1 = schema.List(name, schema.List('l2', schema.String('s')))
+
+        root = s1.create_element(value=[['x']])
+        leaf = root[0][0]
+
+        assert root.fq_name() == '.'
+        assert root.flattened_name() == root_flat
+        assert root.el('.') is root
+
+        assert leaf.fq_name() == '.0.0'
+        assert leaf.flattened_name() == leaf_flat
+        assert root.el('.0.0') is leaf
+        assert root.el('0.0') is leaf
+        assert leaf.el('.0.0') is leaf
+        assert_raises(LookupError, leaf.el, '0')
+        assert_raises(LookupError, leaf.el, 's')
+        assert leaf.el('.') is root
+
+        assert root.el(['0', '0']) is leaf
