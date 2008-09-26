@@ -1,15 +1,22 @@
-__all__ = 'genshi_add_to_context', 'genshi_wrap_nodes'
+from flatland.schema import containers
 
 
-def genshi_add_to_context(fieldset, context, key='forms', unnamed='form'):
-    if fieldset.name is None:
-        context[unnamed] = genshi_wrap_nodes(fieldset.data, unnamed)
+__all__ = 'genshi_add_to_context', 'genshi_wrap_element'
+
+
+ContainerElement = containers.Container.element_type
+
+
+def genshi_add_to_context(element, context, key='forms', unnamed='form'):
+    if element.name is None:
+        context[unnamed] = genshi_wrap_element(element, unnamed)
     else:
         if not key in context:
             context[key] = {}
-        context[key][fieldset.name] = genshi_wrap_nodes(fieldset.data, key)
+        lookup = u"%s[%r]" % (key, element.name)
+        context[key][element.name] = genshi_wrap_element(element, lookup)
 
-def genshi_wrap_nodes(node, prefix=''):
+def genshi_wrap_element(element, prefix=''):
     """Proxies a node tree for use in a Genshi context.
 
     Access the original node with the .node property, or values with
@@ -25,8 +32,8 @@ def genshi_wrap_nodes(node, prefix=''):
 
     Accessing a wrapped node in a template::
 
-        <tag thing="${form.a.node.str}" />
-        <tag thing="${form.a.node.native}" />
+        <tag thing="${form.a.node.u}" />
+        <tag thing="${form.a.node.value}" />
         <tag thing="${form.a.node}" />
 
     ...will expand to::
@@ -41,43 +48,45 @@ def genshi_wrap_nodes(node, prefix=''):
         nodexpr = attributes.get('thing')
         wrappednode = Expression(nodexpr).evaluate(context)
     """
-    if node.is_container:
-        return Container(node, prefix)
-    elif node.is_compound:
-        return Compound(node, prefix)
+    if isinstance(element, ContainerElement):
+        return Container(element, prefix)
+    # FIXME
+    #elif node.is_compound:
+    #    return Compound(node, prefix)
     else:
-        return Scalar(node, prefix)
+        return Scalar(element, prefix)
+
 
 class Wrapped(object):
     __slots__ = 'node', '_prefix'
+
     def __init__(self, node, prefix):
         self.node, self._prefix = node, prefix
-    def __str__(self):
-        return (self._prefix +
-                        ''.join( ["[%s]" % `str(n)` for n in self.node.path] ))
+
+    def __unicode__(self):
+        return u'%s.el(%r)' % (self._prefix, self.node.fq_name())
+
+    value = property(lambda s: s.node.value)
+    u     = property(lambda s: s.node.u)
+    el    = property(lambda s: s.node.el)
 
 class Scalar(Wrapped):
-    native = property(lambda s: s.node.native)
-    str    = property(lambda s: s.node.str)
+    pass
 
 class Indexable(Wrapped):
     def __getitem__(self, key):
         try:
-            sub = self.node.get_key(key)
-        except:
+            return genshi_wrap_element(self.node.el(key), self._prefix)
+        except LookupError:
             return None
 
-        if not sub: return None
-        if sub.is_container: return Container(sub, self._prefix)
-        if sub.is_compound: return Compound(sub, self._prefix)
-        return Scalar(sub, self._prefix)
-
     def __iter__(self):
-        return None
+        return iter(())
 
 class Compound(Scalar, Indexable):
     pass
 
 class Container(Indexable):
     def __iter__(self):
-        return iter(self.node)
+        return (genshi_wrap_element(child, self._prefix)
+                for child in self.node.children)

@@ -189,7 +189,7 @@ Literal Attributes
 """
 
 import filter, nodewrapper, taglistener
-from nodewrapper import genshi_add_to_context, genshi_wrap_nodes
+from nodewrapper import genshi_add_to_context, genshi_wrap_element
 from filter import genshi_springy_filter
 
 
