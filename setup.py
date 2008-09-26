@@ -55,7 +55,7 @@ setup(name="flatland",
 
       zip_safe=True,
 
-      tests_require=['nose'],
+      tests_require=['nose', 'Genshi >= 0.5'],
       # for tests, prefer 'setup.py nosetests' or just 'nosetests tests'
       test_suite='nose.collector',
 
