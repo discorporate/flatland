@@ -12,7 +12,11 @@ NoneType = type(None)
 Root = util.symbol('Root')
 xml = None
 
-class Element(object):
+class _BaseElement(object):
+    pass
+
+
+class Element(_BaseElement):
     """TODO
 
     Elements can be supplied to template environments and used to

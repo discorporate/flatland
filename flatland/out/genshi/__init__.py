@@ -188,9 +188,27 @@ Literal Attributes
 
 """
 
-import filter, nodewrapper, taglistener
+import filter, nodewrapper, taglistener, elements
 from nodewrapper import genshi_add_to_context, genshi_wrap_element
 from filter import genshi_springy_filter
+
+
+def install_element_mixin():
+    from flatland.schema.base import Element
+    if elements.GenshiAccessMixin in Element.__bases__:
+        return
+    assert Element.__bases__ != (object,)
+    Element.__bases__ += (elements.GenshiAccessMixin,)
+
+def uninstall_element_mixin():
+    from flatland.schema.base import Element
+    if elements.GenshiAccessMixin not in Element.__bases__:
+        return
+    bases = list(Element.__bases__)
+    bases.remove(elements.GenshiAccessMixin)
+    Element.__bases__ = tuple(bases)
+
+install_element_mixin()
 
 
 __all__ = 'genshi_add_to_context', 'genshi_springy_filter'
