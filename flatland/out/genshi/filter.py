@@ -14,6 +14,8 @@ from . taglistener import TagListener, default_start
 
 __all__ = ['genshi_springy_filter', 'SpringyForm']
 
+trooth = Maybe.truth
+
 NAMESPACE  = Namespace('http://code.discorporate.us/springy-form')
 D_WITH     = NAMESPACE.__getitem__('with')
 D_SET      = NAMESPACE.__getitem__('set')
@@ -105,7 +107,7 @@ class ImmediateVarDirective(object):
         for toggle in CONTEXT_TOGGLES:
             val = attrs.get(toggle, None)
             if val is not None:
-                context[toggle] = parse_bool(val) or False
+                context[toggle] = parse_trool(val)
 
         val = parse_int(attrs.get('tabindex', None))
         if val is not None:
@@ -171,35 +173,135 @@ DIR_WITH = ScopedVarDirective()
 DIR_SET  = ImmediateVarDirective()
 DIR_EL   = DecoratedElementDirective()
 
-######################################################################
+
+
+class ToggledAttribute(object):
+    toggle_attribute = None
+    toggle_default = False
+    toggle_context_key = None
+
+    attribute = None
+    auto_tags = ()
+
+    def pop_toggle(self, attrs, context):
+        attrs, proceed = pop_attribute(attrs, self.toggle_attribute, 'auto',
+                                     parse_trool)
+        forced = proceed is True
+        if proceed is Maybe:
+            proceed = parse_trool(context.get(self.toggle_context_key, 'auto'))
+            if proceed is Maybe:
+                proceed = self.toggle_default
+        return attrs, proceed, forced
+
+class NameToggle(ToggledAttribute):
+    toggle_default = True
+    toggle_attribute = NAMESPACE['auto-name']
+    toggle_context_key = CTX_AUTO_NAME
+
+    attribute = QName('name')
+    auto_tags = set(('input', 'button', 'select', 'textarea'))
+
+    def apply_to(self, tag, attrs, context, node):
+        attrs, proceed, forced = self.pop_toggle(attrs, context)
+        if not proceed:
+            return attrs
+
+        # Abort on unbound nodes
+        if node is None:
+            return attrs
+
+        current = attrs.get(self.attribute, None)
+        if forced or current is None and tag.localname in self.auto_tags:
+            attrs |= ((self.attribute, node.flattened_name()),)
+        return attrs
+
+class DomIDToggle(ToggledAttribute):
+    toggle_attribute = NAMESPACE['auto-domid']
+    toggle_context_key = CTX_AUTO_DOMID
+
+    attribute = QName('id')
+    auto_tags = set(('input', 'button', 'select', 'textarea'))
+
+    def apply_to(self, tag, attrs, context, el):
+        attrs, proceed, forced = self.pop_toggle(attrs, context)
+        if not proceed:
+            return attrs
+
+        current = attrs.get(self.attribute, None)
+        if forced or current is None and tag.localname in self.auto_tags:
+            if el is not None:
+                domid = domid_for_bound(el, context)
+            else:
+                domid = domid_for_unbound(tag, attrs)
+            attrs |= ((self.attribute, domid),)
+        return attrs
+
+class ForToggle(ToggledAttribute):
+    toggle_attribute = NAMESPACE['auto-for']
+    # tied to ID generation
+    toggle_context_key = CTX_AUTO_DOMID
+
+    attribute = QName('for')
+    auto_tags = set(('label',))
+
+    def apply_to(self, tag, attrs, context, node):
+        attrs, proceed, forced = self.pop_toggle(attrs, context)
+        if not proceed or node is None:
+            return attrs
+
+        current = attrs.get(self.attribute, None)
+        if forced or current is None and tag.localname in self.auto_tags:
+            attrs |= ((self.attribute, domid_for_bound(node, context)),)
+        return attrs
+
+class TabIndexToggle(ToggledAttribute):
+    toggle_attribute = NAMESPACE['auto-tabindex']
+    toggle_context_key = CTX_AUTO_TABINDEX
+
+    attribute = QName('tabindex')
+    auto_tags = set(('input', 'button', 'select', 'textarea'))
+
+    def apply_to(self, tag, attrs, context):
+        attrs, proceed, forced = self.pop_toggle(attrs, context)
+        if not proceed:
+            return attrs
+
+        tabindex = context.get(CTX_CUR_TABINDEX, 0)
+        if tabindex == 0:
+            return attrs
+
+        current = attrs.get(self.attribtue, None)
+        if forced or current is None and tag.localname in self.auto_tags:
+            attrs |= ((self.attribute, tabindex),)
+            context[self.context_key] = tabindex + 1
+        return attrs
 
 def set_tabindex(tag, attrs, context):
-    scoped   = parse_bool(context.get(CTX_AUTO_TABINDEX, False))
-    override = parse_trool(consume_attribute(attrs, F_TABINDEX, 'auto'))
+    scoped = parse_bool(context.get(CTX_AUTO_TABINDEX, False))
+    attrs, override = pop_attribute(attrs, F_TABINDEX, 'auto', parse_trool)
 
     tabindex = context.get(CTX_CUR_TABINDEX, 0)
+    if tabindex == 0:
+        return attrs
 
-    if (tabindex is not 0 and
-            ( ((override is not False & scoped) and
-                 tag.localname in AUTOTABINDEXABLE) or
-                (override is True) )):
+    if (override is True) or (override is not False and trooth(scoped)):
         current = attrs.get('tabindex', None)
 
-        if current is None or override is True:
+        if ((current is None and tag.localname in AUTOTABINDEXABLE) or
+            override is True):
             attrs |= ((H_TABINDEX, tabindex),)
-            tabindex += 1
-            context[CTX_CUR_TABINDEX] = tabindex
+            context[CTX_CUR_TABINDEX] = tabindex + 1
     return attrs
 
+set_tabindex = TabIndexToggle().apply_to
+
 def set_domid(tag, attrs, context, el):
-    scoped   = parse_bool(context.get(CTX_AUTO_DOMID, False))
-    override = parse_trool(consume_attribute(attrs, F_ID, 'auto'))
+    scoped = parse_bool(context.get(CTX_AUTO_DOMID, False))
+    attrs, override = pop_attribute(attrs, F_ID, 'auto', parse_trool)
 
-    if ( ((override is not False & scoped) and tag.localname in AUTODOMID) or
-             (override is True)):
+    if (override is True) or (override is not False and trooth(scoped)):
         current = attrs.get(H_ID, None)
-
-        if current is None or override is True:
+        if (current is None and tag.localname in AUTODOMID) or override is True:
             if el is not None:
                 domid = domid_for_bound(el, context)
             else:
@@ -207,13 +309,15 @@ def set_domid(tag, attrs, context, el):
             attrs |= ((H_ID, domid),)
     return attrs
 
+set_domid = DomIDToggle().apply_to
+
 def set_for(tag, attrs, context, node):
     # Auto set 'for="other-element's-dom-id"' if we're currently
     # setting ids.  This is an optimistic calculation- we don't lookup
     # the target node's actual assigned or effective ID, because there
     # is no 1:1 mapping of nodes to tags.
-    scoped   = parse_bool(context.get(CTX_AUTO_DOMID, False))
-    override = parse_trool(consume_attribute(attrs, F_FOR, 'auto'))
+    scoped = parse_bool(context.get(CTX_AUTO_DOMID, False))
+    attrs, override = pop_attribute(attrs, F_FOR, 'auto', parse_trool)
 
     # If the element is not bound or this isn't a <label>, stop early.  (After
     # consuming our "for" attribute, if present.)
@@ -227,33 +331,37 @@ def set_for(tag, attrs, context, node):
             attrs |= ((H_FOR, domid_for_bound(node, context)),)
     return attrs
 
+set_for = ForToggle().apply_to
+
 def set_name(tag, attrs, context, node):
-    scoped   = parse_bool(context.get(CTX_AUTO_NAME, False))
-    override = parse_trool(consume_attribute(attrs, F_NAME, 'auto'))
+    scoped = parse_bool(context.get(CTX_AUTO_NAME, True))
+    attrs, override = pop_attribute(attrs, F_NAME, 'auto', parse_trool)
 
     # Abort on unbound nodes.
     if node is None:
         return attrs
 
-    if ( ((override is not False & scoped) and tag.localname in AUTONAME) or
-             (override is True)):
+    if (override is True) or (override is not False and trooth(scoped)):
         current = attrs.get(H_NAME, None)
-
-        if current is None or override is True:
+        if (current is None and tag.localname in AUTONAME) or override is True:
             attrs |= ((H_NAME, node.flattened_name()),)
     return attrs
 
+set_name = NameToggle().apply_to
+
 def set_value(tag, attrs, stream, context, node):
-    scoped   = parse_bool(context.get(CTX_AUTO_VALUE, False))
-    override = parse_trool(consume_attribute(attrs, F_VALUE, 'auto'))
+    scoped = parse_bool(context.get(CTX_AUTO_VALUE, True))
+    attrs, override = pop_attribute(attrs, F_VALUE, 'auto', parse_trool)
 
     # Abort on unbound nodes.
     if node is None:
         return stream, attrs
 
     # Abort if we're sure we won't set the value.
-    if not ( ((override is not False & scoped) and tag.localname in AUTOVALUE)
-             or override is True):
+    if not ((override is True) or (override is not False and trooth(scoped))):
+        return stream, attrs
+
+    if override is not True and tag.localname not in AUTOVALUE:
         return stream, attrs
 
     # VALUE_CHILD (e.g. <textarea>) always replaces the stream with
@@ -303,11 +411,11 @@ def _set_input(override, attrs, node):
 
     for case in switch(type):
         if case('text', 'password', 'hidden'):
-            _set_simple_value(override, attrs, node)
+            attrs = _set_simple_value(override, attrs, node)
             break
         if case('submit', 'image', 'button'):
             if override is True:
-                _set_simple_value(override, attrs, node)
+                attrs = _set_simple_value(override, attrs, node)
                 break
         if case('checkbox'):
             value = attrs.get(H_VALUE, None)
@@ -380,14 +488,11 @@ def domid_for_unbound(tag, attrs):
             return fmt % name
     return None
 
-_not_found = object()
-def consume_attribute(attributes, name, default=None):
-    value = attributes.get(name, _not_found)
-    if value is not _not_found:
-        attributes.remove(name)
-        return value
-    return default
-
+def pop_attribute(attrs, name, default=None, transform=None):
+    value = attrs.get(name, default)
+    if transform:
+        value = transform(value)
+    return (attrs - name), value
 
 def find_binding(tag, attributes, context):
     expr = attributes.get(F_BIND, None)
@@ -396,7 +501,7 @@ def find_binding(tag, attributes, context):
 
     return Expression(expr).evaluate(context)
 
-######################################################################
+
 
 def parse_bool(value, yes=YES, no=NO):
     if value is True or value is False or value is None:

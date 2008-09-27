@@ -143,23 +143,58 @@ class switch(object):
             return False
 
 
-class trool(object):
-  def __and__(self, other):
-    if type(other) is trool: return False
-    if type(other) is not bool: return False
-    return other
-  __or__ = __and__
-  __rand__ = __and__
-  __ror__ = __and__
+class Maybe(object):
+    """A ternary logic value, bitwise-comparable to bools"""
 
-  def __nonzero__(self):
-    return False
+    def __and__(self, other):
+        if other is True or other is self:
+            return self
+        elif other is False:
+            return False
+        return NotImplemented
+    __rand__ = __and__
 
-  def __str__(self):
-    return 'Maybe'
-  __repr__ = __str__
+    def __or__(self, other):
+        if other is False or other is self:
+            return self
+        elif other is True:
+            return True
+        return NotImplemented
+    __ror__ = __or__
 
-Maybe = trool()
+    def not_(self, other):
+        """Negate a ternary value.
+
+        (Python doesn't allow useful overriding of ``not``.)
+
+        """
+        if other is self:
+            return other
+        elif other is True:
+            return False
+        elif other is False:
+            return True
+        else:
+            raise TypeError(type(other).__name__)
+
+    def truth(self, other):
+        if other is self:
+            return True
+        elif other is True:
+            return True
+        elif other is False:
+            return False
+        else:
+            raise TypeError(type(other).__name__)
+
+    def __nonzero__(self):
+        raise NotImplementedError()
+
+    def __str__(self):
+        return 'Maybe'
+    __repr__ = __str__
+
+Maybe = Maybe()
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
 def format_argspec_plus(fn, grouped=True):
