@@ -4,10 +4,12 @@
 
 from __future__ import absolute_import
 
+import itertools
 from genshi import (Attrs, Markup, Namespace, Stream, QName)
 from genshi.core import START, TEXT
 from genshi.template.eval import Expression
 
+import flatland
 from flatland.util import Maybe, switch
 from . taglistener import TagListener, default_start
 
@@ -17,15 +19,15 @@ __all__ = ['genshi_springy_filter', 'SpringyForm']
 trooth = Maybe.truth
 
 NAMESPACE  = Namespace('http://code.discorporate.us/springy-form')
-D_WITH     = NAMESPACE.__getitem__('with')
-D_SET      = NAMESPACE.__getitem__('set')
+D_WITH     = NAMESPACE['with']
+D_SET      = NAMESPACE['set']
 
-F_TABINDEX = NAMESPACE.__getitem__('auto-tabindex')
-F_ID       = NAMESPACE.__getitem__('auto-domid')
-F_FOR      = NAMESPACE.__getitem__('auto-for')
-F_NAME     = NAMESPACE.__getitem__('auto-name')
-F_VALUE    = NAMESPACE.__getitem__('auto-value')
-F_BIND     = NAMESPACE.bind
+F_TABINDEX = NAMESPACE['auto-tabindex']
+F_ID       = NAMESPACE['auto-domid']
+F_FOR      = NAMESPACE['auto-for']
+F_NAME     = NAMESPACE['auto-name']
+F_VALUE    = NAMESPACE['auto-value']
+F_BIND     = NAMESPACE['bind']
 
 H_TABINDEX = QName('tabindex')
 H_ID = QName('id')
@@ -38,7 +40,7 @@ H_SELECTED = QName('selected')
 AUTOTABINDEXABLE = ('input', 'button', 'select', 'textarea')
 AUTODOMID = ('input', 'button', 'select', 'textarea' )
 AUTONAME = ('input', 'button', 'select', 'textarea' )
-AUTOVALUE = ('input', 'select', 'textarea')
+AUTOVALUE = ('input', 'select', 'textarea', 'button')
 
 VALUE_CHILD  = ('textarea',)
 VALUE_MIXED  = ('button',)
@@ -368,10 +370,10 @@ def set_value(tag, attrs, stream, context, node):
     # VALUE_CHILD (e.g. <textarea>) always replaces the stream with
     # the node's string value.
     if tag.localname in VALUE_CHILD:
-        stream = _set_stream_value(node.u)
+        stream = _set_stream_value(stream, node.u)
 
     elif tag.localname == 'select':
-        stream, attrs = _set_select(override, attrs, stream, node)
+        stream = _set_select(override, attrs, stream, node)
 
     elif tag.localname in VALUE_MIXED:
         stream, attrs = _set_mixed_value(override, attrs, stream, node)
@@ -384,8 +386,12 @@ def set_value(tag, attrs, stream, context, node):
 
     return stream, attrs
 
-def _set_stream_value(text):
-    return Stream([(TEXT, text, (None, -1, -1))])
+def _set_stream_value(stream, text):
+    stream = stream_is_empty(stream)
+    if stream is None:
+        return Stream([(TEXT, text, (None, -1, -1))])
+    else:
+        return stream
 
 def _set_simple_value(override, attrs, node):
     current = attrs.get(H_VALUE)
@@ -400,7 +406,7 @@ def _set_mixed_value(override, attrs, stream, node):
     unescaped markup if child nodes are generated!
     """
     if attrs.get(H_VALUE, None) is None:
-        stream = _set_stream_value(Markup(node))
+        stream = _set_stream_value(stream, Markup(node))
     else:
         stream = Stream([])
         _set_simple_value(True, attrs, node)
@@ -420,8 +426,8 @@ def _set_input(override, attrs, node):
                 break
         if case('checkbox'):
             value = attrs.get(H_VALUE, None)
-            if value is None:
-                value = 'on'
+            if value is None and isinstance(node.schema, flatland.Boolean):
+                value = node.schema.true
                 attrs |= ((H_VALUE, value),)
             if value == node.u:
                 attrs |= ((H_CHECKED, 'checked'),)
@@ -458,8 +464,9 @@ class OptionToggler(TagListener):
         attrs -= H_SELECTED
 
         value = attrs.get(H_VALUE, None)
-        if value == self.value:
-            attrs |= ((H_SELECTED, 'selected'),)
+        if value is not None:
+            if value == self.value:
+                attrs |= ((H_SELECTED, 'selected'),)
         else:
             children = list(stream)
             value = ''
@@ -467,7 +474,7 @@ class OptionToggler(TagListener):
                 if ck is TEXT: value += cd
             stream = Stream(children)
 
-            if value == self.value:
+            if value.strip() == self.value.strip():
                 attrs |= ((H_SELECTED, 'selected'),)
 
         start = kind, (tag, attrs), pos
@@ -501,6 +508,15 @@ def find_binding(tag, attributes, context):
         return expr
 
     return Expression(expr).evaluate(context)
+
+def stream_is_empty(stream):
+    stream, dupe = itertools.tee(stream)
+    try:
+        dupe.next()
+    except StopIteration:
+        return None
+    else:
+        return stream
 
 
 
