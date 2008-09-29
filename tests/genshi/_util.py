@@ -1,3 +1,7 @@
+import inspect
+import os
+import re
+import sys
 from nose.tools import eq_
 
 
@@ -20,7 +24,78 @@ def rendered_markup_eq_(template_text, **context):
 
     eq_(len(chunked_raw), len(chunked_output))
 
-class RenderTest(object):
+class TextFileMixin(object):
+    def wrap_with_xmlns(self, template):
+        return ('<div xmlns="http://www.w3.org/1999/xhtml" '
+                'xmlns:form="http://code.discorporate.us/springy-form" '
+                'xmlns:py="http://genshi.edgewall.org/">\n'
+                + template +
+                '\n</div>')
+
+    def _make_text_runner(self, filename, template, default_label=''):
+        label = template.strip().splitlines()[0][3:].strip()
+        if not label or label == 'test':
+            label = "test %s" % default_label
+        tester = lambda context, text: self.compare_(context, text)
+        tester.description = "%s: %s" % (os.path.basename(filename), label)
+        return tester
+
+    def from_file(self, filename, context_factory=dict):
+        modpath = sys.modules[self.__module__].__file__
+        filepath = os.path.join(os.path.dirname(modpath), filename)
+        chunks = chunk_file(filepath)
+
+        for num, chunk in enumerate(chunks):
+            wrapped = self.wrap_with_xmlns(chunk)
+            yield (self._make_text_runner(filename, chunk, num + 1),
+                   context_factory(),
+                   wrapped)
+
+    def from_string(self, collection, context_factory=dict, name=None):
+        chunks = chunk_text(collection)
+        if name is None:
+            name = inspect.stack()[1][3]
+
+        for num, chunk in enumerate(chunks):
+            wrapped = self.wrap_with_xmlns(chunk)
+            yield (self._make_text_runner(name, chunk, num + 1),
+                   context_factory(),
+                   wrapped)
+
+
+def from_text_files(context_factory=dict):
+    def wrap(fn):
+        def test(self, *args, **kw):
+            files = fn(self, *args, **kw)
+            if isinstance(files, basestring):
+                files = (files,)
+            base = os.path.dirname(os.path.abspath(
+                    inspect.getsourcefile(fn)))
+
+            all_tests = []
+            for name in files:
+                filename = os.path.join(base, name)
+                all_tests.extend(self.from_file(filename, context_factory))
+            for test, context, template in all_tests:
+                yield test, context, template
+
+        test.func_name = fn.func_name
+        return test
+    return wrap
+
+def from_docstring(context_factory=dict):
+    def wrap(fn):
+        def test(self, *args, **kw):
+            tests = self.from_string(fn.__doc__, context_factory,
+                                     name=fn.func_name)
+            for test, context, template in tests:
+                yield test, context, template
+        test.func_name = fn.func_name
+        return test
+    return wrap
+
+
+class RenderTest(TextFileMixin):
     format = 'xhtml'
     debug = False
 
@@ -42,7 +117,7 @@ class RenderTest(object):
             format = self.format
         return stream.render(format)
 
-    def compare_(self, element, context, template_text):
+    def compare_(self, context, template_text):
         chunked_raw = chunk_assertion_blocks(template_text)
         if not chunked_raw:
             raise AssertionError("No test chunks found in template text.")
@@ -75,6 +150,26 @@ class FilteredRenderTest(RenderTest):
 
 class ChunkError(Exception):
     """Internal to chunk_assertion_blocks."""
+
+
+def chunk_file(filepath):
+    fh = open(filepath, 'rb')
+    slurping, lines = False, []
+    for line in fh.readlines():
+        if not slurping and line.startswith('::'):
+            slurping = True
+        if slurping:
+            lines.append(line)
+            continue
+    try:
+        return chunk_text("\n".join(lines))
+    finally:
+        fh.close()
+
+def chunk_text(string):
+    return [(chunk + '\n:: endtest')
+            for chunk in re.split(r'(?:^|\n):: *endtest', string)
+            if re.search(r'(?:^|\n):: *test\b', chunk)]
 
 def chunk_assertion_blocks(text):
     chunks = []

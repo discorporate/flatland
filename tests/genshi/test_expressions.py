@@ -1,31 +1,27 @@
-from tests.genshi._util import rendered_markup_eq_
+from tests.genshi._util import FilteredRenderTest, from_docstring
 
 
-class TestExpressions(object):
-    def setup(self):
+class TestExpressions(FilteredRenderTest):
+    def form():
         from flatland import Dict, String, List
 
-        self.schema = Dict('field0',
-                           String('field1'),
-                           String('field2'),
-                           List('field3', String('field4')),
-                           List('field5',
-                                List('field6', String('field7'))))
-
-        self.element = self.schema.create_element(
+        schema = Dict('field0',
+                      String('field1'),
+                      String('field2'),
+                      List('field3', String('field4')),
+                      List('field5',
+                           List('field6', String('field7'))))
+        element = schema.create_element(
             value={'field1': u'val1',
                    'field2': u'val2',
                    'field3': [u'val3'],
                    'field5': [['val4']]})
-
-    def check(self, template_text):
-        element = self.element
         element.set_prefix('form')
-        rendered_markup_eq_(template_text, form=element)
+        return {'form': element, 'bound': element.bind}
 
+    @from_docstring(context_factory=form)
     def test_field0(self):
-        self.check("""
-<py:with vars="bound=form.bind" xmlns:py="http://genshi.edgewall.org/">
+        """
 :: test
 ${form}
 :: eq  # FIXME: b0rk3n, hash sensitive
@@ -49,12 +45,11 @@ form.el(u'.')
 ::eq
 unicode unicode unicode unicode
 :: endtest
-</py:with>
-        """)
+        """
 
+    @from_docstring(context_factory=form)
     def test_field1(self):
-        self.check("""
-<py:with vars="bound=form.bind" xmlns:py="http://genshi.edgewall.org/">
+        """
 :: test
 ${form['field1']}
 :: eq
@@ -84,13 +79,11 @@ ${form.field1.bind.bind.bind.u}
 :: eq
 val1
 :: endtest
+        """
 
-</py:with>
-        """)
-
+    @from_docstring(context_factory=form)
     def test_field3(self):
-        self.check("""
-<py:with vars="bound=form.bind" xmlns:py="http://genshi.edgewall.org/">
+        """
 :: test
 ${form.field3}
 :: eq
@@ -138,13 +131,11 @@ WrappedElement
 :: eq
 form.el(u'.field3.0')
 :: endtest
-</py:with>
-        """)
+        """
 
+    @from_docstring(context_factory=form)
     def test_field5(self):
-        self.check("""
-<py:with vars="bound=form.bind" xmlns:py="http://genshi.edgewall.org/">
-
+        """
 :: test
 ${bound.field5}
 :: eq
@@ -180,14 +171,11 @@ WrappedElement
 :: eq
 form.el(u'.field5.0')
 :: endtest
+        """
 
-</py:with>
-        """)
-
+    @from_docstring(context_factory=form)
     def test_field7(self):
-        self.check("""
-<py:with vars="bound=form.bind" xmlns:py="http://genshi.edgewall.org/">
-
+        """
 :: test
 ${bound.field5[0][0]}
 :: eq
@@ -205,15 +193,25 @@ ${form.field5[0][0].u}
 :: eq
 val4
 :: endtest
+        """
 
-</py:with>
-        """)
+    del form
 
+class TestShadowed(FilteredRenderTest):
+    def shadow():
+        from flatland import Dict, String
+        s = Dict('dict_name',
+                 String('name'),
+                 String('u'))
 
-def test_shadow():
-    template_text = """
-<py:with vars="bound=top.bind" xmlns:py="http://genshi.edgewall.org/">
+        element = s.create_element(value={'name': u'string name',
+                                          'u': u'string u'})
+        element.set_prefix('top')
+        return {'top': element, 'bound': element.bind}
 
+    @from_docstring(context_factory=shadow)
+    def test_shadow(self):
+        """
 :: test
 ${bound}
 :: eq
@@ -273,15 +271,7 @@ ${top['name'].name}
 :: eq
 name
 :: endtest
+        """
 
-</py:with>
-"""
-    from flatland import Dict, String
-    s = Dict('dict_name',
-             String('name'),
-             String('u'))
+    del shadow
 
-    element = s.create_element(value={'name': u'string name',
-                                      'u': u'string u'})
-    element.set_prefix('top')
-    rendered_markup_eq_(template_text, top=element)
