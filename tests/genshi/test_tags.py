@@ -1,20 +1,18 @@
 from tests.genshi._util import (
-    rendered_markup_eq_, RenderTest, FilteredRenderTest)
+    RenderTest, FilteredRenderTest, from_text_files, from_docstring)
 import flatland
 
 
-class TestUnfilteredTags(RenderTest):
-    def setup(self):
-        from flatland import Dict, String
-        self.schema = Dict(None, String('field'))
+def small_form():
+    schema = flatland.Dict(None, flatland.String('field'))
+    el = schema.create_element(value={'field': 'val'})
+    el.set_prefix('form')
+    return {'form': el}
 
+class TestUnfilteredTags(RenderTest):
+    @from_docstring(context_factory=small_form)
     def test_any(self):
-        el = self.schema.create_element(value={'field':'val'})
-        el.set_prefix('form')
-        self.compare_(el, dict(form=el), """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
+        """
 :: test
 ${form.field.bind}
 :: eq
@@ -50,9 +48,7 @@ form.el(u'.field')
 :: eq
 <input type="text" form:bind="form.el(u'.field')" name="x"/>
 :: endtest
-
-</div>
-                   """)
+        """
 
 
 class TestTags(FilteredRenderTest):
@@ -60,14 +56,9 @@ class TestTags(FilteredRenderTest):
         from flatland import Dict, String
         self.schema = Dict(None, String('field'))
 
+    @from_docstring(context_factory=small_form)
     def test_empty(self):
-        el = self.schema.create_element(value={'field':'val'})
-        el.set_prefix('form')
-        self.compare_(el, dict(form=el), """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
-
+        """
 :: test
 <input type="text" form:bind="${form.field.bind}" />
 :: eq  # sneaky
@@ -76,24 +67,18 @@ class TestTags(FilteredRenderTest):
 
 :: test
 <input type="text" form:bind="${form.field.bind}" />
-:: eq  # sneaky
+:: eq
 <input type="text" name="field" value="val" />
 :: endtest
-</div>
-        """)
+        """
 
+    @from_docstring(context_factory=small_form)
     def test_auto_name(self):
-        el = self.schema.create_element()
-        el.set_prefix('form')
-        self.compare_(el, {'form': el}, """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
-
+        """
 :: test
 <input type="text" form:bind="${form.field.bind}" />
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test
@@ -101,7 +86,7 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" />
 </form:with>
 :: eq
-<input type="text" value="" />
+<input type="text" value="val" />
 :: endtest
 
 :: test default fallback
@@ -109,7 +94,7 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" />
 </form:with>
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test full explicit default fallback
@@ -117,32 +102,32 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" form:auto-name="auto" />
 </form:with>
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test local on
 <input type="text" form:bind="${form.field.bind}" form:auto-name="on"/>
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test local off
 <input type="text" form:bind="${form.field.bind}" form:auto-name="off"/>
 :: eq
-<input type="text" value="" />
+<input type="text" value="val" />
 :: endtest
 
 :: test existing attribute wins over context on
 <input type="text" name="foo" form:bind="${form.field.bind}" />
 :: eq
-<input type="text" name="foo" value="" />
+<input type="text" name="foo" value="val" />
 :: endtest
 
 :: test local on squeezes out existing attribute
 <input type="text" name="foo" form:bind="${form.field.bind}"
   form:auto-name="on"/>
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test context on
@@ -150,47 +135,17 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" />
 </form:with>
 :: eq
-<input type="text" id="f_field" name="field" value="" />
+<input type="text" id="f_field" name="field" value="val" />
 :: endtest
-</div>
-        """)
-        self.compare_(el, {'form': el, 'auto-domid': 'on'}, """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
+        """
 
-:: test
-<input type="text" form:bind="${form.field.bind}" />
-:: eq
-<input type="text" id="f_field" name="field" value="" />
-:: endtest
-
-:: test
-<input type="text" form:bind="${form.field.bind}" form:auto-domid="auto" />
-:: eq
-<input type="text" id="f_field" name="field" value="" />
-:: endtest
-
-:: test
-<input type="text" form:bind="${form.field.bind}" form:auto-domid="off"/>
-:: eq
-<input type="text" name="field" value="" />
-:: endtest
-</div>
-    """)
-
+    @from_docstring(context_factory=small_form)
     def test_auto_domid(self):
-        el = self.schema.create_element()
-        el.set_prefix('form')
-        self.compare_(el, {'form': el}, """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
-
+        """
 :: test
 <input type="text" form:bind="${form.field.bind}" />
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test
@@ -198,7 +153,7 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" />
 </form:with>
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test default fallback
@@ -206,7 +161,7 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" />
 </form:with>
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test full explicit default fallback
@@ -214,13 +169,13 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" form:auto-domid="auto" />
 </form:with>
 :: eq
-<input type="text" name="field" value="" />
+<input type="text" name="field" value="val" />
 :: endtest
 
 :: test local on
 <input type="text" form:bind="${form.field.bind}" form:auto-domid="on"/>
 :: eq
-<input type="text" id="f_field" name="field" value="" />
+<input type="text" id="f_field" name="field" value="val" />
 :: endtest
 
 :: test context on
@@ -228,43 +183,14 @@ class TestTags(FilteredRenderTest):
 <input type="text" form:bind="${form.field.bind}" />
 </form:with>
 :: eq
-<input type="text" id="f_field" name="field" value="" />
+<input type="text" id="f_field" name="field" value="val" />
 :: endtest
 </div>
-        """)
-        self.compare_(el, {'form': el, 'auto-domid': 'on'}, """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
+        """
 
-:: test
-<input type="text" form:bind="${form.field.bind}" />
-:: eq
-<input type="text" id="f_field" name="field" value="" />
-:: endtest
-
-:: test
-<input type="text" form:bind="${form.field.bind}" form:auto-domid="auto" />
-:: eq
-<input type="text" id="f_field" name="field" value="" />
-:: endtest
-
-:: test
-<input type="text" form:bind="${form.field.bind}" form:auto-domid="off"/>
-:: eq
-<input type="text" name="field" value="" />
-:: endtest
-</div>
-        """)
-
+    @from_docstring(context_factory=small_form)
     def test_auto_for(self):
-        el = self.schema.create_element()
-        el.set_prefix('form')
-        self.compare_(el, {'form': el}, """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
-
+        """
 :: test
 <label form:bind="${form.field.bind}" />
 :: eq
@@ -309,56 +235,8 @@ class TestTags(FilteredRenderTest):
 <label for="f_field" />
 :: endtest
 </div>
-        """)
-        self.compare_(el, {'form': el, 'auto-domid': 'on'}, """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
-
-:: test Context on
-<label form:bind="${form.field.bind}" />
-:: eq
-<label for="f_field" />
-:: endtest
-
-:: test local fallback to Context
-<label form:bind="${form.field.bind}" form:auto-domid="auto" />
-:: eq
-<label for="f_field" />
-:: endtest
-
-:: test local override Context
-<label form:bind="${form.field.bind}" form:auto-for="off"/>
-:: eq
-<label />
-:: endtest
-</div>
-        """)
+        """
 
     # def test_auto_tabindex
     # def test_auto_value
-
-    def test_others(self):
-        el = self.schema.create_element(value={'field':'val'})
-        el.set_prefix('form')
-        self.compare_(el, dict(form=el), """
-<div xmlns="http://www.w3.org/1999/xhtml"
-  xmlns:form="http://code.discorporate.us/springy-form"
-  xmlns:py="http://genshi.edgewall.org/">
-
-:: test
-<input type="text" form:bind="${form.field.bind}" form:auto-domid="off" />
-:: eq  # sneaky
-<input type="text" name="field" value="val" />
-:: endtest
-
-:: test
-<input type="text" form:bind="${form.field.bind}" form:auto-value="off" />
-:: eq  # sneaky
-<input type="text" name="field"  />
-:: endtest
-</div>
-        """)
-
-    
 

@@ -50,7 +50,7 @@ NO    = ('0', 'false', 'nil', 'off', 'no')
 DEFAULT_DOMID_ASSIGN    = True
 DEFAULT_DOMID_FMT       = 'f_%s'
 DEFAULT_TABINDEX_ASSIGN = True
-DEFAULT_TABINDEX_START  = 100
+DEFAULT_TABINDEX_START  = 100  # FIXME
 DEFAULT_NAME_ASSIGN     = True
 DEFAULT_VALUE_ASSIGN    = True
 
@@ -58,10 +58,11 @@ CTX_AUTO_TABINDEX     = 'auto-tabindex'
 CTX_CUR_TABINDEX      = 'auto-tabindex_value'
 CTX_AUTO_DOMID        = 'auto-domid'
 CTX_FMT_DOMID         = 'auto-domid_format'
+CTX_AUTO_FOR          = 'auto-for'
 CTX_AUTO_NAME         = 'auto-name'
 CTX_AUTO_VALUE        = 'auto-value'
 
-CONTEXT_TOGGLES = (CTX_AUTO_TABINDEX, CTX_AUTO_DOMID,
+CONTEXT_TOGGLES = (CTX_AUTO_TABINDEX, CTX_AUTO_DOMID, CTX_AUTO_FOR,
                    CTX_AUTO_NAME, CTX_AUTO_VALUE)
 
 
@@ -113,7 +114,7 @@ class ImmediateVarDirective(object):
         if val is not None:
             context[CTX_CUR_TABINDEX] = val
 
-        val = parse_int(attrs.get('domid-format', None))
+        val = attrs.get('domid-format', None)
         if val is not None:
             context[CTX_FMT_DOMID] = val
 
@@ -270,10 +271,10 @@ class TabIndexToggle(ToggledAttribute):
         if tabindex == 0:
             return attrs
 
-        current = attrs.get(self.attribtue, None)
+        current = attrs.get(self.attribute, None)
         if forced or current is None and tag.localname in self.auto_tags:
             attrs |= ((self.attribute, tabindex),)
-            context[self.context_key] = tabindex + 1
+            context[CTX_CUR_TABINDEX] = tabindex + 1
         return attrs
 
 def set_tabindex(tag, attrs, context):
