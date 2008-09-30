@@ -275,3 +275,71 @@ name
 
     del shadow
 
+
+class TestPrefixes(FilteredRenderTest):
+    def elements():
+        from flatland import Dict, String
+        anon = Dict(None, String('anon_field')).create_element()
+        named = Dict('named', String('named_field')).create_element()
+        prefixed = Dict('prefixed', String('prefixed_field')).create_element()
+        prefixed.set_prefix('three.levels.down')
+
+        return {'form': anon,
+                'forms': {'named': named },
+                'three': {'levels': {'down': prefixed}}}
+
+    @from_docstring(context_factory=elements)
+    def test_prefixes(self):
+        """
+:: test
+${form.bind}
+:: eq
+form.el(u'.')
+:: endtest
+
+:: test
+${form.binds}
+:: eq
+anon_field
+:: endtest
+
+:: test
+${form.anon_field.bind}
+:: eq
+form.el(u'.anon_field')
+:: endtest
+
+:: test
+${form.binds.anon_field}
+:: eq
+form.el(u'.anon_field')
+:: endtest
+
+:: test
+${forms.named.named_field.bind}
+:: eq
+forms.named.el(u'.named_field')
+:: endtest
+
+:: test
+${forms.named.binds.named_field}
+:: eq
+forms.named.el(u'.named_field')
+:: endtest
+
+:: test
+${three.levels.down.prefixed_field.bind}
+:: eq
+three.levels.down.el(u'.prefixed_field')
+:: endtest
+
+:: test
+${three.levels.down.binds.prefixed_field}
+:: eq
+three.levels.down.el(u'.prefixed_field')
+:: endtest
+
+
+        """
+
+    del elements

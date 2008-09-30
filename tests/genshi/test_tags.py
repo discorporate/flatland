@@ -10,14 +10,15 @@ def small_form(values=None):
         flatland.String('field2'),
         flatland.Boolean('toggle1'),
         flatland.Boolean('toggle2'),
+        flatland.Array(flatland.String('multi')),
         )
     if values is None:
         values = {
             'field1': 'val',
             'toggle2': True,
+            'multi': ['a', 'b'],
             }
     el = schema.create_element(value=values)
-    el.set_prefix('form')
     return {'form': el}
 
 class TestUnfilteredTags(RenderTest):
@@ -148,6 +149,20 @@ class TestTags(FilteredRenderTest):
 :: eq
 <input type="text" id="f_field1" name="field1" value="val" />
 :: endtest
+
+:: test named form
+<form form:bind="${form.field1.bind}" />
+:: eq
+<form name="field1" />
+:: endtest
+
+:: test anonymous form
+<form form:bind="${form.bind}" />
+:: eq
+<form />
+:: endtest
+
+
         """
 
     @from_docstring(context_factory=small_form)
@@ -383,13 +398,13 @@ class TestTags(FilteredRenderTest):
 :: test
 <input type="submit" form:bind="${form.field1.bind}" />
 :: eq
-<input type="submit" name="field1" />
+<input type="submit" name="field1" value="val" />
 :: endtest
 
 :: test
-<input type="submit" form:bind="${form.field1.bind}" form:auto-value="on" />
+<input type="reset" form:bind="${form.field1.bind}" />
 :: eq
-<input type="submit" name="field1" value="val" />
+<input type="reset" name="field1" value="val" />
 :: endtest
 
 :: test
@@ -407,12 +422,6 @@ class TestTags(FilteredRenderTest):
 :: test
 <input type="button" form:bind="${form.field1.bind}" />
 :: eq
-<input type="button" name="field1" />
-:: endtest
-
-:: test
-<input type="button" form:bind="${form.field1.bind}" form:auto-value="on" />
-:: eq
 <input type="button" name="field1" value="val" />
 :: endtest
 
@@ -425,7 +434,20 @@ class TestTags(FilteredRenderTest):
 :: test
 <input type="file" form:bind="${form.field1.bind}" form:auto-value="on" />
 :: eq
-<input type="file" name="field1" />
+<input type="file" name="field1" value="val" />
+:: endtest
+
+:: test
+<input type="unknown" form:bind="${form.field1.bind}" />
+:: eq
+<input type="unknown" name="field1" />
+:: endtest
+
+
+:: test
+<input type="unknown" form:bind="${form.field1.bind}" form:auto-value="on" />
+:: eq
+<input type="unknown" name="field1" value="val" />
 :: endtest
 
     """
@@ -445,6 +467,12 @@ class TestTags(FilteredRenderTest):
 <input type="checkbox" value="val" name="field1" checked="checked" />
 :: endtest
 
+:: test scalar value miss strips CHECKED
+<input type="checkbox" form:bind="${form.field1.bind}" value="x" checked="checked"/>
+:: eq
+<input type="checkbox" value="x" name="field1" />
+:: endtest
+
 :: test
 <input type="checkbox" form:bind="${form.toggle1.bind}" />
 :: eq
@@ -455,6 +483,36 @@ class TestTags(FilteredRenderTest):
 <input type="checkbox" form:bind="${form.toggle2.bind}" />
 :: eq
 <input type="checkbox" name="toggle2" value="1" checked="checked" />
+:: endtest
+
+:: test
+<input type="checkbox" form:bind="${form.multi.bind}" />
+:: eq
+<input type="checkbox" name="multi" />
+:: endtest
+
+:: test
+<input type="checkbox" form:bind="${form.multi.bind}" value="a" />
+:: eq
+<input type="checkbox" name="multi" value="a" checked="checked" />
+:: endtest
+
+:: test
+<input type="checkbox" form:bind="${form.multi.bind}" value="b" />
+:: eq
+<input type="checkbox" name="multi" value="b" checked="checked" />
+:: endtest
+
+:: test
+<input type="checkbox" form:bind="${form.multi.bind}" value="c" />
+:: eq
+<input type="checkbox" value="c" name="multi" />
+:: endtest
+
+:: test container value misses strip CHECKED
+<input type="checkbox" form:bind="${form.multi.bind}" value="c" checked="checked" />
+:: eq
+<input type="checkbox" value="c" name="multi" />
 :: endtest
 
         """
@@ -484,6 +542,36 @@ class TestTags(FilteredRenderTest):
 <input type="radio" form:bind="${form.toggle2.bind}" />
 :: eq
 <input type="radio" name="toggle2" />
+:: endtest
+
+:: test
+<input type="radio" form:bind="${form.multi.bind}" />
+:: eq
+<input type="radio" name="multi" />
+:: endtest
+
+:: test
+<input type="radio" form:bind="${form.multi.bind}" value="a" />
+:: eq
+<input type="radio" name="multi" value="a" checked="checked" />
+:: endtest
+
+:: test
+<input type="radio" form:bind="${form.multi.bind}" value="b" />
+:: eq
+<input type="radio" name="multi" value="b" checked="checked" />
+:: endtest
+
+:: test
+<input type="radio" form:bind="${form.multi.bind}" value="c" />
+:: eq
+<input type="radio" value="c" name="multi" />
+:: endtest
+
+:: test container value misses strip CHECKED
+<input type="radio" form:bind="${form.multi.bind}" value="c" checked="checked" />
+:: eq
+<input type="radio" value="c" name="multi" />
 :: endtest
 
         """
@@ -602,7 +690,7 @@ class TestTags(FilteredRenderTest):
 """
 
     @from_docstring(context_factory=small_form)
-    def test_auto_value_button_stream(self):
+    def test_auto_value_button(self):
         """
 :: test
 <button form:bind="${form.field1.bind}" />
@@ -622,6 +710,18 @@ class TestTags(FilteredRenderTest):
 <button form:bind="${form.field1.bind}">local</button>
 :: eq
 <button name="field1">local</button>
+:: endtest
+
+:: test attribute value overrides
+<button form:bind="${form.field1.bind}" value="local"/>
+:: eq
+<button value="local" name="field1" />
+:: endtest
+
+:: test force follows value specification style
+<button form:bind="${form.field1.bind}" value="local" form:auto-value="on" />
+:: eq
+<button value="val" name="field1" />
 :: endtest
 
     """

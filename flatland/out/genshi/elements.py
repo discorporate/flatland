@@ -6,7 +6,7 @@ from flatland.schema import base
 # result of a configured formatting function.  clean up the set_prefix
 # bandaid and make it do this.
 #
-# FIXME: continue to simplify the wrapper
+# FIXME: continue to simplify the wrapper. this is all hella bogus :(
 
 class GenshiAccessMixin(object):
     def set_prefix(self, prefix):
@@ -55,7 +55,11 @@ class WrappedElement(unicode):
         prefix = get_prefix(element)
         path = element.fq_name()
         if not prefix:
-            raise LookupError("FIXME%r has no prefix." % (path,))
+            root = element.root
+            if root.name is None:
+                prefix = u'form'
+            else:
+                prefix = u'forms.%s' % (root.name,)
         return u"%s.el(%r)" % (prefix, path)
 
     def __getitem__(self, key):
