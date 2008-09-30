@@ -147,7 +147,7 @@ True
 :: eq
   defined
 :: endtest
-        """
+    """
 
     @from_docstring()
     def test_set_scope(self):

@@ -96,6 +96,7 @@ Contents
    references
    compound
    containers
+   templating/genshi
 
 History
 -------

@@ -27,7 +27,7 @@ def rendered_markup_eq_(template_text, **context):
 class TextFileMixin(object):
     def wrap_with_xmlns(self, template):
         return ('<div xmlns="http://www.w3.org/1999/xhtml" '
-                'xmlns:form="http://code.discorporate.us/springy-form" '
+                'xmlns:form="http://ns.discorporate.us/flatland/genshi" '
                 'xmlns:py="http://genshi.edgewall.org/">\n'
                 + template +
                 '\n</div>')
@@ -144,8 +144,8 @@ class RenderTest(TextFileMixin):
 
 class FilteredRenderTest(RenderTest):
     def generate(self, template, context):
-        from flatland.out.genshi import genshi_springy_filter
-        return genshi_springy_filter(template.generate(context), context)
+        from flatland.out.genshi import flatland_filter
+        return flatland_filter(template.generate(context), context)
 
 
 class ChunkError(Exception):

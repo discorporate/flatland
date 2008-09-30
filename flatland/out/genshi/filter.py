@@ -1,7 +1,3 @@
-# TODO:
-#  Populate multi-value elements (checkbox, select) when Springy
-#  supports list values.
-
 from __future__ import absolute_import
 
 import itertools
@@ -14,11 +10,11 @@ from flatland.util import Maybe, switch
 from . taglistener import TagListener, default_start
 
 
-__all__ = ['genshi_springy_filter', 'SpringyForm']
+__all__ = 'flatland_filter',
 
 trooth = Maybe.truth
 
-NAMESPACE  = Namespace('http://code.discorporate.us/springy-form')
+NAMESPACE  = Namespace('http://ns.discorporate.us/flatland/genshi')
 D_WITH     = NAMESPACE['with']
 D_SET      = NAMESPACE['set']
 
@@ -69,18 +65,18 @@ CONTEXT_TOGGLES = (CTX_AUTO_TABINDEX, CTX_AUTO_DOMID, CTX_AUTO_FOR,
 
 
 
-def genshi_springy_filter(stream, context):
-    """genshi_springy_filter(stream, context) -> stream
+def flatland_filter(stream, context):
+    """flatland_filter(stream, context) -> stream
 
-    Filter a stream through SpringyForm."""
+    Filter a stream through FlatlandFilter
 
-    filter_ = SpringyForm()
-    return Stream(filter_(stream, context))
+    """
+    return Stream(FlatlandFilter()(stream, context))
 
-class SpringyForm(TagListener):
+class FlatlandFilter(TagListener):
     """TODO: Document
 
-    Binds template form elements to Springy data nodes and
+    Binds template form elements to flatland data elements and
     automatically sets name, and value.  Manages DOM id generation,
     links <label> to matching elements and manages tabindex.
 
@@ -202,15 +198,15 @@ class NameToggle(ToggledAttribute):
     toggle_context_key = CTX_AUTO_NAME
 
     attribute = QName('name')
-    auto_tags = set(('input', 'button', 'select', 'textarea'))
+    auto_tags = set(('input', 'button', 'select', 'textarea', 'form'))
 
     def apply_to(self, tag, attrs, context, node):
         attrs, proceed, forced = self.pop_toggle(attrs, context)
         if not proceed:
             return attrs
 
-        # Abort on unbound nodes
-        if node is None:
+        # Abort on unbound or anonymous nodes
+        if node is None or node.name is None:
             return attrs
 
         current = attrs.get(self.attribute, None)
@@ -409,7 +405,7 @@ def _set_mixed_value(override, attrs, stream, node):
         stream = _set_stream_value(stream, Markup(node))
     else:
         stream = Stream([])
-        _set_simple_value(True, attrs, node)
+        attrs = _set_simple_value(override, attrs, node)
 
     return stream, attrs
 
@@ -417,10 +413,10 @@ def _set_input(override, attrs, node):
     type = attrs.get('type', 'text').lower()
 
     for case in switch(type):
-        if case('text', 'password', 'hidden'):
+        if case('text', 'password', 'hidden', 'button', 'submit', 'reset'):
             attrs = _set_simple_value(override, attrs, node)
             break
-        if case('submit', 'image', 'button'):
+        if case('file', 'image'):
             if override is True:
                 attrs = _set_simple_value(override, attrs, node)
                 break
@@ -429,21 +425,41 @@ def _set_input(override, attrs, node):
             if value is None and isinstance(node.schema, flatland.Boolean):
                 value = node.schema.true
                 attrs |= ((H_VALUE, value),)
-            if value == node.u:
-                attrs |= ((H_CHECKED, 'checked'),)
+            attrs = _set_checked(attrs, node)
+            #if value == node.u:
+            #    attrs |= ((H_CHECKED, 'checked'),)
             break
         if case('radio'):
             value = attrs.get(H_VALUE, None)
             if value is not None and value == node.u:
                 attrs |= ((H_CHECKED, 'checked'),)
             break
-        if case('file'):
-            # nothing to do
+        # default
+        if override is True:
+            attrs = _set_simple_value(override, attrs, node)
             break
     return attrs
 
 def _set_select(override, attrs, stream, node):
     return OptionToggler(node.u)(stream)
+
+
+def _set_checked(attrs, node):
+    value = attrs.get(H_VALUE, None)
+    if value is None:
+        return attrs
+    if value == node.u:
+        attrs |= ((H_CHECKED, 'checked'),)
+    elif isinstance(node, flatland.schema.compound.Compound):
+        attrs -= H_CHECKED
+    else:
+        for child in node.children:
+            if value == child.u:
+                attrs |= ((H_CHECKED, 'checked'),)
+                break
+        else:
+            attrs -= H_CHECKED
+    return attrs
 
 class OptionToggler(TagListener):
     __slots__ = ('value',)
