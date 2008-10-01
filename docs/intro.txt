@@ -1,0 +1,96 @@
+========
+Overview
+========
+
+flatland is a form and JSON input processing and validation library.
+
+Philosphy
+---------
+
+flatland's design stems from a few basic tenets:
+
+ - All input is suspect
+ - Input can come from multiple sources and interfaces
+ - Bad input isn't exceptional: it is expected
+
+With flatland, you describe exactly what elements your form may
+contain.  Forms extract and process only their known elements out of
+the (key, value) input data.  Unexpected or malicious data will not be
+processed.
+
+The description of forms and their fields is data-centric rather than
+HTML or interface-centric.  In a flatland form schema, a password
+input field is simply a string, not a "PasswordInput" or the like. The
+decision about how to represent that field is left up to another layer
+entirely.  Maybe you do want a <INPUT type="password"> control, or
+maybe type="hidden" in some cases, or sometimes the data is coming in
+as JSON.  flatland can act as another type of M in your M/VC, MC or
+MVC.
+
+Humans are imperfect and filling out forms will always be
+error-prone. flatland recognizes this and provides features to make
+error detection and correction part of the regular workflow of a
+form.  By default, validation routines will consider every element of
+a form and mark all problematic fields, allowing users to take action
+on all issues at once.
+
+Introduction
+------------
+
+Field schemas define all possible fields the form may contain.  A
+schema may a single field, a collection of fields, or an even richer
+structure.  Nested mappings and lists of fields are supported, as well
+as compound fields and even more exotic types.
+
+::
+
+  # note: this style (mingled with a class definition) is in serious
+  # alpha flux
+  class SignInForm(flatland.Form):
+      schema = [ String('username'),
+                 String('password') ]
+
+Field schemas are long-lived objects similar to class definitions.
+The instantiations of a flatland schema are called data elements, a
+tree structure of data-holding objects.  The elements of a flatland
+form may be initiated blank, using default values, or with values
+taken from your objects.
+
+::
+
+  form = SignInForm.from_flat(request.POST)
+  if form.validate():
+      logging.info(u"sign-in: %s" % form.el('username'))
+      return redirect('/app/')
+  else:
+      return render('login.html', form=form)
+
+Elements are rich objects that validate and normalize input data as
+well as hold field-level error and warning messages.  Elements can be
+exported to a native Python structure, flattened back into Unicode
+key, value pairs or used as-is in output templates for form layout,
+redisplay and error reporting.
+
+::
+
+  as_regular_python_data = form.value
+  print as_regular_python_data['username']
+
+  form2 = SignInForm.blank()
+  form2.set(as_regular_python_data)
+
+  assert form.el('username') == form2.el('username')
+
+License
+-------
+
+flatland is free software distributed under the MIT License.
+
+History
+-------
+
+flatland is a Python implementation of techniques I've been using for
+form and web data processing for ages, in many different languages.
+It is an immediate conceptual decendent and re-write of "springy", a
+closed-source library used interally at Virtuous, Inc.  The Genshi
+filter support was donated to the flatland project by Virtuous.
