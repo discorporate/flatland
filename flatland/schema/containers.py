@@ -413,12 +413,11 @@ class _DictElement(_ContainerElement, dict):
         value = kw.pop('value', Unspecified)
         Element.__init__(self, schema, **kw)
 
+        self._reset()
         if schema.default:
             self.set(schema.default)
         elif value is not Unspecified:
             self.set(value)
-        else:
-            self._reset()
 
     def __setitem__(self, key, value):
         if not key in self:

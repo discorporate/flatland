@@ -1,3 +1,4 @@
+import datetime
 from tests.genshi._util import (
     RenderTest, FilteredRenderTest, from_text_files, from_docstring)
 import flatland
@@ -11,12 +12,14 @@ def small_form(values=None):
         flatland.Boolean('toggle1'),
         flatland.Boolean('toggle2'),
         flatland.Array(flatland.String('multi')),
+        flatland.DateYYYYMMDD('date1'),
         )
     if values is None:
         values = {
             'field1': 'val',
             'toggle2': True,
             'multi': ['a', 'b'],
+            'date1': datetime.date(1999, 12, 31),
             }
     el = schema.create_element(value=values)
     return {'form': el}
@@ -443,11 +446,16 @@ class TestTags(FilteredRenderTest):
 <input type="unknown" name="field1" />
 :: endtest
 
-
 :: test
 <input type="unknown" form:bind="${form.field1.bind}" form:auto-value="on" />
 :: eq
 <input type="unknown" name="field1" value="val" />
+:: endtest
+
+:: test compound
+<input type="text" form:bind="${form.date1.bind}" />
+:: eq
+<input type="text" name="date1" value="1999-12-31" />
 :: endtest
 
     """
