@@ -21,7 +21,8 @@ from .scalars import (
 from .containers import (
     Array,
     Dict,
-    List
+    List,
+    MultiValue,
     )
 from .compound import (
     Compound,

@@ -95,6 +95,13 @@ class _SequenceElement(_ContainerElement, list):
         return list(value.value for value in self)
 
     @property
+    def u(self):
+        return u'[%s]' % ', '.join(
+            element.u if isinstance(element, _ContainerElement)
+                    else repr(element.u)
+            for element in self)
+
+    @property
     def is_empty(self):
         return not any(True for _ in self.children)
 
@@ -334,64 +341,64 @@ class List(Sequence):
             self.spec = schema[0]
 
 
-class _ArrayElement(_SequenceElement, _ScalarElement):
-    def set(self, value):
-        self.append(value)
+class _ArrayElement(_SequenceElement):
 
-    def _get_u(self):
-        if not self:
-            return u''
-        else:
-            return self[-1].u
-
-    def _set_u(self, value):
-        self.append(None)
-        self[-1].u = value
-
-    u = property(_get_u, _set_u)
-    del _get_u, _set_u
-
-    def _get_value(self):
-        if not self:
-            return None
-        else:
-            return self[-1].value
-
-    def _set_value(self, value):
-        self.append(None)
-        self[-1].value = value
-
-    value = property(_get_value, _set_value)
-    del _get_value, _set_value
-
-    def __nonzero__(self):
-        # FIXME: this is a little troubling, given that it may not
-        # match the appearance of the element in a scalar context.
-        # (further: list context? scalar context? what is this, perl?)
-        return len(self)
+    def __init__(self, schema, parent=None, value=Unspecified):
+        _SequenceElement.__init__(self, schema, parent=parent)
+        if value is not Unspecified:
+            self.extend(value)
+        elif schema.default:
+            self.extend(schema.default)
 
     def _set_flat(self, pairs, sep):
         prune = self.schema.prune_empty
-        for key, value in pairs:
-            if key == self.name:
-                if value == u'' and prune:
-                    continue
-                self.set(value)
+        self.set(value for key, value in pairs
+                 if key == self.name and not prune or value != u'')
 
 
-class Array(Sequence, Scalar):
+class _MultiValueElement(_ArrayElement, _ScalarElement):
+    def u(self):
+        """The .u of the first item in the sequence, or u''."""
+        if not self:
+            return u''
+        else:
+            return self[0].u
+
+    def _set_u(self, value):
+        if not self:
+            self.append(None)
+        self[0].u = value
+
+    u = property(u, _set_u)
+    del _set_u
+
+    def value(self):
+        """The .value of the first item in the sequence, or None."""
+        if not self:
+            return None
+        else:
+            return self[0].value
+
+    def _set_value(self, value):
+        if not self:
+            self.append(None)
+        self[0].value = value
+
+    value = property(value, _set_value)
+    del _set_value
+
+    def __nonzero__(self):
+        # this is a little troubling, given that it may not match the
+        # appearance of the element in a scalar context.
+        return len(self)
+
+
+class Array(Sequence):
     """A transparent homogeneous Container, for multivalued form elements.
 
-    Arrays take on the name of their child.  When used as a scalar,
-    they act as their last member.  All values are available when used
-    as a sequence.
-
-    TODO: is any of that a good idea? if so, should it be first rather
-    than last?
-
-    A `el.set(val)` on an Array element will add `val` to the Array.
-    To set a full set of value at once, assign using slice syntax:
-    `el[:] = [...]`
+    Arrays hold a collection of values under a single name, allowing
+    all values of a repeated `(key, value)` pair to be captured and
+    used.  Elements are sequence-like.
 
     """
 
@@ -402,6 +409,24 @@ class Array(Sequence, Scalar):
         self.prune_empty = kw.pop('prune_empty', True)
         super(Array, self).__init__(array_of.name, **kw)
         self.spec = array_of
+
+
+class MultiValue(Array, Scalar):
+    """A transparent homogeneous Container, for multivalued form elements.
+
+    MultiValues combine aspects of :class:`Scalar` and
+    :class:`Sequence` fields, allowing all values of a repeated `(key,
+    value)` pair to be captured and used.
+
+    MultiValues take on the name of their child and have no identity
+    of their own when flattened.  Elements are mostly sequence-like
+    and can be indexed and iterated. However the :attr:`.u` or
+    :attr:`.value` are scalar-like, and return values from the first
+    element in the sequence.
+
+    """
+
+    element_type = _MultiValueElement
 
 
 class Mapping(Container):

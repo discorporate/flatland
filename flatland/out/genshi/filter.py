@@ -426,13 +426,9 @@ def _set_input(override, attrs, node):
                 value = node.schema.true
                 attrs |= ((H_VALUE, value),)
             attrs = _set_checked(attrs, node)
-            #if value == node.u:
-            #    attrs |= ((H_CHECKED, 'checked'),)
             break
         if case('radio'):
-            value = attrs.get(H_VALUE, None)
-            if value is not None and value == node.u:
-                attrs |= ((H_CHECKED, 'checked'),)
+            attrs = _set_checked(attrs, node)
             break
         # default
         if override is True:

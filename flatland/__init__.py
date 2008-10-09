@@ -14,6 +14,7 @@ from schema import (
     Integer,
     List,
     Long,
+    MultiValue,
     Ref,
     String,
     Time,
