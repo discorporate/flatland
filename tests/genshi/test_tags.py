@@ -502,13 +502,13 @@ class TestTags(FilteredRenderTest):
 :: test
 <input type="checkbox" form:bind="${form.multi.bind}" value="a" />
 :: eq
-<input type="checkbox" name="multi" value="a" checked="checked" />
+<input type="checkbox" value="a" name="multi" checked="checked" />
 :: endtest
 
 :: test
 <input type="checkbox" form:bind="${form.multi.bind}" value="b" />
 :: eq
-<input type="checkbox" name="multi" value="b" checked="checked" />
+<input type="checkbox" value="b" name="multi" checked="checked" />
 :: endtest
 
 :: test
@@ -561,13 +561,13 @@ class TestTags(FilteredRenderTest):
 :: test
 <input type="radio" form:bind="${form.multi.bind}" value="a" />
 :: eq
-<input type="radio" name="multi" value="a" checked="checked" />
+<input type="radio" value="a" name="multi" checked="checked" />
 :: endtest
 
 :: test
 <input type="radio" form:bind="${form.multi.bind}" value="b" />
 :: eq
-<input type="radio" name="multi" value="b" checked="checked" />
+<input type="radio" value="b" name="multi" checked="checked" />
 :: endtest
 
 :: test
