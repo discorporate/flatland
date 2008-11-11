@@ -127,7 +127,7 @@ class Element(_BaseElement):
           u'.0'
 
         """
-        if not self.parent:
+        if self.parent is None:
             return sep
 
         children_of_root = reversed(list(self.parents)[:-1])
