@@ -67,6 +67,19 @@ def test_string():
         eq_(unicode(element), expected)
         eq_(element.value, expected)
 
+def test_string_is_empty():
+    st = schema.String('foo')
+    element = st.new()
+    element.set(u'')
+    assert element.is_empty
+
+    element = st.new()
+    element.set(u'foo')
+    assert not element.is_empty
+
+    element = st.new()
+    assert element.is_empty
+
 def validate_element_set(type_, raw, value, uni, schema_opts={}):
     element = type_('i', **schema_opts).new()
     element.set(raw)
