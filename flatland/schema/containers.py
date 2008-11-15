@@ -21,13 +21,13 @@ class Container(FieldSchema):
 
     element_type = _ContainerElement
 
-    def validate_element(self, element, state, decending):
+    def validate_element(self, element, state, descending):
         """Validates on the second, upward pass.
 
         See :meth:`FieldSchema.validate_element`.
         """
-        if not decending:
-            return FieldSchema.validate_element(self, element, state, decending)
+        if not descending:
+            return FieldSchema.validate_element(self, element, state, descending)
         else:
             return None
 
