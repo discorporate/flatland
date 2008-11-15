@@ -362,6 +362,37 @@ class TestTags(FilteredRenderTest):
     """
 
     @from_docstring(context_factory=small_form)
+    def test_auto_tabindex_forced(self):
+        """
+:: test domid must be forced onto a foreign element
+<form:with auto-domid="on">
+  <a href="bare" />
+  <a href="w/ namespace attr" form:auto-value="on" />
+</form:with>
+:: eq
+  <a href="bare"/>
+  <a href="w/ namespace attr"/>
+:: endtest
+
+:: test tabindex may be forced onto a tag
+<form:with tabindex="1">
+  <a href="foo" form:auto-tabindex="on" />
+</form:with>
+:: eq
+<a href="foo" tabindex="1"/>
+:: endtest
+
+:: test tabindex assignment descends parent to child
+<form:with tabindex="1">
+  <div form:auto-tabindex="on"><child form:auto-tabindex="on"/></div>
+</form:with>
+:: eq
+  <div tabindex="1"><child tabindex="2"/></div>
+:: endtest
+
+        """
+
+    @from_docstring(context_factory=small_form)
     def test_auto_value_forced(self):
         """
 :: test unbound
