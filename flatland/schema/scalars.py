@@ -136,15 +136,6 @@ class _ScalarElement(Element):
             type(self.schema).__name__, self.name, self.value)
 
 
-class _StringElement(_ScalarElement):
-    """An Element type with string specific behavior."""
-
-    @property
-    def is_empty(self):
-        """True if the string is blank or has no value."""
-        return True if (not self.value and self.u == u'') else False
-
-
 class Scalar(FieldSchema):
     """The most common type, a single value such as a string or number.
 
@@ -192,6 +183,15 @@ class Scalar(FieldSchema):
             return FieldSchema.validate_element(self, element, state, decending)
         else:
             return None
+
+
+class _StringElement(_ScalarElement):
+    """An Element type with string specific behavior."""
+
+    @property
+    def is_empty(self):
+        """True if the string is blank or has no value."""
+        return True if (not self.value and self.u == u'') else False
 
 
 class String(Scalar):
