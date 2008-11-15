@@ -39,7 +39,7 @@ AUTONAME = ('input', 'button', 'select', 'textarea' )
 AUTOVALUE = ('input', 'select', 'textarea', 'button')
 
 VALUE_CHILD  = ('textarea',)
-VALUE_MIXED  = ('button',)
+VALUE_MIXED = ()
 
 MAYBE = ('auto',)
 YES   = ('1', 'true', 't', 'on', 'yes')
@@ -202,6 +202,7 @@ class NameToggle(ToggledAttribute):
 
     def apply_to(self, tag, attrs, context, node):
         attrs, proceed, forced = self.pop_toggle(attrs, context)
+
         if not proceed:
             return attrs
 
@@ -404,7 +405,6 @@ def _set_mixed_value(override, attrs, stream, node):
     if attrs.get(H_VALUE, None) is None:
         stream = _set_stream_value(stream, Markup(node))
     else:
-        stream = Stream([])
         attrs = _set_simple_value(override, attrs, node)
 
     return stream, attrs

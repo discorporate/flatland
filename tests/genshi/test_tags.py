@@ -703,7 +703,19 @@ class TestTags(FilteredRenderTest):
 :: test
 <button form:bind="${form.field1.bind}" />
 :: eq
-<button name="field1">val</button>
+<button name="field1" value="val" />
+:: endtest
+
+:: test
+<button form:bind="${form.field1.bind}">squeezle</button>
+:: eq
+<button name="field1" value="val">squeezle</button>
+:: endtest
+
+:: test
+<button form:bind="${form.field1.bind}"><span/></button>
+:: eq
+<button name="field1" value="val"><span/></button>
 :: endtest
 
 :: test
@@ -714,16 +726,16 @@ class TestTags(FilteredRenderTest):
   <button name="field1" />
 :: endtest
 
-:: test child value overrides
-<button form:bind="${form.field1.bind}">local</button>
-:: eq
-<button name="field1">local</button>
-:: endtest
-
 :: test attribute value overrides
 <button form:bind="${form.field1.bind}" value="local"/>
 :: eq
 <button value="local" name="field1" />
+:: endtest
+
+:: test attribute value overrides w/o interfering with child content
+<button form:bind="${form.field1.bind}" value="local">child</button>
+:: eq
+<button value="local" name="field1">child</button>
 :: endtest
 
 :: test force follows value specification style
