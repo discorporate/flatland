@@ -1,10 +1,8 @@
-from __future__ import absolute_import
-
 from . import containers
 from .. import util
 
-__all__ = 'Form',
 
+__all__ = 'Form',
 
 class Form(containers.Dict):
     """A collection of named fields or schema items.
@@ -101,7 +99,6 @@ class Form(containers.Dict):
           >>> new_user = User(**form.slice(exclude=['verify_password']))
 
         """
-
         self = cls(**kw)
 
         attributes = set(self.fields.iterkeys())
