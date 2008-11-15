@@ -1,69 +1,43 @@
 from __future__ import absolute_import
 
 import itertools
-from genshi import (Attrs, Markup, Namespace, Stream, QName)
+import logging
+from genshi import Markup, Namespace, Stream, QName
 from genshi.core import START, TEXT
 from genshi.template.eval import Expression
 
 import flatland
-from flatland.util import Maybe, switch
+from flatland.util import Maybe
 from . taglistener import TagListener, default_start
 
 
 __all__ = 'flatland_filter',
 
-trooth = Maybe.truth
+log = logging.getLogger('flatland.out.genshi')
 
 NAMESPACE  = Namespace('http://ns.discorporate.us/flatland/genshi')
-D_WITH     = NAMESPACE['with']
-D_SET      = NAMESPACE['set']
 
-F_TABINDEX = NAMESPACE['auto-tabindex']
-F_ID       = NAMESPACE['auto-domid']
-F_FOR      = NAMESPACE['auto-for']
-F_NAME     = NAMESPACE['auto-name']
-F_VALUE    = NAMESPACE['auto-value']
+# filter attributes
 F_BIND     = NAMESPACE['bind']
 
-H_TABINDEX = QName('tabindex')
-H_ID = QName('id')
-H_FOR = QName('for')
-H_NAME = QName('name')
-H_VALUE = QName('value')
+# HTML attribues
 H_CHECKED = QName('checked')
+H_FOR = QName('for')
+H_ID = QName('id')
+H_NAME = QName('name')
 H_SELECTED = QName('selected')
-
-AUTOTABINDEXABLE = ('input', 'button', 'select', 'textarea')
-AUTODOMID = ('input', 'button', 'select', 'textarea' )
-AUTONAME = ('input', 'button', 'select', 'textarea' )
-AUTOVALUE = ('input', 'select', 'textarea', 'button')
-
-VALUE_CHILD  = ('textarea',)
-VALUE_MIXED = ()
+H_TABINDEX = QName('tabindex')
+H_VALUE = QName('value')
 
 MAYBE = ('auto',)
 YES   = ('1', 'true', 't', 'on', 'yes')
 NO    = ('0', 'false', 'nil', 'off', 'no')
 
-DEFAULT_DOMID_ASSIGN    = True
-DEFAULT_DOMID_FMT       = 'f_%s'
-DEFAULT_TABINDEX_ASSIGN = True
-DEFAULT_TABINDEX_START  = 100  # FIXME
-DEFAULT_NAME_ASSIGN     = True
-DEFAULT_VALUE_ASSIGN    = True
-
-CTX_AUTO_TABINDEX     = 'auto-tabindex'
 CTX_CUR_TABINDEX      = 'auto-tabindex_value'
-CTX_AUTO_DOMID        = 'auto-domid'
 CTX_FMT_DOMID         = 'auto-domid_format'
-CTX_AUTO_FOR          = 'auto-for'
-CTX_AUTO_NAME         = 'auto-name'
-CTX_AUTO_VALUE        = 'auto-value'
-
-CONTEXT_TOGGLES = (CTX_AUTO_TABINDEX, CTX_AUTO_DOMID, CTX_AUTO_FOR,
-                   CTX_AUTO_NAME, CTX_AUTO_VALUE)
 
 
+
 
 def flatland_filter(stream, context):
     """flatland_filter(stream, context) -> stream
@@ -73,104 +47,6 @@ def flatland_filter(stream, context):
     """
     return Stream(FlatlandFilter()(stream, context))
 
-class FlatlandFilter(TagListener):
-    """TODO: Document
-
-    Binds template form elements to flatland data elements and
-    automatically sets name, and value.  Manages DOM id generation,
-    links <label> to matching elements and manages tabindex.
-
-    """
-    def inspect(self, event, context):
-        if event[0] is not START:
-            return False
-
-        kind, (tag, attributes), pos = event
-
-        if tag in NAMESPACE:
-            if tag.localname == DIR_WITH.name:
-                return (DIR_WITH.start, DIR_WITH.end)
-            elif tag.localname == DIR_SET.name:
-                return (DIR_SET.start, DIR_SET.end)
-        else:
-            for attr, value in attributes:
-                if attr in NAMESPACE:
-                    return (DIR_EL.start, DIR_EL.end)
-
-class ImmediateVarDirective(object):
-    name = 'set'
-
-    def start(self, event, context):
-        kind, (tag, attrs), pos = event
-
-        for toggle in CONTEXT_TOGGLES:
-            val = attrs.get(toggle, None)
-            if val is not None:
-                context[toggle] = parse_trool(val)
-
-        val = parse_int(attrs.get('tabindex', None))
-        if val is not None:
-            context[CTX_CUR_TABINDEX] = val
-
-        val = attrs.get('domid-format', None)
-        if val is not None:
-            context[CTX_FMT_DOMID] = val
-
-        return None, None
-
-    def end(self, start, end, stream, context, history):
-        return None, None, stream
-
-class ScopedVarDirective(ImmediateVarDirective):
-    name = 'with'
-
-    def start(self, event, context):
-        context.push({})
-        return ImmediateVarDirective.start(self, event, context)
-
-    def end(self, start, end, stream, context, history):
-        context.pop()
-        return ImmediateVarDirective.end(self, start, end, stream,
-                                         context, history)
-
-class DecoratedElementDirective(object):
-    def start(self, event, context):
-        kind, (tag, attrs), pos = event
-
-        node = find_binding(tag, attrs, context)
-
-        # Node-free transformations
-        attrs = set_tabindex(tag, attrs, context)
-
-        # Node-sensitive transformations
-        attrs = set_domid(tag, attrs, context, node)
-
-        return (kind, (tag, attrs), pos), { 'binding': node }
-
-    def end(self, start, end, stream, context, history):
-        kind, tag, pos = end
-        start_kind, (start_tag, attrs), start_pos = start
-
-        node = history.get('binding', None)
-        attrs -= F_BIND
-
-        # Set <... name=""> for bound nodes.
-        attrs = set_name(tag, attrs, context, node)
-
-        # Map <label for="..."> to bound tags.
-        attrs = set_for(tag, attrs, context, node)
-
-        # Set <... value=""> or tag-specific equivalent.
-        stream, attrs = set_value(tag, attrs, stream, context, node)
-
-        # Re-assemble the start event.
-        start = (start_kind, (start_tag, attrs), start_pos)
-
-        return start, end, stream
-
-DIR_WITH = ScopedVarDirective()
-DIR_SET  = ImmediateVarDirective()
-DIR_EL   = DecoratedElementDirective()
 
 
 
@@ -183,8 +59,8 @@ class ToggledAttribute(object):
     auto_tags = ()
 
     def pop_toggle(self, attrs, context):
-        attrs, proceed = pop_attribute(attrs, self.toggle_attribute, 'auto',
-                                     parse_trool)
+        attrs, proceed = self.pop_attribute(
+            attrs, self.toggle_attribute, 'auto', parse_trool)
         forced = proceed is True
         if proceed is Maybe:
             proceed = parse_trool(context.get(self.toggle_context_key, 'auto'))
@@ -192,12 +68,19 @@ class ToggledAttribute(object):
                 proceed = self.toggle_default
         return attrs, proceed, forced
 
+    def pop_attribute(self, attrs, name, default=None, transform=None):
+        value = attrs.get(name, default)
+        if transform:
+            value = transform(value)
+        return (attrs - name), value
+
+
 class NameToggle(ToggledAttribute):
     toggle_default = True
     toggle_attribute = NAMESPACE['auto-name']
-    toggle_context_key = CTX_AUTO_NAME
+    toggle_context_key = 'auto-name'
 
-    attribute = QName('name')
+    attribute = H_NAME
     auto_tags = set(('input', 'button', 'select', 'textarea', 'form'))
 
     def apply_to(self, tag, attrs, context, node):
@@ -215,11 +98,123 @@ class NameToggle(ToggledAttribute):
             attrs |= ((self.attribute, node.flattened_name()),)
         return attrs
 
+
+class ValueToggle(ToggledAttribute):
+    toggle_default = True
+    toggle_attribute = NAMESPACE['auto-value']
+    toggle_context_key = 'auto-value'
+
+    attribute = H_VALUE
+    auto_tags = set(('input', 'select', 'textarea', 'button'))
+
+    apply_child = ('textarea',)
+    apply_mixed = ()
+
+    def apply_to(self, tag, attrs, stream, context, node):
+        attrs, proceed, forced = self.pop_toggle(attrs, context)
+
+        if not proceed:
+            return stream, attrs
+
+        # Abort on unbound nodes.
+        if node is None:
+            return stream, attrs
+
+        if not forced and tag.localname not in self.auto_tags:
+            return stream, attrs
+
+        # VALUE_CHILD (e.g. <textarea>) always replaces the stream with
+        # the node's string value.
+        if tag.localname in self.apply_child:
+            stream = self.set_stream_value(stream, node.u)
+
+        elif tag.localname == 'select':
+            stream = self.set_select(forced, attrs, stream, node)
+
+        elif tag.localname in self.apply_mixed:
+            stream, attrs = self.set_mixed_value(forced, attrs, stream, node)
+
+        elif tag.localname == 'input':
+            attrs = self.set_input(forced, attrs, node)
+
+        else:
+            attrs = self.set_simple_value(forced, attrs, node)
+
+        return stream, attrs
+
+    def set_stream_value(self, stream, text):
+        stream = stream_is_empty(stream)
+        if stream is None:
+            return Stream([(TEXT, text, (None, -1, -1))])
+        else:
+            return stream
+
+    def set_simple_value(self, override, attrs, node):
+        current = attrs.get(H_VALUE)
+        if current is None or override is True:
+            attrs |= ((H_VALUE, node.u),)
+        return attrs
+
+    def set_mixed_value(self, override, attrs, stream, node):
+        """
+        For output nodes that may either take a 'value=""' or encode
+        their value in nested content.  Node value will be passed
+        along as unescaped markup if child nodes are generated!
+
+        """
+        if attrs.get(H_VALUE, None) is None:
+            stream = self.set_stream_value(stream, Markup(node))
+        else:
+            attrs = self.set_simple_value(override, attrs, node)
+        return stream, attrs
+
+    def set_input(self, override, attrs, node):
+        type = attrs.get('type', 'text').lower()
+
+        if type in ('text', 'password', 'hidden', 'button', 'submit', 'reset'):
+            attrs = self.set_simple_value(override, attrs, node)
+        elif type in ('file', 'image'):
+            if override is True:
+                attrs = self.set_simple_value(override, attrs, node)
+        elif type == 'checkbox':
+            value = attrs.get(H_VALUE, None)
+            if value is None and isinstance(node.schema, flatland.Boolean):
+                value = node.schema.true
+                attrs |= ((H_VALUE, value),)
+            attrs = self.set_checked(attrs, node)
+        elif type == 'radio':
+            attrs = self.set_checked(attrs, node)
+        else:
+            if override is True:
+                attrs = self.set_simple_value(override, attrs, node)
+        return attrs
+
+    def set_select(self, override, attrs, stream, node):
+        return OptionToggler(node.u)(stream)
+
+    def set_checked(self, attrs, node):
+        value = attrs.get(H_VALUE, None)
+        if value is None:
+            return attrs
+        if value == node.u:
+            attrs |= ((H_CHECKED, 'checked'),)
+        elif isinstance(node, flatland.schema.compound.Compound):
+            attrs -= H_CHECKED
+        else:
+            for child in node.children:
+                if value == child.u:
+                    attrs |= ((H_CHECKED, 'checked'),)
+                    break
+            else:
+                attrs -= H_CHECKED
+        return attrs
+
+
 class DomIDToggle(ToggledAttribute):
     toggle_attribute = NAMESPACE['auto-domid']
-    toggle_context_key = CTX_AUTO_DOMID
+    toggle_context_key = 'auto-domid'
 
-    attribute = QName('id')
+    attribute = H_ID
     auto_tags = set(('input', 'button', 'select', 'textarea'))
 
     def apply_to(self, tag, attrs, context, el):
@@ -230,18 +225,33 @@ class DomIDToggle(ToggledAttribute):
         current = attrs.get(self.attribute, None)
         if forced or current is None and tag.localname in self.auto_tags:
             if el is not None:
-                domid = domid_for_bound(el, context)
+                domid = self.id_for(el, context)
             else:
-                domid = domid_for_unbound(tag, attrs)
+                domid = self.id_for_unbound(tag, attrs, context)
             attrs |= ((self.attribute, domid),)
         return attrs
+
+    @classmethod
+    def id_for(cls, el, context):
+        fmt = context.get(CTX_FMT_DOMID, 'f_%s')
+        return fmt % el.flattened_name()
+
+    @classmethod
+    def id_for_unbound(cls, tag, attrs, context):
+        if tag in cls.auto_tags:
+            name = attrs.get(H_NAME, None)
+            if name is not None:
+                fmt = context.get(CTX_FMT_DOMID, 'f_%s')
+                return fmt % name
+        return None
+
 
 class ForToggle(ToggledAttribute):
     toggle_attribute = NAMESPACE['auto-for']
     # tied to ID generation
-    toggle_context_key = CTX_AUTO_DOMID
+    toggle_context_key = 'auto-domid'
 
-    attribute = QName('for')
+    attribute = H_FOR
     auto_tags = set(('label',))
 
     def apply_to(self, tag, attrs, context, node):
@@ -251,14 +261,15 @@ class ForToggle(ToggledAttribute):
 
         current = attrs.get(self.attribute, None)
         if forced or current is None and tag.localname in self.auto_tags:
-            attrs |= ((self.attribute, domid_for_bound(node, context)),)
+            attrs |= ((self.attribute, DomIDToggle.id_for(node, context)),)
         return attrs
+
 
 class TabIndexToggle(ToggledAttribute):
     toggle_attribute = NAMESPACE['auto-tabindex']
-    toggle_context_key = CTX_AUTO_TABINDEX
+    toggle_context_key = 'auto-tabindex'
 
-    attribute = QName('tabindex')
+    attribute = H_TABINDEX
     auto_tags = set(('input', 'button', 'select', 'textarea'))
 
     def apply_to(self, tag, attrs, context):
@@ -276,189 +287,11 @@ class TabIndexToggle(ToggledAttribute):
             context[CTX_CUR_TABINDEX] = tabindex + 1
         return attrs
 
-def set_tabindex(tag, attrs, context):
-    scoped = parse_bool(context.get(CTX_AUTO_TABINDEX, False))
-    attrs, override = pop_attribute(attrs, F_TABINDEX, 'auto', parse_trool)
-
-    tabindex = context.get(CTX_CUR_TABINDEX, 0)
-    if tabindex == 0:
-        return attrs
-
-    if (override is True) or (override is not False and trooth(scoped)):
-        current = attrs.get('tabindex', None)
-
-        if ((current is None and tag.localname in AUTOTABINDEXABLE) or
-            override is True):
-            attrs |= ((H_TABINDEX, tabindex),)
-            context[CTX_CUR_TABINDEX] = tabindex + 1
-    return attrs
-
-set_tabindex = TabIndexToggle().apply_to
-
-def set_domid(tag, attrs, context, el):
-    scoped = parse_bool(context.get(CTX_AUTO_DOMID, False))
-    attrs, override = pop_attribute(attrs, F_ID, 'auto', parse_trool)
-
-    if (override is True) or (override is not False and trooth(scoped)):
-        current = attrs.get(H_ID, None)
-        if (current is None and tag.localname in AUTODOMID) or override is True:
-            if el is not None:
-                domid = domid_for_bound(el, context)
-            else:
-                domid = domid_for_unbound(tag, attrs)
-            attrs |= ((H_ID, domid),)
-    return attrs
-
-set_domid = DomIDToggle().apply_to
-
-def set_for(tag, attrs, context, node):
-    # Auto set 'for="other-element's-dom-id"' if we're currently
-    # setting ids.  This is an optimistic calculation- we don't lookup
-    # the target node's actual assigned or effective ID, because there
-    # is no 1:1 mapping of nodes to tags.
-    scoped = parse_bool(context.get(CTX_AUTO_DOMID, False))
-    attrs, override = pop_attribute(attrs, F_FOR, 'auto', parse_trool)
-
-    # If the element is not bound or this isn't a <label>, stop early.  (After
-    # consuming our "for" attribute, if present.)
-    if tag.localname != 'label' or node is None:
-        return attrs
-
-    if ((override is not False & scoped) or override is True):
-        current = attrs.get(H_FOR, None)
-
-        if current is None or override is True:
-            attrs |= ((H_FOR, domid_for_bound(node, context)),)
-    return attrs
-
-set_for = ForToggle().apply_to
-
-def set_name(tag, attrs, context, node):
-    scoped = parse_bool(context.get(CTX_AUTO_NAME, True))
-    attrs, override = pop_attribute(attrs, F_NAME, 'auto', parse_trool)
-
-    # Abort on unbound nodes.
-    if node is None:
-        return attrs
-
-    if (override is True) or (override is not False and trooth(scoped)):
-        current = attrs.get(H_NAME, None)
-        if (current is None and tag.localname in AUTONAME) or override is True:
-            attrs |= ((H_NAME, node.flattened_name()),)
-    return attrs
-
-set_name = NameToggle().apply_to
-
-def set_value(tag, attrs, stream, context, node):
-    scoped = parse_bool(context.get(CTX_AUTO_VALUE, True))
-    attrs, override = pop_attribute(attrs, F_VALUE, 'auto', parse_trool)
-
-    # Abort on unbound nodes.
-    if node is None:
-        return stream, attrs
-
-    # Abort if we're sure we won't set the value.
-    if not ((override is True) or (override is not False and trooth(scoped))):
-        return stream, attrs
-
-    if override is not True and tag.localname not in AUTOVALUE:
-        return stream, attrs
-
-    # VALUE_CHILD (e.g. <textarea>) always replaces the stream with
-    # the node's string value.
-    if tag.localname in VALUE_CHILD:
-        stream = _set_stream_value(stream, node.u)
-
-    elif tag.localname == 'select':
-        stream = _set_select(override, attrs, stream, node)
-
-    elif tag.localname in VALUE_MIXED:
-        stream, attrs = _set_mixed_value(override, attrs, stream, node)
-
-    elif tag.localname == 'input':
-        attrs = _set_input(override, attrs, node)
-
-    else:
-        attrs = _set_simple_value(override, attrs, node)
-
-    return stream, attrs
-
-def _set_stream_value(stream, text):
-    stream = stream_is_empty(stream)
-    if stream is None:
-        return Stream([(TEXT, text, (None, -1, -1))])
-    else:
-        return stream
-
-def _set_simple_value(override, attrs, node):
-    current = attrs.get(H_VALUE)
-    if current is None or override is True:
-        attrs |= ((H_VALUE, node.u),)
-    return attrs
-
-def _set_mixed_value(override, attrs, stream, node):
-    """
-    For output nodes that may either take a 'value=""' or encode their
-    value in nested content.  Node value will be passed along as
-    unescaped markup if child nodes are generated!
-    """
-    if attrs.get(H_VALUE, None) is None:
-        stream = _set_stream_value(stream, Markup(node))
-    else:
-        attrs = _set_simple_value(override, attrs, node)
-
-    return stream, attrs
-
-def _set_input(override, attrs, node):
-    type = attrs.get('type', 'text').lower()
-
-    for case in switch(type):
-        if case('text', 'password', 'hidden', 'button', 'submit', 'reset'):
-            attrs = _set_simple_value(override, attrs, node)
-            break
-        if case('file', 'image'):
-            if override is True:
-                attrs = _set_simple_value(override, attrs, node)
-                break
-        if case('checkbox'):
-            value = attrs.get(H_VALUE, None)
-            if value is None and isinstance(node.schema, flatland.Boolean):
-                value = node.schema.true
-                attrs |= ((H_VALUE, value),)
-            attrs = _set_checked(attrs, node)
-            break
-        if case('radio'):
-            attrs = _set_checked(attrs, node)
-            break
-        # default
-        if override is True:
-            attrs = _set_simple_value(override, attrs, node)
-            break
-    return attrs
-
-def _set_select(override, attrs, stream, node):
-    return OptionToggler(node.u)(stream)
-
-
-def _set_checked(attrs, node):
-    value = attrs.get(H_VALUE, None)
-    if value is None:
-        return attrs
-    if value == node.u:
-        attrs |= ((H_CHECKED, 'checked'),)
-    elif isinstance(node, flatland.schema.compound.Compound):
-        attrs -= H_CHECKED
-    else:
-        for child in node.children:
-            if value == child.u:
-                attrs |= ((H_CHECKED, 'checked'),)
-                break
-        else:
-            attrs -= H_CHECKED
-    return attrs
 
 class OptionToggler(TagListener):
     __slots__ = ('value',)
+
+    activated = ((H_SELECTED, 'selected'),)
 
     def __init__(self, value):
         self.value = value
@@ -494,32 +327,133 @@ class OptionToggler(TagListener):
         return start, end, stream
 
 
-######################################################################
+class DecoratedElementDirective(object):
+    set_name = NameToggle().apply_to
+    set_value = ValueToggle().apply_to
+    set_domid = DomIDToggle().apply_to
+    set_tabindex = TabIndexToggle().apply_to
+    set_for = ForToggle().apply_to
 
-def domid_for_bound(node, context):
-    fmt = context.get(CTX_FMT_DOMID, DEFAULT_DOMID_FMT)
-    return fmt % node.flattened_name()
+    def start(self, event, context):
+        kind, (tag, attrs), pos = event
 
-def domid_for_unbound(tag, attrs):
-    if tag in AUTODOMID:
-        name = attrs.get(H_NAME, None)
-        if name is not None:
-            fmt = context.get(CTX_FMT_DOMID, DEFAULT_DOMID_FMT)
-            return fmt % name
-    return None
+        node = self.find_binding(tag, attrs, context)
 
-def pop_attribute(attrs, name, default=None, transform=None):
-    value = attrs.get(name, default)
-    if transform:
-        value = transform(value)
-    return (attrs - name), value
+        # Node-free transformations
+        attrs = self.set_tabindex(tag, attrs, context)
 
-def find_binding(tag, attributes, context):
-    expr = attributes.get(F_BIND, None)
-    if expr is None:
-        return expr
+        # Node-sensitive transformations
+        attrs = self.set_domid(tag, attrs, context, node)
 
-    return Expression(expr).evaluate(context)
+        return (kind, (tag, attrs), pos), dict(binding=node)
+
+    def end(self, start, end, stream, context, history):
+        kind, tag, pos = end
+        start_kind, (start_tag, attrs), start_pos = start
+
+        node = history.get('binding', None)
+        attrs -= F_BIND
+
+        # Set <... name=""> for bound nodes.
+        attrs = self.set_name(tag, attrs, context, node)
+
+        # Map <label for="..."> to bound tags.
+        attrs = self.set_for(tag, attrs, context, node)
+
+        # Set <... value=""> or tag-specific equivalent.
+        stream, attrs = self.set_value(tag, attrs, stream, context, node)
+
+        # Re-assemble the start event.
+        start = (start_kind, (start_tag, attrs), start_pos)
+
+        return start, end, stream
+
+    def find_binding(self, tag, attributes, context):
+        expr = attributes.get(F_BIND, None)
+        if expr is None:
+            return expr
+        try:
+            return Expression(expr).evaluate(context)
+        except:
+            log.error("Failed to parse binding %r" % expr,)
+            raise
+
+
+class ImmediateVarDirective(object):
+    toggles = ('auto-tabindex', 'auto-domid', 'auto-for',
+               'auto-name', 'auto-value')
+    name = 'set'
+
+    def start(self, event, context):
+        kind, (tag, attrs), pos = event
+
+        for toggle in self.toggles:
+            val = attrs.get(toggle, None)
+            if val is not None:
+                context[toggle] = parse_trool(val)
+
+        val = parse_int(attrs.get('tabindex', None))
+        if val is not None:
+            context[CTX_CUR_TABINDEX] = val
+
+        val = attrs.get('domid-format', None)
+        if val is not None:
+            context[CTX_FMT_DOMID] = val
+
+        return None, None
+
+    def end(self, start, end, stream, context, history):
+        return None, None, stream
+
+
+class ScopedVarDirective(ImmediateVarDirective):
+    name = 'with'
+
+    def start(self, event, context):
+        context.push({})
+        return ImmediateVarDirective.start(self, event, context)
+
+    def end(self, start, end, stream, context, history):
+        context.pop()
+        return ImmediateVarDirective.end(self, start, end, stream,
+                                         context, history)
+
+
+class FlatlandFilter(TagListener):
+    """TODO: Document
+
+    Binds template form elements to flatland data elements and
+    automatically sets name, and value.  Manages DOM id generation,
+    links <label> to matching elements and manages tabindex.
+
+    """
+
+    dir_with = ScopedVarDirective()
+    dir_set  = ImmediateVarDirective()
+    dir_el = DecoratedElementDirective()
+
+    inspect_with = (dir_with.start, dir_with.end)
+    inspect_set = (dir_set.start, dir_set.end)
+    inspect_el = (dir_el.start, dir_el.end)
+
+    def inspect(self, event, context):
+        if event[0] is not START:
+            return False
+
+        kind, (tag, attributes), pos = event
+
+        if tag in NAMESPACE:
+            if tag.localname == self.dir_with.name:
+                return self.inspect_with
+            elif tag.localname == self.dir_set.name:
+                return self.inspect_set
+        else:
+            for attr, value in attributes:
+                if attr in NAMESPACE:
+                    return self.inspect_el
+
+
+
 
 def stream_is_empty(stream):
     stream, dupe = itertools.tee(stream)
