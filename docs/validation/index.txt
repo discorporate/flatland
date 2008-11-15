@@ -1,0 +1,31 @@
+Validation
+==========
+
+TODO: write these docs!
+
+Overview
+--------
+
+Event Model
+~~~~~~~~~~~
+
+Messaging
+~~~~~~~~~
+
+Validation Library
+------------------
+
+Composing and Extending Validators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+I18N and L10N
+~~~~~~~~~~~~~
+
+Writing Custom Validators
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Included Validators
+~~~~~~~~~~~~~~~~~~~
+
+Low Level Validation API
+------------------------
