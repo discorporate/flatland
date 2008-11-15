@@ -174,13 +174,13 @@ class Scalar(FieldSchema):
         """
         return unicode(value)
 
-    def validate_element(self, element, state, decending):
+    def validate_element(self, element, state, descending):
         """Validates on the first, downward pass.
 
         See :meth:`FieldSchema.validate_element`.
         """
-        if decending:
-            return FieldSchema.validate_element(self, element, state, decending)
+        if descending:
+            return FieldSchema.validate_element(self, element, state, descending)
         else:
             return None
 

@@ -335,9 +335,9 @@ class Element(_BaseElement):
                 reduce(operator.and_, (e._validate(state, False)
                                       for e in reversed(elements)), True))
 
-    def _validate(self, state, decending):
+    def _validate(self, state, descending):
         """Run validation, transforming None into success. Internal."""
-        res = self.schema.validate_element(self, state, decending)
+        res = self.schema.validate_element(self, state, descending)
         return True if (res is None or res) else False
 
     @property
@@ -405,13 +405,13 @@ class FieldSchema(object):
         return self.element_type(self, *args, **kw)
     new = create_element
 
-    def validate_element(self, element, state, decending):
+    def validate_element(self, element, state, descending):
         """Assess the validity of an element.
 
         :param element: an :class:`Element`
         :param state: may be None, an optional value of supplied to
             ``element.validate``
-        :param decending: a boolean, True the first time the element
+        :param descending: a boolean, True the first time the element
             has been seen in this run, False the next
 
         :returns boolean: a truth value or None
