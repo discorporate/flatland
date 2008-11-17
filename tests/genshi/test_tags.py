@@ -802,3 +802,71 @@ class TestTags(FilteredRenderTest):
 
     """
 
+def user_filter_form(values=None):
+    schema = flatland.Dict(
+        None,
+        flatland.String('field1', optional=True),
+        flatland.String('field2'))
+    if values is None:
+        values = {
+            'field1': 'val',
+            }
+    el = schema.create_element(value=values)
+    el['field2'].errors.append('Missing')
+
+    def label_filter(tag, attrs, stream, context, el):
+        from genshi import QName
+        if el is None:
+            return tag, attrs, stream
+        content = stream.render()
+        if not content:
+            label = el.label
+            if not el.schema.optional:
+                label += ' *'
+            stream = label
+        if not el.schema.optional:
+            css = (attrs.get('class', '') + ' required').strip()
+            attrs |= [(QName('class'), css)]
+        return tag, attrs, stream
+    label_filter.tags = ('label',)
+
+    return dict(form=el, label_filter=label_filter)
+
+class TestUserFilters(FilteredRenderTest):
+    @from_docstring(context_factory=user_filter_form)
+    def test_prototype(self):
+        """
+:: test
+<label form:bind="${form.field1.bind}" />
+<input type="text" form:bind="${form.field1.bind}" />
+<label form:bind="${form.field2.bind}" />
+<input type="text" form:bind="${form.field2.bind}" />
+<label/>
+:: eq
+<label/>
+<input type="text" name="field1" value="val" />
+<label/>
+<input type="text" name="field2" value="" />
+<label/>
+:: endtest
+
+:: test
+<form:with filters="label_filter">
+<label form:bind="${form.field1.bind}" />
+<input type="text" form:bind="${form.field1.bind}" />
+<label form:bind="${form.field2.bind}" />
+<label class="foo bar" form:bind="${form.field2.bind}" />
+<input type="text" form:bind="${form.field2.bind}" />
+<label/>
+</form:with>
+:: eq
+<label>field1</label>
+<input type="text" name="field1" value="val" />
+<label class="required">field2 *</label>
+<label class="foo bar required">field2 *</label>
+<input type="text" name="field2" value="" />
+<label/>
+:: endtest
+
+        """
+
