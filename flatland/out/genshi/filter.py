@@ -75,7 +75,7 @@ class ToggledAttribute(object):
         return (attrs - name), value
 
 
-class NameToggle(ToggledAttribute):
+class NameAttribute(ToggledAttribute):
     toggle_default = True
     toggle_attribute = NAMESPACE['auto-name']
     toggle_context_key = 'auto-name'
@@ -99,7 +99,7 @@ class NameToggle(ToggledAttribute):
         return attrs
 
 
-class ValueToggle(ToggledAttribute):
+class ValueAttribute(ToggledAttribute):
     toggle_default = True
     toggle_attribute = NAMESPACE['auto-value']
     toggle_context_key = 'auto-value'
@@ -210,7 +210,7 @@ class ValueToggle(ToggledAttribute):
         return attrs
 
 
-class DomIDToggle(ToggledAttribute):
+class DomIDAttribute(ToggledAttribute):
     toggle_attribute = NAMESPACE['auto-domid']
     toggle_context_key = 'auto-domid'
 
@@ -246,7 +246,7 @@ class DomIDToggle(ToggledAttribute):
         return None
 
 
-class ForToggle(ToggledAttribute):
+class ForAttribute(ToggledAttribute):
     toggle_attribute = NAMESPACE['auto-for']
     # tied to ID generation
     toggle_context_key = 'auto-domid'
@@ -261,11 +261,11 @@ class ForToggle(ToggledAttribute):
 
         current = attrs.get(self.attribute, None)
         if forced or current is None and tag.localname in self.auto_tags:
-            attrs |= ((self.attribute, DomIDToggle.id_for(node, context)),)
+            attrs |= ((self.attribute, DomIDAttribute.id_for(node, context)),)
         return attrs
 
 
-class TabIndexToggle(ToggledAttribute):
+class TabIndexAttribute(ToggledAttribute):
     toggle_attribute = NAMESPACE['auto-tabindex']
     toggle_context_key = 'auto-tabindex'
 
@@ -328,11 +328,11 @@ class OptionToggler(TagListener):
 
 
 class DecoratedElementDirective(object):
-    set_name = NameToggle().apply_to
-    set_value = ValueToggle().apply_to
-    set_domid = DomIDToggle().apply_to
-    set_tabindex = TabIndexToggle().apply_to
-    set_for = ForToggle().apply_to
+    set_name = NameAttribute().apply_to
+    set_value = ValueAttribute().apply_to
+    set_domid = DomIDAttribute().apply_to
+    set_tabindex = TabIndexAttribute().apply_to
+    set_for = ForAttribute().apply_to
 
     def start(self, event, context):
         kind, (tag, attrs), pos = event
