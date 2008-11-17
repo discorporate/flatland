@@ -33,9 +33,10 @@ MAYBE = ('auto',)
 YES   = ('1', 'true', 't', 'on', 'yes')
 NO    = ('0', 'false', 'nil', 'off', 'no')
 
+# TODO:jek remember why mixing - and _ in these was a good idea and document
 CTX_CUR_TABINDEX      = 'auto-tabindex_value'
 CTX_FMT_DOMID         = 'auto-domid_format'
-
+CTX_FILTERS           = 'auto-filter_filters'
 
 
 
@@ -288,6 +289,38 @@ class TabIndexAttribute(ToggledAttribute):
         return attrs
 
 
+class Filter(ToggledAttribute):
+    toggle_default = True
+    toggle_attribute = NAMESPACE['auto-filter']
+    toggle_context_key = 'auto-filter'
+
+    def apply_to(self, tag, attrs, stream, context, node):
+        attrs, proceed, forced = self.pop_toggle(attrs, context)
+        filters = context.get(CTX_FILTERS, ())
+
+        if not (proceed and filters):
+            return tag, attrs, stream
+
+        for filter_expr in filters:
+            if callable(filter_expr):
+                fn = filter_expr
+            else:
+                try:
+                    fn = Expression(filter_expr).evaluate(context)
+                except:
+                    log.error("Failed to parse filter expression %r" % expr,)
+                    raise
+            want = getattr(fn, 'tags', None)
+            if want is None or tag.localname not in want:
+                continue
+
+            tag, attrs, stream = fn(tag, attrs, stream, context, node)
+            if isinstance(stream, basestring):
+                stream = Stream([(TEXT, stream, (None, -1, -1))])
+
+        return tag, attrs, stream
+
+
 class OptionToggler(TagListener):
     __slots__ = ('value',)
 
@@ -333,6 +366,7 @@ class DecoratedElementDirective(object):
     set_domid = DomIDAttribute().apply_to
     set_tabindex = TabIndexAttribute().apply_to
     set_for = ForAttribute().apply_to
+    apply_filters = Filter().apply_to
 
     def start(self, event, context):
         kind, (tag, attrs), pos = event
@@ -348,8 +382,7 @@ class DecoratedElementDirective(object):
         return (kind, (tag, attrs), pos), dict(binding=node)
 
     def end(self, start, end, stream, context, history):
-        kind, tag, pos = end
-        start_kind, (start_tag, attrs), start_pos = start
+        kind, (tag, attrs), pos = start
 
         node = history.get('binding', None)
         attrs -= F_BIND
@@ -363,8 +396,17 @@ class DecoratedElementDirective(object):
         # Set <... value=""> or tag-specific equivalent.
         stream, attrs = self.set_value(tag, attrs, stream, context, node)
 
+        # Run user filters after all transformations are applied.
+        filtered_tag, attrs, stream = \
+          self.apply_filters(tag, attrs, stream, context, node)
+
+        if filtered_tag != tag:
+            tag = filtered_tag
+            # Re-assemble end event with the new tag name.
+            end = end[0], tag, end[2]
+
         # Re-assemble the start event.
-        start = (start_kind, (start_tag, attrs), start_pos)
+        start = (kind, (tag, attrs), pos)
 
         return start, end, stream
 
@@ -381,7 +423,7 @@ class DecoratedElementDirective(object):
 
 class ImmediateVarDirective(object):
     toggles = ('auto-tabindex', 'auto-domid', 'auto-for',
-               'auto-name', 'auto-value')
+               'auto-name', 'auto-value', 'auto-filter')
     name = 'set'
 
     def start(self, event, context):
@@ -399,6 +441,10 @@ class ImmediateVarDirective(object):
         val = attrs.get('domid-format', None)
         if val is not None:
             context[CTX_FMT_DOMID] = val
+
+        val = parse_simple_csv(attrs.get('filters', None))
+        if val:
+            context[CTX_FILTERS] = val
 
         return None, None
 
@@ -489,8 +535,18 @@ def parse_trool(value):
     return Maybe
 
 def parse_int(text):
-    if type(text) is int: return text
+    if type(text) is int:
+        return text
     try:
         return int(text)
     except:
         return None
+
+def parse_simple_csv(text):
+    parts = []
+    if text is None:
+        return parts
+    for part in (p.strip() for p in text.split(',')):
+        if part:
+            parts.append(part)
+    return parts
