@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import operator
+
 from . import scalars, containers
 from flatland import exc
 
@@ -38,6 +40,11 @@ class _CompoundElement(containers._DictElement, scalars._ScalarElement):
         except Exception, exc:
             return '<%s %r; value raised %s>' % (
                 type(self.schema).__name__, self.name, type(exc).__name__)
+
+    @property
+    def is_empty(self):
+        """True if all subfields are empty."""
+        return reduce(operator.and_, (c.is_empty for c in self.children))
 
 
 class Compound(containers.Mapping, scalars.Scalar):
@@ -113,13 +120,17 @@ class DateYYYYMMDD(Compound, scalars.Date):
     def __init__(self, name, *specs, **kw):
         assert len(specs) <= 3
         specs = list(specs)
+        optional = kw.get('optional', False)
 
         if len(specs) == 0:
-            specs.append(scalars.Integer('year', format=u'%04i'))
+            specs.append(scalars.Integer('year', format=u'%04i',
+                optional=optional))
         if len(specs) == 1:
-            specs.append(scalars.Integer('month', format=u'%02i'))
+            specs.append(scalars.Integer('month', format=u'%02i',
+                optional=optional))
         if len(specs) == 2:
-            specs.append(scalars.Integer('day', format=u'%02i'))
+            specs.append(scalars.Integer('day', format=u'%02i',
+                optional=optional))
 
         super(DateYYYYMMDD, self).__init__(name, *specs, **kw)
         self.specs = specs
