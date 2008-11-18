@@ -193,3 +193,30 @@ def test_sample_compound():
     assert e.u == u''
     assert e['year'].value is None
     assert e.el('year').value is None
+
+def test_compound_optional():
+    class Form(schema.Form):
+        schema = [schema.DateYYYYMMDD('s', optional=False)]
+
+    f = Form.from_defaults()
+    assert not f.el('s.year').schema.optional
+    assert not f.el('s.month').schema.optional
+    assert not f.el('s.day').schema.optional
+    assert not f.validate()
+
+    class Form(schema.Form):
+        schema = [schema.DateYYYYMMDD('s', optional=True)]
+
+    f = Form.from_defaults()
+    assert f.el('s.year').schema.optional
+    assert f.el('s.month').schema.optional
+    assert f.el('s.day').schema.optional
+    assert f.validate()
+
+def test_compound_is_empty():
+    s = schema.DateYYYYMMDD('s')
+    e = s.create_element()
+    assert e.is_empty
+
+    e.el('year').set(1979)
+    assert not e.is_empty
