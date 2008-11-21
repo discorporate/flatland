@@ -11,8 +11,11 @@ def test_dict():
 
 def test_string_element():
     n1 = schema.String('item').new()
+    n1.set_default()
     n2 = schema.String('item', default=None).new()
+    n2.set_default()
     n3 = schema.String('item', default=u'').new()
+    n3.set_default()
 
     assert n1.value == None
     assert n1.u == u''
@@ -34,7 +37,9 @@ def test_string_element():
     assert n2 != n3
 
     n4 = schema.String('item', default=u'  ', strip=True).new()
+    n4.set_default()
     n5 = schema.String('item', default=u'  ', strip=False).new()
+    n5.set_default()
 
     assert n4 != n5
 

@@ -264,6 +264,10 @@ class _ListElement(_SequenceElement):
             slot = self._new_slot()
             list.append(self, slot)
             slot.element.set_flat(slots[slot_index], sep)
+    
+    def set_default(self):
+        for child in self.children:
+            child.set_default()
 
     @property
     def u(self):
@@ -567,6 +571,10 @@ class _DictElement(_ContainerElement, dict):
                     accum.append((key, value))
             if accum:
                 self[field].set_flat(accum, sep)
+
+    def set_default(self):
+        for child in self.children:
+            child.set_default()
 
     def _index(self, name):
         return self[name]

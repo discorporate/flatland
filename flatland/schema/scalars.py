@@ -29,12 +29,6 @@ class _ScalarElement(Element):
 
         if value is not Unspecified:
             self.set(value)
-        # TODO: wtf does the comment below mean?
-        # This prevents sub-types from implementing special sauce
-        # for default value of None, but it does make construction
-        # faster.
-        elif schema.default is not None:
-            self.set(schema.default)
 
     def set(self, value):
         """Assign the native and Unicode value.
@@ -85,6 +79,10 @@ class _ScalarElement(Element):
             if key == self.name:
                 self.set(value)
                 break
+
+    def set_default(self):
+        if self.schema.default is not Unspecified:
+            self.set(self.schema.default)
 
     def __eq__(self, other):
         """

@@ -62,7 +62,9 @@ class Form(containers.Dict):
     @classmethod
     def from_defaults(cls, **kw):
         """Return a Form element initialized with FieldSchema defaults."""
-        return cls(**kw).create_element()
+        element = cls(**kw).create_element()
+        element.set_default()
+        return element
 
     @classmethod
     def from_object(cls, obj, include=None, omit=None, rename=None, **kw):

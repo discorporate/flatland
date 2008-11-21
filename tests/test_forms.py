@@ -22,7 +22,6 @@ class SimpleForm1(fl.Form):
               fl.Integer('age'),
               fl.List('snacks', fl.String('name'))]
 
-
 def test_straight_parse():
     f = SimpleForm1.from_flat(REQUEST_DATA)
     eq_(set(f.flatten()),
@@ -59,4 +58,27 @@ def test_namespaced_parse():
                  (u'ns_snacks_2_name', u'chimp'))))
         eq_(form.value, output)
 
+def test_default_behavior():
+    class SimpleForm2(fl.Form):
+        schema = [fl.String('fname', default=u'FN'),
+                  fl.String('surname')]
 
+    form = SimpleForm2.from_flat({})
+    eq_(form['fname'].value, None)
+    eq_(form['surname'].value, None)
+
+    form = SimpleForm2.from_defaults()
+    eq_(form['fname'].value, u'FN')
+    eq_(form['surname'].value, None)
+
+    class DictForm(fl.Form):
+        schema = [fl.Dict('dict',
+            fl.String('fname', default=u'FN'), fl.String('surname'))]
+
+    form = DictForm.from_flat({})
+    eq_(form.el('dict.fname').value, None)
+    eq_(form.el('dict.surname').value, None)
+
+    form = DictForm.from_defaults()
+    eq_(form.el('dict.fname').value, u'FN')
+    eq_(form.el('dict.surname').value, None)
