@@ -19,18 +19,15 @@ __all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean',
            'DateTime', 'Date', 'Time', 'Ref')
 
 
-# FIXME
-unspecified = object()
-
 class _ScalarElement(Element):
     flattenable = True
 
     def __init__(self, schema, **kw):
-        value = kw.pop('value', unspecified)
+        value = kw.pop('value', Unspecified)
 
         Element.__init__(self, schema, **kw)
 
-        if value is not unspecified:
+        if value is not Unspecified:
             self.set(value)
         # TODO: wtf does the comment below mean?
         # This prevents sub-types from implementing special sauce
