@@ -58,16 +58,38 @@ def test_list_linear_set_dict():
 
 def test_list_default():
     def factory(count):
-        s = schema.List('l', schema.String('s', default=u'val'), default=count)
-        return s.new()
+        return schema.List('l', schema.String('s', default=u'val'),
+                           default=count)
 
-    n = factory(3)
-    eq_(len(n), 3)
-    eq_(n, [u'val'] * 3)
+    s = factory(3)
 
-    n = factory(0)
-    eq_(len(n), 0)
-    eq_(n, [])
+    el = s.create_element()
+    eq_(len(el), 0)
+    eq_(el.value, [])
+
+    el = s.create_element()
+    el.set_default()
+    eq_(len(el), 3)
+    eq_(el.value, [u'val'] * 3)
+
+    el.append(None)
+    eq_(len(el), 4)
+    eq_(el[-1].value, None)
+    el[-1].set_default()
+    eq_(el[-1].value, u'val')
+
+    el = s.create_element(value=[u'a', u'b'])
+    eq_(len(el), 2)
+    eq_(el.value, [u'a', u'b'])
+    el.set_default()
+    eq_(len(el), 3)
+    eq_(el.value, [u'a', u'b', u'val'])
+
+    s = factory(0)
+    el = s.create_element()
+    el.set_default()
+    eq_(len(el), 0)
+    eq_(el.value, [])
 
 def test_list_set():
     def new_element(**kw):
@@ -605,10 +627,11 @@ def test_dict_as_unicode():
 
 def test_nested_dict_as_unicode():
     s = schema.Dict(u's', schema.Dict('d', schema.Integer(u'x', default=10)))
-    n = s.new()
+    el = s.create_element()
+    el.set_default()
 
-    eq_(n.value, {u'd': {u'x': 10}})
-    eq_(n.u, u"{u'd': {u'x': u'10'}}")
+    eq_(el.value, {u'd': {u'x': 10}})
+    eq_(el.u, u"{u'd': {u'x': u'10'}}")
 
 def test_dict_el():
     # stub

@@ -121,9 +121,6 @@ class _ListElement(_SequenceElement):
 
         if value is not Unspecified:
             self.extend(value)
-        elif schema.default:
-            for idx in xrange(0, schema.default):
-                list.append(self, self._new_slot())
 
     def _new_slot(self, value=Unspecified, **kw):
         wrapper = self.schema.slot_type(len(self), self)
@@ -264,10 +261,13 @@ class _ListElement(_SequenceElement):
             slot = self._new_slot()
             list.append(self, slot)
             slot.element.set_flat(slots[slot_index], sep)
-    
+
     def set_default(self):
-        for child in self.children:
-            child.set_default()
+        for idx in xrange(0, self.schema.default):
+            if idx >= len(self):
+                el = self._new_slot()
+                list.append(self, el)
+                el.set_default()
 
     @property
     def u(self):
@@ -319,6 +319,10 @@ class _SlotElement(_ContainerElement, Slot):
         if depth_first:
             r.extend([func(self, data)])
         return r
+
+    def set_default(self):
+        self.element.set_default()
+
 
 class List(Sequence):
     """An ordered, homogeneous Container."""
