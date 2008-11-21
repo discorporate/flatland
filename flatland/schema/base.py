@@ -297,6 +297,9 @@ class Element(_BaseElement):
 
         return self._set_flat(pairs, sep)
 
+    def set_default(self):
+        raise NotImplementedError()
+
     def _set_flat(self, pairs, sep):
         raise NotImplementedError()
 
