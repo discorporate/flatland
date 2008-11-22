@@ -453,7 +453,6 @@ class DictSetTest(object):
     policy = Unspecified
     x_default = Unspecified
     y_default = Unspecified
-    empty = None
 
     def new_schema(self):
         dictkw, x_kw, y_kw = {}, {}, {}
@@ -473,128 +472,112 @@ class DictSetTest(object):
             schema = self.new_schema()
         return schema.new(**kw)
 
-    def value_dict(self, element):
-        return dict((k, v.value) for k, v in element.iteritems())
-
-    def dict_eq_(self, element, wanted):
-        as_dict = self.value_dict(element)
-        eq_(as_dict, wanted)
-
     def test_empty_sets(self):
-        n = self.new_element()
-        self.dict_eq_(n, self.empty)
-        eq_(n.value, self.empty)
+        wanted = {u'x': None, u'y': None}
 
-        n.set({})
-        self.dict_eq_(n, self.empty)
-        eq_(n.value, self.empty)
+        el = self.new_element()
+        eq_(el.value, wanted)
 
-        n = self.new_element(value={})
-        self.dict_eq_(n, self.empty)
+        el.set({})
+        eq_(el.value, wanted)
 
-        n = self.new_element(value=iter(()))
-        self.dict_eq_(n, self.empty)
+        el = self.new_element(value={})
+        eq_(el.value, wanted)
 
-        n = self.new_element(value=())
-        self.dict_eq_(n, self.empty)
+        el = self.new_element(value=iter(()))
+        eq_(el.value, wanted)
+
+        el = self.new_element(value=())
+        eq_(el.value, wanted)
 
     def test_empty_set_flat(self):
-        n = self.new_element()
-        n.set_flat(())
-        self.dict_eq_(n, self.empty)
-        eq_(n.value, self.empty)
+        el = self.new_element()
+        el.set_flat(())
+        eq_(el.value, {u'x': None, u'y': None})
 
     def test_half_set(self):
-        wanted = dict(self.empty, x=123)
+        wanted = {u'x': 123, 'y': None}
 
-        n = self.new_element()
-        n.set(dict(x=123))
-        self.dict_eq_(n, wanted)
-        eq_(n.value, wanted)
+        el = self.new_element()
+        el.set(dict(x=123))
+        eq_(el.value, wanted)
 
-        n = self.new_element()
-        n.set([(u'x', 123)])
-        self.dict_eq_(n, wanted)
+        el = self.new_element()
+        el.set([(u'x', 123)])
+        eq_(el.value, wanted)
 
     def test_half_set_flat(self):
-        wanted = dict(self.empty, x=123)
+        wanted = {u'x': 123, 'y': None}
 
         pairs = ((u's_x', u'123'),)
-        n = self.new_element()
-        n.set_flat(pairs)
-        self.dict_eq_(n, wanted)
-        eq_(n.value, wanted)
+        el = self.new_element()
+        el.set_flat(pairs)
+        eq_(el.value, wanted)
 
     def test_full_set(self):
         wanted = {u'x': 101, u'y': 102}
 
-        n = self.new_element()
-        n.set(wanted)
-        self.dict_eq_(n, wanted)
-        eq_(n.value, wanted)
+        el = self.new_element()
+        el.set(wanted)
+        eq_(el.value, wanted)
 
-        n = self.new_element()
-        n.set(dict(x=101, y=102))
-        self.dict_eq_(n, wanted)
+        el = self.new_element()
+        el.set(dict(x=101, y=102))
+        eq_(el.value, wanted)
 
-        n = self.new_element()
-        n.set([(u'x', 101), (u'y', 102)])
-        self.dict_eq_(n, wanted)
+        el = self.new_element()
+        el.set([(u'x', 101), (u'y', 102)])
+        eq_(el.value, wanted)
 
-        n = self.new_element(value=wanted)
-        self.dict_eq_(n, wanted)
+        el = self.new_element(value=wanted)
+        eq_(el.value, wanted)
 
     def test_full_set_flat(self):
         wanted = {u'x': 101, u'y': 102}
         pairs = ((u's_x', u'101'), (u's_y', u'102'))
 
-        n = self.new_element()
-        n.set_flat(pairs)
-        self.dict_eq_(n, wanted)
-        eq_(n.value, wanted)
+        el = self.new_element()
+        el.set_flat(pairs)
+        eq_(el.value, wanted)
 
     def test_over_set(self):
         too_much = {u'x': 1, u'y': 2, u'z': 3}
 
-        n = self.new_element()
-        assert_raises(KeyError, n.set, too_much)
+        el = self.new_element()
+        assert_raises(KeyError, el.set, too_much)
         assert_raises(KeyError, self.new_element, value=too_much)
 
     def test_over_set_flat(self):
-        wanted = dict(self.empty, x=123)
+        wanted = {u'x': 123, 'y': None}
 
         pairs = ((u's_x', u'123'), (u's_z', u'nope'))
-        n = self.new_element()
-        n.set_flat(pairs)
-        self.dict_eq_(n, wanted)
-        eq_(n.value, wanted)
+        el = self.new_element()
+        el.set_flat(pairs)
+        eq_(el.value, wanted)
 
     def test_total_miss(self):
         miss = {u'z': 3}
 
-        n = self.new_element()
-        assert_raises(KeyError, n.set, miss)
+        el = self.new_element()
+        assert_raises(KeyError, el.set, miss)
         assert_raises(KeyError, self.new_element, value=miss)
 
     def test_total_miss_flat(self):
         pairs = (('miss', u'10'),)
 
-        n = self.new_element()
-        n.set_flat(pairs)
-        self.dict_eq_(n, self.empty)
-        eq_(n.value, self.empty)
+        el = self.new_element()
+        el.set_flat(pairs)
+        eq_(el.value, {u'x': None, u'y': None})
+
 
 class TestEmptyDictSet(DictSetTest):
-    empty = {u'x': None, u'y': None}
+    pass
 
-class TestHalfDefaultDictSet(DictSetTest):
-    x_default = 10
-    empty = {u'x': 10, u'y': None}
 
 class TestDefaultDictSet(DictSetTest):
     x_default = 10
     y_default = 20
-    empty = {u'x': 10, u'y': 20}
+
 
 def test_dict_valid_policies():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
