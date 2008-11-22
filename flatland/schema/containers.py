@@ -263,11 +263,12 @@ class _ListElement(_SequenceElement):
             slot.element.set_flat(slots[slot_index], sep)
 
     def set_default(self):
-        for idx in xrange(0, self.schema.default):
-            if idx >= len(self):
-                el = self._new_slot()
-                list.append(self, el)
-                el.set_default()
+        if self.schema.default:
+            for idx in xrange(0, self.schema.default):
+                if idx >= len(self):
+                    el = self._new_slot()
+                    list.append(self, el)
+                    el.set_default()
 
     @property
     def u(self):
@@ -447,9 +448,7 @@ class _DictElement(_ContainerElement, dict):
         Element.__init__(self, schema, **kw)
 
         self._reset()
-        if schema.default:
-            self.set(schema.default)
-        elif value is not Unspecified:
+        if value is not Unspecified:
             self.set(value)
 
     def __setitem__(self, key, value):
@@ -577,6 +576,8 @@ class _DictElement(_ContainerElement, dict):
                 self[field].set_flat(accum, sep)
 
     def set_default(self):
+        if self.schema.default:
+            self.set(self.schema.default)
         for child in self.children:
             child.set_default()
 
