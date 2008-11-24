@@ -264,11 +264,11 @@ class _ListElement(_SequenceElement):
 
     def set_default(self):
         if self.schema.default:
-            for idx in xrange(0, self.schema.default):
-                if idx >= len(self):
-                    el = self._new_slot()
-                    list.append(self, el)
-                    el.set_default()
+            del self[:]
+            for _ in xrange(0, self.schema.default):
+                el = self._new_slot()
+                list.append(self, el)
+                el.set_default()
 
     @property
     def u(self):
@@ -356,13 +356,16 @@ class _ArrayElement(_SequenceElement):
         _SequenceElement.__init__(self, schema, parent=parent)
         if value is not Unspecified:
             self.extend(value)
-        elif schema.default:
-            self.extend(schema.default)
 
     def _set_flat(self, pairs, sep):
         prune = self.schema.prune_empty
         self.set(value for key, value in pairs
                  if key == self.name and not prune or value != u'')
+
+    def set_default(self):
+        if self.schema.default:
+            del self[:]
+            self.extend(self.schema.default)
 
 
 class _MultiValueElement(_ArrayElement, _ScalarElement):
