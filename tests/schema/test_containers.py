@@ -83,7 +83,7 @@ def test_list_default():
     eq_(el.value, [u'a', u'b'])
     el.set_default()
     eq_(len(el), 3)
-    eq_(el.value, [u'a', u'b', u'val'])
+    eq_(el.value, [u'val'] * 3)
 
     s = factory(0)
     el = s.create_element()
@@ -336,6 +336,25 @@ def test_array_mutation():
     del n[:]
     assert_raises(AttributeError, assign)
     eq_(n.value, [])
+
+def test_array_set_default():
+    s = schema.Array(schema.String('s'), default=[u'x', u'y'])
+    el = s.create_element()
+
+    eq_(el.value, [])
+    el.set_default()
+    eq_(el.value, [u'x', u'y'])
+
+    el.append(u'z')
+    eq_(el.value, [u'x', u'y', u'z'])
+    el.set_default()
+    eq_(el.value, [u'x', u'y'])
+
+    s = schema.Array(schema.String('s', default='not triggered'),
+                     default=[u'x'])
+    el = s.create_element()
+    el.set_default()
+    eq_(el.value, [u'x'])
 
 def test_multivalue_mutation():
     s = schema.MultiValue(schema.Integer('s'))
