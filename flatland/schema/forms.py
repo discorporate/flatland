@@ -8,9 +8,29 @@ class Form(containers.Dict):
     """A collection of named fields or schema items.
 
     Forms are the most common top-level mapping.  They behave like
-    :class:`flatland.Dict`, but do not need to be named.
+    :class:`flatland.Dict`, but do not need to be named.  Forms are
+    defined with Python class syntax::
 
-    FIXME: doc schema attr
+      >>> class HelloForm(flatland.Form):
+      ...     schema = [ flatland.String('hello'),
+      ...                flatland.String('world') ]
+      ...
+
+    Subclasses must define a :attr:`schema` property, containing an
+    ordered sequence of fields.  Forms may embed other container
+    fields and other forms::
+
+      >>> class BigForm(flatland.Form):
+      ...     schema = [ HelloForm('main_hello'),
+      ...                flatland.List('alt_hellos',
+      ...                              flatland.Dict(String('alt_name'),
+      ...                                            HelloForm('alt_hello')))
+      ...              ]
+      ...
+
+    This would create a form with one ``HelloForm`` embedded as
+    ``main_hello``, and a list of zero or more dicts, each containing
+    an ``alt_name`` and another ``HelloForm``.
 
     """
 
@@ -67,7 +87,8 @@ class Form(containers.Dict):
             :class:`Form` constructor.
 
         The returned element will contain all of the keys defined in
-        the :attr:`schema` with values of ``None``.
+        the :attr:`schema`.  Scalars will have a value of ``None`` and
+        containers will have their empty representation.
 
         """
         return cls(**kw).create_element()
