@@ -1,66 +1,67 @@
-from nose.tools import eq_
+from tests._util import eq_
 import flatland.schema as schema
+
 
 def test_dict():
     s = schema.Dict('dict', schema.String('k1'), schema.String('k2'))
-    sn = s.new()
+    el = s.create_element()
 
     assert s
-    assert sn
+    assert el
 
 
 def test_string_element():
-    n1 = schema.String('item').new()
-    n1.set_default()
-    n2 = schema.String('item', default=None).new()
-    n2.set_default()
-    n3 = schema.String('item', default=u'').new()
-    n3.set_default()
+    el1 = schema.String('item').create_element()
+    el1.set_default()
+    el2 = schema.String('item', default=None).create_element()
+    el2.set_default()
+    el3 = schema.String('item', default=u'').create_element()
+    el3.set_default()
 
-    assert n1.value == None
-    assert n1.u == u''
-    assert n1 == None
-    assert not n1
+    assert el1.value == None
+    assert el1.u == u''
+    assert el1 == None
+    assert not el1
 
-    assert n2.value == None
-    assert n2.u == u''
-    assert n2 == None
-    assert not n2
+    assert el2.value == None
+    assert el2.u == u''
+    assert el2 == None
+    assert not el2
 
-    assert n3.value == u''
-    assert n3.u == u''
-    assert n3 == u''
-    assert not n3
+    assert el3.value == u''
+    assert el3.u == u''
+    assert el3 == u''
+    assert not el3
 
-    assert n1 == n2
-    assert n1 != n3
-    assert n2 != n3
+    assert el1 == el2
+    assert el1 != el3
+    assert el2 != el3
 
-    n4 = schema.String('item', default=u'  ', strip=True).new()
-    n4.set_default()
-    n5 = schema.String('item', default=u'  ', strip=False).new()
-    n5.set_default()
+    el4 = schema.String('item', default=u'  ', strip=True).create_element()
+    el4.set_default()
+    el5 = schema.String('item', default=u'  ', strip=False).create_element()
+    el5.set_default()
 
-    assert n4 != n5
+    assert el4 != el5
 
-    assert n4.u == u''
-    assert n4.value == u''
-    n4.set(u'  ')
-    assert n4.u == u''
-    assert n4.value == u''
+    assert el4.u == u''
+    assert el4.value == u''
+    el4.set(u'  ')
+    assert el4.u == u''
+    assert el4.value == u''
 
-    assert n5.u == u'  '
-    assert n5.value == u'  '
-    n5.set(u'  ')
-    assert n5.u == u'  '
-    assert n5.value == u'  '
+    assert el5.u == u'  '
+    assert el5.value == u'  '
+    el5.set(u'  ')
+    assert el5.u == u'  '
+    assert el5.value == u'  '
 
 
 def test_path():
     s = schema.Dict('root',
                     schema.String('element'),
                     schema.Dict('dict', schema.String('dict_element')))
-    n = s.create_element()
+    el = s.create_element()
 
-    eq_(list(n.el(['dict', 'dict_element']).path),
-        [n, n['dict'], n['dict']['dict_element']])
+    eq_(list(el.el(['dict', 'dict_element']).path),
+        [el, el['dict'], el['dict']['dict_element']])

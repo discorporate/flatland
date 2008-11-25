@@ -4,7 +4,7 @@ NOTE: form tests are in the tests.schema package.  This is a legacy
 test file, now providing a sample of some possible usage patterns.
 
 """
-from nose.tools import eq_
+from tests._util import eq_
 import flatland as fl
 
 

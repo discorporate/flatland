@@ -1,6 +1,5 @@
-from nose.tools import eq_, assert_raises
-
 from flatland.schema import base
+from tests._util import eq_, assert_raises
 
 
 def test_schema_naming():

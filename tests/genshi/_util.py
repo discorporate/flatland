@@ -2,7 +2,7 @@ import inspect
 import os
 import re
 import sys
-from nose.tools import eq_
+from tests._util import eq_
 
 
 __all__ = 'rendered_markup_eq_', 'RenderTest'
