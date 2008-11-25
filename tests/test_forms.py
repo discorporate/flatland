@@ -1,5 +1,10 @@
-from nose.tools import eq_
+"""Exercise form features.
 
+NOTE: form tests are in the tests.schema package.  This is a legacy
+test file, now providing a sample of some possible usage patterns.
+
+"""
+from nose.tools import eq_
 import flatland as fl
 
 
@@ -63,7 +68,7 @@ def test_default_behavior():
         schema = [fl.String('fname', default=u'FN'),
                   fl.String('surname')]
 
-    form = SimpleForm2.from_flat({})
+    form = SimpleForm2.create_blank()
     eq_(form['fname'].value, None)
     eq_(form['surname'].value, None)
 
@@ -75,7 +80,7 @@ def test_default_behavior():
         schema = [fl.Dict('dict',
             fl.String('fname', default=u'FN'), fl.String('surname'))]
 
-    form = DictForm.from_flat({})
+    form = DictForm.create_blank()
     eq_(form.el('dict.fname').value, None)
     eq_(form.el('dict.surname').value, None)
 
