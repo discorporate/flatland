@@ -42,3 +42,27 @@ def test_from_object():
     eq_(from_obj(Obj(x='x!', z='z!'), rename={'x': 'z'}),
         dict(x=None, y=None))
 
+
+def test_composition():
+    class Inner(schema.Form):
+        schema = [
+            schema.String('sound', default='bleep')
+            ]
+
+    class Outer(schema.Form):
+        schema = [
+            Inner('in'),
+            schema.String('way_out', default='mooooog')
+            ]
+
+    unset = {'in': {'sound': None}, 'way_out': None}
+    wanted = {'in': {'sound': 'bleep'}, 'way_out': 'mooooog'}
+
+    el = Outer.from_defaults()
+    eq_(el.value, wanted)
+
+    el = Outer.create_blank()
+    eq_(el.value, unset)
+
+    el.set(wanted)
+    eq_(el, wanted)

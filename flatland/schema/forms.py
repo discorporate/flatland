@@ -60,6 +60,19 @@ class Form(containers.Dict):
         return element
 
     @classmethod
+    def create_blank(cls, **kw):
+        """Return a blank, empty Form element.
+
+        :param \*\*kw: keyword arguments will be passed to the
+            :class:`Form` constructor.
+
+        The returned element will contain all of the keys defined in
+        the :attr:`schema` with values of ``None``.
+
+        """
+        return cls(**kw).create_element()
+
+    @classmethod
     def from_defaults(cls, **kw):
         """Return a Form element initialized with FieldSchema defaults."""
         element = cls(**kw).create_element()
