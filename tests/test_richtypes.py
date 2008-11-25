@@ -1,6 +1,7 @@
+import re
 from flatland import *
 from flatland.ext import creditcard
-import re
+
 
 class SimpleSchema(Form):
     schema = [creditcard.CreditCardNumber('num')]

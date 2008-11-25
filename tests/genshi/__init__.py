@@ -1,4 +1,4 @@
-from nose.tools import eq_
+from tests._util import eq_
 
 
 def setup_package():

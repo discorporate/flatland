@@ -1,7 +1,6 @@
 import datetime
-from nose.tools import eq_, assert_raises
-
 from flatland import schema
+from tests._util import eq_, assert_raises
 
 
 def test_ref_binops():

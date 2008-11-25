@@ -1,6 +1,5 @@
 # portions of this file are derived from SQLAlchemy
-
-from nose.tools import eq_, assert_raises
+from tests._util import eq_, assert_raises
 from flatland import util
 
 

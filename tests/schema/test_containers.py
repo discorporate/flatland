@@ -1,7 +1,6 @@
-from nose.tools import eq_, assert_raises, set_trace
-
 from flatland import schema, util
 from flatland.util import Unspecified
+from tests._util import eq_, assert_raises
 
 
 def test_sequence():

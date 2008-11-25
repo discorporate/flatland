@@ -1,6 +1,6 @@
 import datetime
-from nose.tools import eq_, assert_raises, set_trace, raises
 from flatland import schema, util
+from tests._util import eq_, assert_raises, raises
 
 
 class TestDoubleField(object):
