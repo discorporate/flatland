@@ -603,25 +603,25 @@ class _DictElement(_ContainerElement, dict):
         """Mappings are never empty."""
         return False
 
-    def update_object(self, obj, include=None, omit=None, rename=None):
+    def update_object(self, obj, include=None, omit=None, rename=None, key=str):
         """Update an object's attributes using the element's values.
 
-        Produces a :meth:`slice` using *include*, *omit* and *rename*,
+        Produces a :meth:`slice` using *include*, *omit*, *rename* and *key*,
         and sets the selected attributes on *obj* using ``setattr``.
 
         :returns: nothing. *obj* is modified directly.
 
         """
-        data = self.slice(include=include, omit=omit, rename=rename)
+        data = self.slice(include=include, omit=omit, rename=rename, key=key)
         for attribute, value in data.iteritems():
             setattr(obj, attribute, value)
 
-    def slice(self, include=None, omit=None, rename=None):
+    def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a new dict containing a subset of the element's values."""
         return dict(
             util.keyslice_pairs(
                 ((key, element.value) for key, element in self.iteritems()),
-                include=include, omit=omit, rename=rename))
+                include=include, omit=omit, rename=rename, key=key))
 
 
 class Dict(Mapping):

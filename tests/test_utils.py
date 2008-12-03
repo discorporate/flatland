@@ -88,7 +88,7 @@ def test_keyslice_pairs():
 
 def _keyslice_eq_(wanted, kw={}):
     got = list(util.keyslice_pairs(PAIRS, **kw))
-    assert wanted == got
+    eq_(wanted, got)
 
 def test_keyslice_include():
     yield _keyslice_eq_, PAIRS, dict(include=[])
@@ -114,6 +114,15 @@ def test_keyslice_rename():
               ('a', 4), ('a', 4), ('a', 5)]
 
     yield _keyslice_eq_, wanted, dict(rename=zip('abcddd', 'dcbaaa'))
+
+def test_keyslice_key():
+    wanted = [(int(k, 16), v) for k, v in PAIRS]
+
+    keyfunc = lambda v: int(v, 16)
+    yield _keyslice_eq_, wanted, dict(key=keyfunc)
+
+    wanted = wanted[:3] + [(0, 4), (0, 4), (0, 5)]
+    yield _keyslice_eq_, wanted, dict(key=keyfunc, rename={13:0})
 
 def test_keyslice_mixed():
     wanted = [('a', 1), ('X', 2)]
