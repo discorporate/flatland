@@ -679,9 +679,12 @@ def test_slice():
         sliced = e.slice(**kw)
         wanted = dict(util.keyslice_pairs(e.value.items(), **kw))
 
-        assert sliced == wanted
+        eq_(sliced, wanted)
+        eq_(set(type(_) for _ in sliced.keys()),
+            set(type(_) for _ in wanted.keys()))
 
     yield same_, {'x': 'X', 'y': 'Y'}, {}
+    yield same_, {'x': 'X', 'y': 'Y'}, dict(key=str)
     yield same_, {'x': 'X', 'y': 'Y'}, dict(include=['x'])
     yield same_, {'x': 'X', 'y': 'Y'}, dict(omit=['x'])
     yield same_, {'x': 'X', 'y': 'Y'}, dict(omit=['x'], rename={'y': 'z'})

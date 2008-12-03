@@ -80,7 +80,7 @@ def to_pairs(dictlike):
     else:
         return ((key, value) for key, value in dictlike)
 
-def keyslice_pairs(pairs, include=None, omit=None, rename=None):
+def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
     """Filter (key, value) pairs by key and return a subset.
 
     :param pairs: an iterable of ``(key, value)`` pairs (2-tuples).
@@ -99,6 +99,13 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None):
         regardless of *include* or *omit* rules.  The mapping will be
         converted to a dict internally, and keys must be hashable.
 
+    :param key: optional, a function of one argument that is used to
+        extract a comparison key from the first item of each pair.
+        Similar to the ``key`` parameter to Python's ``sort`` and
+        ``sorted``.  Useful for transforming unicode keys to
+        bytestrings with ```key=str``, adding or removing prefixes en
+        masse, etc.
+
     :returns: yields ``(key, value)`` pairs.
 
     """
@@ -108,11 +115,14 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None):
     include = set(include) if include else False
     omit = set(omit) if omit else False
     rename = dict(to_pairs(rename)) if rename else False
+    keyfunc = key
+    del key
 
-    for pair in pairs:
-        key = pair[0]
+    for key, value in pairs:
+        if keyfunc:
+            key = keyfunc(key)
         if rename and key in rename:
-            yield (rename[key], pair[1])
+            yield (rename[key], value)
             continue
         if include:
             if key not in include:
@@ -120,7 +130,7 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None):
         elif omit:
             if key in omit:
                 continue
-        yield pair
+        yield key, value
 
 class Maybe(object):
     """A ternary logic value, bitwise-comparable to bools"""
