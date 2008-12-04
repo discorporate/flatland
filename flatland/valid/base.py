@@ -4,6 +4,7 @@ import operator
 from flatland.util import re_ucompile
 
 
+N_ = lambda translatable: translatable
 
 class Validator(object):
 
