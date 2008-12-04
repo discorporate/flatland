@@ -10,6 +10,22 @@ class Validator(object):
 
     _transform_finder = operator.attrgetter('ugettext')
     _tuple_transform_finder = operator.attrgetter('ungettext')
+    _missing_but_inittable = set(('ugettext', 'ungettext'))
+
+    def __init__(self, **kw):
+        """Construct a validator.
+
+        :param \*\*kw: override any extant class attribute on this
+        instance.
+
+        """
+        cls, extra = type(self), self._missing_but_inittable
+        for attr, value in kw.iteritems():
+            if hasattr(cls, attr) or attr in extra:
+                setattr(self, attr, value)
+            else:
+                raise TypeError("%s has no attribute %r, can not override." % (
+                    cls.__name__, attr))
 
     def __call__(self, element, state):
         return self.validate(element, state)
