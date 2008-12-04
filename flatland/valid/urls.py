@@ -62,19 +62,6 @@ class URLValidator(Validator):
     allowed_parts = set(_url_parts)
     urlparse = urlparse
 
-    def __init__(self, allowed_schemes=None, allowed_parts=None):
-        """Construct a URLValidator.
-
-        :param allowed_schemes: optional, defaults to class attribute.
-
-        :param allowed_schemes: optional, defaults to class attribute.
-
-        """
-        if allowed_schemes is not None:
-            self.allowed_schemes = allowed_schemes
-        if allowed_parts is not None:
-            self.allowed_parts = allowed_parts
-
     def validate(self, element, state):
         if element.value is None:
             bad_format = N_("%(label)s is not a valid URL.")
@@ -94,7 +81,7 @@ class URLValidator(Validator):
         for part in _url_parts:
             if (part not in self.allowed_parts and
                 getattr(url, part) != ''):
-                return self.note_error(element, state, 'blocked_scheme')
+                return self.note_error(element, state, 'blocked_part')
         return True
 
 
@@ -164,12 +151,6 @@ class HTTPURLValidator(Validator):
     forbidden_parts = dict(username=True, password=True)
     urlparse = urlparse
 
-    def __init__(self, required_parts=None, forbidden_parts=None):
-        if required_parts is not None:
-            self.required_parts = required_parts
-        if forbidden_parts is not None:
-            self.forbidden_parts = forbidden_parts
-
     def validate(self, element, state):
         url = element.value
         if url is None or not url.startswith('http'):
@@ -235,15 +216,6 @@ class URLCanonicalizer(Validator):
 
     discard_parts = 'fragment',
     urlparse = urlparse
-
-    def __init__(self, discard_parts=None):
-        """Construct a URLCanonicalizer.
-
-        :param discard_parts: optional, defaults to class attribute.
-
-        """
-        if discard_parts is not None:
-            self.discard_parts = discard_parts
 
     def validate(self, element, state):
         if not self.discard_parts:
