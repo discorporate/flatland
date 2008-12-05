@@ -1,7 +1,6 @@
 import __builtin__
-import functools
 import operator
-from flatland.util import re_ucompile
+from flatland.util import adict
 
 
 N_ = lambda translatable: translatable
@@ -33,18 +32,18 @@ class Validator(object):
     def validate(self, element, state):
         return False
 
-    def note_error(self, element, state, key=None, message=None):
+    def note_error(self, element, state, key=None, message=None, **info):
         message = message or getattr(self, key)
         if message:
             element.add_error(
-                self.expand_message(element, state, message))
+                self.expand_message(element, state, message, **info))
         return False
 
-    def note_warning(self, element, state, key=None, message=None):
+    def note_warning(self, element, state, key=None, message=None, **info):
         message = message or getattr(self, key)
         if message:
             element.add_warning(
-                self.expand_message(element, state, message))
+                self.expand_message(element, state, message, **info))
         return False
 
     def find_transformer(self, element, state, message, finder):
@@ -60,15 +59,22 @@ class Validator(object):
         except AttributeError:
             return None
 
-    def expand_message(self, element, state, message):
+    def expand_message(self, element, state, message, **extra_format_args):
         if callable(message):
             message = message(element, state)
 
         message_transform = mapping_transform = self.find_transformer(
             element, state, message, self._transform_finder)
 
-        format_map = as_format_mapping(
-            element, self, transform=mapping_transform)
+        if extra_format_args:
+            extra_format_args = adict(extra_format_args)
+            format_map = as_format_mapping(
+                extra_format_args, element, self,
+                transform=mapping_transform)
+        else:
+            format_map = as_format_mapping(
+                element, self,
+                transform=mapping_transform)
 
         if isinstance(message, tuple):
             # a transformer must be present if message is a tuple
@@ -89,7 +95,7 @@ class Validator(object):
 
 
 class as_format_mapping(object):
-    """A unified, optionally transformed mapping view over multiple instances.
+    """A unified, optionally transformed, mapping view over multiple instances.
 
     Allows regular instance attributes to be accessed by "%(attrname)s" in
     string formats.  Optionally passes values through a ``transform`` (such
