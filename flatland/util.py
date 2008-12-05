@@ -49,6 +49,16 @@ class as_mapping(object):
         return iter(dir(self.target))
 
 
+class adict(dict):
+    """Allow dict keys to be accessed with getattr()."""
+
+    def __getattr__(self, attr):
+        try:
+            return self[attr]
+        except KeyError:
+            raise AttributeError(attr)
+
+
 def re_ucompile(pattern, flags=0):
     """Compile a regex with re.UNICODE on by default."""
     return re.compile(pattern, flags | re.UNICODE)
