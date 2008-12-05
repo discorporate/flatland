@@ -160,22 +160,21 @@ class Element(_BaseElement):
 
         :returns: an :class:`Element` or raises :exc:`KeyError`.
 
-        ..
-          Doctest Setup
+        .. testsetup::
 
-          >>> from flatland import Form, Dict, List, String
-          >>> schema = Dict(None,
-          ...               Dict('contact',
-          ...                    List('addresses',
-          ...                         Dict(None,
-          ...                              String('street1'),
-          ...                              String('city')),
-          ...                         default=1
-          ...              )))
-          >>> form = schema.create_element()
-          >>> form.set_default()
+          from flatland import Form, Dict, List, String
+          schema = Dict(None,
+                        Dict('contact',
+                             List('addresses',
+                                  Dict(None,
+                                       String('street1'),
+                                       String('city')),
+                                  default=1
+                       )))
+          form = schema.create_element()
+          form.set_default()
 
-        Example::
+        .. doctest::
 
           >>> first_address = form.el('contact.addresses.0')
           >>> first_address.el('street1')
@@ -188,6 +187,8 @@ class Element(_BaseElement):
         and the search is resolved from the :attr:`Element.root`.  The
         leading *sep* will always match the root node, regardless of its
         :attr:`.name`.
+
+        .. doctest::
 
           >>> form.el('.contact.addresses.0.city')
           <String u'city'; value=None>

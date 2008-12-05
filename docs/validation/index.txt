@@ -42,14 +42,14 @@ Low Level Validation API
 .. automodule:: flatland.valid.number
    :members:
 
-.. autoclass:: flatland.valid.url.URLValidator
+.. autoclass:: flatland.valid.urls.URLValidator
    :members: __init__
    :show-inheritance:
 
    **Methods**
 
 
-.. autoclass:: flatland.valid.url.HTTPURLValidator
+.. autoclass:: flatland.valid.urls.HTTPURLValidator
    :members: __init__, all_parts
    :show-inheritance:
 
@@ -57,7 +57,7 @@ Low Level Validation API
 
 
 
-.. autoclass:: flatland.valid.url.URLCanonicalizer
+.. autoclass:: flatland.valid.urls.URLCanonicalizer
    :members: __init__
    :show-inheritance:
 
