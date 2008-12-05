@@ -42,11 +42,11 @@ schema may a single field, a collection of fields, or an even richer
 structure.  Nested mappings and lists of fields are supported, as well
 as compound fields and even more exotic types.
 
-::
+.. testcode::
 
-  # note: this style (mingled with a class definition) is in serious
-  # alpha flux
-  class SignInForm(flatland.Form):
+  from flatland import Form, String
+
+  class SignInForm(Form):
       schema = [ String('username'),
                  String('password') ]
 
@@ -56,14 +56,23 @@ tree structure of data-holding objects.  The elements of a flatland
 form may be initiated blank, using default values, or with values
 taken from your objects.
 
-::
+.. testsetup::
+
+  class Mock(object):
+      def __getattr__(self, key):
+          return lambda *a, **kw: None
+  request = logging = Mock()
+  request.POST = [('username', 'jek'), ('password', 'p1')]
+  redirect = request.redirect
+
+.. testcode::
 
   form = SignInForm.from_flat(request.POST)
   if form.validate():
       logging.info(u"sign-in: %s" % form.el('username'))
-      return redirect('/app/')
+      redirect('/app/')
   else:
-      return render('login.html', form=form)
+      render('login.html', form=form)
 
 Elements are rich objects that validate and normalize input data as
 well as hold field-level error and warning messages.  Elements can be
@@ -71,15 +80,17 @@ exported to a native Python structure, flattened back into Unicode
 key, value pairs or used as-is in output templates for form layout,
 redisplay and error reporting.
 
-::
+.. doctest::
 
-  as_regular_python_data = form.value
-  print as_regular_python_data['username']
+  >>> as_regular_python_data = form.value
+  >>> type(as_regular_python_data)
+  <type 'dict'>
+  >>> as_regular_python_data['username']
+  u'jek'
+  >>> form2 = SignInForm.create_blank()
+  >>> form2.set(as_regular_python_data)
 
-  form2 = SignInForm.blank()
-  form2.set(as_regular_python_data)
-
-  assert form.el('username') == form2.el('username')
+  >>> assert form.el('username').value == form2.el('username').value
 
 License
 -------
