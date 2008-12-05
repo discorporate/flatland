@@ -11,6 +11,7 @@ class Form(containers.Dict):
     :class:`flatland.Dict`, but do not need to be named.  Forms are
     defined with Python class syntax::
 
+      >>> import flatland
       >>> class HelloForm(flatland.Form):
       ...     schema = [ flatland.String('hello'),
       ...                flatland.String('world') ]
@@ -21,10 +22,12 @@ class Form(containers.Dict):
     fields and other forms::
 
       >>> class BigForm(flatland.Form):
-      ...     schema = [ HelloForm('main_hello'),
-      ...                flatland.List('alt_hellos',
-      ...                              flatland.Dict(String('alt_name'),
-      ...                                            HelloForm('alt_hello')))
+      ...     schema = [
+      ...       HelloForm('main_hello'),
+      ...       flatland.List('alt_hellos',
+      ...                     flatland.Dict('alt',
+      ...                                   flatland.String('alt_name'),
+      ...                                   HelloForm('alt_hello')))
       ...              ]
       ...
 
@@ -126,13 +129,29 @@ class Form(containers.Dict):
         Elements have two corresponding methods useful for
         round-tripping values in and out of your domain objects.
 
+        ..
+          Doctest Setup
+
+          >>> import flatland
+          >>> class UserForm(flatland.Form):
+          ...     schema = [ flatland.String('login'),
+          ...                flatland.String('password'),
+          ...                flatland.String('verify_password'), ]
+          ...
+          >>> class User(object):
+          ...     def __init__(self, login=None, password=None):
+          ...         self.login = login
+          ...         self.password = password
+          ...
+          >>> user = User('squiznart')
+
         :meth:`_DictElement.update_object` performs the inverse of
         :meth:`from_object`, and :meth:`_DictElement.slice` is useful
         for constructing new objects.
 
           >>> form = UserForm.from_object(user)
-          >>> form.update_object(user, exclude=['verify_password'])
-          >>> new_user = User(**form.slice(exclude=['verify_password']))
+          >>> form.update_object(user, omit=['verify_password'])
+          >>> new_user = User(**form.slice(omit=['verify_password'], key=str))
 
         """
         self = cls(**kw)

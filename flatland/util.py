@@ -221,7 +221,7 @@ def format_argspec_plus(fn, grouped=True):
 
     Example::
 
-      >>> format_argspec_plus(lambda self, a, b, c=3, **d: 123)
+      >>> format_argspec_plus(lambda self, a, b, c=3, **d: 123) #doctest: +SKIP
       {'args': '(self, a, b, c=3, **d)',
        'self_arg': 'self',
        'apply_kw': '(self, a, b, c=c, **d)',
@@ -301,7 +301,7 @@ class symbol(object):
     >>> symbol('foo') is symbol('foo')
     True
     >>> symbol('foo')
-    <symbol 'foo>
+    foo
 
     A slight refinement of the MAGICCOOKIE=object() pattern.  The primary
     advantage of symbol() is its repr().  They are also singletons.
