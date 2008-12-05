@@ -9,7 +9,9 @@ class Form(containers.Dict):
 
     Forms are the most common top-level mapping.  They behave like
     :class:`flatland.Dict`, but do not need to be named.  Forms are
-    defined with Python class syntax::
+    defined with Python class syntax:
+
+    .. doctest::
 
       >>> import flatland
       >>> class HelloForm(flatland.Form):
@@ -19,7 +21,9 @@ class Form(containers.Dict):
 
     Subclasses must define a :attr:`schema` property, containing an
     ordered sequence of fields.  Forms may embed other container
-    fields and other forms::
+    fields and other forms:
+
+    .. doctest::
 
       >>> class BigForm(flatland.Form):
       ...     schema = [
@@ -129,25 +133,26 @@ class Form(containers.Dict):
         Elements have two corresponding methods useful for
         round-tripping values in and out of your domain objects.
 
-        ..
-          Doctest Setup
+        .. testsetup::
 
-          >>> import flatland
-          >>> class UserForm(flatland.Form):
-          ...     schema = [ flatland.String('login'),
-          ...                flatland.String('password'),
-          ...                flatland.String('verify_password'), ]
-          ...
-          >>> class User(object):
-          ...     def __init__(self, login=None, password=None):
-          ...         self.login = login
-          ...         self.password = password
-          ...
-          >>> user = User('squiznart')
+          import flatland
+          class UserForm(flatland.Form):
+              schema = [ flatland.String('login'),
+                         flatland.String('password'),
+                         flatland.String('verify_password'), ]
+
+          class User(object):
+              def __init__(self, login=None, password=None):
+                  self.login = login
+                  self.password = password
+
+          user = User('squiznart')
 
         :meth:`_DictElement.update_object` performs the inverse of
         :meth:`from_object`, and :meth:`_DictElement.slice` is useful
         for constructing new objects.
+
+        .. doctest::
 
           >>> form = UserForm.from_object(user)
           >>> form.update_object(user, omit=['verify_password'])
