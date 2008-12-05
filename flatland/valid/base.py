@@ -14,8 +14,7 @@ class Validator(object):
     def __init__(self, **kw):
         """Construct a validator.
 
-        :param \*\*kw: override any extant class attribute on this
-        instance.
+        :param \*\*kw: override any extant class attribute on this instance.
 
         """
         cls, extra = type(self), self._missing_but_inittable

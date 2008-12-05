@@ -436,11 +436,18 @@ forced by setting ``form:auto-tabindex="on"``.
 Integration With Python
 -----------------------
 
-TBD, still in a bit of flux.
+TODO: doc!
 
-Load ``flatland.out.genshi``
+.. testsetup::
+
+  from genshi.template import MarkupTemplate, Context
+
+  template = MarkupTemplate('<hello-world/>')
+  context = Context()
+
+.. testcode::
 
   from flatland.out.genshi import flatland_filter
 
   stream = flatland_filter(template.generate(context), context)
-  return stream.generate()
+  content = stream.render()
