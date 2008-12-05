@@ -160,7 +160,26 @@ class Element(_BaseElement):
 
         :returns: an :class:`Element` or raises :exc:`KeyError`.
 
-          >>> contact.el('addresses.0.street1')
+        ..
+          Doctest Setup
+
+          >>> from flatland import Form, Dict, List, String
+          >>> schema = Dict(None,
+          ...               Dict('contact',
+          ...                    List('addresses',
+          ...                         Dict(None,
+          ...                              String('street1'),
+          ...                              String('city')),
+          ...                         default=1
+          ...              )))
+          >>> form = schema.create_element()
+          >>> form.set_default()
+
+        Example::
+
+          >>> first_address = form.el('contact.addresses.0')
+          >>> first_address.el('street1')
+          <String u'street1'; value=None>
 
         Given a relative path as above, :meth:`el` searches for a matching
         path among the element's children.
@@ -171,6 +190,9 @@ class Element(_BaseElement):
         :attr:`.name`.
 
           >>> form.el('.contact.addresses.0.city')
+          <String u'city'; value=None>
+          >>> first_address.el('.contact.addresses.0.city')
+          <String u'city'; value=None>
 
         """
         try:
@@ -234,11 +256,16 @@ class Element(_BaseElement):
         qualified, flattened name.  Encodes all :class:`Container` and other
         structures into a single string.
 
-          >>> form = List('addresses', String('address')).create_element()
-          >>> form.set([u'uptown', u'downtown'])
-          >>> form.el('0').value
+        Example::
+
+          >>> import flatland
+          >>> form = flatland.List('addresses',
+          ...                      flatland.String('address'))
+          >>> element = form.create_element()
+          >>> element.set([u'uptown', u'downtown'])
+          >>> element.el('0').value
           u'uptown'
-          >>> form.el('0').flattened_name()
+          >>> element.el('0').flattened_name()
           u'addresses_0_address'
 
         """
@@ -261,12 +288,29 @@ class Element(_BaseElement):
         output of the default :meth:`flatten` can be round-tripped
         with :meth:`set_flat`.
 
-        Solo elements will return a sequence containing a single pair.
+        Given a simple form with a nested dictionary::
 
-          >>> form.flatten(value=operator.attrgetter('u'))
-          ... [(u'name', u''), (u'email', u'')]
-          >>> form.flatten(value=lambda el: el.value)
-          ... [(u'name', None), (u'email', None)]
+          >>> import flatland
+          >>> form = flatland.Dict('contact',
+          ...                      flatland.String('name'),
+          ...                      flatland.Dict('address',
+          ...                                    flatland.String('email')))
+          >>> element = form.create_element()
+
+          >>> element.flatten()
+          [(u'contact_name', u''), (u'contact_address_email', u'')]
+
+        The value of each pair can be customized with the *value* callable::
+
+          >>> element.flatten(value=operator.attrgetter('u'))
+          [(u'contact_name', u''), (u'contact_address_email', u'')]
+          >>> element.flatten(value=lambda el: el.value)
+          [(u'contact_name', None), (u'contact_address_email', None)]
+
+        Solo elements will return a sequence containing a single pair::
+
+          >>> element['name'].flatten()
+          [(u'contact_name', u'')]
 
         """
         pairs = []
