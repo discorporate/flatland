@@ -1,3 +1,4 @@
+"""Base functionality for fancy validation."""
 import __builtin__
 import operator
 from flatland.util import adict
@@ -6,10 +7,10 @@ from flatland.util import adict
 N_ = lambda translatable: translatable
 
 class Validator(object):
+    """Base class for fancy validators."""
 
     _transform_finder = operator.attrgetter('ugettext')
     _tuple_transform_finder = operator.attrgetter('ungettext')
-    _missing_but_inittable = set(('ugettext', 'ungettext'))
 
     def __init__(self, **kw):
         """Construct a validator.
@@ -17,21 +18,88 @@ class Validator(object):
         :param \*\*kw: override any extant class attribute on this instance.
 
         """
-        cls, extra = type(self), self._missing_but_inittable
+        cls = type(self)
         for attr, value in kw.iteritems():
-            if hasattr(cls, attr) or attr in extra:
+            if hasattr(cls, attr):
                 setattr(self, attr, value)
             else:
                 raise TypeError("%s has no attribute %r, can not override." % (
                     cls.__name__, attr))
 
     def __call__(self, element, state):
+        """Adapts Validator to the Element.validate callable interface."""
         return self.validate(element, state)
 
     def validate(self, element, state):
+        """Validate an element returning True if valid.
+
+        :param element:
+          an :class:`~flatland.schema.base.Element` instance.
+
+        :param state:
+          an arbitrary object.  Supplied by
+          :meth:`Element.validate <flatland.schema.base.Element.validate>`.
+
+        :returns: True if valid
+
+        """
         return False
 
     def note_error(self, element, state, key=None, message=None, **info):
+        """Record a validation error message on an element.
+
+        :param element:
+          An :class:`~flatland.schema.base.Element` instance.
+
+        :param state:
+          an arbitrary object.  Supplied by :meth:`Element.validate
+          <flatland.schema.base.Element.validate>`.
+
+        :param key: semi-optional, default None.
+          The name of a message-holding attribute on this instance.  Will be
+          used to ``message = getattr(self, key)``.
+
+        :param message: semi-optional, default None.
+          A validation message.
+
+        :param \*\*info: optional.
+          Additional data to make available to validation message
+          string formatting.
+
+        :returns: False
+
+        Either *key* or *message* is required.  The message will have
+        formatting expanded by :meth:`expand_message` and be appended to
+        :attr:`element.errors <flatland.schema.base.Element.errors>`.
+
+        Always returns False.  This enables a convenient shorthand when
+        writing validators:
+
+        .. testcode::
+
+          from flatland.valid import Validator
+
+          class MyValidator(Validator):
+              my_message = 'Oh noes!'
+
+              def validate(self, element, state):
+                  if not element.value:
+                      return self.note_error(element, state, 'my_message')
+                  else:
+                      return True
+
+        .. testcode:: :hide:
+
+          from flatland import String
+          el = String('x').create_element()
+          v = MyValidator()
+          assert not v.validate(el, None)
+          assert el.errors == ['Oh noes!']
+          el.set('foo')
+          assert v.validate(el, None)
+          assert el.errors == ['Oh noes!']
+
+        """
         message = message or getattr(self, key)
         if message:
             element.add_error(
@@ -39,6 +107,34 @@ class Validator(object):
         return False
 
     def note_warning(self, element, state, key=None, message=None, **info):
+        """Record a validation warning message on an element.
+
+        :param element:
+          An :class:`~flatland.schema.base.Element` instance.
+
+        :param state:
+          an arbitrary object.  Supplied by :meth:`Element.validate
+          <flatland.schema.base.Element.validate>`.
+
+        :param key: semi-optional, default None.
+          The name of a message-holding attribute on this instance.  Will be
+          used to ``message = getattr(self, key)``.
+
+        :param message: semi-optional, default None.
+          A validation message.
+
+        :param \*\*info: optional.
+          Additional data to make available to validation message
+          string formatting.
+
+        :returns: False
+
+        Either *key* or *message* is required.  The message will have
+        formatting expanded by :meth:`expand_message` and be appended to
+        :attr:`element.warnings <flatland.schema.base.Element.warnings>`.
+
+        Always returns False.
+        """
         message = message or getattr(self, key)
         if message:
             element.add_warning(
@@ -59,6 +155,32 @@ class Validator(object):
             return None
 
     def expand_message(self, element, state, message, **extra_format_args):
+        """Apply formatting to a validation message.
+
+        :param element:
+          an :class:`~flatland.schema.base.Element` instance.
+
+        :param state:
+          an arbitrary object.  Supplied by
+          :meth:`Element.validate <flatland.schema.base.Element.validate>`.
+
+        :param message: a string, 3-tuple or callable.
+          If a 3-tuple, must be of the form ('single form', 'plural form',
+          n_key).
+
+          If callable, will be called with 2 positional arguments (*element*,
+          *state*) and must return a string or 3-tuple.
+
+        :param \*\*extra_format_args: optional.
+          Additional data to make available to validation message
+          string formatting.
+
+        :returns: the formatted string
+
+        See :ref:`validation_messaging` for full information on how messages
+        are expanded.
+
+        """
         if callable(message):
             message = message(element, state)
 
@@ -137,67 +259,3 @@ class as_format_mapping(object):
         return iter(keys)
 
 
-class Present(Validator):
-    missing = u'%(label)s may not be blank.'
-
-    def validate(self, element, state):
-        if element.u != u'':
-            return True
-
-        return self.note_error(element, state, 'missing')
-
-
-class Converted(Validator):
-    correct = u'%(label)s is not correct.'
-
-    def validate(self, element, state):
-        if element.value is not None:
-            return True
-
-        return self.note_error(element, state, 'correct')
-
-
-class ShorterThan(Validator):
-    exceeded = u'%(label)s may not exceed %(maxlength)s characters.'
-
-    def __init__(self, maxlength):
-        self.maxlength = maxlength
-
-    def validate(self, element, state):
-        if len(element.u) > self.maxlength:
-            return self.note_error(element, state, 'exceeded')
-        return True
-NoLongerThan = ShorterThan
-
-
-class LongerThan(Validator):
-    short = u'%(label)s must be at least %(minlength)s characters.'
-
-    def __init__(self, minlength):
-        self.minlength = minlength
-
-    def validate(self, element, state):
-        if len(element.u) < self.minlength:
-            return self.note_error(element, state, 'short')
-        return True
-
-
-class LengthBetween(Validator):
-    breached = (u'%(label)s must be between %(minlength)s and '
-                u'%(maxlength)s characters long.')
-
-    def __init__(self, minlength, maxlength):
-        self.minlength = minlength
-        self.maxlength = maxlength
-
-    def validate(self, element, state):
-        l = len(element.u)
-        if l < self.minlength or l > self.maxlength:
-            return self.note_error(element, state, 'breached')
-        return True
-
-
-class HumanName(Validator):
-    # \w but not [\d_]
-
-    pass
