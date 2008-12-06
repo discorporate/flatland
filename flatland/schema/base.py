@@ -509,7 +509,7 @@ class FieldSchema(object):
         :param descending: a boolean, True the first time the element
             has been seen in this run, False the next
 
-        :returns boolean: a truth value or None
+        :returns: boolean; a truth value or None
 
         The :meth:`Element.validate` process visits each element in
         the tree twice: once heading down the tree, breadth-first, and
