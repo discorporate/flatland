@@ -1,3 +1,4 @@
+# -*- coding: utf-8; fill-column: 78 -*-
 import collections
 import itertools
 import operator
@@ -18,6 +19,10 @@ class _BaseElement(object):
 
 class Element(_BaseElement):
     """TODO
+
+    :param schema: the :class:`FieldSchema` that defined the element.
+
+    :param parent: a parent :class:`Element` or None.
 
     Elements can be supplied to template environments and used to
     great effect there: elements contain all of the information needed
@@ -323,9 +328,44 @@ class Element(_BaseElement):
         return pairs
 
     def set(self, value):
-        """Set the element's value.
+        """Assign the native and Unicode value.
 
-        TODO: value is type-specific.
+        Attempts to adapt the given *value* and assigns this element's
+        :attr:`value` and :attr:`u` attributes in tandem.  Returns True if the
+        adaptation was successful.
+
+        If adaptation succeeds, :attr:`value` will contain the adapted native
+        value and :attr:`u` will contain a Unicode serialized version of it. A
+        native value of None will be represented as u'' in :attr:`u`.
+
+        If adaptation fails, :attr:`value` will be ``None`` and :attr:`u` will
+        contain ``unicode(value)`` or ``u''`` for None.
+
+          >>> import flatland
+          >>> field = flatland.Integer('number')
+          >>> el = field.create_element()
+          >>> el.u, el.value
+          (u'', None)
+
+          >>> el.set('123')
+          True
+          >>> el.u, el.value
+          (u'123', 123)
+
+          >>> el.set(456)
+          True
+          >>> el.u, el.value
+          (u'456', 456)
+
+          >>> el.set('abc')
+          False
+          >>> el.u, el.value
+          (u'abc', None)
+
+          >>> el.set(None)
+          True
+          >>> el.u, el.value
+          (u'', None)
 
         """
         raise NotImplementedError()
@@ -342,10 +382,11 @@ class Element(_BaseElement):
 
         return self._set_flat(pairs, sep)
 
-    def set_default(self):
+    def _set_flat(self, pairs, sep):
         raise NotImplementedError()
 
-    def _set_flat(self, pairs, sep):
+    def set_default(self):
+        """Set element value to the schema default."""
         raise NotImplementedError()
 
     @property
@@ -356,18 +397,18 @@ class Element(_BaseElement):
     def validate(self, state=None, recurse=True):
         """Assess the validity of this element and its children.
 
-        :param state: optional, will be passed unchanged to all
-            validator callables.
-        :param recurse: if False, do not validate children.
-        :returns: True or False
+        :param state: optional, will be passed unchanged to all validator
+            callables.
 
-        Iterates through this element and all of its children,
-        invoking each element's :meth:`schema.validate_element`.  Each
-        element will be visited twice: once heading down the tree,
-        breadth-first, and again heading back up in reverse order.
+        :param recurse: if False, do not validate children.  :returns: True or
+          False
 
-        Returns True if all validations pass, False if one or more
-        fail.
+        Iterates through this element and all of its children, invoking each
+        element's :meth:`schema.validate_element`.  Each element will be
+        visited twice: once heading down the tree, breadth-first, and again
+        heading back up in reverse order.
+
+        Returns True if all validations pass, False if one or more fail.
 
         """
         if not recurse:
@@ -409,29 +450,31 @@ class Element(_BaseElement):
 
 
 class FieldSchema(object):
-    """Base of all fields.
+    """Base class for form fields.
 
-    :arg name: the Unicode name of the field.
-    :arg label: optional, a human readable name for the field.
-                Defaults to *name* if not provided.
-    :arg default: optional. A default value for elements created from
-                  this Field template.  The interpretation of the *default*
-                  is subclass specific.
-    :arg validators: optional, overrides the class's default validators.
-    :arg optional: if True, this field will be considered valid if no
-                    value has been set.
+    :param name: the Unicode name of the field.
+
+    :param label: optional, a human readable name for the field.  Defaults to
+      *name* if not provided.
+
+    :param default: optional. A default value for elements created from this
+      Field template.  The interpretation of the *default* is subclass
+      specific.
+
+    :param validators: optional, overrides the class's default validators.
+
+    :param optional: if True, element of this field will be considered valid
+      by :meth:`Element.validate` if no value has been set.
 
     """
     element_type = Element
     ugettext = None
     ungettext = None
-    locale = None
     validators = ()
 
     def __init__(self, name, label=Unspecified, default=None,
                  validators=Unspecified, optional=False,
-                 ugettext=Unspecified, ungettext=Unspecified,
-                 locale=Unspecified):
+                 ugettext=Unspecified, ungettext=Unspecified):
         if not isinstance(name, (unicode, NoneType)):
             name = unicode(name, errors='strict')
 
@@ -443,14 +486,18 @@ class FieldSchema(object):
             self.validators = list(validators)
         self.optional = optional
 
-        for override in ('ugettext', 'ungettext', 'locale'):
+        for override in ('ugettext', 'ungettext'):
             value = locals()[override]
             if value is not Unspecified:
                 setattr(self, override, value)
 
-    def create_element(self, *args, **kw):
-        """TODO"""
-        return self.element_type(self, *args, **kw)
+    def create_element(self, **kw):
+        """Returns a new Element.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        """
+        return self.element_type(self, **kw)
     new = create_element
 
     def validate_element(self, element, state, descending):
@@ -470,7 +517,7 @@ class FieldSchema(object):
         will typically validate on the first pass, and containers on
         the second.
 
-        Return no value or None to pass, accepting the element as
+        Return no value or None to ``pass``, accepting the element as
         presumptively valid.
 
         Exceptions raised by :meth:`validate_element` will not be
@@ -507,17 +554,72 @@ class FieldSchema(object):
         return True
 
     def from_flat(self, pairs, **kw):
+        """Return a new element with its value initialized from *pairs*.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        .. testsetup::
+
+          import flatland
+          field = flatland.String('test')
+          pairs = {}
+
+        This is a convenience constructor for:
+
+        .. testcode::
+
+          element = field.create_element()
+          element.set_flat(pairs)
+
+        """
         element = self.create_element(**kw)
         element.set_flat(pairs)
         return element
 
     def from_value(self, value, **kw):
+        """Return a new element with its value initialized from *value*.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        .. testsetup::
+
+          import flatland
+          field = flatland.String('test')
+          value = 'val'
+
+        This is a convenience constructor for:
+
+        .. testcode::
+
+          element = field.create_element()
+          element.set(value)
+
+        """
         element = self.create_element(**kw)
         element.set(value)
         return element
 
     def from_defaults(self, **kw):
-        return self.create_element(**kw)
+        """Return a new element with its value initialized from field defaults.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        .. testsetup::
+
+          import flatland
+          field = flatland.String('test')
+
+        This is a convenience constructor for:
+
+        .. testcode::
+
+          element = field.create_element()
+          element.set_default()
+
+        """
+        element = self.create_element(**kw)
+        element.set_default()
+        return element
 
 
 class Slot(object):

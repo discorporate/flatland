@@ -9,11 +9,19 @@ Overview
 Event Model
 ~~~~~~~~~~~
 
-Messaging
-~~~~~~~~~
+Basic Validation API
+--------------------
+
+.. function:: validator(element, state) -> bool
+
 
 Validation Library
 ------------------
+
+.. _validation_messaging:
+
+Messaging
+~~~~~~~~~
 
 Composing and Extending Validators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -27,11 +35,8 @@ Writing Custom Validators
 Included Validators
 ~~~~~~~~~~~~~~~~~~~
 
-Low Level Validation API
-------------------------
+.. autoclass:: flatland.valid.base.Validator
 
-.. automodule:: flatland.valid
-   :members:
 
 .. automodule:: flatland.valid.base
    :members:
