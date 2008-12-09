@@ -5,9 +5,12 @@ from scalars import (
     HumanName,
     LengthBetween,
     LongerThan,
+    MapEqual,
     NoLongerThan,
     Present,
     ShorterThan,
+    UnisEqual,
+    ValuesEqual,
     )
 import string, number, urls
 

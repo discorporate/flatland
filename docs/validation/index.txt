@@ -41,6 +41,9 @@ Included Validators
 .. automodule:: flatland.valid.base
    :members:
 
+.. automodule:: flatland.valid.scalars
+   :members:
+
 .. automodule:: flatland.valid.string
    :members:
 
