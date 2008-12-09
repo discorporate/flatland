@@ -466,6 +466,14 @@ class FieldSchema(object):
     :param optional: if True, element of this field will be considered valid
       by :meth:`Element.validate` if no value has been set.
 
+
+    **Instance Attributes**
+
+      .. attribute:: name
+      .. attribute:: label
+      .. attribute:: default
+      .. attribute:: optional
+
     """
     element_type = Element
     ugettext = None

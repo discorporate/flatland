@@ -38,15 +38,15 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'flatland'
-copyright = '2008, the Flatland authors and contributors'
+copyright = '2008, the flatland authors and contributors'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = 'hg tip'
+version = '0.0'
 # The full version, including alpha/beta/rc tags.
-release = 'hg tip'
+release = '0.0.hg-tip'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
