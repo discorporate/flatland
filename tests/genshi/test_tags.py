@@ -417,8 +417,14 @@ class TestTags(FilteredRenderTest):
 <input type="text" name="field1" value="val" />
 :: endtest
 
-:: test
+:: test password omits value by default
 <input type="password" form:bind="${form.field1.bind}" />
+:: eq
+<input type="password" name="field1" />
+:: endtest
+
+:: test password can force value on
+<input type="password" form:bind="${form.field1.bind}" form:auto-value="on" />
 :: eq
 <input type="password" name="field1" value="val" />
 :: endtest
