@@ -172,9 +172,9 @@ class ValueAttribute(ToggledAttribute):
     def set_input(self, override, attrs, node):
         type = attrs.get('type', 'text').lower()
 
-        if type in ('text', 'password', 'hidden', 'button', 'submit', 'reset'):
+        if type in ('text', 'hidden', 'button', 'submit', 'reset'):
             attrs = self.set_simple_value(override, attrs, node)
-        elif type in ('file', 'image'):
+        elif type in ('password', 'file', 'image'):
             if override is True:
                 attrs = self.set_simple_value(override, attrs, node)
         elif type == 'checkbox':
