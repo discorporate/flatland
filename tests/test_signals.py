@@ -21,7 +21,7 @@ def test_meta_connect():
                         sender_arg=signals.ANY,
                         weak_arg=True)])
 
-    signals.clear_state(signals.receiver_connected)
+    signals.receiver_connected._clear_state()
 
 def test_meta_connect_failure():
     def meta_received(**kw):
@@ -39,14 +39,16 @@ def test_meta_connect_failure():
     assert not sig._by_receiver
     eq_(sig._by_sender, {signals.ANY: set()})
 
-    signals.clear_state(signals.receiver_connected)
+    signals.receiver_connected._clear_state()
 
 def test_singletons():
-    assert not signals._signals
+    assert 'abc' not in signals._signals
     s1 = signals.signal('abc')
     assert s1 is signals.signal('abc')
     assert s1 is not signals.signal('def')
-    signals._signals.clear()
+    assert 'abc' in signals._signals
+    del s1
+    assert 'abc' not in signals._signals
 
 def test_weak_receiver():
     sentinel = []
