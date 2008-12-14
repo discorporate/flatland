@@ -37,7 +37,7 @@ def test_meta_connect_failure():
     assert_raises(TypeError, sig.connect, receiver)
     assert not sig._receivers
     assert not sig._by_receiver
-    eq_(sig._by_sender, {signals.ANY: set()})
+    eq_(sig._by_sender, {signals.ANY_ID: set()})
 
     signals.receiver_connected._clear_state()
 

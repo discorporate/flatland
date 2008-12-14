@@ -11,9 +11,12 @@ signals.
 """
 from collections import defaultdict
 import weakref
-from . base import threading
+from . base import symbol, threading
 from . import weakrefs
 
+
+ANY = symbol('ANY')
+ANY_ID = 0
 
 _signals = weakref.WeakValueDictionary()
 _signals.lock = threading.Lock()
@@ -29,8 +32,6 @@ def signal(name, doc=None):
         return instance
     finally:
         lock.release()
-
-ANY = 0
 
 class Signal(object):
     """A generic notification emitter."""
@@ -72,7 +73,7 @@ class Signal(object):
             receiver_ref.receiver_id = receiver_id
         else:
             receiver_ref = receiver
-        sender_id = ANY if sender is ANY else _hashable_identity(sender)
+        sender_id = ANY_ID if sender is ANY else _hashable_identity(sender)
 
         self.has_connected = True
         self._receivers[receiver_id] = receiver_ref
@@ -124,7 +125,7 @@ class Signal(object):
         """
         if not self.has_connected:
             return False
-        if self._by_sender[ANY]:
+        if self._by_sender[ANY_ID]:
             return True
         if sender is ANY:
             return False
@@ -134,7 +135,7 @@ class Signal(object):
         """Iterate all live receivers listening for *sender*."""
         if self.has_connected:
             seen = set()
-            for bucket in ANY, _hashable_identity(sender):
+            for bucket in ANY_ID, _hashable_identity(sender):
                 for receiver_id in list(self._by_sender[bucket]):
                     receiver = self._receivers.get(receiver_id)
                     if receiver is None:
@@ -142,10 +143,10 @@ class Signal(object):
                     if isinstance(receiver, weakrefs.WeakTypes):
                         strong = receiver()
                         if strong is None:
-                            self._disconnect(receiver_id, ANY)
+                            self._disconnect(receiver_id, ANY_ID)
                             continue
                         receiver = strong
-                    if bucket is ANY:
+                    if bucket == ANY_ID:
                         seen.add(id(receiver))
                         yield receiver
                     elif id(receiver) not in seen:
@@ -153,12 +154,12 @@ class Signal(object):
 
     def disconnect(self, receiver, sender=ANY):
         """Disconnect *receiver* from this signal's events."""
-        sender_id = ANY if sender is ANY else _hashable_identity(sender)
+        sender_id = ANY_ID if sender is ANY else _hashable_identity(sender)
         receiver_id = _hashable_identity(receiver)
         self._disconnect(receiver_id, sender_id)
 
     def _disconnect(self, receiver_id, sender_id):
-        if sender_id == ANY:
+        if sender_id == ANY_ID:
             if self._by_receiver.pop(receiver_id, False):
                 for bucket in self._by_sender.values():
                     bucket.discard(receiver_id)
@@ -168,12 +169,12 @@ class Signal(object):
 
     def _cleanup_receiver(self, receiver_ref):
         """Disconnect a receiver from all senders."""
-        self._disconnect(receiver_ref.receiver_id, ANY)
+        self._disconnect(receiver_ref.receiver_id, ANY_ID)
 
     def _cleanup_sender(self, sender_ref):
         """Disconnect all receivers from a sender."""
         sender_id = sender_ref.sender_id
-        assert sender_id != ANY
+        assert sender_id != ANY_ID
         self._by_sender.pop(sender_id, None)
         _, receiver_ids = self._sender_cleanups.pop(sender_id, (None, ()))
         for receiver_id in receiver_ids:
