@@ -1,5 +1,6 @@
 import exc
 import util
+import signals
 import schema
 from schema import (
     Array,

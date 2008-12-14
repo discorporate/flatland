@@ -3,7 +3,7 @@ import collections
 import itertools
 import operator
 
-from flatland import util
+from flatland import signals, util
 from flatland.util import Unspecified
 
 
@@ -557,7 +557,11 @@ class FieldSchema(object):
         if not self.validators:
             return not element.is_empty
         for fn in self.validators:
-            if not fn(element, state):
+            valid = fn(element, state)
+            if signals.validator_validated.has_connected:
+                signals.validator_validated.send(
+                    fn, element=element, state=state, result=valid)
+            if not valid:
                 return False
         return True
 

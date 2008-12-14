@@ -18,14 +18,14 @@ from . import weakrefs
 _signals = weakref.WeakValueDictionary()
 _signals.lock = threading.Lock()
 
-def signal(name):
+def signal(name, doc=None):
     """Return the :class:`Signal` named *name*, creating if required."""
     lock = _signals.lock
     lock.acquire()
     try:
         return _signals[name]
     except KeyError:
-        _signals[name] = instance = Signal(name)
+        _signals[name] = instance = Signal(name, doc)
         return instance
     finally:
         lock.release()
@@ -38,8 +38,10 @@ class Signal(object):
     # convenience for importers, allows Signal.ANY
     ANY = ANY
 
-    def __init__(self, name):
+    def __init__(self, name, doc=None):
         self.name = name
+        if doc:
+            self.__doc__ = doc
         self.has_connected = False
         self._receivers = {}
         self._by_receiver = defaultdict(set)
@@ -51,7 +53,7 @@ class Signal(object):
 
         :param receiver: A callable.  Will be invoked by :meth:`send`.
           Will be invoked with `sender=` as a named argument and any
-          **kwargs that were provided to a call to :meth:`send`.
+          \*\*kwargs that were provided to a call to :meth:`send`.
 
         :param sender: Any object or :attr:`Signal.ANY`.  Restricts
           notifications to *receiver* to only those :meth:`send`
@@ -101,7 +103,7 @@ class Signal(object):
                 raise
 
     def send(self, sender=None, **kwargs):
-        """Emit this signal on behalf of *sender*, passing on **kwargs.
+        """Emit this signal on behalf of *sender*, passing on \*\*kwargs.
 
         Returns a list of 2-tuples, pairing receivers with their return
         value. The ordering of receiver notification is undefined.
@@ -177,19 +179,19 @@ class Signal(object):
         for receiver_id in receiver_ids:
             self._by_receiver[receiver_id].discard(sender_id)
 
+    def _clear_state(self):
+        """Throw away all signal state.  Useful for unit tests."""
+        self._sender_cleanups.clear()
+        self._receivers.clear()
+        self._by_sender.clear()
+        self._by_receiver.clear()
+        self.has_connected = False
+
     def __repr__(self):
         return '<Signal 0x%x; %r>' % (id(self), self.name)
 
 
 receiver_connected = Signal('receiver_connected')
-
-def clear_state(signal):
-    """Throw away all signal state.  Useful for unit tests."""
-    signal._sender_cleanups.clear()
-    signal._receivers.clear()
-    signal._by_sender.clear()
-    signal._by_receiver.clear()
-    signal.has_connected = False
 
 def _hashable_identity(obj):
     if hasattr(obj, 'im_func'):
