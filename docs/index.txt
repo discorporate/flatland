@@ -14,7 +14,7 @@ Contents
    alpha
 
    schema/index
-   signals
    validation/index
+   signals
    templating/index
 
