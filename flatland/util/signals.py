@@ -46,7 +46,7 @@ class Signal(object):
         self.receivers = {}
         self._by_receiver = defaultdict(set)
         self._by_sender = defaultdict(set)
-        self._sender_cleanups = {}
+        self._weak_senders = {}
 
     def connect(self, receiver, sender=ANY, weak=True):
         """Connect *receiver* to signal events send by *sender*.
@@ -74,11 +74,12 @@ class Signal(object):
             receiver_ref = receiver
         sender_id = ANY_ID if sender is ANY else _hashable_identity(sender)
 
-        self.receivers[receiver_id] = receiver_ref
+        self.receivers.setdefault(receiver_id, receiver_ref)
         self._by_sender[sender_id].add(receiver_id)
         self._by_receiver[receiver_id].add(sender_id)
+        del receiver_ref
 
-        if sender is not ANY and sender_id not in self._sender_cleanups:
+        if sender is not ANY and sender_id not in self._weak_senders:
             # wire together a cleanup for weakref-able senders
             try:
                 sender_ref = weakrefs.reference(sender, self._cleanup_sender)
@@ -86,10 +87,9 @@ class Signal(object):
             except TypeError:
                 pass
             else:
-                # stash away the weakref and a set of connections to cleanup.
-                stash = self._sender_cleanups.setdefault(
-                    sender_id, (sender_ref, set()))
-                stash[1].add(receiver_id)
+                self._weak_senders.setdefault(sender_id, sender_ref)
+                del sender_ref
+
         # broadcast this connection.  if receivers raise, disconnect.
         if receiver_connected.receivers and self is not receiver_connected:
             try:
@@ -174,14 +174,13 @@ class Signal(object):
         """Disconnect all receivers from a sender."""
         sender_id = sender_ref.sender_id
         assert sender_id != ANY_ID
-        self._by_sender.pop(sender_id, None)
-        _, receiver_ids = self._sender_cleanups.pop(sender_id, (None, ()))
-        for receiver_id in receiver_ids:
+        self._weak_senders.pop(sender_id, None)
+        for receiver_id in self._by_sender.pop(sender_id, ()):
             self._by_receiver[receiver_id].discard(sender_id)
 
     def _clear_state(self):
         """Throw away all signal state.  Useful for unit tests."""
-        self._sender_cleanups.clear()
+        self._weak_senders.clear()
         self.receivers.clear()
         self._by_sender.clear()
         self._by_receiver.clear()
