@@ -558,7 +558,7 @@ class FieldSchema(object):
             return not element.is_empty
         for fn in self.validators:
             valid = fn(element, state)
-            if signals.validator_validated.has_connected:
+            if signals.validator_validated.receivers:
                 signals.validator_validated.send(
                     fn, element=element, state=state, result=valid)
             if not valid:

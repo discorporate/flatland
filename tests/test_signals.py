@@ -7,7 +7,7 @@ def test_meta_connect():
     def meta_received(**kw):
         sentinel.append(kw)
 
-    assert not signals.receiver_connected.has_connected
+    assert not signals.receiver_connected.receivers
     signals.receiver_connected.connect(meta_received)
     assert not sentinel
 
@@ -27,7 +27,7 @@ def test_meta_connect_failure():
     def meta_received(**kw):
         raise TypeError('boom')
 
-    assert not signals.receiver_connected.has_connected
+    assert not signals.receiver_connected.receivers
     signals.receiver_connected.connect(meta_received)
 
     def receiver(**kw):
@@ -35,7 +35,7 @@ def test_meta_connect_failure():
     sig = signals.Signal('sig')
 
     assert_raises(TypeError, sig.connect, receiver)
-    assert not sig._receivers
+    assert not sig.receivers
     assert not sig._by_receiver
     eq_(sig._by_sender, {signals.ANY_ID: set()})
 
@@ -62,7 +62,7 @@ def test_weak_receiver():
     assert not sentinel
     sig.send()
     assert not sentinel
-    assert not sig._receivers
+    assert not sig.receivers
     values_are_empty_sets_(sig._by_receiver)
     values_are_empty_sets_(sig._by_sender)
 
@@ -79,7 +79,7 @@ def test_strong_receiver():
     assert not sentinel
     sig.send()
     assert sentinel
-    eq_([id(fn) for fn in sig._receivers.values()], [fn_id])
+    eq_([id(fn) for fn in sig.receivers.values()], [fn_id])
 
 def test_filtered_receiver():
     sentinel = []
@@ -117,7 +117,7 @@ def test_filtered_receiver_weakref():
     del obj
 
     # general index isn't cleaned up
-    assert sig._receivers
+    assert sig.receivers
     # but receiver/sender pairs are
     values_are_empty_sets_(sig._by_receiver)
     values_are_empty_sets_(sig._by_sender)
@@ -160,8 +160,7 @@ def test_has_receivers():
     assert sig.has_receivers_for(o)
 
     del received
-    assert sig.has_receivers_for('xyz')
-    assert sig.has_receivers_for(o)
+    assert not sig.has_receivers_for('xyz')
     assert list(sig.receivers_for('xyz')) == []
     assert list(sig.receivers_for(o)) == []
 
