@@ -43,8 +43,7 @@ class Signal(object):
         self.name = name
         if doc:
             self.__doc__ = doc
-        self.has_connected = False
-        self._receivers = {}
+        self.receivers = {}
         self._by_receiver = defaultdict(set)
         self._by_sender = defaultdict(set)
         self._sender_cleanups = {}
@@ -75,8 +74,7 @@ class Signal(object):
             receiver_ref = receiver
         sender_id = ANY_ID if sender is ANY else _hashable_identity(sender)
 
-        self.has_connected = True
-        self._receivers[receiver_id] = receiver_ref
+        self.receivers[receiver_id] = receiver_ref
         self._by_sender[sender_id].add(receiver_id)
         self._by_receiver[receiver_id].add(sender_id)
 
@@ -93,7 +91,7 @@ class Signal(object):
                     sender_id, (sender_ref, set()))
                 stash[1].add(receiver_id)
         # broadcast this connection.  if receivers raise, disconnect.
-        if receiver_connected.has_connected and self is not receiver_connected:
+        if receiver_connected.receivers and self is not receiver_connected:
             try:
                 receiver_connected.send(self,
                                         receiver_arg=receiver,
@@ -110,7 +108,7 @@ class Signal(object):
         value. The ordering of receiver notification is undefined.
 
         """
-        if not self._receivers:
+        if not self.receivers:
             return []
         else:
             return [(receiver, receiver(sender=sender, **kwargs))
@@ -124,7 +122,7 @@ class Signal(object):
         :meth:`receivers_for` for a stronger search.
 
         """
-        if not self.has_connected:
+        if not self.receivers:
             return False
         if self._by_sender[ANY_ID]:
             return True
@@ -134,7 +132,7 @@ class Signal(object):
 
     def receivers_for(self, sender):
         """Iterate all live receivers listening for *sender*."""
-        if self.has_connected:
+        if self.receivers:
             sender_id = _hashable_identity(sender)
             if sender_id in self._by_sender:
                 ids = (self._by_sender[ANY_ID] |
@@ -142,7 +140,7 @@ class Signal(object):
             else:
                 ids = self._by_sender[ANY_ID].copy()
             for receiver_id in ids:
-                receiver = self._receivers.get(receiver_id)
+                receiver = self.receivers.get(receiver_id)
                 if receiver is None:
                     continue
                 if isinstance(receiver, weakrefs.WeakTypes):
@@ -164,7 +162,7 @@ class Signal(object):
             if self._by_receiver.pop(receiver_id, False):
                 for bucket in self._by_sender.values():
                     bucket.discard(receiver_id)
-            self._receivers.pop(receiver_id, None)
+            self.receivers.pop(receiver_id, None)
         else:
             self._by_sender[sender_id].discard(receiver_id)
 
@@ -184,10 +182,9 @@ class Signal(object):
     def _clear_state(self):
         """Throw away all signal state.  Useful for unit tests."""
         self._sender_cleanups.clear()
-        self._receivers.clear()
+        self.receivers.clear()
         self._by_sender.clear()
         self._by_receiver.clear()
-        self.has_connected = False
 
     def __repr__(self):
         return '<Signal 0x%x; %r>' % (id(self), self.name)

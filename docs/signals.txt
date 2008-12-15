@@ -55,6 +55,9 @@ Signal API
 
      A symbol for "receive a signal sent by any sender".
 
-   .. attribute:: has_connected
+   .. attribute:: receivers
 
-     Will be True if a receiver has ever been connected to the signal.
+     A mapping from internal Signal receiver ids to signal receivers
+     or their weak references if the receiver connected with
+     ``weak=True``.
+
