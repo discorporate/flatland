@@ -22,5 +22,5 @@ def reference(object, callback=None, **annotations):
 def callable_reference(object, callback=None):
     """Return an annotated weak ref, supporting bound instance methods."""
     if hasattr(object, 'im_self') and object.im_self is not None:
-        return _saferef.BoundMethodWeakref(target=object, onDelete=callback)
+        return _saferef.BoundMethodWeakref(target=object, on_delete=callback)
     return annotatable_weakref(object, callback)
