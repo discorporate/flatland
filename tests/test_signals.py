@@ -13,7 +13,7 @@ def test_meta_connect():
 
     def receiver(**kw):
         pass
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
     sig.connect(receiver)
 
     eq_(sentinel, [dict(sender=sig,
@@ -32,7 +32,7 @@ def test_meta_connect_failure():
 
     def receiver(**kw):
         pass
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
 
     assert_raises(TypeError, sig.connect, receiver)
     assert not sig.receivers
@@ -42,20 +42,23 @@ def test_meta_connect_failure():
     signals.receiver_connected._clear_state()
 
 def test_singletons():
-    assert 'abc' not in signals._signals
-    s1 = signals.signal('abc')
-    assert s1 is signals.signal('abc')
-    assert s1 is not signals.signal('def')
-    assert 'abc' in signals._signals
+    ns = signals.Namespace()
+    assert not ns.signals
+    s1 = ns.signal('abc')
+    assert s1 is ns.signal('abc')
+    assert s1 is not ns.signal('def')
+    assert 'abc' in ns.signals
+    # weak by default, already out of scope
+    assert 'def' not in ns.signals
     del s1
-    assert 'abc' not in signals._signals
+    assert 'abc' not in ns.signals
 
 def test_weak_receiver():
     sentinel = []
     def received(**kw):
         sentinel.append(kw)
 
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
     sig.connect(received, weak=True)
     del received
 
@@ -72,7 +75,7 @@ def test_strong_receiver():
         sentinel.append(kw)
     fn_id = id(received)
 
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
     sig.connect(received, weak=False)
     del received
 
@@ -86,7 +89,7 @@ def test_filtered_receiver():
     def received(sender):
         sentinel.append(sender)
 
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
 
     sig.connect(received, 123)
 
@@ -107,7 +110,7 @@ def test_filtered_receiver_weakref():
         pass
     obj = Object()
 
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
     sig.connect(received, obj)
 
     assert not sentinel
@@ -127,7 +130,7 @@ def test_no_double_send():
     def received(sender):
         sentinel.append(sender)
 
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
 
     sig.connect(received, 123)
     sig.connect(received)
@@ -143,7 +146,7 @@ def test_no_double_send():
 def test_has_receivers():
     received = lambda sender: None
 
-    sig = signals.Signal('sig')
+    sig = signals.Signal()
     assert not sig.has_receivers_for(None)
     assert not sig.has_receivers_for(signals.ANY)
 
@@ -171,8 +174,15 @@ def test_has_receivers():
     assert sig.has_receivers_for(signals.ANY)
     assert sig.has_receivers_for('xyz')
 
-def test_repr():
-    sig = signals.Signal('squiznart')
+def test_instance_doc():
+    sig = signals.Signal(doc='x')
+    assert sig.__doc__ == 'x'
+
+    sig = signals.Signal('x')
+    assert sig.__doc__ == 'x'
+
+def test_named_signals():
+    sig = signals.NamedSignal('squiznart')
     assert 'squiznart' in repr(sig)
 
 def values_are_empty_sets_(dictionary):
