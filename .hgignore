@@ -10,3 +10,5 @@ junk
 *.swp
 docs/out
 docs/doctest
+bench
+
