@@ -8,12 +8,6 @@ WeakTypes = weakref.ref, _saferef.BoundMethodWeakref
 class annotatable_weakref(weakref.ref):
     """A weakref.ref that supports custom instance attributes."""
 
-    def __init__(self, object, callback=None, **kw):
-        """Build a ref, optionally assigning arbitrary **kw as attributes."""
-        weakref.ref.__init__(self, object, callback)
-        for key, value in kw.iteritems():
-            setattr(self, key, value)
-
 
 def reference(object, callback=None, **annotations):
     """Return an annotated weak ref."""

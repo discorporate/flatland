@@ -18,29 +18,13 @@ from . import weakrefs
 ANY = symbol('ANY')
 ANY_ID = 0
 
-_signals = weakref.WeakValueDictionary()
-_signals.lock = threading.Lock()
-
-def signal(name, doc=None):
-    """Return the :class:`Signal` named *name*, creating if required."""
-    lock = _signals.lock
-    lock.acquire()
-    try:
-        return _signals[name]
-    except KeyError:
-        _signals[name] = instance = Signal(name, doc)
-        return instance
-    finally:
-        lock.release()
-
 class Signal(object):
     """A generic notification emitter."""
 
     # convenience for importers, allows Signal.ANY
     ANY = ANY
 
-    def __init__(self, name, doc=None):
-        self.name = name
+    def __init__(self, doc=None):
         if doc:
             self.__doc__ = doc
         self.receivers = {}
@@ -185,11 +169,43 @@ class Signal(object):
         self._by_sender.clear()
         self._by_receiver.clear()
 
+
+receiver_connected = Signal()
+
+class NamedSignal(Signal):
+    """A named generic notification emitter."""
+
+    def __init__(self, name, doc=None):
+        Signal.__init__(self, doc)
+        self.name = name
+
     def __repr__(self):
-        return '<Signal 0x%x; %r>' % (id(self), self.name)
+        return '<NamedSignal 0x%x; %r>' % (id(self), self.name)
 
 
-receiver_connected = Signal('receiver_connected')
+class Namespace(object):
+    """Manages NamedSignals as singletons."""
+
+    storage_factory = weakref.WeakValueDictionary
+    signal_factory = NamedSignal
+
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.signals = self.storage_factory()
+
+    def signal(self, name, doc=None):
+        """Return the :class:`NamedSignal` *name*, creating it if required."""
+        lock = self.lock
+        lock.acquire()
+        try:
+            return self.signals[name]
+        except KeyError:
+            self.signals[name] = instance = self.signal_factory(name, doc)
+            return instance
+        finally:
+            lock.release()
+
+signal = Namespace().signal
 
 def _hashable_identity(obj):
     if hasattr(obj, 'im_func'):
