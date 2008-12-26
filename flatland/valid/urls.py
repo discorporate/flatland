@@ -64,7 +64,7 @@ class URLValidator(Validator):
 
     def validate(self, element, state):
         if element.value is None:
-            bad_format = N_("%(label)s is not a valid URL.")
+            return self.note_error(element, state, 'bad_format')
 
         try:
             url = self.urlparse.urlparse(element.value.strip())
