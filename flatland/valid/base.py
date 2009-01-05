@@ -2,6 +2,7 @@
 import __builtin__
 import operator
 from flatland.util import adict
+from flatland.schema.util import find_i18n_function
 
 
 N_ = lambda translatable: translatable
@@ -142,17 +143,7 @@ class Validator(object):
         return False
 
     def find_transformer(self, element, state, message, finder):
-        transform = finder(element.schema)
-        if transform:
-            return transform
-        for parent in element.parents:
-            transform = finder(parent.schema)
-            if transform:
-                return transform
-        try:
-            return finder(__builtin__)
-        except AttributeError:
-            return None
+        return find_i18n_function(element, finder)
 
     def expand_message(self, element, state, message, **extra_format_args):
         """Apply formatting to a validation message.
