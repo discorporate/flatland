@@ -308,7 +308,8 @@ class Filter(ToggledAttribute):
                 try:
                     fn = Expression(filter_expr).evaluate(context)
                 except:
-                    log.error("Failed to parse filter expression %r" % expr,)
+                    log.error("Failed to parse filter expression %r" %
+                              filter_expr,)
                     raise
             want = getattr(fn, 'tags', None)
             if want is None or tag.localname not in want:
