@@ -66,6 +66,15 @@ def test_string():
         eq_(unicode(element), expected)
         eq_(element.value, expected)
 
+    for value, expected_value, expected_unicode in (
+                        (u'', u'', u''), (None, None, u'')):
+        st = schema.String('foo')
+        element = st.new()
+        element.set(value)
+        eq_(element.u, expected_unicode)
+        eq_(unicode(element), expected_unicode)
+        eq_(element.value, expected_value)
+
 def test_string_is_empty():
     st = schema.String('foo')
     element = st.new()
