@@ -1,4 +1,5 @@
 from flatland import signals, String, valid
+from flatland.schema.base import NotEmpty
 from tests._util import eq_
 
 
@@ -32,6 +33,18 @@ def test_validator_validated():
     assert len(sentinel) == 3
     assert not sentinel[-1]['result']
 
+    s2 = String('text', optional=False)
+
+    del sentinel[:]
+    el = s2.create_element()
+    assert not el.validate()
+    eq_(sentinel, [dict(sender=NotEmpty, element=el, state=None, result=False)])
+
+    del sentinel[:]
+    el = s2.create_element(value='squiznart')
+    assert el.validate()
+    eq_(sentinel, [dict(sender=NotEmpty, element=el, state=None, result=True)])
+
     del listener
     del sentinel[:]
     el = s.create_element(value='squiznart')
@@ -39,4 +52,3 @@ def test_validator_validated():
     assert not sentinel
 
     signals.validator_validated._clear_state()
-
