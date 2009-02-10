@@ -11,6 +11,7 @@ __all__ = 'FieldSchema', 'Element'
 
 NoneType = type(None)
 Root = util.symbol('Root')
+NotEmpty = util.symbol('NotEmpty')
 xml = None
 
 class _BaseElement(object):
@@ -555,7 +556,11 @@ class FieldSchema(object):
         if element.is_empty and self.optional:
             return True
         if not self.validators:
-            return not element.is_empty
+            valid = not element.is_empty
+            if signals.validator_validated.receivers:
+                signals.validator_validated.send(
+                    NotEmpty, element=element, state=state, result=valid)
+            return valid
         for fn in self.validators:
             valid = fn(element, state)
             if signals.validator_validated.receivers:
