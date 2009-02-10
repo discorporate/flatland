@@ -287,7 +287,7 @@ class _symbol(object):
     def __init__(self, name):
         """Construct a new named symbol."""
         assert isinstance(name, str)
-        self.name = name
+        self.__name__ = self.name = name
     def __reduce__(self):
         return symbol, (self.name,)
     def __repr__(self):
