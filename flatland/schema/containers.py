@@ -309,6 +309,24 @@ class _SlotElement(_ContainerElement, Slot):
     def __ne__(self, other):
         return self.element != other
 
+    def __getitem__(self, index):
+        return self.element[index]
+
+    def __setitem__(self, index, value):
+        self.element[index] = value
+
+    def __delitem__(self, index):
+        del self.element[index]
+
+    def __getslice__(self, slice):
+        return self.element[slice]
+
+    def __setslice__(self, slice, value):
+        self.element[slice] = value
+
+    def __delslice(self, slice):
+        del self.element[slice]
+
     def apply(self, func, data=None, depth_first=False):
         if depth_first:
             r = []
