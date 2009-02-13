@@ -3,6 +3,8 @@ import util
 import signals
 import schema
 from schema import (
+    AllFalse,
+    AllTrue,
     Array,
     Boolean,
     Compound,

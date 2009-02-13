@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import re
 from collections import defaultdict
 
-from .base import FieldSchema, Element, Slot
+from .base import FieldSchema, Element, Slot, validate_element
 from .scalars import Scalar, _ScalarElement
 from flatland import util
 from flatland.util import Unspecified
@@ -20,17 +20,25 @@ class Container(FieldSchema):
     """Holds other schema items."""
 
     element_type = _ContainerElement
+    descent_validators = ()
+
+    def __init__(self, name, descent_validators=Unspecified, **kw):
+        super(Container, self).__init__(name, **kw)
+        if descent_validators is not Unspecified:
+            self.descent_validators = descent_validators
 
     def validate_element(self, element, state, descending):
         """Validates on the second, upward pass.
 
         See :meth:`FieldSchema.validate_element`.
         """
-        if not descending:
-            return FieldSchema.validate_element(self, element, state, descending)
+        if descending:
+            if self.descent_validators:
+                return validate_element(element, state, self.descent_validators)
+            else:
+                return None
         else:
-            return None
-
+            return validate_element(element, state, self.validators)
 
 def _argument_to_element(index):
     """Argument filter, transforms a positional argument to a Element.

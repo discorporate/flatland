@@ -79,15 +79,26 @@ def test_element_abstract():
 def test_element_validation():
     ok = lambda item, data: True
     not_ok = lambda item, data: False
+    none = lambda item, data: None
+    skip_ok = lambda item, data: base.AllTrue
+    skip_not_ok = lambda item, data: base.AllFalse
 
     for res, validators in ((True, (ok,)),
                             (True, (ok, ok)),
+                            (True, (skip_ok,)),
+                            (True, (skip_ok, not_ok)),
+                            (False, (none,)),
+                            (False, (ok, none)),
                             (False, (not_ok,)),
                             (False, (ok, not_ok,)),
-                            (False, (ok, not_ok, ok,))):
+                            (False, (ok, not_ok, ok,)),
+                            (False, (skip_not_ok,)),
+                            (False, (ok, skip_not_ok, ok))):
         s = base.FieldSchema(None, validators=validators)
         n = s.new()
-        assert bool(n.validate()) is res
+        valid = n.validate()
+        assert valid == res
+        assert bool(valid) is res
 
     element = None
     def got_element(item, data):
@@ -98,9 +109,10 @@ def test_element_validation():
     element.validate()
 
 def test_element_validator_return():
-    """Validator returns don't have to be actual bool() instances."""
+    """Validator returns can be bool, int or None."""
 
     class Bool(object):
+        """A truthy object that does not implement __and__"""
         def __init__(self, val):
             self.val = val
         def __nonzero__(self):
@@ -108,20 +120,27 @@ def test_element_validator_return():
 
     # mostly we care about allowing None for False
     true = lambda *a: True
+    alltrue = lambda *a: base.AllTrue
     one = lambda *a: 1
-    yes = lambda *a: Bool(True)
 
     false = lambda *a: False
+    allfalse = lambda *a: base.AllFalse
     zero = lambda *a: 0
     none = lambda *a: None
     no = lambda *a: Bool(False)
 
-    for validator in true, one, yes:
+    for validator in true, one, alltrue:
         s = base.FieldSchema(None, validators=(validator,))
         n = s.new()
         assert n.validate()
 
-    for validator in false, zero, none, no:
+    for validator in false, zero, none, allfalse:
         s = base.FieldSchema(None, validators=(validator,))
         n = s.new()
         assert not n.validate()
+
+    for validator in [no]:
+        s = base.FieldSchema(None, validators=(validator,))
+        n = s.new()
+        assert_raises(TypeError, n.validate)
+

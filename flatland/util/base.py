@@ -195,6 +195,12 @@ class Maybe(object):
 
 Maybe = Maybe()
 
+def named_int_factory(name, value):
+    class cls(int):
+        __str__ = __repr__ = lambda self: name
+    cls.__name__ = name
+    return cls(value)
+
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
 def format_argspec_plus(fn, grouped=True):
     """Returns a dictionary of formatted, introspected function arguments.

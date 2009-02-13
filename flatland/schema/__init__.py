@@ -1,12 +1,11 @@
 """Schema components."""
-from __future__ import absolute_import
-
-import flatland.schema.base
-import flatland.schema.scalars
-import flatland.schema.containers
-import flatland.schema.forms
-import flatland.schema.compound
-
+from .base import (
+    AllFalse,
+    AllTrue,
+    Element,
+    FieldSchema,
+    Slot,
+    )
 from .scalars import (
     Boolean,
     Date,

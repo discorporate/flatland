@@ -9,6 +9,7 @@ from . base import (
     keyslice_pairs,
     lazy_property,
     luhn10,
+    named_int_factory,
     re_ucompile,
     symbol,
     threading,

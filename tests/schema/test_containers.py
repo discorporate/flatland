@@ -1,6 +1,87 @@
 from flatland import schema, util
+from flatland.schema import base
 from flatland.util import Unspecified
 from tests._util import eq_, assert_raises
+
+
+def test_simple_validation_shortcircuit():
+    def boom(element, state):
+        assert False
+    skip_ok = lambda element, state: base.AllTrue
+    skip_bad = lambda element, state: base.AllFalse
+
+    el = schema.Dict('d', schema.Integer('i', validators=[boom]),
+                     validators=[skip_ok]).create_element()
+
+class TestContainerValidation(object):
+
+    def setup(self):
+        self.canary = []
+
+    def validator(self, name, result):
+        def fn(element, state):
+            self.canary.append(name)
+            return result
+        fn.__name__ = name
+        return fn
+
+    def test_regular(self):
+        s = schema.Dict('d', schema.Integer('i'),
+                        validators=[self.validator('1', True)])
+        assert not s.create_element().validate()
+        eq_(self.canary, ['1'])
+
+    def test_descent(self):
+        s = schema.Dict('d', schema.Integer('i'),
+                        descent_validators=[self.validator('1', True)])
+        assert not s.create_element().validate()
+        eq_(self.canary, ['1'])
+
+    def test_paired(self):
+        s = schema.Dict('d', schema.Integer('i'),
+                        descent_validators=[self.validator('1', True)],
+                        validators=[self.validator('2', True)])
+        assert not s.create_element().validate()
+        eq_(self.canary, ['1', '2'])
+
+    def test_paired2(self):
+        s = schema.Dict('d', schema.Integer('i'),
+                        descent_validators=[self.validator('1', False)],
+                        validators=[self.validator('2', True)])
+        assert not s.create_element().validate()
+        eq_(self.canary, ['1', '2'])
+
+    def test_paired3(self):
+        s = schema.Dict('d', schema.Integer('i', validators=[
+                               self.validator('2', True)]),
+                        descent_validators=[self.validator('1', True)],
+                        validators=[self.validator('3', True)])
+        assert s.create_element().validate()
+        eq_(self.canary, ['1', '2', '3'])
+
+    def test_shortcircuit_down_true(self):
+        s = schema.Dict('d', schema.Integer('i', validators=[
+                               self.validator('2', False)]),
+                        descent_validators=[self.validator('1', base.AllTrue)],
+                        validators=[self.validator('3', True)])
+        assert s.create_element().validate()
+        eq_(self.canary, ['1', '3'])
+
+    def test_shortcircuit_down_false(self):
+        s = schema.Dict('d', schema.Integer('i', validators=[
+                               self.validator('2', False)]),
+                        descent_validators=[self.validator('1', base.AllFalse)],
+                        validators=[self.validator('3', True)])
+        assert not s.create_element().validate()
+        eq_(self.canary, ['1', '3'])
+
+    def test_shortcircuit_up(self):
+        s = schema.Dict('d', schema.Integer('i', validators=[
+                               self.validator('2', True)]),
+                        descent_validators=[self.validator('1', True)],
+                        validators=[self.validator('3', base.AllTrue)])
+        assert s.create_element().validate()
+        eq_(self.canary, ['1', '2', '3'])
 
 
 def test_sequence():
