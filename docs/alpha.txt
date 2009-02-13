@@ -9,7 +9,7 @@ Pending Design Decisions
 
  - polymorhically comparable Elements, friend or foe (foe +1)
  - the Form sugar is still only roughed in; no inheritance yet.
- - push set() up to FieldSchema?
+ - push set() up to FieldSchema?  and set_default()?
 
 Also Considering
 ----------------
@@ -21,7 +21,7 @@ Also Considering
     - the .u on containers is close to json, except it currently spits
       out u'python' for strings (and the repr() of scalars, generally)
 
-  - events on set(), validation
+  - events on set()
 
 General Todos
 ~~~~~~~~~~~~~
