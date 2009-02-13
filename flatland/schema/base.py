@@ -6,12 +6,14 @@ import operator
 from flatland import signals, util
 from flatland.util import Unspecified
 
-
 __all__ = 'FieldSchema', 'Element'
 
 NoneType = type(None)
 Root = util.symbol('Root')
 NotEmpty = util.symbol('NotEmpty')
+AllTrue = util.named_int_factory('AllTrue', True)
+AllFalse = util.named_int_factory('AllFalse', False)
+
 xml = None
 
 class _BaseElement(object):
@@ -416,19 +418,36 @@ class Element(_BaseElement):
             return (self._validate(state, True) &
                     self._validate(state, False))
 
-        elements = [self] + list(self.all_children)
+        valid = True
+        elements, seen, queue = [], set(), collections.deque([self])
 
-        # validate down, and then back up
-        return (reduce(operator.and_, (e._validate(state, True)
-                                       for e in elements), True)
-                &
-                reduce(operator.and_, (e._validate(state, False)
-                                      for e in reversed(elements)), True))
+        # descend breadth first, skipping any branches that return All*
+        while queue:
+            element = queue.popleft()
+            if id(element) in seen:
+                continue
+            seen.add(id(element))
+            elements.append(element)
+            element_valid = element._validate(state, True)
+            if valid:
+                valid &= element_valid
+            if element_valid is AllTrue or element_valid is AllFalse:
+                continue
+            queue.extend(element.children)
+
+        # back up, visiting only the elements that weren't skipped above
+        for element in reversed(elements):
+             if valid:
+                 valid &= element._validate(state, False)
+             else:
+                 element._validate(state, False)
+
+        return valid
 
     def _validate(self, state, descending):
         """Run validation, transforming None into success. Internal."""
         res = self.schema.validate_element(self, state, descending)
-        return True if (res is None or res) else False
+        return True if res is None else res
 
     @property
     def x(self):
@@ -553,22 +572,7 @@ class FieldSchema(object):
          - Otherwise return True.
 
         """
-        if element.is_empty and self.optional:
-            return True
-        if not self.validators:
-            valid = not element.is_empty
-            if signals.validator_validated.receivers:
-                signals.validator_validated.send(
-                    NotEmpty, element=element, state=state, result=valid)
-            return valid
-        for fn in self.validators:
-            valid = fn(element, state)
-            if signals.validator_validated.receivers:
-                signals.validator_validated.send(
-                    fn, element=element, state=state, result=valid)
-            if not valid:
-                return False
-        return True
+        return validate_element(element, state, self.validators)
 
     def from_flat(self, pairs, **kw):
         """Return a new element with its value initialized from *pairs*.
@@ -641,3 +645,43 @@ class FieldSchema(object):
 
 class Slot(object):
     """Marks a semi-visible Element-holding Element, like the 0 in list[0]."""
+
+
+def validate_element(element, state, validators):
+    """Apply a set of validators to an element.
+
+    :param element: a `~flatland.Element`
+
+    :param state: may be None, an optional value of supplied to
+      ``element.validate``
+
+    :param validators: an iterable of validation functions
+
+    :return: a truth value
+
+    If validators is empty or otherwise false, a fallback validation
+    of ``not element.is_empty`` will be used.  Empty but optional
+    elements are considered valid.
+
+    Emits :class:`flatland.signals.validator_validated` after each
+    validator is tested.
+
+    """
+    if element.is_empty and element.schema.optional:
+        return True
+    if not validators:
+        valid = not element.is_empty
+        if signals.validator_validated.receivers:
+            signals.validator_validated.send(
+                NotEmpty, element=element, state=state, result=valid)
+        return valid
+    for fn in validators:
+        valid = fn(element, state)
+        if signals.validator_validated.receivers:
+            signals.validator_validated.send(
+                fn, element=element, state=state, result=valid)
+        if valid is None:
+            return False
+        elif not valid or valid is AllTrue:
+            return valid
+    return True
