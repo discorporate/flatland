@@ -66,7 +66,7 @@ class NANPnpa_nxx(Validator):
         if not valid:
             return self.note_error(err, state, 'invalid')
 
-        return true
+        return True
 
 
 class Luhn10(Validator):

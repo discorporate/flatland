@@ -1,7 +1,6 @@
 import functools
 import inspect
 import itertools
-import operator
 import re
 
 try:
