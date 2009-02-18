@@ -196,6 +196,10 @@ class Validator(object):
             single, plural, n_key = message
             try:
                 n = format_map[n_key]
+                try:
+                    n = int(n)
+                except TypeError:
+                    pass
             except KeyError:
                 n = n_key
 
