@@ -1,23 +1,17 @@
 # TODO: Temporal stripping
-
-from __future__ import absolute_import
-
 import datetime
 import re
-import xml.sax.saxutils
-
-from .base import FieldSchema, Element
+import flatland.exc as exc
 from flatland.util import (
     Unspecified,
     as_mapping,
     lazy_property,
     )
-import flatland.exc as exc
+from .base import FieldSchema, Element
 
 
 __all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean',
            'DateTime', 'Date', 'Time', 'Ref')
-
 
 class _ScalarElement(Element):
     flattenable = True
