@@ -2,7 +2,6 @@
 from base import Validator
 from scalars import (
     Converted,
-    HumanName,
     LengthBetween,
     LongerThan,
     MapEqual,
