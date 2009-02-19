@@ -313,6 +313,20 @@ class Boolean(Scalar):
         return self.true if value else self.false
 
 
+class _EnumElement(_StringElement):
+    _valid_options = None
+
+    def get_valid_options(self):
+        if self._valid_options is not None:
+            return self._valid_options
+        return self.schema.valid_options
+
+    def set_valid_options(self, valid_options):
+        self._valid_options = valid_options
+
+    valid_options = property(get_valid_options, set_valid_options)
+
+
 class Enum(String):
     """Field type for one choice out of multiple valid strings.
     
@@ -320,6 +334,7 @@ class Enum(String):
     for dynamic validation.
     
     """
+    element_type = _EnumElement
     valid_options = None
 
     def __init__(self, name, valid_options=(), **kw):
@@ -331,12 +346,8 @@ class Enum(String):
             return None
 
         is_valid = super(Enum, self).validate_element(element, state, descending)
-        if hasattr(element, 'valid_options'):
-            valid_options = element.valid_options
-        else:
-            valid_options = self.valid_options
 
-        validator = valid.ValueIn(valid_options)
+        validator = valid.ValueIn(element.valid_options)
         return is_valid and validator.validate(element, state)
 
 
