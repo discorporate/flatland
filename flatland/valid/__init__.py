@@ -8,8 +8,11 @@ from scalars import (
     NoLongerThan,
     Present,
     ShorterThan,
+    ValueIn,
     UnisEqual,
     ValuesEqual,
+    IsTrue,
+    IsFalse,
     )
 import string, number, urls
 
