@@ -12,3 +12,6 @@ docs/out
 docs/doctest
 bench
 *~
+bin
+include
+lib
