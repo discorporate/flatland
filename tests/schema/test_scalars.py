@@ -212,6 +212,24 @@ def test_enum_with_extra_validator():
     assert el.errors
 
 
+def test_enum_with_dynamic_option():
+    enum = schema.scalars.Enum('abcs', valid_options=('a', 'b', 'c'))
+    el = enum.new()
+    el.valid_options = ('a', 'b')
+
+    el.set('a')
+    assert el.validate()
+    assert not el.errors
+
+    el.set('b')
+    assert el.validate()
+    assert not el.errors
+
+    el.set('c')
+    assert not el.validate()
+    assert el.errors
+
+
 def test_date():
     t = datetime.date
     for spec in (
