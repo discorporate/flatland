@@ -31,6 +31,17 @@ def test_is_false():
     assert not v.validate(i, None)
     assert v.validate(z, None)
 
+def test_value_in():
+    v = scalars.ValueIn(('a', 'b', 'c'))
+
+    for good_val in ('a', 'b', 'c'):
+        s = scalar(good_val)
+        assert v.validate(s, None)
+
+    for bad_val in (None, 'x', -1):
+        s = scalar(bad_val)
+        assert not v.validate(s, None)
+
 def test_map_equal():
     v = scalars.MapEqual('x', 'y',
                          transform=lambda el: el.value.upper(),
