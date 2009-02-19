@@ -311,12 +311,6 @@ class _SlotElement(_ContainerElement, Slot):
     def __repr__(self):
         return u'<ListSlot[%s] for %r>' % (self.name, self.element)
 
-    def __eq__(self, other):
-        return self.element == other
-
-    def __ne__(self, other):
-        return self.element != other
-
     def __getitem__(self, index):
         return self.element[index]
 
