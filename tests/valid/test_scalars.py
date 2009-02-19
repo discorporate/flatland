@@ -14,6 +14,23 @@ def form(value):
 def scalar(value):
     return String('test').create_element(value=value)
 
+def integer_scalar(value):
+    return Integer('test').create_element(value=value)
+
+def test_is_true():
+    i = integer_scalar(1)
+    z = integer_scalar(0)
+    v = scalars.IsTrue()
+    assert v.validate(i, None)
+    assert not v.validate(z, None)
+
+def test_is_false():
+    i = integer_scalar(1)
+    z = integer_scalar(0)
+    v = scalars.IsFalse()
+    assert not v.validate(i, None)
+    assert v.validate(z, None)
+
 def test_map_equal():
     v = scalars.MapEqual('x', 'y',
                          transform=lambda el: el.value.upper(),

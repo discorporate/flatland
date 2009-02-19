@@ -12,6 +12,24 @@ class Present(Validator):
         return self.note_error(element, state, 'missing')
 
 
+class IsTrue(Validator):
+    false = u'%(label)s must be True.'
+
+    def validate(self, element, state):
+        if not bool(element.value):
+            return self.note_error(element, state, 'false')
+        return True
+
+
+class IsFalse(Validator):
+    true = u'%(label)s must be False.'
+
+    def validate(self, element, state):
+        if bool(element.value):
+            return self.note_error(element, state, 'true')
+        return True
+
+
 class Converted(Validator):
     correct = u'%(label)s is not correct.'
 
@@ -163,3 +181,4 @@ class UnisEqual(MapEqual):
     """
 
     transform = attrgetter('u')
+
