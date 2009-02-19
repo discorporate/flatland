@@ -314,21 +314,30 @@ class Boolean(Scalar):
 
 
 class Enum(String):
-    """Field type for one choice out of multiple valid strings."""
+    """Field type for one choice out of multiple valid strings.
+    
+    :valid_options: A sequence of valid strings. Can be defined on the element
+    for dynamic validation.
+    
+    """
     valid_options = None
-    _validators = ()
 
     def __init__(self, name, valid_options=(), **kw):
         super(Enum, self).__init__(name, **kw)
         self.valid_options = set(valid_options)
 
-    def get_validators(self):
-        return list(self._validators) + [valid.ValueIn(self.valid_options)]
+    def validate_element(self, element, state, descending):
+        if not descending:
+            return None
 
-    def set_validators(self, validators):
-        self._validators = validators
+        is_valid = super(Enum, self).validate_element(element, state, descending)
+        if hasattr(element, 'valid_options'):
+            valid_options = element.valid_options
+        else:
+            valid_options = self.valid_options
 
-    validators = property(get_validators, set_validators)
+        validator = valid.ValueIn(valid_options)
+        return is_valid and validator.validate(element, state)
 
 
 class Temporal(Scalar):
