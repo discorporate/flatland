@@ -30,6 +30,18 @@ class IsFalse(Validator):
         return True
 
 
+class ValueIn(Validator):
+    fail = u'%(value)s is not a valid value for %(label)s.'
+
+    def __init__(self, valid_options, **kw):
+        self.valid_options = valid_options
+
+    def validate(self, element, state):
+        if element.value not in self.valid_options:
+            return self.note_error(element, state, 'fail')
+        return True
+
+
 class Converted(Validator):
     correct = u'%(label)s is not correct.'
 
