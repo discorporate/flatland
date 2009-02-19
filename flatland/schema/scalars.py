@@ -14,7 +14,7 @@ from .base import FieldSchema, Element
 __all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean',
            'DateTime', 'Date', 'Time', 'Ref')
 
-class _ScalarElement(Element):
+class ScalarElement(Element):
     flattenable = True
 
     def __init__(self, schema, **kw):
@@ -107,7 +107,7 @@ class Scalar(FieldSchema):
 
     """
 
-    element_type = _ScalarElement
+    element_type = ScalarElement
 
     def adapt(self, element, value):
         """Given any value, try to coerce it into native format.
@@ -139,7 +139,7 @@ class Scalar(FieldSchema):
             return None
 
 
-class _StringElement(_ScalarElement):
+class StringElement(ScalarElement):
     """An Element type with string specific behavior."""
 
     @property
@@ -156,7 +156,7 @@ class String(Scalar):
                 during normalization.
 
     """
-    element_type = _StringElement
+    element_type = StringElement
 
     def __init__(self, name, strip=True, **kw):
         super(String, self).__init__(name, **kw)
@@ -313,7 +313,7 @@ class Boolean(Scalar):
         return self.true if value else self.false
 
 
-class _EnumElement(_StringElement):
+class EnumElement(StringElement):
     _valid_options = None
 
     def get_valid_options(self):
@@ -334,7 +334,7 @@ class Enum(String):
     for dynamic validation.
     
     """
-    element_type = _EnumElement
+    element_type = EnumElement
     valid_options = None
 
     def __init__(self, name, valid_options=(), **kw):
@@ -445,7 +445,7 @@ class Time(Temporal):
     used = ('hour', 'minute', 'second')
 
 
-class _RefElement(_ScalarElement):
+class RefElement(ScalarElement):
     flattenable = False
 
     @lazy_property
@@ -486,7 +486,7 @@ class _RefElement(_ScalarElement):
 class Ref(Scalar):
     """A functional reference to another element."""
 
-    element_type = _RefElement
+    element_type = RefElement
 
     def __init__(self, name, path, writable='ignore', sep='.', **kw):
         super(Ref, self).__init__(name, **kw)

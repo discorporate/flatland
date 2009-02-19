@@ -148,8 +148,8 @@ class Form(containers.Dict):
 
           user = User('squiznart')
 
-        :meth:`_DictElement.update_object` performs the inverse of
-        :meth:`from_object`, and :meth:`_DictElement.slice` is useful
+        :meth:`DictElement.update_object` performs the inverse of
+        :meth:`from_object`, and :meth:`DictElement.slice` is useful
         for constructing new objects.
 
         .. doctest::
