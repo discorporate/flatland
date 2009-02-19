@@ -215,6 +215,9 @@ def test_list_access():
     assert n[1] == elements[1]
     assert n[2] == elements[2]
 
+    assert n[0] == 10
+    assert not n[0] != 10
+
     assert n[:0] == elements[:0]
     assert n[:1] == elements[:1]
     assert n[0:5] == elements[0:5]

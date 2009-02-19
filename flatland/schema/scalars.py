@@ -78,42 +78,6 @@ class _ScalarElement(Element):
         if self.schema.default is not Unspecified:
             self.set(self.schema.default)
 
-    def __eq__(self, other):
-        """
-        Overloaded comparison: when comparing elements, compare name
-        and value. When comparing non-elements, coerce our value into
-        something comparable.
-        """
-
-        # ugh
-        if isinstance(self, _RefElement) and isinstance(other, Element):
-            return self.target is other
-        if ((type(self) is type(other)) or isinstance(other, _ScalarElement)):
-            if self.name == other.name:
-                if self.u == other.u:
-                    if self.value == other.value:
-                        return True
-            return False
-        elif isinstance(other, _RefElement):
-            if self.path == other.schema.path:
-                if self.u == other.u:
-                    if self.value == other.value:
-                        return True
-            return False
-        elif isinstance(other, Element):
-            return NotImplemented
-        else:
-            if isinstance(other, basestring):
-                if isinstance(self.value, basestring):
-                    return self.value == other
-                else:
-                    return self.u == other
-            else:
-                return self.value == other
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __nonzero__(self):
         return True if self.u and self.value else False
 
