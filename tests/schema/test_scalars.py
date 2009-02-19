@@ -1,5 +1,5 @@
 import datetime
-from flatland import schema
+from flatland import schema, valid
 from tests._util import eq_, assert_raises
 
 
@@ -177,6 +177,40 @@ def test_boolean():
 
     for bogus in u'abc', u'1.0', u'0.0', u'None':
         yield validate_element_set, schema.Boolean, bogus, None, u''
+
+
+def test_enum():
+    enum = schema.scalars.Enum('abcs', valid_options=('a', 'b', 'c'))
+    for good_val in ('a', 'b', 'c'):
+        el = enum.new()
+        el.set(good_val)
+        assert el.validate()
+        assert not el.errors
+
+    for bad_val in ('x', -1, 'ajsdfhlaksdjfhalksjdfal'):
+        el = enum.new()
+        el.set(bad_val)
+        assert not el.validate()
+        assert el.errors
+
+
+def test_enum_with_extra_validator():
+    enum = schema.scalars.Enum('abcs', valid_options=(None, '1'),
+        validators=[valid.IsTrue()])
+
+    el = enum.new()
+    el.set('1')
+    assert el.validate()
+    assert not el.errors
+
+    el.set(None)
+    assert not el.validate()
+    assert el.errors
+
+    el.set('2')
+    assert not el.validate()
+    assert el.errors
+
 
 def test_date():
     t = datetime.date

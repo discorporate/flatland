@@ -7,6 +7,7 @@ from flatland.util import (
     as_mapping,
     lazy_property,
     )
+from flatland import valid
 from .base import FieldSchema, Element
 
 
@@ -310,6 +311,25 @@ class Boolean(Scalar):
 
         """
         return self.true if value else self.false
+
+
+class Enum(String):
+    """Field type for one choice out of multiple valid strings."""
+    valid_options = None
+    _validators = ()
+
+    def __init__(self, name, valid_options=(), **kw):
+        super(Enum, self).__init__(name, **kw)
+        self.valid_options = set(valid_options)
+
+    def get_validators(self):
+        return list(self._validators) + [valid.ValueIn(self.valid_options)]
+
+    def set_validators(self, validators):
+        self._validators = validators
+
+    validators = property(get_validators, set_validators)
+
 
 class Temporal(Scalar):
     """Base for datetime-based date and time fields."""
