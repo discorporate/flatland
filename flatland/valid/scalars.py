@@ -163,8 +163,3 @@ class UnisEqual(MapEqual):
     """
 
     transform = attrgetter('u')
-
-
-class HumanName(Validator):
-    # \w but not [\d_]
-    pass
