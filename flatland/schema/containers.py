@@ -4,7 +4,7 @@ import re
 from collections import defaultdict
 
 from .base import FieldSchema, Element, Slot, validate_element
-from .scalars import Scalar, _ScalarElement
+from .scalars import Scalar, ScalarElement
 from flatland import util
 from flatland.util import Unspecified
 
@@ -12,14 +12,14 @@ from flatland.util import Unspecified
 __all__ = 'List', 'Array', 'Dict'
 
 
-class _ContainerElement(Element):
+class ContainerElement(Element):
     """Holds other elements."""
 
 
 class Container(FieldSchema):
     """Holds other schema items."""
 
-    element_type = _ContainerElement
+    element_type = ContainerElement
     descent_validators = ()
 
     def __init__(self, name, descent_validators=Unspecified, **kw):
@@ -56,7 +56,7 @@ def _argument_to_element(index):
     return transform
 
 
-class _SequenceElement(_ContainerElement, list):
+class SequenceElement(ContainerElement, list):
     def set(self, iterable):
         del self[:]
         self.extend(iterable)
@@ -105,7 +105,7 @@ class _SequenceElement(_ContainerElement, list):
     @property
     def u(self):
         return u'[%s]' % ', '.join(
-            element.u if isinstance(element, _ContainerElement)
+            element.u if isinstance(element, ContainerElement)
                     else repr(element.u)
             for element in self)
 
@@ -116,16 +116,16 @@ class _SequenceElement(_ContainerElement, list):
 class Sequence(Container):
     """Base of sequence-like Containers."""
 
-    element_type = _SequenceElement
+    element_type = SequenceElement
 
     def __init__(self, name, **kw):
         super(Sequence, self).__init__(name, **kw)
         self.spec = None
 
 
-class _ListElement(_SequenceElement):
+class ListElement(SequenceElement):
     def __init__(self, schema, parent=None, value=Unspecified):
-        _SequenceElement.__init__(self, schema, parent=parent)
+        SequenceElement.__init__(self, schema, parent=parent)
 
         if value is not Unspecified:
             self.extend(value)
@@ -281,11 +281,11 @@ class _ListElement(_SequenceElement):
     @property
     def u(self):
         return u'[%s]' % ', '.join(
-            value.u if isinstance(value.element, _ContainerElement)
+            value.u if isinstance(value.element, ContainerElement)
                     else repr(value.u)
             for value in self)
 
-class _SlotElement(_ContainerElement, Slot):
+class SlotElement(ContainerElement, Slot):
     schema = FieldSchema(None)
 
     def __init__(self, name, parent):
@@ -347,8 +347,8 @@ class _SlotElement(_ContainerElement, Slot):
 
 class List(Sequence):
     """An ordered, homogeneous Container."""
-    element_type = _ListElement
-    slot_type = _SlotElement
+    element_type = ListElement
+    slot_type = SlotElement
 
     def __init__(self, name, *schema, **kw):
         """
@@ -370,10 +370,10 @@ class List(Sequence):
             self.spec = schema[0]
 
 
-class _ArrayElement(_SequenceElement):
+class ArrayElement(SequenceElement):
 
     def __init__(self, schema, parent=None, value=Unspecified):
-        _SequenceElement.__init__(self, schema, parent=parent)
+        SequenceElement.__init__(self, schema, parent=parent)
         if value is not Unspecified:
             self.extend(value)
 
@@ -388,7 +388,7 @@ class _ArrayElement(_SequenceElement):
             self.extend(self.schema.default)
 
 
-class _MultiValueElement(_ArrayElement, _ScalarElement):
+class MultiValueElement(ArrayElement, ScalarElement):
     def u(self):
         """The .u of the first item in the sequence, or u''."""
         if not self:
@@ -434,7 +434,7 @@ class Array(Sequence):
 
     """
 
-    element_type = _ArrayElement
+    element_type = ArrayElement
 
     def __init__(self, array_of, **kw):
         assert isinstance(array_of, Scalar)
@@ -458,14 +458,14 @@ class MultiValue(Array, Scalar):
 
     """
 
-    element_type = _MultiValueElement
+    element_type = MultiValueElement
 
 
 class Mapping(Container):
     """Base of mapping-like Containers."""
 
 
-class _DictElement(_ContainerElement, dict):
+class DictElement(ContainerElement, dict):
     def __init__(self, schema, **kw):
         value = kw.pop('value', Unspecified)
         Element.__init__(self, schema, **kw)
@@ -609,7 +609,7 @@ class _DictElement(_ContainerElement, dict):
 
     @property
     def u(self):
-        pairs = ((key, value.u if isinstance(value, _ContainerElement)
+        pairs = ((key, value.u if isinstance(value, ContainerElement)
                                else repr(value.u))
                   for key, value in self.iteritems())
         return u'{%s}' % ', '.join("%r: %s" % (k, v) for k, v in pairs)
@@ -647,7 +647,7 @@ class _DictElement(_ContainerElement, dict):
 class Dict(Mapping):
     """A mapping Container with named members."""
 
-    element_type = _DictElement
+    element_type = DictElement
     policy = 'subset'
 
     def __init__(self, name, *specs, **kw):

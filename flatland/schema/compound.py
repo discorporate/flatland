@@ -6,7 +6,7 @@ from . import scalars, containers
 from flatland import exc
 
 
-class _CompoundElement(containers._DictElement, scalars._ScalarElement):
+class CompoundElement(containers.DictElement, scalars.ScalarElement):
 
     def u(self):
         uni, value = self.schema.compose(self)
@@ -32,11 +32,11 @@ class _CompoundElement(containers._DictElement, scalars._ScalarElement):
         self.schema.explode(self, value)
 
     def _set_flat(self, pairs, sep):
-        containers._DictElement._set_flat(self, pairs, sep)
+        containers.DictElement._set_flat(self, pairs, sep)
 
     def __repr__(self):
         try:
-            return scalars._ScalarElement.__repr__(self)
+            return scalars.ScalarElement.__repr__(self)
         except Exception, exc:
             return '<%s %r; value raised %s>' % (
                 type(self.schema).__name__, self.name, type(exc).__name__)
@@ -66,7 +66,7 @@ class Compound(containers.Mapping, scalars.Scalar):
 
     """
 
-    element_type = _CompoundElement
+    element_type = CompoundElement
 
     def __init__(self, name, *fields, **kw):
         super(Compound, self).__init__(name, **kw)
@@ -80,7 +80,7 @@ class Compound(containers.Mapping, scalars.Scalar):
     def compose(self, element):
         """Return a unicode, native tuple built from children's state.
 
-        :param element: a :class:`_CompoundElement`, a dict-like
+        :param element: a :class:`CompoundElement`, a dict-like
             element type.
         :returns: a 2-tuple of unicode representation, native value.
            These correspond to the :meth:`Scalar.serialize_element`
@@ -97,7 +97,7 @@ class Compound(containers.Mapping, scalars.Scalar):
     def explode(self, element, value):
         """Given a compound value, assign values to children.
 
-        :param element: a :class:`_CompoundElement`, a dict-like
+        :param element: a :class:`CompoundElement`, a dict-like
             element type.
         :param value: a value to be adapted and exploded
 
