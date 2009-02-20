@@ -21,6 +21,7 @@ from schema import (
     Ref,
     String,
     Time,
+    Enum,
     )
 import valid
 

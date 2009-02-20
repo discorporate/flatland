@@ -12,7 +12,7 @@ from .base import FieldSchema, Element
 
 
 __all__ = ('String', 'Integer', 'Long', 'Float', 'Boolean',
-           'DateTime', 'Date', 'Time', 'Ref')
+           'DateTime', 'Date', 'Time', 'Ref', 'Enum')
 
 class ScalarElement(Element):
     flattenable = True

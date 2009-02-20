@@ -15,7 +15,8 @@ from .scalars import (
     Long,
     Ref,
     String,
-    Time
+    Time,
+    Enum,
     )
 from .containers import (
     Array,
