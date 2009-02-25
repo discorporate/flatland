@@ -486,7 +486,8 @@ class Ref(Scalar):
 
     def __init__(self, name, path, writable='ignore', sep='.', **kw):
         super(Ref, self).__init__(name, **kw)
-        self.path = path
+
+        self.path = list(self.element_type._parse_element_path(path, sep))
         assert self.path is not None
 
         self.writable = writable
