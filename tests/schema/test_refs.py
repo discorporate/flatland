@@ -1,4 +1,5 @@
 import datetime
+import flatland
 from flatland import schema
 from tests._util import eq_, assert_raises
 
@@ -56,8 +57,22 @@ def test_ref_not_writable():
     n = s.new()
     assert_raises(TypeError, n['aux'].set, 6)
 
+def test_dereference_twice():
+    class RefForm(flatland.Form):
+        schema = [
+            schema.Integer('main', default=1),
+            schema.Ref('aux', 'main', writable=True),
+        ]
 
+    f = RefForm.from_defaults()
+    assert f.el('aux').value == 1
 
+    f.el('aux').set(10)
+    assert f.el('main').value == 10
 
+    f.set_flat({'aux': 15})
+    assert f.el('main').value == 15
 
-
+    # Previous versions would fail after two dereferences
+    f.el(f.el('aux').schema.path)
+    f.el(f.el('aux').schema.path)
