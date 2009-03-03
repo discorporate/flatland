@@ -272,6 +272,7 @@ def test_list_mutation():
 
     v = el.pop()
     assert v.value == 5
+    assert not v.parent
     order_ok()
 
     v = el.pop(0)
