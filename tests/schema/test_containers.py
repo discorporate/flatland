@@ -28,60 +28,85 @@ class TestContainerValidation(object):
     def test_regular(self):
         s = schema.Dict('d', schema.Integer('i'),
                         validators=[self.validator('1', True)])
-        assert not s.create_element().validate()
+        el = s.create_element()
+        assert not el.validate()
         eq_(self.canary, ['1'])
+        assert el.valid
+        assert not el.all_valid
 
     def test_descent(self):
         s = schema.Dict('d', schema.Integer('i'),
                         descent_validators=[self.validator('1', True)])
-        assert not s.create_element().validate()
+        el = s.create_element()
+        assert not el.validate()
         eq_(self.canary, ['1'])
+        assert el.valid
+        assert not el.all_valid
 
     def test_paired(self):
         s = schema.Dict('d', schema.Integer('i'),
                         descent_validators=[self.validator('1', True)],
                         validators=[self.validator('2', True)])
-        assert not s.create_element().validate()
+        el = s.create_element()
+        assert not el.validate()
         eq_(self.canary, ['1', '2'])
+        assert el.valid
+        assert not el.all_valid
 
     def test_paired2(self):
         s = schema.Dict('d', schema.Integer('i'),
                         descent_validators=[self.validator('1', False)],
                         validators=[self.validator('2', True)])
-        assert not s.create_element().validate()
+        el = s.create_element()
+        assert not el.validate()
         eq_(self.canary, ['1', '2'])
+        assert not el.valid
+        assert not el.all_valid
 
     def test_paired3(self):
         s = schema.Dict('d', schema.Integer('i', validators=[
                                self.validator('2', True)]),
                         descent_validators=[self.validator('1', True)],
                         validators=[self.validator('3', True)])
-        assert s.create_element().validate()
+        el = s.create_element()
+        assert el.validate()
         eq_(self.canary, ['1', '2', '3'])
+        assert el.valid
+        assert el.all_valid
 
     def test_shortcircuit_down_true(self):
         s = schema.Dict('d', schema.Integer('i', validators=[
                                self.validator('2', False)]),
                         descent_validators=[self.validator('1', base.AllTrue)],
                         validators=[self.validator('3', True)])
-        assert s.create_element().validate()
+        el = s.create_element()
+        assert el.validate()
         eq_(self.canary, ['1', '3'])
+        assert el.valid
+        assert el.all_valid
 
     def test_shortcircuit_down_false(self):
         s = schema.Dict('d', schema.Integer('i', validators=[
-                               self.validator('2', False)]),
+                               self.validator('2', True)]),
                         descent_validators=[self.validator('1', base.AllFalse)],
                         validators=[self.validator('3', True)])
-        assert not s.create_element().validate()
+        el = s.create_element()
+        assert not el.validate()
         eq_(self.canary, ['1', '3'])
+        assert not el.valid
+        assert not el.all_valid
+        assert el['i'].valid is schema.Unevaluated
 
     def test_shortcircuit_up(self):
         s = schema.Dict('d', schema.Integer('i', validators=[
                                self.validator('2', True)]),
                         descent_validators=[self.validator('1', True)],
                         validators=[self.validator('3', base.AllTrue)])
-        assert s.create_element().validate()
+        el = s.create_element()
+        assert el.validate()
         eq_(self.canary, ['1', '2', '3'])
+        assert el.valid
+        assert el.all_valid
 
 
 def test_sequence():
