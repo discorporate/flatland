@@ -1,12 +1,8 @@
-from __future__ import absolute_import
-
-import re
 from collections import defaultdict
-
+import re
+from flatland.util import Unspecified, keyslice_pairs, to_pairs
 from .base import FieldSchema, Element, Slot, validate_element
 from .scalars import Scalar, ScalarElement
-from flatland import util
-from flatland.util import Unspecified
 
 
 __all__ = 'List', 'Array', 'Dict'
@@ -491,7 +487,7 @@ class DictElement(ContainerElement, dict):
 
     def update(self, dictish=None, **kwargs):
         if dictish is not None:
-            for key, value in util.to_pairs(dictish):
+            for key, value in to_pairs(dictish):
                 self[key] = value
         for key, value in kwargs.iteritems():
             self[key] = value
@@ -525,7 +521,7 @@ class DictElement(ContainerElement, dict):
         return self.itervalues()
 
     def set(self, value, policy=None):
-        pairs = util.to_pairs(value)
+        pairs = to_pairs(value)
         self._reset()
 
         if policy is not None:
@@ -626,7 +622,7 @@ class DictElement(ContainerElement, dict):
     def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a new dict containing a subset of the element's values."""
         return dict(
-            util.keyslice_pairs(
+            keyslice_pairs(
                 ((key, element.value) for key, element in self.iteritems()),
                 include=include, omit=omit, rename=rename, key=key))
 

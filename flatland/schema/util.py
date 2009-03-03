@@ -1,5 +1,5 @@
-import itertools
 import __builtin__
+import itertools
 
 
 def element_ancestry(element):

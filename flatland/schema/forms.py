@@ -1,5 +1,5 @@
+from flatland.util import keyslice_pairs, to_pairs
 from . import containers
-from .. import util
 
 
 __all__ = 'Form',
@@ -163,7 +163,7 @@ class Form(containers.Dict):
 
         attributes = set(self.fields.iterkeys())
         if rename:
-            rename = list(util.to_pairs(rename))
+            rename = list(to_pairs(rename))
             attributes.update(key for key, value in rename
                                   if value in attributes)
         if omit:
@@ -174,8 +174,8 @@ class Form(containers.Dict):
                     for attr in attributes
                     if hasattr(obj, attr))
 
-        sliced = util.keyslice_pairs(possible, include=include,
-                                     omit=omit, rename=rename)
+        sliced = keyslice_pairs(possible, include=include,
+                                omit=omit, rename=rename)
         final = dict((key, value)
                      for key, value in sliced
                      if key in set(self.fields.iterkeys()))
