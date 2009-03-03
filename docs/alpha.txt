@@ -7,8 +7,7 @@ Alpha Status
 Pending Design Decisions
 ------------------------
 
- - polymorhically comparable Elements, friend or foe (foe +1)
- - the Form sugar is still only roughed in; no inheritance yet.
+- the Form sugar is still only roughed in; no inheritance yet.
  - push set() up to FieldSchema?  and set_default()?
 
 Also Considering

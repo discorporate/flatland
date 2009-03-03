@@ -9,20 +9,22 @@ def test_ref_binops():
                     schema.Integer('main'),
                     schema.Ref('aux', 'main'),
                     schema.Integer('other'))
-    n = s.new()
+    n = s.create_element()
     n['main'].set(5)
 
-    assert n['aux'] == u'5'
+    int_el = lambda v: schema.Integer('anon').create_element(value=v)
+
+    assert n['aux'] == int_el(5)
     assert n['aux'].value == 5
     assert n['aux'].u == u'5'
-    assert u'5' == n['aux']
+    assert int_el(5) == n['aux']
     assert 5 == n['aux'].value
     assert u'5' == n['aux'].u
 
-    assert n['aux'] != u'6'
+    assert n['aux'] != int_el(6)
     assert n['aux'].value != 6
     assert n['aux'].u != u'6'
-    assert u'6' != n['aux']
+    assert int_el(6) != n['aux']
     assert 6 != n['aux']
     assert u'6' != n['aux']
 
@@ -36,25 +38,25 @@ def test_ref_writable_ignore():
                     schema.Integer('main'),
                     schema.Ref('aux', 'main'))
 
-    n = s.new()
+    n = s.create_element()
     n['aux'] = 6
-    assert n['main'] == None
+    assert n['main'].value is None
 
 def test_ref_writable():
     s = schema.Dict('d',
                     schema.Integer('main'),
                     schema.Ref('aux', 'main', writable=True))
 
-    n = s.new()
+    n = s.create_element()
     n['aux'] = 6
-    assert n['main'] == 6
+    assert n['main'].value == 6
 
 def test_ref_not_writable():
     s = schema.Dict('d',
                     schema.Integer('main'),
                     schema.Ref('aux', 'main', writable=False))
 
-    n = s.new()
+    n = s.create_element()
     assert_raises(TypeError, n['aux'].set, 6)
 
 def test_dereference_twice():

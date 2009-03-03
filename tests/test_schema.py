@@ -5,10 +5,8 @@ import flatland.schema as schema
 def test_dict():
     s = schema.Dict('dict', schema.String('k1'), schema.String('k2'))
     el = s.create_element()
-
     assert s
     assert el
-
 
 def test_string_element():
     el1 = schema.String('item').create_element()
@@ -20,17 +18,14 @@ def test_string_element():
 
     assert el1.value == None
     assert el1.u == u''
-    assert el1 == None
     assert not el1
 
     assert el2.value == None
     assert el2.u == u''
-    assert el2 == None
     assert not el2
 
     assert el3.value == u''
     assert el3.u == u''
-    assert el3 == u''
     assert not el3
 
     assert el1 == el2
@@ -55,7 +50,6 @@ def test_string_element():
     el5.set(u'  ')
     assert el5.u == u'  '
     assert el5.value == u'  '
-
 
 def test_path():
     s = schema.Dict('root',

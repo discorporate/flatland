@@ -50,19 +50,10 @@ class Element(_BaseElement):
         self.warnings = []
 
     def __eq__(self, other):
-        """Generalized equality operator for elements.
-
-        When comparing with other elements, compare on value.
-        When comparing with other types, find a common representation.
-
-        """
-        if isinstance(other, Element):
-            return self.value == other.value
-        if isinstance(other, basestring):
-            if isinstance(self.value, basestring):
-                return self.value == other
-            return self.u == other
-        return self.value == other
+        try:
+            return self.value == other.value and self.u == other.u
+        except AttributeError:
+            return False
 
     def __ne__(self, other):
         return not self.__eq__(other)
