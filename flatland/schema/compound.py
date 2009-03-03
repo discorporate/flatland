@@ -117,29 +117,28 @@ class Compound(containers.Mapping, scalars.Scalar):
 
 
 class DateYYYYMMDD(Compound, scalars.Date):
-    def __init__(self, name, *specs, **kw):
-        assert len(specs) <= 3
-        specs = list(specs)
+    def __init__(self, name, *fields, **kw):
+        assert len(fields) <= 3
+        fields = list(fields)
         optional = kw.get('optional', False)
 
-        if len(specs) == 0:
-            specs.append(scalars.Integer('year', format=u'%04i',
-                optional=optional))
-        if len(specs) == 1:
-            specs.append(scalars.Integer('month', format=u'%02i',
-                optional=optional))
-        if len(specs) == 2:
-            specs.append(scalars.Integer('day', format=u'%02i',
-                optional=optional))
-
-        super(DateYYYYMMDD, self).__init__(name, *specs, **kw)
-        self.specs = specs
+        if len(fields) == 0:
+            fields.append(scalars.Integer('year', format=u'%04i',
+                                          optional=optional))
+        if len(fields) == 1:
+            fields.append(scalars.Integer('month', format=u'%02i',
+                                          optional=optional))
+        if len(fields) == 2:
+            fields.append(scalars.Integer('day', format=u'%02i',
+                                          optional=optional))
+        super(DateYYYYMMDD, self).__init__(name, *fields, **kw)
+        self.ordered_fields = fields
 
     def compose(self, element):
         try:
-            data = dict( [(label, element[spec.name].value)
-                          for label, spec
-                          in zip(self.used, self.specs)] )
+            data = dict( [(label, element[child_schema.name].value)
+                          for label, child_schema
+                          in zip(self.used, self.ordered_fields)] )
             as_str = self.format % data
             value = scalars.Date.adapt(self, element, as_str)
             return as_str, value
@@ -149,8 +148,8 @@ class DateYYYYMMDD(Compound, scalars.Date):
     def explode(self, element, value):
         try:
             value = scalars.Date.adapt(self, element, value)
-            for attrib, spec in zip(self.used, self.specs):
-                element[spec.name].set(getattr(value, attrib))
+            for attrib, child_schema in zip(self.used, self.ordered_fields):
+                element[child_schema.name].set(getattr(value, attrib))
         except (exc.AdaptationError, TypeError):
-            for spec in self.specs:
-                element[spec.name].set(None)
+            for child_schema in self.ordered_fields:
+                element[child_schema.name].set(None)

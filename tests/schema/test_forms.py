@@ -64,4 +64,4 @@ def test_composition():
     eq_(el.value, unset)
 
     el.set(wanted)
-    eq_(el, wanted)
+    eq_(el.value, wanted)

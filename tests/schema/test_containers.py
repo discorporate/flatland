@@ -93,48 +93,48 @@ def test_sequence():
 
 def test_list_linear_set_scalars():
     s = schema.List('l', schema.String('s'))
-    n = s.new()
+    el = s.create_element()
 
     pairs = list(('l_%s_s' % i, 'val%s' % i) for i in xrange(1, 10))
-    n.set_flat(pairs)
-    eq_(len(n), len(pairs))
-    eq_(n, list(pair[1] for pair in pairs))
+    el.set_flat(pairs)
+    eq_(len(el), len(pairs))
+    eq_(el.value, list(pair[1] for pair in pairs))
 
 def test_list_set_empty():
     s = schema.List('l', schema.String('s'))
-    n = s.new()
+    el = s.create_element()
 
     pairs = ((u'l_galump', u'foo'), (u'l_snorgle', u'bar'))
-    n.set_flat(pairs)
-    eq_(len(n), 0)
-    eq_(n, [])
+    el.set_flat(pairs)
+    eq_(len(el), 0)
+    eq_(el.value, [])
 
 def test_list_lossy_set_scalars():
     s = schema.List('l', schema.String('s'))
-    n = s.new()
+    el = s.create_element()
 
     pairs = list(('l_%s_s' % i, 'val%s' % i) for i in xrange(1, 10, 2))
-    n.set_flat(pairs)
+    el.set_flat(pairs)
 
-    eq_(len(n), len(pairs))
-    eq_(n, list(pair[1] for pair in pairs))
+    eq_(len(el), len(pairs))
+    eq_(el.value, list(pair[1] for pair in pairs))
 
     # lossy won't insert empty elements
-    eq_(n[1].value, pairs[1][1])
+    eq_(el[1].value, pairs[1][1])
 
 def test_list_linear_set_dict():
     s = schema.List('l', schema.String('x'), schema.String('y'))
-    n = s.new()
+    el = s.create_element()
 
     pairs = ((u'l_0_x', u'x0'), (u'l_0_y', u'y0'),
              (u'l_1_x', u'x1'), (u'l_1_y', u'y1'),
              (u'l_2_x', u'x2'), )
-    n.set_flat(pairs)
+    el.set_flat(pairs)
 
-    eq_(len(n), 3)
-    eq_(n[0], dict((k[-1], v) for k, v in pairs[0:2]))
-    eq_(n[1], dict((k[-1], v) for k, v in pairs[2:4]))
-    eq_(n[2], {u'x': u'x2', u'y': None})
+    eq_(len(el), 3)
+    eq_(el[0].value, dict((k[-1], v) for k, v in pairs[0:2]))
+    eq_(el[1].value, dict((k[-1], v) for k, v in pairs[2:4]))
+    eq_(el[2].value, {u'x': u'x2', u'y': None})
 
 def test_list_default():
     def factory(count):
@@ -174,170 +174,168 @@ def test_list_default():
 def test_list_set():
     def new_element(**kw):
         s = schema.List('l', schema.Integer('i'))
-        return s.new(**kw)
+        return s.create_element(**kw)
 
-    n = new_element()
-    assert list(n) == []
-    assert_raises(TypeError, n.set, 1)
-    assert_raises(TypeError, n.set, None)
+    el = new_element()
+    assert list(el) == []
+    assert_raises(TypeError, el.set, 1)
+    assert_raises(TypeError, el.set, None)
 
-    n = new_element()
-    n.set(range(3))
-    assert list(n) == [0, 1, 2]
+    el = new_element()
+    el.set(range(3))
+    assert el.value == [0, 1, 2]
 
-    n = new_element()
-    n.set(xrange(3))
-    assert list(n) == [0, 1, 2]
+    el = new_element()
+    el.set(xrange(3))
+    assert el.value == [0, 1, 2]
 
-    n = new_element(value=[0, 1, 2])
-    assert list(n) == [0, 1, 2]
+    el = new_element(value=[0, 1, 2])
+    assert el.value == [0, 1, 2]
 
-    n = new_element()
-    n.extend([1,2,3])
-    assert list(n) == [1, 2, 3]
-    n.set([4, 5, 6])
-    assert list(n) == [4, 5, 6]
-    n.set([])
-    assert list(n) == []
+    el = new_element()
+    el.extend([1, 2, 3])
+    assert el.value == [1, 2, 3]
+    el.set([4, 5, 6])
+    assert el.value == [4, 5, 6]
+    el.set([])
+    assert el.value == []
 
 def test_list_access():
     s = schema.List('l', schema.Integer('i'))
-    n = s.new()
+    el = s.create_element()
 
     pairs = ((u'l_0_i', u'10'), (u'l_1_i', u'11'), (u'l_2_i', u'12'),)
-    n.set_flat(pairs)
+    el.set_flat(pairs)
 
-    elements = list(schema.Integer('i').new(value=val)
+    elements = list(schema.Integer('i').create_element(value=val)
                  for val in (u'10', u'11', u'12'))
 
-    assert len(n) == 3
-    assert n[0] == elements[0]
-    assert n[1] == elements[1]
-    assert n[2] == elements[2]
+    assert len(el) == 3
+    assert el[0] == elements[0]
+    assert el[1] == elements[1]
+    assert el[2] == elements[2]
 
-    assert n[0] == 10
-    assert not n[0] != 10
+    assert el[0].value == 10
 
-    assert n[:0] == elements[:0]
-    assert n[:1] == elements[:1]
-    assert n[0:5] == elements[0:5]
-    assert n[-2:-1] == elements[-2:-1]
+    assert el[:0] == elements[:0]
+    assert el[:1] == elements[:1]
+    assert el[0:5] == elements[0:5]
+    assert el[-2:-1] == elements[-2:-1]
 
-    assert n[0] in n
-    assert elements[0] in n
-    assert u'10' in n
-    assert 10 in n
+    assert el[0] in el
+    assert elements[0] in el
+    assert u'10' in el
+    assert 10 in el
 
-    assert n.count(elements[0]) == 1
-    assert n.count(u'10') == 1
-    assert n.count(10) == 1
+    assert el.count(elements[0]) == 1
+    assert el.count(u'10') == 1
+    assert el.count(10) == 1
 
-    assert n.index(elements[0]) == 0
-    assert n.index(u'10') == 0
-    assert n.index(10) == 0
+    assert el.index(elements[0]) == 0
+    assert el.index(u'10') == 0
+    assert el.index(10) == 0
 
 def test_list_mutation():
     s = schema.List('l', schema.Integer('i'))
-    n = s.new()
+    el = s.create_element()
 
-    new_element = lambda val: schema.Integer('i').new(value=val)
+    new_element = lambda val: schema.Integer('i').create_element(value=val)
 
     def order_ok():
-        slot_names = list(_.name for _ in n._slots)
+        slot_names = list(_.name for _ in el._slots)
         for idx, name in enumerate(slot_names):
             assert name == unicode(idx)
 
-    assert not n
+    assert not el
     order_ok()
 
     # FIXME:? seems to want parsable data, not elements
-    n.append(new_element(u'0'))
-    assert n == [0]
+    el.append(new_element(u'0'))
+    assert el.value == [0]
     order_ok()
 
-    n.append(u'123')
-    assert n == [0, 123]
+    el.append(u'123')
+    assert el.value == [0, 123]
     order_ok()
 
-    n.extend([u'4', u'5'])
-    assert n == [0, 123, 4, 5]
+    el.extend([u'4', u'5'])
+    assert el.value == [0, 123, 4, 5]
     order_ok()
 
-    n[0] = u'3'
-    assert n == [3, 123, 4, 5]
+    el[0] = u'3'
+    assert el.value == [3, 123, 4, 5]
     order_ok()
 
-    n.insert(0, u'2')
-    assert n == [2, 3, 123, 4, 5]
+    el.insert(0, u'2')
+    assert el.value == [2, 3, 123, 4, 5]
     order_ok()
 
-    v = n.pop()
-    assert v == 5
-    assert v == u'5'
+    v = el.pop()
+    assert v.value == 5
     order_ok()
 
-    v = n.pop(0)
-    assert v == 2
-    assert n == [3, 123, 4]
+    v = el.pop(0)
+    assert v.value == 2
+    assert el.value == [3, 123, 4]
     order_ok()
 
-    n.remove(u'3')
-    assert n == [123, 4]
+    el.remove(u'3')
+    assert el.value == [123, 4]
     order_ok()
 
-    del n[:]
-    assert n == []
+    del el[:]
+    assert el.value == []
     order_ok()
 
 def test_list_mutate_slices():
     s = schema.List('l', schema.Integer('i'))
-    n = s.new()
+    el = s.create_element()
     canary = []
 
-    n.extend([u'3', u'4'])
+    el.extend([u'3', u'4'])
     canary.extend([3, 4])
 
-    n[0:1] = [u'1', u'2', u'3']
+    el[0:1] = [u'1', u'2', u'3']
     canary[0:1] = [1, 2, 3]
-    eq_(n, [1, 2, 3, 4])
+    eq_(el.value, [1, 2, 3, 4])
     eq_(canary, [1, 2, 3, 4])
 
-    del n[2:]
+    del el[2:]
     del canary[2:]
-    assert n == [1, 2]
+    assert el.value == [1, 2]
     assert canary == [1, 2]
 
 def test_list_unimplemented():
     s = schema.List('l', schema.Integer('i'))
-    n = s.new()
+    el = s.create_element()
 
-    assert_raises(TypeError, n.sort)
-    assert_raises(TypeError, n.reverse)
+    assert_raises(TypeError, el.sort)
+    assert_raises(TypeError, el.reverse)
 
 def test_list_slots():
     s = schema.List('l', schema.String('s'))
-    n = s.new(value=[u'x'])
+    n = s.create_element(value=[u'x'])
     for slot in n._slots:
         # don't really care what it says, just no crashy.
         assert repr(slot)
-        assert slot == u'x'
-        assert slot != u'y'
+        assert slot.value == u'x'
+        assert slot.value != u'y'
 
 def test_list_u():
     s = schema.List('l', schema.String('s'))
-    n = s.new()
+    n = s.create_element()
     n[:] = [u'x', u'x']
     eq_(n.u, u"[u'x', u'x']")
 
 def test_list_value():
     s = schema.List('l', schema.String('s'))
-    n = s.new()
+    n = s.create_element()
     n[:] = [u'x', u'x']
     eq_(n.value, [u'x', u'x'])
 
 def test_array_pruned_set_scalars():
     s = schema.Array(schema.String('s'))
-    n = s.new()
+    n = s.create_element()
 
     pairs = list((u's', u'val%s' % i if i %2 else u'')
                  for i in xrange(1, 10))
@@ -346,11 +344,10 @@ def test_array_pruned_set_scalars():
     actual_data = list(pair[1] for pair in pairs if pair[1])
     eq_(len(n), len(actual_data))
     eq_(n.value, actual_data)
-    eq_(n, actual_data)
 
 def test_array_unpruned_set_scalars():
     s = schema.Array(schema.String('s'), prune_empty=False)
-    n = s.new()
+    n = s.create_element()
 
     pairs = list((u's', u'val%s' % i if i %2 else u'')
                  for i in xrange(1, 10))
@@ -468,13 +465,12 @@ def test_multivalue_mutation():
 
 def test_array_el():
     s = schema.Array(schema.String('s'))
-    n = s.new()
+    n = s.create_element()
     n[:] = u'abc'
-    eq_(list(n), [u'a', u'b', u'c'])
+    eq_(list(n.value), [u'a', u'b', u'c'])
 
-    eq_(n.el('0'), u'a')
-    eq_(n.el('2'), u'c')
-
+    eq_(n.el('0').value, u'a')
+    eq_(n.el('2').value, u'c')
     assert_raises(KeyError, n.el, 'a')
 
 def test_dict():
@@ -482,7 +478,7 @@ def test_dict():
 
 def test_dict_immutable_keys():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.new()
+    n = s.create_element()
 
     assert_raises(TypeError, n.__setitem__, 'z', 123)
     assert_raises(TypeError, n.__delitem__, u'x')
@@ -496,13 +492,13 @@ def test_dict_immutable_keys():
 
 def test_dict_reads():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.new()
+    n = s.create_element()
 
     n[u'x'] = 10
     n[u'y'] = 20
 
-    eq_(n[u'x'], 10)
-    eq_(n[u'y'], 20)
+    eq_(n[u'x'].value, 10)
+    eq_(n[u'y'].value, 20)
 
     # the values are unhashable Elements, so this is a little painful
     assert set(n.keys()) == set(u'xy')
@@ -510,17 +506,17 @@ def test_dict_reads():
         set([(_[0], _[1].value) for _ in n.items()]))
     eq_(set([10, 20]), set([_.value for _ in n.values()]))
 
-    eq_(n.get(u'x'), 10)
+    eq_(n.get(u'x').value, 10)
     n[u'x'] = None
-    eq_(n.get(u'x'), None)
-    eq_(n.get(u'x', 'default is never used'), None)
+    eq_(n.get(u'x').value, None)
+    eq_(n.get(u'x', 'default is never used').value, None)
 
     assert_raises(KeyError, n.get, u'z')
     assert_raises(KeyError, n.get, u'z', 'even with a default')
 
 def test_dict_update():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.new()
+    n = s.create_element()
 
     def value_dict(element):
         return dict((k, v.value) for k, v in element.iteritems())
@@ -572,7 +568,7 @@ class DictSetTest(object):
     def new_element(self, schema=Unspecified, **kw):
         if schema is Unspecified:
             schema = self.new_schema()
-        return schema.new(**kw)
+        return schema.create_element(**kw)
 
     def test_empty_sets(self):
         wanted = {u'x': None, u'y': None}
@@ -683,7 +679,7 @@ class TestDefaultDictSet(DictSetTest):
 
 def test_dict_valid_policies():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.new()
+    n = s.create_element()
 
     assert_raises(AssertionError, n.set, {}, policy='bogus')
 
@@ -692,18 +688,18 @@ def test_dict_strict():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'),
                     policy='strict')
 
-    n = s.new()
+    n = s.create_element()
     n.set({u'x': 123, u'y': 456})
 
-    n = s.new()
+    n = s.create_element()
     assert_raises(TypeError, n.set, {u'x': 123})
 
-    n = s.new()
+    n = s.create_element()
     assert_raises(KeyError, n.set, {u'x': 123, u'y': 456, u'z': 7})
 
 def test_dict_as_unicode():
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.new()
+    n = s.create_element()
     n.set(dict(x=1, y=2))
 
     uni = n.u
@@ -721,7 +717,7 @@ def test_nested_dict_as_unicode():
 def test_dict_el():
     # stub
     s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.new()
+    n = s.create_element()
 
     assert n.el('x').name == u'x'
     assert_raises(KeyError, n.el, 'not_x')

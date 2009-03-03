@@ -40,52 +40,36 @@ class Container(FieldSchema):
         else:
             return validate_element(element, state, self.validators)
 
-def _argument_to_element(index):
-    """Argument filter, transforms a positional argument to a Element.
-
-    Index counts up from 0, not including self.
-
-    """
-    @util.decorator
-    def transform(fn, self, *args, **kw):
-        target = args[index]
-        if not isinstance(target, Element):
-            args = list(args)
-            args[index] = self.schema.spec.new(value=target)
-        return fn(self, *args, **kw)
-    return transform
-
 
 class SequenceElement(ContainerElement, list):
+
+    def __init__(self, schema, parent=None, value=Unspecified):
+        ContainerElement.__init__(self, schema, parent=parent)
+        if value is not Unspecified:
+            self.extend(value)
+
     def set(self, iterable):
         del self[:]
         self.extend(iterable)
 
-    @_argument_to_element(0)
-    def append(self, value):
-        list.append(self, value)
+    def set_default(self):
+        if self.schema.default:
+            del self[:]
+            self.extend(self.schema.default)
 
-    def extend(self, iterable):
-        for v in iterable:
-            self.append(v)
+    def _set_flat(self, pairs, sep):
+        raise NotImplementedError()
 
-    # the slice protocol really uglies this up
-    def __setitem__(self, index, value):
-        if isinstance(index, slice):
-            value = list(item if isinstance(item, Element)
-                         else self.schema.spec.new(value=item)
-                         for item in value)
-        else:
-            if not isinstance(value, Element):
-                value = self.schema.spec.new(value=value)
-        list.__setitem__(self, index, value)
+    def create_child_element(self, **kw):
+        return self.schema.child_schema.create_element(**kw)
 
-    def __setslice__(self, i, j, value):
-        self.__setitem__(slice(i, j), value)
+    @property
+    def children(self):
+        return iter(self)
 
-    @_argument_to_element(1)
-    def insert(self, index, value):
-        list.insert(self, index, value)
+    @property
+    def is_empty(self):
+        return not any(True for _ in self.children)
 
     def _index(self, name):
         try:
@@ -94,9 +78,52 @@ class SequenceElement(ContainerElement, list):
             raise IndexError(name)
         return self[idx]
 
-    @property
-    def children(self):
-        return iter(self)
+    def append(self, value):
+        if not isinstance(value, Element):
+            value = self.create_child_element(value=value)
+        list.append(self, value)
+
+    def extend(self, iterable):
+        for value in iterable:
+            self.append(value)
+
+    def insert(self, index, value):
+        if not isinstance(value, Element):
+            value = self.create_child_element(value=value)
+        list.insert(self, index, value)
+
+    def __setitem__(self, index, value):
+        if isinstance(index, slice):
+            value = [item if isinstance(item, Element)
+                          else self.create_child_element(value=item)
+                     for item in value]
+        else:
+            if not isinstance(value, Element):
+                value = self.create_child_element(value=value)
+        list.__setitem__(self, index, value)
+
+    def __setslice__(self, i, j, value):
+        self.__setitem__(slice(i, j), value)
+
+    def remove(self, value):
+        if not isinstance(value, Element):
+            value = self.create_child_element(value=value)
+        list.remove(self, value)
+
+    def index(self, value):
+        if not isinstance(value, Element):
+            value = self.create_child_element(value=value)
+        return list.index(self, value)
+
+    def count(self, value):
+        if not isinstance(value, Element):
+            value = self.create_child_element(value=value)
+        return list.count(self, value)
+
+    def __contains__(self, value):
+        if not isinstance(value, Element):
+            value = self.create_child_element(value=value)
+        return list.__contains__(self, value)
 
     @property
     def value(self):
@@ -106,12 +133,9 @@ class SequenceElement(ContainerElement, list):
     def u(self):
         return u'[%s]' % ', '.join(
             element.u if isinstance(element, ContainerElement)
-                    else repr(element.u)
+                      else repr(element.u)
             for element in self)
 
-    @property
-    def is_empty(self):
-        return not any(True for _ in self.children)
 
 class Sequence(Container):
     """Base of sequence-like Containers."""
@@ -121,26 +145,27 @@ class Sequence(Container):
     def __init__(self, name, **kw):
         super(Sequence, self).__init__(name, **kw)
         self.spec = None
+        self.child_schema = None
 
 
 class ListElement(SequenceElement):
-    def __init__(self, schema, parent=None, value=Unspecified):
-        SequenceElement.__init__(self, schema, parent=parent)
-
-        if value is not Unspecified:
-            self.extend(value)
 
     def _new_slot(self, value=Unspecified, **kw):
         wrapper = self.schema.slot_type(len(self), self)
-        if value is Unspecified:
-            member = self.schema.spec.new(parent=wrapper, **kw)
-        elif isinstance(value, Element):
-            member = value
-            member.parent=wrapper
+        if isinstance(value, Element):
+            value.parent = wrapper
         else:
-            member = self.schema.spec.new(parent=wrapper, value=value, **kw)
-        wrapper.element = member
+            value = self._new_member(value, parent=wrapper, **kw)
+        wrapper.element = value
         return wrapper
+
+    def _new_member(self, value=Unspecified, **kw):
+        if value is Unspecified:
+            return self.create_child_element(**kw)
+        elif isinstance(value, Element):
+            return value
+        else:
+            return self.create_child_element(value=value, **kw)
 
     @property
     def _slots(self):
@@ -179,9 +204,6 @@ class ListElement(SequenceElement):
         #for i in list.__iter__(self):
         #    yield i.element
 
-    # index, count, __contains__
-    # - handled by __eq__ proxy on Slot
-
     ## Reordering methods
     # Optimizing __delitem__ or pop when removing only the last item
     # doesn't seem worth it.
@@ -203,7 +225,7 @@ class ListElement(SequenceElement):
         self._renumber()
 
     def remove(self, value):
-        list.remove(self, value)
+        list.remove(self, self._new_member(value))
         self._renumber()
 
     def sort(self, *args, **kw):
@@ -293,12 +315,12 @@ class SlotElement(ContainerElement, Slot):
         self.parent = parent
         self.element = None
 
-    def _set_name(self, name):
+    def name(self, name):
         if isinstance(name, int):
             name = unicode(name)
         self._name = name
 
-    name = property(lambda self: self._name, _set_name)
+    name = property(lambda self: self._name, name)
 
     @property
     def u(self):
@@ -365,27 +387,18 @@ class List(Sequence):
         if not len(schema):
             raise TypeError
         elif len(schema) > 1:
-            self.spec = Dict(None, *schema)
+            self.child_schema = Dict(None, *schema)
         else:
-            self.spec = schema[0]
+            self.child_schema = schema[0]
+        self.spec = self.child_schema
 
 
 class ArrayElement(SequenceElement):
-
-    def __init__(self, schema, parent=None, value=Unspecified):
-        SequenceElement.__init__(self, schema, parent=parent)
-        if value is not Unspecified:
-            self.extend(value)
 
     def _set_flat(self, pairs, sep):
         prune = self.schema.prune_empty
         self.set(value for key, value in pairs
                  if key == self.name and not prune or value != u'')
-
-    def set_default(self):
-        if self.schema.default:
-            del self[:]
-            self.extend(self.schema.default)
 
 
 class MultiValueElement(ArrayElement, ScalarElement):
@@ -441,6 +454,7 @@ class Array(Sequence):
         self.prune_empty = kw.pop('prune_empty', True)
         super(Array, self).__init__(array_of.name, **kw)
         self.spec = array_of
+        self.child_schema = array_of
 
 
 class MultiValue(Array, Scalar):
@@ -491,8 +505,8 @@ class DictElement(ContainerElement, dict):
 
     def _reset(self):
         """Set all child elements to their defaults."""
-        for key, spec in self.schema.fields.items():
-            dict.__setitem__(self, key, spec.new(parent=self))
+        for key, child_schema in self.schema.fields.items():
+            dict.__setitem__(self, key, child_schema.new(parent=self))
 
     def popitem(self):
         raise TypeError('Dict keys are immutable.')
@@ -650,16 +664,16 @@ class Dict(Mapping):
     element_type = DictElement
     policy = 'subset'
 
-    def __init__(self, name, *specs, **kw):
-        if not specs:
-            raise TypeError()
+    def __init__(self, name, *fields, **kw):
+        if not fields:
+            raise TypeError("One or more child schema required.")
 
         policy = kw.pop('policy', Unspecified)
 
         Mapping.__init__(self, name, **kw)
         self.fields = {}
-        for spec in specs:
-            self.fields[spec.name] = spec
+        for child_schema in fields:
+            self.fields[child_schema.name] = child_schema
 
         if policy is not Unspecified:
             self.policy = policy
