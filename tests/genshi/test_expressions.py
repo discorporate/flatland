@@ -87,7 +87,7 @@ val1
 :: test
 ${form.field3}
 :: eq
-&lt;ListSlot[0] for &lt;String u'field4'; value=u'val3'&gt;&gt;
+val3
 :: endtest
 
 :: test

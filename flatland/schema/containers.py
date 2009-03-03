@@ -127,14 +127,14 @@ class SequenceElement(ContainerElement, list):
 
     @property
     def value(self):
-        return list(value.value for value in self)
+        return list(value.value for value in self.children)
 
     @property
     def u(self):
         return u'[%s]' % ', '.join(
             element.u if isinstance(element, ContainerElement)
                       else repr(element.u)
-            for element in self)
+            for element in self.children)
 
 
 class Sequence(Container):
@@ -199,9 +199,8 @@ class ListElement(SequenceElement):
         return self.__setitem__(slice(i, j), sequence)
 
     def __iter__(self):
-        return list.__iter__(self)
-        #for i in list.__iter__(self):
-        #    yield i.element
+        for i in list.__iter__(self):
+            yield i.element
 
     ## Reordering methods
     # Optimizing __delitem__ or pop when removing only the last item
@@ -233,7 +232,7 @@ class ListElement(SequenceElement):
     reverse = sort
 
     def _renumber(self):
-        for idx, element in enumerate(self):
+        for idx, element in enumerate(self._slots):
             element.name = idx
 
     def apply(self, func, data=None, depth_first=False):
@@ -253,7 +252,7 @@ class ListElement(SequenceElement):
 
     @property
     def children(self):
-        return iter(child.element for child in self)
+        return iter(child.element for child in self._slots)
 
     def _set_flat(self, pairs, sep):
         del self[:]
@@ -300,12 +299,6 @@ class ListElement(SequenceElement):
                 list.append(self, el)
                 el.set_default()
 
-    @property
-    def u(self):
-        return u'[%s]' % ', '.join(
-            value.u if isinstance(value.element, ContainerElement)
-                    else repr(value.u)
-            for value in self)
 
 class SlotElement(ContainerElement, Slot):
     schema = FieldSchema(None)
@@ -331,25 +324,7 @@ class SlotElement(ContainerElement, Slot):
         return self.element.value
 
     def __repr__(self):
-        return u'<ListSlot[%s] for %r>' % (self.name, self.element)
-
-    def __getitem__(self, index):
-        return self.element[index]
-
-    def __setitem__(self, index, value):
-        self.element[index] = value
-
-    def __delitem__(self, index):
-        del self.element[index]
-
-    def __getslice__(self, slice):
-        return self.element[slice]
-
-    def __setslice__(self, slice, value):
-        self.element[slice] = value
-
-    def __delslice(self, slice):
-        del self.element[slice]
+        return u'<SlotElement[%s] for %r>' % (self.name, self.element)
 
     def apply(self, func, data=None, depth_first=False):
         if depth_first:
