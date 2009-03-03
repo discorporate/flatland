@@ -144,7 +144,6 @@ class Sequence(Container):
 
     def __init__(self, name, **kw):
         super(Sequence, self).__init__(name, **kw)
-        self.spec = None
         self.child_schema = None
 
 
@@ -390,7 +389,6 @@ class List(Sequence):
             self.child_schema = Dict(None, *schema)
         else:
             self.child_schema = schema[0]
-        self.spec = self.child_schema
 
 
 class ArrayElement(SequenceElement):
@@ -453,7 +451,6 @@ class Array(Sequence):
         assert isinstance(array_of, Scalar)
         self.prune_empty = kw.pop('prune_empty', True)
         super(Array, self).__init__(array_of.name, **kw)
-        self.spec = array_of
         self.child_schema = array_of
 
 
