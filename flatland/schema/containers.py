@@ -217,6 +217,7 @@ class ListElement(SequenceElement):
     def pop(self, index=-1):
         value = list.pop(self, index)
         self._renumber()
+        value.parent = None
         return value
 
     def insert(self, index, value):
