@@ -13,6 +13,7 @@ Root = symbol('Root')
 NotEmpty = symbol('NotEmpty')
 AllTrue = named_int_factory('AllTrue', True)
 AllFalse = named_int_factory('AllFalse', False)
+Unevaluated = named_int_factory('Unevaluated', True)
 
 xml = None
 
@@ -21,7 +22,7 @@ class _BaseElement(object):
 
 
 class Element(_BaseElement):
-    """TODO
+    """A data node that stores a Python and a text value plus added state.
 
     :param schema: the :class:`FieldSchema` that defined the element.
 
@@ -46,6 +47,7 @@ class Element(_BaseElement):
         self.schema = schema
         self.parent = parent
 
+        self.valid = Unevaluated
         self.errors = []
         self.warnings = []
 
@@ -67,6 +69,21 @@ class Element(_BaseElement):
     def label(self):
         """The element's label."""
         return self.schema.label
+
+    def _get_all_valid(self):
+        """True if this element and all children are valid."""
+        if not self.valid:
+            return False
+        for element in self.all_children:
+            if not element.valid:
+                return False
+        return True
+    def _set_all_valid(self, value):
+        self.valid = value
+        for element in self.all_children:
+            element.valid = value
+    all_valid = property(_get_all_valid, _set_all_valid)
+    del _get_all_valid, _set_all_valid
 
     @property
     def root(self):
@@ -437,21 +454,22 @@ class Element(_BaseElement):
                 continue
             seen.add(id(element))
             elements.append(element)
-            element_valid = element._validate(state, True)
+            validated = element._validate(state, True)
+            element.valid = bool(validated)
             if valid:
-                valid &= element_valid
-            if element_valid is AllTrue or element_valid is AllFalse:
+                valid &= validated
+            if validated is AllTrue or validated is AllFalse:
                 continue
             queue.extend(element.children)
 
         # back up, visiting only the elements that weren't skipped above
         for element in reversed(elements):
-             if valid:
-                 valid &= element._validate(state, False)
-             else:
-                 element._validate(state, False)
-
-        return valid
+            validated = element._validate(state, False)
+            if element.valid:
+                element.valid = bool(validated)
+            if valid:
+                valid &= validated
+        return bool(valid)
 
     def _validate(self, state, descending):
         """Run validation, transforming None into success. Internal."""

@@ -95,10 +95,12 @@ def test_element_validation():
                             (False, (skip_not_ok,)),
                             (False, (ok, skip_not_ok, ok))):
         s = base.FieldSchema(None, validators=validators)
-        n = s.new()
-        valid = n.validate()
+        el = s.create_element()
+        valid = el.validate()
         assert valid == res
         assert bool(valid) is res
+        assert el.valid is res
+        assert el.all_valid is res
 
     element = None
     def got_element(item, data):

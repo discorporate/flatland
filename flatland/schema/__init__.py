@@ -5,6 +5,7 @@ from .base import (
     Element,
     FieldSchema,
     Slot,
+    Unevaluated,
     )
 from .scalars import (
     Boolean,
