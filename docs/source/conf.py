@@ -18,7 +18,7 @@ from os import path
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 
-sys.path.append(path.abspath(path.dirname(__file__) + "../../"))
+sys.path.append(path.abspath(path.dirname(__file__) + "../../../"))
 
 # General configuration
 # ---------------------
