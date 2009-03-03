@@ -80,20 +80,24 @@ def test_element_validation():
     ok = lambda item, data: True
     not_ok = lambda item, data: False
     none = lambda item, data: None
-    skip_ok = lambda item, data: base.AllTrue
-    skip_not_ok = lambda item, data: base.AllFalse
+    skip = lambda item, data: base.Skip
+    all_ok = lambda item, data: base.SkipAll
+    all_not_ok = lambda item, data: base.SkipAllFalse
 
     for res, validators in ((True, (ok,)),
                             (True, (ok, ok)),
-                            (True, (skip_ok,)),
-                            (True, (skip_ok, not_ok)),
+                            (True, (skip,)),
+                            (True, (skip, not_ok)),
+                            (True, (ok, skip, not_ok)),
+                            (True, (all_ok,)),
+                            (True, (all_ok, not_ok)),
                             (False, (none,)),
                             (False, (ok, none)),
                             (False, (not_ok,)),
                             (False, (ok, not_ok,)),
                             (False, (ok, not_ok, ok,)),
-                            (False, (skip_not_ok,)),
-                            (False, (ok, skip_not_ok, ok))):
+                            (False, (all_not_ok,)),
+                            (False, (ok, all_not_ok, ok))):
         s = base.FieldSchema(None, validators=validators)
         el = s.create_element()
         valid = el.validate()
@@ -122,21 +126,22 @@ def test_element_validator_return():
 
     # mostly we care about allowing None for False
     true = lambda *a: True
-    alltrue = lambda *a: base.AllTrue
+    skip = lambda *a: base.Skip
+    skipall = lambda *a: base.SkipAll
     one = lambda *a: 1
 
     false = lambda *a: False
-    allfalse = lambda *a: base.AllFalse
+    skipallfalse = lambda *a: base.SkipAllFalse
     zero = lambda *a: 0
     none = lambda *a: None
     no = lambda *a: Bool(False)
 
-    for validator in true, one, alltrue:
+    for validator in true, one, skip, skipall:
         s = base.FieldSchema(None, validators=(validator,))
         n = s.new()
         assert n.validate()
 
-    for validator in false, zero, none, allfalse:
+    for validator in false, zero, none, skipallfalse:
         s = base.FieldSchema(None, validators=(validator,))
         n = s.new()
         assert not n.validate()
