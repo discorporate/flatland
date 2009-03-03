@@ -11,9 +11,26 @@ __all__ = 'FieldSchema', 'Element'
 NoneType = type(None)
 Root = symbol('Root')
 NotEmpty = symbol('NotEmpty')
-AllTrue = named_int_factory('AllTrue', True)
-AllFalse = named_int_factory('AllFalse', False)
-Unevaluated = named_int_factory('Unevaluated', True)
+AllTrue = named_int_factory('AllTrue', True, doc="""\
+Aborts validation of the element and its children & mark as valid.
+
+The :attr:`~Element.valid` of child elements will not be changed by skipping.
+Unless otherwise set, the child elements will retain the default value
+(:obj:`Unevaluated`).
+""")
+AllFalse = named_int_factory('AllFalse', False, doc="""\
+Aborts validation of the element and its children & mark as invalid.
+
+The :attr:`~Element.valid` of child elements will not be changed by skipping.
+Unless otherwise set, the child elements will retain the default value
+(:obj:`Unevaluated`).
+""")
+Unevaluated = named_int_factory('Unevaluated', True, doc="""\
+A psuedo-boolean representing a presumptively valid state.
+
+Assigned to newly created elements that have never been evaluated by
+:meth:`Element.validate`.  Evaluates to true.
+""")
 
 xml = None
 
