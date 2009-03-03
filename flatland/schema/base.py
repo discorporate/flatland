@@ -2,17 +2,17 @@
 import collections
 import itertools
 import operator
+from flatland.signals import validator_validated
+from flatland.util import Unspecified, named_int_factory, symbol
 
-from flatland import signals, util
-from flatland.util import Unspecified
 
 __all__ = 'FieldSchema', 'Element'
 
 NoneType = type(None)
-Root = util.symbol('Root')
-NotEmpty = util.symbol('NotEmpty')
-AllTrue = util.named_int_factory('AllTrue', True)
-AllFalse = util.named_int_factory('AllFalse', False)
+Root = symbol('Root')
+NotEmpty = symbol('NotEmpty')
+AllTrue = named_int_factory('AllTrue', True)
+AllFalse = named_int_factory('AllFalse', False)
 
 xml = None
 
@@ -680,14 +680,14 @@ def validate_element(element, state, validators):
         return True
     if not validators:
         valid = not element.is_empty
-        if signals.validator_validated.receivers:
-            signals.validator_validated.send(
+        if validator_validated.receivers:
+            validator_validated.send(
                 NotEmpty, element=element, state=state, result=valid)
         return valid
     for fn in validators:
         valid = fn(element, state)
-        if signals.validator_validated.receivers:
-            signals.validator_validated.send(
+        if validator_validated.receivers:
+            validator_validated.send(
                 fn, element=element, state=state, result=valid)
         if valid is None:
             return False

@@ -1,9 +1,6 @@
-from __future__ import absolute_import
-
 import operator
-
+from flatland.exc import AdaptationError
 from . import scalars, containers
-from flatland import exc
 
 
 class CompoundElement(containers.DictElement, scalars.ScalarElement):
@@ -142,7 +139,7 @@ class DateYYYYMMDD(Compound, scalars.Date):
             as_str = self.format % data
             value = scalars.Date.adapt(self, element, as_str)
             return as_str, value
-        except (exc.AdaptationError, TypeError):
+        except (AdaptationError, TypeError):
             return u'', None
 
     def explode(self, element, value):
@@ -150,6 +147,6 @@ class DateYYYYMMDD(Compound, scalars.Date):
             value = scalars.Date.adapt(self, element, value)
             for attrib, child_schema in zip(self.used, self.ordered_fields):
                 element[child_schema.name].set(getattr(value, attrib))
-        except (exc.AdaptationError, TypeError):
+        except (AdaptationError, TypeError):
             for child_schema in self.ordered_fields:
                 element[child_schema.name].set(None)

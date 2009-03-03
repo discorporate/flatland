@@ -1,13 +1,9 @@
 # TODO: Temporal stripping
 import datetime
 import re
-import flatland.exc as exc
-from flatland.util import (
-    Unspecified,
-    as_mapping,
-    lazy_property,
-    )
 from flatland import valid
+from flatland.exc import AdaptationError
+from flatland.util import Unspecified, as_mapping, lazy_property
 from .base import FieldSchema, Element
 
 
@@ -45,7 +41,7 @@ class ScalarElement(Element):
         try:
             # adapt and normalize the value, if possible
             value = self.value = self.schema.adapt(self, value)
-        except exc.AdaptationError:
+        except AdaptationError:
             self.value = None
             if value is None:
                 self.u = u''
@@ -228,11 +224,11 @@ class Number(Scalar):
         try:
             native = self.type_(value)
         except (ValueError, TypeError):
-            raise exc.AdaptationError()
+            raise AdaptationError()
         else:
             if not self.signed:
                 if native < 0:
-                    raise exc.AdaptationError()
+                    raise AdaptationError()
             return native
 
     def serialize(self, element, value):
@@ -329,10 +325,10 @@ class EnumElement(StringElement):
 
 class Enum(String):
     """Field type for one choice out of multiple valid strings.
-    
-    :valid_options: A sequence of valid strings. Can be defined on the element
-    for dynamic validation.
-    
+
+    :param valid_options: A sequence of valid strings. Can be defined
+      on the element for dynamic validation.
+
     """
     element_type = EnumElement
     valid_options = None
@@ -378,14 +374,14 @@ class Temporal(Scalar):
                 value = value.strip()
             match = self.regex.match(value)
             if not match:
-                raise exc.AdaptationError()
+                raise AdaptationError()
             try:
                 args = [int(match.group(f)) for f in self.used]
                 return self.type_(*args)
             except (TypeError, ValueError), ex:
-                raise exc.AdaptationError()
+                raise AdaptationError()
         else:
-            raise exc.AdaptationError()
+            raise AdaptationError()
 
     def serialize(self, element, value):
         """Serializes value to string.
