@@ -57,6 +57,12 @@ class TestDoubleField(object):
         assert_values_(e, (1, 2), 1, 2)
         assert_us_(e, u'1x2', u'1', u'2')
 
+    def test_flatten(self):
+        s = self.Double('s')
+        e = s.create_element(value='1x2')
+        eq_(set(e.flatten()),
+            set([(u's', u''), (u's_y', u''), (u's_x', u'')]))
+
     def test_set(self):
         s = self.Double('s')
 

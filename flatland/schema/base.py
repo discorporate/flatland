@@ -366,7 +366,7 @@ class Element(_BaseElement):
 
         """
         if self.flattenable:
-            pairs = [self.flattened_name(sep), value(self)]
+            pairs = [(self.flattened_name(sep), value(self))]
         else:
             pairs = []
         pairs.extend((e.flattened_name(sep), value(e))
