@@ -89,7 +89,7 @@ def test_sequence():
                   schema.String('a'))
 
     s = schema.containers.Sequence('s')
-    assert hasattr(s, 'spec')
+    assert hasattr(s, 'child_schema')
 
 def test_list_linear_set_scalars():
     s = schema.List('l', schema.String('s'))
