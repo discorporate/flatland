@@ -11,19 +11,24 @@ __all__ = 'FieldSchema', 'Element'
 NoneType = type(None)
 Root = symbol('Root')
 NotEmpty = symbol('NotEmpty')
-AllTrue = named_int_factory('AllTrue', True, doc="""\
-Aborts validation of the element and its children & mark as valid.
+Skip = named_int_factory('Skip', True, doc="""\
+Abort validation of the element & mark as valid.
+""")
+SkipAll = named_int_factory('SkipAll', True, doc="""\
+Abort validation of the element and its children & mark as valid.
 
 The :attr:`~Element.valid` of child elements will not be changed by skipping.
 Unless otherwise set, the child elements will retain the default value
-(:obj:`Unevaluated`).
+(:obj:`Unevaluated`).  Only meaningful during a decent validation.  Functions
+as :obj:`Skip` on upward validation.
 """)
-AllFalse = named_int_factory('AllFalse', False, doc="""\
+SkipAllFalse = named_int_factory('SkipAllFalse', False, doc="""\
 Aborts validation of the element and its children & mark as invalid.
 
 The :attr:`~Element.valid` of child elements will not be changed by skipping.
 Unless otherwise set, the child elements will retain the default value
-(:obj:`Unevaluated`).
+(:obj:`Unevaluated`). Only meaningful during a decent validation.  Functions
+as ``False`` on upward validation.
 """)
 Unevaluated = named_int_factory('Unevaluated', True, doc="""\
 A psuedo-boolean representing a presumptively valid state.
@@ -471,7 +476,7 @@ class Element(_BaseElement):
             element.valid = bool(validated)
             if valid:
                 valid &= validated
-            if validated is AllTrue or validated is AllFalse:
+            if validated is SkipAll or validated is SkipAllFalse:
                 continue
             queue.extend(element.children)
 
@@ -722,6 +727,8 @@ def validate_element(element, state, validators):
                 fn, element=element, state=state, result=valid)
         if valid is None:
             return False
-        elif not valid or valid is AllTrue:
+        elif valid is Skip:
+            return True
+        elif not valid or valid is SkipAll:
             return valid
     return True

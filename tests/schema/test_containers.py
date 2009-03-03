@@ -7,11 +7,10 @@ from tests._util import eq_, assert_raises
 def test_simple_validation_shortcircuit():
     def boom(element, state):
         assert False
-    skip_ok = lambda element, state: base.AllTrue
-    skip_bad = lambda element, state: base.AllFalse
+    all_ok = lambda element, state: base.SkipAll
 
     el = schema.Dict('d', schema.Integer('i', validators=[boom]),
-                     validators=[skip_ok]).create_element()
+                     validators=[all_ok]).create_element()
 
 class TestContainerValidation(object):
 
@@ -77,7 +76,7 @@ class TestContainerValidation(object):
     def test_shortcircuit_down_true(self):
         s = schema.Dict('d', schema.Integer('i', validators=[
                                self.validator('2', False)]),
-                        descent_validators=[self.validator('1', base.AllTrue)],
+                        descent_validators=[self.validator('1', base.SkipAll)],
                         validators=[self.validator('3', True)])
         el = s.create_element()
         assert el.validate()
@@ -88,7 +87,8 @@ class TestContainerValidation(object):
     def test_shortcircuit_down_false(self):
         s = schema.Dict('d', schema.Integer('i', validators=[
                                self.validator('2', True)]),
-                        descent_validators=[self.validator('1', base.AllFalse)],
+                        descent_validators=[
+                            self.validator('1', base.SkipAllFalse)],
                         validators=[self.validator('3', True)])
         el = s.create_element()
         assert not el.validate()
@@ -101,7 +101,7 @@ class TestContainerValidation(object):
         s = schema.Dict('d', schema.Integer('i', validators=[
                                self.validator('2', True)]),
                         descent_validators=[self.validator('1', True)],
-                        validators=[self.validator('3', base.AllTrue)])
+                        validators=[self.validator('3', base.SkipAll)])
         el = s.create_element()
         assert el.validate()
         eq_(self.canary, ['1', '2', '3'])
