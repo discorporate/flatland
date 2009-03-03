@@ -2,6 +2,7 @@ syntax: glob
 
 *.py?
 *.egg-info
+MANIFEST
 .coverage
 build
 dist
