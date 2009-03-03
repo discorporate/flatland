@@ -8,22 +8,22 @@ Pending Design Decisions
 ------------------------
 
 - the Form sugar is still only roughed in; no inheritance yet.
- - push set() up to FieldSchema?  and set_default()?
+- push set() up to FieldSchema?  and set_default()?
 
 Also Considering
 ----------------
 
-  - For Elements: __html__, __json__
+- For Elements: __html__, __json__
 
-    - html is probably the .x
+  - html is probably the .x
 
-    - the .u on containers is close to json, except it currently spits
-      out u'python' for strings (and the repr() of scalars, generally)
+  - the .u on containers is close to json, except it currently spits
+    out u'python' for strings (and the repr() of scalars, generally)
 
-  - events on set()
+- events on set()
 
 General Todos
 ~~~~~~~~~~~~~
 
- - improve the package long_description and make sure it's still true
+- improve the package long_description and make sure it's still true
 
