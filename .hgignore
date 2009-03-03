@@ -1,6 +1,6 @@
 syntax: glob
 
-*.pyc
+*.py?
 *.egg-info
 .coverage
 build
@@ -8,8 +8,12 @@ dist
 html
 junk
 *.swp
-docs/out
+docs/text
+docs/html
+docs/doctrees
 docs/doctest
+docs/source/_static
+docs/source/_template
 bench
 *~
 bin
