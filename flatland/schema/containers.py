@@ -231,21 +231,6 @@ class ListElement(SequenceElement):
         for idx, element in enumerate(self._slots):
             element.name = idx
 
-    def apply(self, func, data=None, depth_first=False):
-        if depth_first:
-            r = []
-        else:
-            r = [func(self, data)]
-
-        for child in [element.apply(func, data)
-                      for element in list.__iter__(self)]:
-            r.extend(child)
-
-        if depth_first:
-            r.extend([func(self, data)])
-
-        return r
-
     @property
     def children(self):
         return iter(child.element for child in self._slots)
@@ -321,18 +306,6 @@ class SlotElement(ContainerElement, Slot):
 
     def __repr__(self):
         return u'<SlotElement[%s] for %r>' % (self.name, self.element)
-
-    def apply(self, func, data=None, depth_first=False):
-        if depth_first:
-            r = []
-        else:
-            r = [func(self, data)]
-
-        r.extend(self.element.apply(func, data))
-
-        if depth_first:
-            r.extend([func(self, data)])
-        return r
 
     def set_default(self):
         self.element.set_default()
@@ -502,19 +475,6 @@ class DictElement(ContainerElement, dict):
                            u'key "%s".' % (self.name, key))
         # default will never be used.
         return self[key]
-
-    def apply(self, func, data=None, depth_first=False):
-        if depth_first:
-            r = []
-        else:
-            r = [func(self, data)]
-
-        for child in [self[key].apply(func, data) for key in self]:
-            r.extend(child)
-
-        if depth_first:
-            r.extend([func(self, data)])
-        return r
 
     @property
     def children(self):

@@ -279,11 +279,6 @@ class Element(_BaseElement):
         if message not in self.warnings:
             self.warnings.append(message)
 
-    ## Element value and wrangling
-    def apply(self, func, data=None, depth_first=False):
-        """TODO"""
-        return [func(self, data)]
-
     def flattened_name(self, sep='_'):
         """Return the element's complete flattened name as a string.
 
@@ -348,12 +343,13 @@ class Element(_BaseElement):
           [(u'contact_name', u'')]
 
         """
-        pairs = []
-        def serialize(element, data):
-            if element.flattenable:
-                data.append((element.flattened_name(sep), value(element)))
-
-        self.apply(serialize, pairs)
+        if self.flattenable:
+            pairs = [self.flattened_name(sep), value(self)]
+        else:
+            pairs = []
+        pairs.extend((e.flattened_name(sep), value(e))
+                     for e in self.all_children
+                     if e.flattenable)
         return pairs
 
     def set(self, value):
