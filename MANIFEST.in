@@ -1,0 +1,8 @@
+include LICENSE
+include README
+include AUTHORS
+recursive-include tests *py
+recursive-include docs/source *txt *py
+recursive-include docs/text *txt
+recursive-include docs/html *html
+

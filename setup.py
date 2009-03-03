@@ -40,30 +40,38 @@ flatland==dev``.
 .. _flatland tip: http://bitbucket.org/jek/flatland/get/tip.zip#egg=flatland-dev
 
 """
-
+import os
 import sys
-from setuptools import setup, find_packages
 
 # Restrict to Python 2.5, for now.  Provide compatibilty for 2.4 later.
 if sys.version_info < (2, 5):
     print "Python 2.5 or higher is required."
     sys.exit(1)
 
+try:
+    from setuptools import setup, find_packages
+    extra_setup = dict(
+        zip_safe = True,
+        extras_require = {'multiserver' : ['Paste>=1.1', 'setuptools'] },
+        tests_require=['nose', 'Genshi >= 0.5'],
+        # for tests, prefer just 'nosetests tests'
+        test_suite='nose.collector',
+        )
+except ImportError:
+    from distutils.core import setup
+    extra_setup = {}
+    def find_packages(exclude=()):
+        return [w[0].replace('/', '.')
+                for w in os.walk('flatland')
+                if '__init__.py' in w[2]]
+
 setup(name="flatland",
       version="dev",
       packages=find_packages(exclude=['tests.*', 'tests']),
-
-      zip_safe=True,
-
-      tests_require=['nose', 'Genshi >= 0.5'],
-      # for tests, prefer 'setup.py nosetests' or just 'nosetests tests'
-      test_suite='nose.collector',
-
       author='Jason Kirtland',
       author_email='jek@discorporate.us',
       description='HTML form management and validation',
       keywords='wsgi web http webapps form forms validation roundtrip',
-
       long_description=__doc__,
       license='MIT License',
       url='http://discorporate.us/jek/projects/flatland/',
@@ -74,6 +82,9 @@ setup(name="flatland",
                    'Natural Language :: English',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python',
+                   'Programming Language :: Python :: 2.5',
+                   'Programming Language :: Python :: 2.6',
                    'Topic :: Internet :: WWW/HTTP :: WSGI',
                    'Topic :: Software Development :: Libraries'],
+      **extra_setup
 )
