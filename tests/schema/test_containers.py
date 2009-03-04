@@ -390,6 +390,7 @@ def test_array_mutation():
     n.set(u'a')
     assert n[0].u == u'a'
     assert n.value == [u'a']
+    assert n[0].parent is n
 
     n.set('b')
     assert n[0].u == u'b'
@@ -398,10 +399,12 @@ def test_array_mutation():
     n.append(u'x')
     assert n[1].u == u'x'
     assert n.value == [u'b', u'x']
+    assert n[1].parent is n
 
     n[1] = u'a'
     assert n[1].u == u'a'
     assert n.value == [u'b', u'a']
+    assert n[1].parent is n
 
     n.remove(u'b')
     assert n.value == [u'a']
@@ -409,6 +412,7 @@ def test_array_mutation():
     n.extend(u'bcdefg')
 
     eq_(n.value[0:4], [u'a', u'b', u'c', u'd'])
+    assert n[2].parent is n
 
     del n[0]
     eq_(n.value[0:4], [u'b', u'c', u'd', u'e'])
@@ -428,9 +432,11 @@ def test_array_mutation():
 
     n[:] = u'abc'
     eq_(n.value, [u'a', u'b', u'c'])
+    assert n[1].parent is n
 
     n.insert(1, u'z')
     eq_(n.value, [u'a', u'z', u'b', u'c'])
+    assert n[1].parent is n
 
     def assign():
         n.u = u'z'
