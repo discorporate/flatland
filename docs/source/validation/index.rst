@@ -38,17 +38,38 @@ Included Validators
 .. autoclass:: flatland.valid.base.Validator
 
 
+General
++++++++
+
 .. automodule:: flatland.valid.base
    :members:
+
+Scalars
++++++++
 
 .. automodule:: flatland.valid.scalars
    :members:
 
+Containers
+++++++++++
+
+.. automodule:: flatland.valid.containers
+   :members:
+
+Strings
++++++++
+
 .. automodule:: flatland.valid.string
    :members:
 
+Numbers
++++++++
+
 .. automodule:: flatland.valid.number
    :members:
+
+URLs
+++++
 
 .. autoclass:: flatland.valid.urls.URLValidator
    :members: __init__
@@ -62,7 +83,6 @@ Included Validators
    :show-inheritance:
 
    **Methods**
-
 
 
 .. autoclass:: flatland.valid.urls.URLCanonicalizer

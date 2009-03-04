@@ -2,17 +2,20 @@
 from base import Validator
 from scalars import (
     Converted,
+    IsFalse,
+    IsTrue,
     LengthBetween,
     LongerThan,
     MapEqual,
     NoLongerThan,
     Present,
     ShorterThan,
-    ValueIn,
     UnisEqual,
+    ValueIn,
     ValuesEqual,
-    IsTrue,
-    IsFalse,
+    )
+from containers import (
+    NotDuplicated,
     )
 import string, number, urls
 
