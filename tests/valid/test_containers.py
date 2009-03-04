@@ -17,6 +17,14 @@ def test_no_duplicates_context():
     schema = String('foo', validators=[containers.NotDuplicated()])
     assert_raises(TypeError, schema.create_element().validate)
 
+def test_no_duplicates_comparator():
+    comparator = lambda a, b: True
+    schema = List('test',
+                  String('foo', validators=[
+                      containers.NotDuplicated(comparator=comparator)]))
+    el = schema.create_element(value=[u'a', u'b'])
+    assert not el.validate()
+
 def _test_no_duplicates(schema, a, b):
     label = schema.name
     el = schema.create_element(value=[a, b])
