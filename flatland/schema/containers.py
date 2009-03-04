@@ -77,6 +77,7 @@ class SequenceElement(ContainerElement, list):
     def append(self, value):
         if not isinstance(value, Element):
             value = self.create_child_element(value=value)
+        value.parent = self
         list.append(self, value)
 
     def extend(self, iterable):
@@ -86,16 +87,22 @@ class SequenceElement(ContainerElement, list):
     def insert(self, index, value):
         if not isinstance(value, Element):
             value = self.create_child_element(value=value)
+        value.parent = self
         list.insert(self, index, value)
 
     def __setitem__(self, index, value):
         if isinstance(index, slice):
-            value = [item if isinstance(item, Element)
-                          else self.create_child_element(value=item)
-                     for item in value]
+            as_elements = []
+            for item in value:
+                if not isinstance(item, Element):
+                    item = self.create_child_element(value=item)
+                item.parent = self
+                as_elements.append(item)
+            value = as_elements
         else:
             if not isinstance(value, Element):
                 value = self.create_child_element(value=value)
+                value.parent = self
         list.__setitem__(self, index, value)
 
     def __setslice__(self, i, j, value):
