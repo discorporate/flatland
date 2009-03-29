@@ -6,19 +6,19 @@ from tests._util import eq_, assert_raises
 def test_scalar_abstract():
     sc = schema.scalars.Scalar('foo')
 
-    element = sc.new()
+    element = sc()
     assert_raises(NotImplementedError, element.set, 'blagga')
 
 def test_scalar_assignments_are_independent():
     sc = schema.scalars.Scalar('foo')
 
-    element = sc.new()
+    element = sc()
     assert not element.u
     assert not element.value
     element.u = u'abc'
     assert element.value is None
 
-    element = sc.new()
+    element = sc()
     assert not element.u
     assert not element.value
     element.value = u'abc'
@@ -38,7 +38,7 @@ def test_scalar_set_flat():
 
     def element_for(name):
         s = SimpleScalar(name)
-        element = s.new()
+        element = s()
         element.set_flat(data)
         return element
 
@@ -52,7 +52,7 @@ def test_string():
     for value, expected in ((u'abc', u'abc'), ('abc', u'abc'), (123, u'123'),
                             (u'abc ', u'abc'), (' abc ', u'abc')):
         for st in schema.String('foo'), schema.String('foo', strip=True):
-            element = st.new()
+            element = st()
             element.set(value)
             eq_(element.u, expected)
             eq_(unicode(element), expected)
@@ -60,7 +60,7 @@ def test_string():
 
     for value, expected in ((u'abc ', u'abc '), (' abc ', u' abc ')):
         st = schema.String('foo', strip=False)
-        element = st.new()
+        element = st()
         element.set(value)
         eq_(element.u, expected)
         eq_(unicode(element), expected)
@@ -69,7 +69,7 @@ def test_string():
     for value, expected_value, expected_unicode in (
                         (u'', u'', u''), (None, None, u'')):
         st = schema.String('foo')
-        element = st.new()
+        element = st()
         element.set(value)
         eq_(element.u, expected_unicode)
         eq_(unicode(element), expected_unicode)
@@ -77,19 +77,19 @@ def test_string():
 
 def test_string_is_empty():
     st = schema.String('foo')
-    element = st.new()
+    element = st()
     element.set(u'')
     assert element.is_empty
 
-    element = st.new()
+    element = st()
     element.set(u'foo')
     assert not element.is_empty
 
-    element = st.new()
+    element = st()
     assert element.is_empty
 
 def validate_element_set(type_, raw, value, uni, schema_opts={}):
-    element = type_('i', **schema_opts).new()
+    element = type_('i', **schema_opts).create_element()
     element.set(raw)
     eq_(element.value, value)
     eq_(element.u, uni)
@@ -282,7 +282,7 @@ def test_typed_enum():
 
 def test_enum_with_dynamic_option():
     enum = schema.scalars.Enum('abcs', 'a', 'b', 'c')
-    el = enum.new()
+    el = enum()
     el.valid_values = ('a', 'b')
 
     el.set('a')

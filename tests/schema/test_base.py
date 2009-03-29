@@ -43,7 +43,7 @@ def test_schema_optional():
 
 def test_element():
     s = base.FieldSchema(u'abc', label=u'ABC')
-    n = s.new()
+    n = s()
 
     eq_(n.name, u'abc')
     eq_(n.label, u'ABC')
@@ -55,7 +55,7 @@ def test_element():
 
 def test_element_message_buckets():
     s = base.FieldSchema(u'abc', label=u'ABC')
-    n = s.new()
+    n = s()
 
     n.add_error('error')
     eq_(n.errors, ['error'])
@@ -69,7 +69,7 @@ def test_element_message_buckets():
 
 def test_element_abstract():
     s = base.FieldSchema(None)
-    n = s.new()
+    n = s()
 
     assert_raises(NotImplementedError, n.set, None)
     assert_raises(NotImplementedError, n.set_flat, ())
@@ -111,7 +111,7 @@ def test_element_validation():
         assert item is element, repr(item)
         return True
     s = base.FieldSchema(None, validators=(got_element,))
-    element = s.new()
+    element = s()
     element.validate()
 
 def test_element_validator_return():
@@ -138,16 +138,16 @@ def test_element_validator_return():
 
     for validator in true, one, skip, skipall:
         s = base.FieldSchema(None, validators=(validator,))
-        n = s.new()
+        n = s()
         assert n.validate()
 
     for validator in false, zero, none, skipallfalse:
         s = base.FieldSchema(None, validators=(validator,))
-        n = s.new()
+        n = s()
         assert not n.validate()
 
     for validator in [no]:
         s = base.FieldSchema(None, validators=(validator,))
-        n = s.new()
+        n = s()
         assert_raises(TypeError, n.validate)
 

@@ -455,7 +455,7 @@ class DictElement(ContainerElement, dict):
     def _reset(self):
         """Set all child elements to their defaults."""
         for key, child_schema in self.schema.fields.items():
-            dict.__setitem__(self, key, child_schema.new(parent=self))
+            dict.__setitem__(self, key, child_schema.create_element(parent=self))
 
     def popitem(self):
         raise TypeError('Dict keys are immutable.')
