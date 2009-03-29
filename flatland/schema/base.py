@@ -571,7 +571,13 @@ class FieldSchema(object):
 
         """
         return self.element_type(self, **kw)
-    new = create_element
+
+    def __call__(self, **kw):
+        """Returns a new Element.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+        """
+        return self.create_element(**kw)
 
     def validate_element(self, element, state, descending):
         """Assess the validity of an element.

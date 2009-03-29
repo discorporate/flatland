@@ -66,7 +66,7 @@ def test_custom_validation():
 
 def test_child_validation():
     s = fl.Dict('s', fl.Integer('x', validators=[valid.Present()]))
-    n = s.new()
+    n = s()
 
     assert not n.validate()
 
@@ -79,7 +79,7 @@ def test_nested_validation():
                 fl.Integer('x', validators=[valid.Present()]),
                 fl.Dict('d2',
                         fl.Integer('x2', validators=[valid.Present()])))
-    n = s.new()
+    n = s()
 
     assert not n.validate()
 
