@@ -10,15 +10,16 @@ from .base import (
     )
 from .scalars import (
     Boolean,
+    Constrained,
     Date,
     DateTime,
+    Enum,
     Float,
     Integer,
     Long,
     Ref,
     String,
     Time,
-    Enum,
     )
 from .containers import (
     Array,
