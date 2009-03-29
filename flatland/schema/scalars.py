@@ -309,42 +309,105 @@ class Boolean(Scalar):
         return self.true if value else self.false
 
 
-class EnumElement(StringElement):
-    _valid_options = None
+class Constrained(Scalar):
+    """A scalar type with a constrained set of legal values.
 
-    def get_valid_options(self):
-        if self._valid_options is not None:
-            return self._valid_options
-        return self.schema.valid_options
+    Wraps another scalar type and ensures that a value
+    :meth:`~flatland.schema.base.Element.set` is within bounds defined
+    by :meth:`valid_value`.  If :meth:`valid_value` returns false, the element is
+    not converted and will have a
+    :attr:`~flatland.schema.base.Element.value` of None.
 
-    def set_valid_options(self, valid_options):
-        self._valid_options = valid_options
+    :class:`Constrained` is a semi-abstract class that requires an
+    implementation of :meth:`valid_value`, either by subclassing or
+    overriding on a per-instance basis through the constructor.
 
-    valid_options = property(get_valid_options, set_valid_options)
+    An example of a wrapper of int values that only allows the values
+    of 1, 2 or 3:
 
+      >>> from flatland.schema import Constrained, Integer
+      >>> def is_valid(element, value):
+      ...     return value in (1, 2, 3)
+      ...
+      >>> schema = Constrained('digit', Integer, valid_value=is_valid)
+      >>> element = schema.create_element()
+      >>> element.set(u'2')
+      True
+      >>> element.value
+      2
+      >>> element.set(u'5')
+      False
+      >>> element.value
+      None
 
-class Enum(String):
-    """Field type for one choice out of multiple valid strings.
-
-    :param valid_options: A sequence of valid strings. Can be defined
-      on the element for dynamic validation.
-
+    :class:`Enum` is a subclass which provides a convenient enumerated
+    wrapper.
     """
-    element_type = EnumElement
-    valid_options = None
 
-    def __init__(self, name, valid_options=(), **kw):
-        super(Enum, self).__init__(name, **kw)
-        self.valid_options = set(valid_options)
+    child_type = String
 
-    def validate_element(self, element, state, descending):
-        if not descending:
-            return None
+    def __init__(self, name, child_type=None, **kw):
+        if child_type:
+            self.child_type = child_type
+        if 'valid_value' in kw:
+            self.valid_value = kw.pop('valid_value')
+        Scalar.__init__(self, name, **kw)
+        self.child_schema = child = self.child_type(name)
+        self.element_type = child.element_type
 
-        is_valid = super(Enum, self).validate_element(element, state, descending)
+    def valid_value(self, element, value):
+        """Returns True if *value* for *element* is within the constraints.
 
-        validator = valid.ValueIn(element.valid_options)
-        return is_valid and validator.validate(element, state)
+        This method is abstract.  Override in a subclass or pass a
+        custom callable to the :class:`Constrained` constructor.
+        """
+        return False
+
+    def adapt(self, element, value):
+        value = self.child_schema.adapt(element, value)
+        if not self.valid_value(element, value):
+            raise AdaptationError()
+        return value
+
+    def serialize(self, element, value):
+        return self.child_schema.serialize(element, value)
+
+
+class Enum(Constrained):
+    """A scalar type with a limited set of valid values."""
+
+    valid_values = ()
+
+    def __init__(self, name, *values, **kw):
+        """Create a new Enum.
+
+        :param name: field name
+
+        :param \*values: valid element values.
+
+        :param valid_values: optional, a sequence or other
+          containment-supporting collection of valid values.
+
+        :param child_type: defaults to :class:`String`.  Any scalar
+          :class:`~flatland.schema.FieldSchema` class for elements of
+          this Enum.
+
+        """
+        if 'valid_values' in kw:
+            assert not values
+            self.valid_values = kw.pop('valid_values')
+        Constrained.__init__(self, name, **kw)
+        if values:
+            self.valid_values = values
+
+    def valid_value(self, element, value):
+        """True if *value* is within the enumerated values.
+
+        Checks for membership in ``element.valid_values``, if available,
+        otherwise falls back to the schema's ``valid_values``.
+        """
+        valid_values = getattr(element, 'valid_values', self.valid_values)
+        return value in valid_values
 
 
 class Temporal(Scalar):

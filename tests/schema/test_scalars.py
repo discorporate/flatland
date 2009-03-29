@@ -164,6 +164,7 @@ def test_float():
                  ('123.005',   123.005,  u'123.00')):
         yield (validate_element_set, TwoDigitFloat) + spec
 
+
 def test_boolean():
     for ok in schema.Boolean.true_synonyms:
         yield validate_element_set, schema.Boolean, ok, True, u'1'
@@ -179,55 +180,117 @@ def test_boolean():
         yield validate_element_set, schema.Boolean, bogus, None, u''
 
 
-def test_enum():
-    enum = schema.scalars.Enum('abcs', valid_options=('a', 'b', 'c'))
-    for good_val in ('a', 'b', 'c'):
-        el = enum.new()
-        el.set(good_val)
-        assert el.validate()
+def test_constrained_is_abstract():
+    c = schema.Constrained('foo')
+    el = c.create_element()
+    el.set(u'anything')
+    assert el.value is None
+    assert el.u == u'anything'
+
+
+def test_constrained_instance_override():
+    def valid(ok_values, eltype=schema.scalars.StringElement):
+        def validator(element, value):
+            assert isinstance(element, eltype)
+            return value in ok_values
+        return validator
+
+    c = schema.Constrained('foo', valid_value=valid((u'a',)))
+    el = c.create_element()
+    assert el.set(u'a')
+    assert el.value == u'a'
+    assert el.u == u'a'
+
+    assert not el.set(u'b')
+    assert el.value is None
+    assert el.u == u'b'
+
+    c = schema.Constrained('foo', schema.Integer, valid_value=valid(
+        (1,), eltype=schema.scalars.ScalarElement))
+    el = c.create_element()
+    assert el.set(u'1')
+    assert el.value == 1
+    assert el.u == u'1'
+
+    for invalid in u'2', u'x':
+        assert not el.set(invalid)
+        assert el.value == None
+        assert el.u == invalid
+
+
+def test_constrained_instance_contrived():
+    # check that fringe types that adapt as None can used in bounds
+    class CustomInteger(schema.Integer):
+        def adapt(self, element, value):
+            try:
+                return schema.Integer.adapt(self, element, value)
+            except:
+                return None
+
+    c = schema.Constrained('foo', CustomInteger,
+                           valid_value=lambda e, v: v in (1, None))
+    el = c.create_element()
+    assert el.set(u'1')
+
+    for out_of_bounds in u'2', u'3':
+        assert not el.set(out_of_bounds)
+
+    for invalid in u'x', u'':
+        assert el.set(invalid)
+        assert el.value is None
+        assert el.u == u''
+
+
+def test_default_enum():
+    good_values = ('a', 'b', 'c')
+    for enum in (schema.Enum('abcs', *good_values),
+                 schema.Enum('abcs', valid_values=good_values)):
+        for good_val in good_values:
+            el = enum.create_element()
+            el.set(good_val)
+            assert el.value == good_val
+            assert el.u == good_val
+            assert not el.errors
+
+        el = enum.create_element()
+        el.set('d')
+        assert el.value is None
+        assert el.u == u'd'
+
+
+def test_typed_enum():
+    good_values = range(1, 4)
+    enum = schema.Enum('e', valid_values=good_values, child_type=schema.Integer)
+
+    for good_val in good_values:
+        el = enum.create_element()
+        el.set(unicode(good_val))
+        assert el.value == good_val
+        assert el.u == unicode(good_val)
         assert not el.errors
 
-    for bad_val in ('x', -1, 'ajsdfhlaksdjfhalksjdfal'):
-        el = enum.new()
-        el.set(bad_val)
-        assert not el.validate()
-        assert el.errors
+    el = enum.create_element()
+    el.set('x')
+    assert el.value is None
+    assert el.u == u'x'
 
-
-def test_enum_with_extra_validator():
-    enum = schema.scalars.Enum('abcs', valid_options=(None, '1'),
-        validators=[valid.IsTrue()])
-
-    el = enum.new()
-    el.set('1')
-    assert el.validate()
-    assert not el.errors
-
-    el.set(None)
-    assert not el.validate()
-    assert el.errors
-
-    el.set('2')
-    assert not el.validate()
-    assert el.errors
+    el = enum.create_element()
+    el.set('5')
+    assert el.value is None
+    assert el.u == u'5'
 
 
 def test_enum_with_dynamic_option():
-    enum = schema.scalars.Enum('abcs', valid_options=('a', 'b', 'c'))
+    enum = schema.scalars.Enum('abcs', 'a', 'b', 'c')
     el = enum.new()
-    el.valid_options = ('a', 'b')
+    el.valid_values = ('a', 'b')
 
     el.set('a')
-    assert el.validate()
-    assert not el.errors
-
-    el.set('b')
-    assert el.validate()
-    assert not el.errors
+    assert el.value == u'a'
 
     el.set('c')
-    assert not el.validate()
-    assert el.errors
+    assert el.value == None
+    assert el.u == u'c'
 
 
 def test_date():
