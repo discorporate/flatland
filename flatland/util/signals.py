@@ -84,6 +84,7 @@ class Signal(object):
             except:
                 self.disconnect(receiver, sender)
                 raise
+        return receiver
 
     def send(self, sender=None, **kwargs):
         """Emit this signal on behalf of *sender*, passing on \*\*kwargs.
