@@ -34,7 +34,9 @@ class ValueIn(Validator):
     fail = u'%(value)s is not a valid value for %(label)s.'
 
     def __init__(self, valid_options, **kw):
+        Validator.__init__(self, **kw)
         self.valid_options = valid_options
+
 
     def validate(self, element, state):
         if element.value not in self.valid_options:
@@ -55,7 +57,8 @@ class Converted(Validator):
 class ShorterThan(Validator):
     exceeded = u'%(label)s may not exceed %(maxlength)s characters.'
 
-    def __init__(self, maxlength):
+    def __init__(self, maxlength, **kw):
+        Validator.__init__(self, **kw)
         self.maxlength = maxlength
 
     def validate(self, element, state):
@@ -68,7 +71,8 @@ NoLongerThan = ShorterThan
 class LongerThan(Validator):
     short = u'%(label)s must be at least %(minlength)s characters.'
 
-    def __init__(self, minlength):
+    def __init__(self, minlength, **kw):
+        Validator.__init__(self, **kw)
         self.minlength = minlength
 
     def validate(self, element, state):
@@ -81,7 +85,8 @@ class LengthBetween(Validator):
     breached = (u'%(label)s must be between %(minlength)s and '
                 u'%(maxlength)s characters long.')
 
-    def __init__(self, minlength, maxlength):
+    def __init__(self, minlength, maxlength, **kw):
+        Validator.__init__(self, **kw)
         self.minlength = minlength
         self.maxlength = maxlength
 

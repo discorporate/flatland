@@ -29,12 +29,12 @@ class NANPnpa_nxx(Validator):
     invalid = u'The %(label)s can not be verified.'
 
     def __init__(self, npa_element, nxx_element, errors_to=None,
-                 lookup='aq', method='valid_npanxx'):
+                 lookup='aq', method='valid_npanxx', **kw):
         assert isinstance(npa_element, basestring)
         assert isinstance(nxx_element, basestring)
         assert isinstance(errors_to, (basestring, types.NoneType))
 
-        super(NANPnpa_nxx, self).__init__()
+        Validator.__init__(self, *kw)
 
         self.npa = npa_element
         self.nxx = nxx_element
