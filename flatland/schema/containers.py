@@ -49,9 +49,12 @@ class SequenceElement(ContainerElement, list):
         self.extend(iterable)
 
     def set_default(self):
-        if self.schema.default:
+        default = self.schema.default
+        if default is not None and default is not Unspecified:
+            if hasattr(default, '__call__'):
+                default = default(self)
             del self[:]
-            self.extend(self.schema.default)
+            self.extend(default)
 
     def _set_flat(self, pairs, sep):
         raise NotImplementedError()
@@ -280,9 +283,12 @@ class ListElement(SequenceElement):
             slot.element.set_flat(slots[slot_index], sep)
 
     def set_default(self):
-        if self.schema.default:
+        default = self.schema.default
+        if default is not None and default is not Unspecified:
+            if hasattr(default, '__call__'):
+                default = default(self)
             del self[:]
-            for _ in xrange(0, self.schema.default):
+            for _ in xrange(0, default):
                 el = self._new_slot()
                 list.append(self, el)
                 el.set_default()
@@ -549,8 +555,11 @@ class DictElement(ContainerElement, dict):
                 self[field].set_flat(accum, sep)
 
     def set_default(self):
-        if self.schema.default:
-            self.set(self.schema.default)
+        default = self.schema.default
+        if default is not None and default is not Unspecified:
+            if hasattr(default, '__call__'):
+                default = default(self)
+            self.set(default)
         for child in self.children:
             child.set_default()
 
