@@ -13,8 +13,8 @@ class NANPphone(Validator):
     fmt_line = u'(%03i) %03i-%04i'
     fmt_ext = fmt_line + ' x%i'
 
-    def __init__(self, extensions=False):
-        super(NANPphone, self).__init__()
+    def __init__(self, extensions=False, **kw):
+        Validator.__init__(self, **kw)
         self.extensions = extensions
 
     def validate(self, element, state):
