@@ -180,6 +180,20 @@ def test_boolean():
         yield validate_element_set, schema.Boolean, bogus, None, u''
 
 
+def test_scalar_set_default():
+    el = schema.Integer('i', ).create_element()
+    el.set_default()
+    assert el.value is None
+
+    el = schema.Integer('i', default=10).create_element()
+    el.set_default()
+    assert el.value == 10
+
+    el = schema.Integer('i', default=lambda e: 20).create_element()
+    el.set_default()
+    assert el.value == 20
+
+
 def test_constrained_is_abstract():
     c = schema.Constrained('foo')
     el = c.create_element()

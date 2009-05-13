@@ -1,5 +1,5 @@
 from flatland import schema, util
-from flatland.schema import base
+from flatland.schema import base, containers
 from flatland.util import Unspecified
 from tests._util import eq_, assert_raises
 
@@ -195,6 +195,16 @@ def test_list_default():
     el.set_default()
     eq_(len(el), 0)
     eq_(el.value, [])
+
+    def default_generator(element):
+        assert isinstance(element, containers.ListElement)
+        return 2
+
+    s = factory(default_generator)
+    el = s.create_element()
+    el.set_default()
+    eq_(len(el), 2)
+    eq_(el.value, [u'val'] * 2)
 
 def test_list_set():
     def new_element(**kw):
