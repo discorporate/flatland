@@ -560,8 +560,9 @@ class DictElement(ContainerElement, dict):
             if hasattr(default, '__call__'):
                 default = default(self)
             self.set(default)
-        for child in self.children:
-            child.set_default()
+        else:
+            for child in self.children:
+                child.set_default()
 
     def _index(self, name):
         return self[name]
