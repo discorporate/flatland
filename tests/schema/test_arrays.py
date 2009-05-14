@@ -2,29 +2,73 @@ from flatland import schema
 from tests._util import eq_, assert_raises
 
 
-def test_array_pruned_set_scalars():
-    s = schema.Array(schema.String('s'))
-    n = s.create_element()
-
-    pairs = list((u's', u'val%s' % i if i %2 else u'')
+def test_set_flat_pruned():
+    sub = schema.String('s')
+    pairs = list((u's', u'val%s' % i if i % 2 else u'')
                  for i in xrange(1, 10))
-    n.set_flat(pairs)
+    wanted = list(pair[1] for pair in pairs if pair[1])
 
-    actual_data = list(pair[1] for pair in pairs if pair[1])
-    eq_(len(n), len(actual_data))
-    eq_(n.value, actual_data)
+    for s in schema.Array(sub), schema.Array(sub, prune_empty=True):
+        el = s.create_element()
+        el.set_flat(pairs)
+
+        eq_(len(el), len(wanted))
+        eq_(el.value, wanted)
 
 
-def test_array_unpruned_set_scalars():
+def test_set_flat_unpruned():
+    pairs = list((u's', u'val%s' % i if i % 2 else u'')
+                 for i in xrange(1, 10))
+
     s = schema.Array(schema.String('s'), prune_empty=False)
-    n = s.create_element()
+    el = s.create_element()
+    el.set_flat(pairs)
 
-    pairs = list((u's', u'val%s' % i if i %2 else u'')
-                 for i in xrange(1, 10))
-    n.set_flat(pairs)
+    eq_(len(el), len(pairs))
+    eq_(el.value, list(pair[1] for pair in pairs))
 
-    eq_(len(n), len(pairs))
-    eq_(n.value, list(pair[1] for pair in pairs))
+
+def test_set():
+    s = schema.Array(schema.Integer('i'))
+    el = s.create_element()
+    assert not el
+
+    assert_raises(TypeError, el.set, 1)
+
+    el.set([1])
+    assert el[0].u == u'1'
+    assert el.value == [1]
+    assert el[0].parent is el
+
+    el.set([1, 2, 3])
+    assert el[0].u == u'1'
+    assert el[0].value == 1
+    assert el.value == [1, 2, 3]
+
+
+def test_set_default():
+    s = schema.Array(schema.String('s'), default=[u'x', u'y'])
+    el = s.create_element()
+
+    eq_(el.value, [])
+    el.set_default()
+    eq_(el.value, [u'x', u'y'])
+
+    el.append(u'z')
+    eq_(el.value, [u'x', u'y', u'z'])
+    el.set_default()
+    eq_(el.value, [u'x', u'y'])
+
+    s = schema.Array(schema.String('s', default='not triggered'),
+                     default=[u'x'])
+    el = s.create_element()
+    el.set_default()
+    eq_(el.value, [u'x'])
+
+    s = schema.Array(schema.String('s', default=u'x'))
+    el = s.create_element()
+    el.set_default()
+    eq_(el.value, [])
 
 
 def test_array_mutation():
@@ -32,12 +76,7 @@ def test_array_mutation():
     n = s.create_element()
     assert not n
 
-    n.set(u'a')
-    assert n[0].u == u'a'
-    assert n.value == [u'a']
-    assert n[0].parent is n
-
-    n.set('b')
+    n.set([u'b'])
     assert n[0].u == u'b'
     assert n.value == [u'b']
 
@@ -95,29 +134,40 @@ def test_array_mutation():
     eq_(n.value, [])
 
 
-def test_array_set_default():
-    s = schema.Array(schema.String('s'), default=[u'x', u'y'])
+def test_el():
+    s = schema.Array(schema.String('s'))
+    n = s.create_element()
+    n[:] = u'abc'
+    eq_(list(n.value), [u'a', u'b', u'c'])
+
+    eq_(n.el('0').value, u'a')
+    eq_(n.el('2').value, u'c')
+    assert_raises(KeyError, n.el, 'a')
+
+
+def test_multivalue_set():
+    s = schema.MultiValue(schema.Integer('s'))
     el = s.create_element()
 
-    eq_(el.value, [])
-    el.set_default()
-    eq_(el.value, [u'x', u'y'])
+    eq_(el.value, None)
+    eq_(el.u, u'')
+    eq_(list(el), [])
+    eq_(len(el), 0)
+    assert not el
 
-    el.append(u'z')
-    eq_(el.value, [u'x', u'y', u'z'])
-    el.set_default()
-    eq_(el.value, [u'x', u'y'])
+    assert_raises(TypeError, el.set, 0)
 
-    s = schema.Array(schema.String('s', default='not triggered'),
-                     default=[u'x'])
-    el = s.create_element()
-    el.set_default()
-    eq_(el.value, [u'x'])
+    el.set([0])
+    eq_(el.value, 0)
+    eq_(el.u, u'0')
+    assert len(el) == 1
+    assert el
 
-    s = schema.Array(schema.String('s', default=u'x'))
-    el = s.create_element()
-    el.set_default()
-    eq_(el.value, [])
+    el = s.create_element(value=[0, 1])
+    eq_(el.value, 0)
+    eq_(el.u, u'0')
+    assert len(el) == 2
+    assert el
 
 
 def test_multivalue_mutation():
@@ -146,14 +196,3 @@ def test_multivalue_mutation():
     eq_(e.u, u'9')
     eq_([el.value for el in e], [9, 1, 2])
     eq_(len(e), 3)
-
-
-def test_array_el():
-    s = schema.Array(schema.String('s'))
-    n = s.create_element()
-    n[:] = u'abc'
-    eq_(list(n.value), [u'a', u'b', u'c'])
-
-    eq_(n.el('0').value, u'a')
-    eq_(n.el('2').value, u'c')
-    assert_raises(KeyError, n.el, 'a')
