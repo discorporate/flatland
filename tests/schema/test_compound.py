@@ -78,6 +78,29 @@ class TestDoubleField(object):
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
 
+    def test_set_default(self):
+        s = self.Double('s', default=(4, 5))
+        el = s.create_element()
+        assert_values_(el, None, None, None)
+        assert_us_(el, u'', u'', u'')
+
+        el.set_default()
+        assert_values_(el, (4, 5), 4, 5)
+        assert_us_(el, u'4x5', u'4', u'5')
+
+    def test_set_default_from_children(self):
+        schema = self.Double('s')
+        schema.fields['x'].default = 4
+        schema.fields['y'].default = 5
+
+        el = schema.create_element()
+        assert_values_(el, None, None, None)
+        assert_us_(el, u'', u'', u'')
+
+        el.set_default()
+        assert_values_(el, (4, 5), 4, 5)
+        assert_us_(el, u'4x5', u'4', u'5')
+
     def test_update(self):
         s = self.Double('s')
 

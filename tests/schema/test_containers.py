@@ -125,7 +125,7 @@ def test_list_linear_set_scalars():
     eq_(len(el), len(pairs))
     eq_(el.value, list(pair[1] for pair in pairs))
 
-def test_list_set_empty():
+def test_list_miss_set_flat():
     s = schema.List('l', schema.String('s'))
     el = s.create_element()
 
@@ -161,11 +161,10 @@ def test_list_linear_set_dict():
     eq_(el[1].value, dict((k[-1], v) for k, v in pairs[2:4]))
     eq_(el[2].value, {u'x': u'x2', u'y': None})
 
-def test_list_default():
+def test_list_set_default():
     def factory(count):
         return schema.List('l', schema.String('s', default=u'val'),
                            default=count)
-
     s = factory(3)
 
     el = s.create_element()
@@ -478,6 +477,12 @@ def test_array_set_default():
     el.set_default()
     eq_(el.value, [u'x'])
 
+    s = schema.Array(schema.String('s', default=u'x'))
+    el = s.create_element()
+    el.set_default()
+    eq_(el.value, [])
+
+
 def test_multivalue_mutation():
     s = schema.MultiValue(schema.Integer('s'))
     e = s.create_element()
@@ -708,6 +713,25 @@ class DictSetTest(object):
         el = self.new_element()
         el.set_flat(pairs)
         eq_(el.value, {u'x': None, u'y': None})
+
+    def test_set_default(self):
+        wanted = {u'x': 11, u'y': 12}
+        schema = self.new_schema()
+        schema.default = wanted
+
+        el = schema.create_element()
+        el.set_default()
+        eq_(el.value, wanted)
+
+    def test_set_default_from_children(self):
+        el = self.new_element()
+        el.set_default()
+
+        wanted = {
+            u'x': self.x_default if self.x_default is not Unspecified else None,
+            u'y': self.y_default if self.y_default is not Unspecified else None,
+            }
+        eq_(el.value, wanted)
 
 
 class TestEmptyDictSet(DictSetTest):
