@@ -99,6 +99,16 @@ class Element(_BaseElement):
 
     @assignable_property
     def default(self):
+        """The default value of this element.
+
+        Default values are derived from the
+        :attr:`FieldSchema.default_factory` or :attr:`FieldSchema.default` of
+        the element's schema.
+
+        This property may also be assigned, overriding the value on a
+        per-element basis.
+
+        """
         if self.schema.default_factory is not None:
             return self.schema.default_factory(self)
         else:
