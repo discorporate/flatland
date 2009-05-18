@@ -22,6 +22,36 @@ class lazy_property(object):
         return value
 
 
+class assignable_property(object):
+    """A @property, computed by default but assignable on a per-instance basis.
+
+    May be used as a decorator.
+    """
+
+    def __init__(self, fget, name=None, doc=None):
+        self.name = name or fget.__name__
+        self.fget = fget
+        self.__doc__ = doc or fget.__doc__
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        if self.name in instance.__dict__:
+            return instance.__dict__[self.name]
+        else:
+            return self.fget(instance)
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = value
+
+    def __delete__(self, instance):
+        try:
+            del instance.__dict__[self.name]
+        except KeyError:
+            raise AttributeError("%r object has no overriden attribute %r" % (
+                type(instance).__name__, self.name))
+
+
 class as_mapping(object):
     """Provide a mapping view of an instance.
 

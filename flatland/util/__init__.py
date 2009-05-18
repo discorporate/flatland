@@ -4,6 +4,7 @@ from . base import (
     Unspecified,
     adict,
     as_mapping,
+    assignable_property,
     decorator,
     format_argspec_plus,
     keyslice_pairs,

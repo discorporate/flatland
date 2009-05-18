@@ -9,6 +9,7 @@ def test_scalar_abstract():
     element = sc()
     assert_raises(NotImplementedError, element.set, 'blagga')
 
+
 def test_scalar_assignments_are_independent():
     sc = schema.scalars.Scalar('foo')
 
@@ -24,6 +25,7 @@ def test_scalar_assignments_are_independent():
     element.value = u'abc'
     eq_(element.u, u'')
     eq_(element.value, u'abc')
+
 
 def test_scalar_set_flat():
     """Scalars take on the first value if duplicates are present."""
@@ -45,6 +47,7 @@ def test_scalar_set_flat():
     eq_(element_for(u'a').value, 1)
     eq_(element_for(u'b').value, 2)
     eq_(element_for(u'c').value, None)
+
 
 def test_string():
     assert_raises(TypeError, schema.String)
@@ -75,6 +78,7 @@ def test_string():
         eq_(unicode(element), expected_unicode)
         eq_(element.value, expected_value)
 
+
 def test_string_is_empty():
     st = schema.String('foo')
     element = st()
@@ -88,6 +92,7 @@ def test_string_is_empty():
     element = st()
     assert element.is_empty
 
+
 def validate_element_set(type_, raw, value, uni, schema_opts={}):
     element = type_('i', **schema_opts).create_element()
     element.set(raw)
@@ -96,6 +101,7 @@ def validate_element_set(type_, raw, value, uni, schema_opts={}):
     eq_(unicode(element), uni)
     eq_(element.__nonzero__(), bool(uni and value))
 
+
 def test_scalar_set():
     # a variety of scalar set() failure cases, shoved through Integer
     for spec in (
@@ -103,6 +109,7 @@ def test_scalar_set():
         ('\xef\xf0', None, ur'\ufffd\ufffd'),
         (None,       None, u'')):
         yield (validate_element_set, schema.Integer) + spec
+
 
 def test_integer():
     for spec in ((u'123',    123,  u'123'),
@@ -121,6 +128,7 @@ def test_integer():
                  (-123,      None, u'-123', dict(signed=False))):
         yield (validate_element_set, schema.Integer) + spec
 
+
 def test_long():
     for spec in ((u'123',    123L,  u'123'),
                  (u' 123 ',  123L,  u'123'),
@@ -135,6 +143,7 @@ def test_long():
                  (u'+123',   123L,  u'123', dict(signed=False)),
                  (u'-123',   None,  u'-123', dict(signed=False))):
         yield (validate_element_set, schema.Long) + spec
+
 
 def test_float():
     for spec in ((u'123',    123.0,  u'123.000000'),
@@ -189,7 +198,7 @@ def test_scalar_set_default():
     el.set_default()
     assert el.value == 10
 
-    el = schema.Integer('i', default=lambda e: 20).create_element()
+    el = schema.Integer('i', default_factory=lambda e: 20).create_element()
     el.set_default()
     assert el.value == 20
 
@@ -318,6 +327,7 @@ def test_date():
         (u'blagga',       None, u'blagga')):
         yield (validate_element_set, schema.Date) + spec
 
+
 def test_time():
     t = datetime.time
     for spec in (
@@ -326,6 +336,7 @@ def test_time():
         (u'24:25:26', None, u'24:25:26'),
         (u'bogus', None, u'bogus')):
         yield (validate_element_set, schema.Time) + spec
+
 
 def test_datetime():
     t = datetime.datetime
