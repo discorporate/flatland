@@ -52,9 +52,9 @@ def test_list_linear_set_dict():
 
 
 def test_list_set_default():
-    def factory(count):
+    def factory(count, **kw):
         return schema.List('l', schema.String('s', default=u'val'),
-                           default=count)
+                           default=count, **kw)
     s = factory(3)
 
     el = s.create_element()
@@ -87,9 +87,10 @@ def test_list_set_default():
 
     def default_generator(element):
         assert isinstance(element, schema.containers.ListElement)
+        assert element.schema.default == 10
         return 2
 
-    s = factory(default_generator)
+    s = factory(10, default_factory=default_generator)
     el = s.create_element()
     el.set_default()
     eq_(len(el), 2)

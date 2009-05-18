@@ -3,7 +3,12 @@ import collections
 import itertools
 import operator
 from flatland.signals import validator_validated
-from flatland.util import Unspecified, named_int_factory, symbol
+from flatland.util import (
+    Unspecified,
+    assignable_property,
+    named_int_factory,
+    symbol,
+    )
 
 
 __all__ = 'FieldSchema', 'Element'
@@ -91,6 +96,13 @@ class Element(_BaseElement):
     def label(self):
         """The element's label."""
         return self.schema.label
+
+    @assignable_property
+    def default(self):
+        if self.schema.default_factory is not None:
+            return self.schema.default_factory(self)
+        else:
+            return self.schema.default
 
     def _get_all_valid(self):
         """True if this element and all children are valid."""
@@ -526,6 +538,10 @@ class FieldSchema(object):
       Field template.  The interpretation of the *default* is subclass
       specific.
 
+    :param default_factory: optional. A callable to generate default element
+      values.  Passed an element.  *default_factory* will be used
+      preferentially over *default*.
+
     :param validators: optional, overrides the class's default validators.
 
     :param optional: if True, element of this field will be considered valid
@@ -544,8 +560,10 @@ class FieldSchema(object):
     ugettext = None
     ungettext = None
     validators = ()
+    default_factory = None
 
-    def __init__(self, name, label=Unspecified, default=None,
+    def __init__(self, name, label=Unspecified,
+                 default=None, default_factory=Unspecified,
                  validators=Unspecified, optional=False,
                  ugettext=Unspecified, ungettext=Unspecified):
         if not isinstance(name, (unicode, NoneType)):
@@ -559,7 +577,7 @@ class FieldSchema(object):
             self.validators = list(validators)
         self.optional = optional
 
-        for override in ('ugettext', 'ungettext'):
+        for override in ('ugettext', 'ungettext', 'default_factory'):
             value = locals()[override]
             if value is not Unspecified:
                 setattr(self, override, value)

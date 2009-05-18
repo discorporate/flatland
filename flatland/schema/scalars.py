@@ -72,10 +72,8 @@ class ScalarElement(Element):
                 break
 
     def set_default(self):
-        if self.schema.default is not Unspecified:
-            default = self.schema.default
-            if hasattr(default, '__call__'):
-                default = default(self)
+        default = self.default
+        if self.default is not Unspecified:
             self.set(default)
 
     def __nonzero__(self):
