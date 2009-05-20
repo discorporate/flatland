@@ -1,11 +1,21 @@
+# -*- coding: utf-8; fill-column: 78 -*-
 from collections import defaultdict
 import re
+
 from flatland.util import Unspecified, keyslice_pairs, to_pairs
 from .base import FieldSchema, Element, Slot, validate_element
 from .scalars import Scalar, ScalarElement
 
 
-__all__ = 'List', 'Array', 'Dict'
+__all__ = (
+    'Array',
+    'Container',
+    'Dict',
+    'List',
+    'Mapping',
+    'MultiValue',
+    'Sequence',
+    )
 
 
 class ContainerElement(Element):
@@ -27,10 +37,12 @@ class Container(FieldSchema):
         """Validates on the second, upward pass.
 
         See :meth:`FieldSchema.validate_element`.
+
         """
         if descending:
             if self.descent_validators:
-                return validate_element(element, state, self.descent_validators)
+                return validate_element(
+                    element, state, self.descent_validators)
             else:
                 return None
         else:
@@ -321,24 +333,55 @@ class SlotElement(ContainerElement, Slot):
 
 
 class List(Sequence):
-    """An ordered, homogeneous Container."""
+    """An ordered, homogeneous Container.
+
+    Example:
+
+    .. doctest::
+
+      >>> import flatland
+      >>> name_schema = flatland.List('names', flatland.String('name'))
+      >>> names = name_schema.create_element()
+      >>> names.set([u'a', u'b'])
+      >>> names.append(u'c')
+      >>> names.value
+      [u'a', u'b', u'c']
+      >>> names.flatten()
+      [(u'names_0_name', u'a'), (u'names_1_name', u'b'), (u'names_2_name', u'c')]
+
+    :param name: field name
+
+    :param \*schema: one or more
+      :class:`~flatland.schema.base.FieldSchema` to contain.  If
+      multiple are provided, an anonymous :class:`Dict` will be
+      implicitly created to hold them.
+
+    :param default: optional, the number of child elements to build
+      out by default.
+
+    :param descent_validators: optional, a sequence of validators that
+      will be run before contained elements are validated.
+
+    :param validators: optional, a sequence of validators that will be
+      run after contained elements are validated.
+
+    :param \*\*kw: other arguments common to
+      :class:`~flatland.schema.base.FieldSchema`.
+
+    """
+
     element_type = ListElement
     slot_type = SlotElement
 
     def __init__(self, name, *schema, **kw):
-        """
-
-        default:
-          Optional, number of child elements to build out by default.
-
-        """
         super(List, self).__init__(name, **kw)
 
         # TODO: why? maybe only ok for non-Dict?
         self.prune_empty = kw.get('prune_empty', True)
 
         if not len(schema):
-            raise TypeError
+            raise TypeError(
+                "Need one or more child FieldSchema arguments, received 0.")
         elif len(schema) > 1:
             self.child_schema = Dict(None, *schema)
         else:
@@ -457,7 +500,8 @@ class DictElement(ContainerElement, dict):
     def _reset(self):
         """Set all child elements to their defaults."""
         for key, child_schema in self.schema.fields.items():
-            dict.__setitem__(self, key, child_schema.create_element(parent=self))
+            dict.__setitem__(
+                self, key, child_schema.create_element(parent=self))
 
     def popitem(self):
         raise TypeError('Dict keys are immutable.')
@@ -577,11 +621,13 @@ class DictElement(ContainerElement, dict):
         """Mappings are never empty."""
         return False
 
-    def update_object(self, obj, include=None, omit=None, rename=None, key=str):
+    def update_object(self, obj, include=None, omit=None, rename=None,
+                      key=str):
         """Update an object's attributes using the element's values.
 
-        Produces a :meth:`slice` using *include*, *omit*, *rename* and *key*,
-        and sets the selected attributes on *obj* using ``setattr``.
+        Produces a :meth:`slice` using *include*, *omit*, *rename* and
+        *key*, and sets the selected attributes on *obj* using
+        ``setattr``.
 
         :returns: nothing. *obj* is modified directly.
 

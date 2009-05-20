@@ -11,6 +11,7 @@ from schema import (
     DateYYYYMMDD,
     Dict,
     Enum,
+    FieldSchema,
     Float,
     Form,
     Integer,
