@@ -1,15 +1,17 @@
+# -*- coding: utf-8; fill-column: 78 -*-
 from flatland.util import keyslice_pairs, to_pairs
 from . import containers
 
 
 __all__ = 'Form',
 
+
 class Form(containers.Dict):
     """A collection of named fields or schema items.
 
     Forms are the most common top-level mapping.  They behave like
-    :class:`flatland.Dict`, but do not need to be named.  Forms are
-    defined with Python class syntax:
+    :class:`flatland.Dict`, but do not need to be named.  Forms are defined
+    with Python class syntax:
 
     .. doctest::
 
@@ -19,9 +21,9 @@ class Form(containers.Dict):
       ...                flatland.String('world') ]
       ...
 
-    Subclasses must define a :attr:`schema` property, containing an
-    ordered sequence of fields.  Forms may embed other container
-    fields and other forms:
+    Subclasses must define a :attr:`schema` property, containing an ordered
+    sequence of fields.  Forms may embed other container fields and other
+    forms:
 
     .. doctest::
 
@@ -36,8 +38,8 @@ class Form(containers.Dict):
       ...
 
     This would create a form with one ``HelloForm`` embedded as
-    ``main_hello``, and a list of zero or more dicts, each containing
-    an ``alt_name`` and another ``HelloForm``.
+    ``main_hello``, and a list of zero or more dicts, each containing an
+    ``alt_name`` and another ``HelloForm``.
 
     """
 
@@ -93,9 +95,9 @@ class Form(containers.Dict):
         :param \*\*kw: keyword arguments will be passed to the
             :class:`Form` constructor.
 
-        The returned element will contain all of the keys defined in
-        the :attr:`schema`.  Scalars will have a value of ``None`` and
-        containers will have their empty representation.
+        The returned element will contain all of the keys defined in the
+        :attr:`schema`.  Scalars will have a value of ``None`` and containers
+        will have their empty representation.
 
         """
         return cls(**kw).create_element()
@@ -126,12 +128,12 @@ class Form(containers.Dict):
 
         *include* and *omit* are mutually exclusive.
 
-        Creates and initializes a Form element, using as many
-        attributes as possible from *obj*.  Object attributes that do
-        not correspond to field names are ignored.
+        Creates and initializes a Form element, using as many attributes as
+        possible from *obj*.  Object attributes that do not correspond to
+        field names are ignored.
 
-        Elements have two corresponding methods useful for
-        round-tripping values in and out of your domain objects.
+        Elements have two corresponding methods useful for round-tripping
+        values in and out of your domain objects.
 
         .. testsetup::
 
