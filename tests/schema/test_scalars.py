@@ -273,12 +273,22 @@ def test_default_enum():
             el.set(good_val)
             assert el.value == good_val
             assert el.u == good_val
+            assert el.validate()
             assert not el.errors
 
         el = enum.create_element()
         el.set('d')
         assert el.value is None
         assert el.u == u'd'
+        # present but not converted
+        assert el.validate()
+
+        el = enum.create_element()
+        el.set(None)
+        assert el.value is None
+        assert el.u == u''
+        # not present
+        assert not el.validate()
 
 
 def test_typed_enum():
