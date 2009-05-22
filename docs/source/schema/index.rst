@@ -9,6 +9,7 @@ Defining and Using Forms
    schema
    scalars
    datetimes
+   enums
    references
    compound
    containers
