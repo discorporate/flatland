@@ -23,7 +23,21 @@ class ContainerElement(Element):
 
 
 class Container(FieldSchema):
-    """Holds other schema items."""
+    """Holds other schema items.
+
+    Base class for schemas that can contain other schemas, such as
+    :class:`List` and :class:`Dict`.
+
+    :param descent_validators: optional, a sequence of validators that
+      will be run before contained elements are validated.
+
+    :param validators: optional, a sequence of validators that will be
+      run after contained elements are validated.
+
+    :param \*\*kw: other arguments common to
+      :class:`~flatland.schema.base.FieldSchema`.
+
+    """
 
     element_type = ContainerElement
     descent_validators = ()
@@ -34,7 +48,16 @@ class Container(FieldSchema):
             self.descent_validators = descent_validators
 
     def validate_element(self, element, state, descending):
-        """Validates on the second, upward pass.
+        """Validates on the first (downward) and second (upward) pass.
+
+        If :attr:`descent_validators` are defined on the schema, they
+        will be evaluated before children are validated.  If a
+        validation function returns :obj:`flatland.SkipAll` or
+        :obj:`flatland.SkipFalse`, downward validation will halt on
+        this container and children will not be validated.
+
+        If :attr:`validators` are defined, they will be evaluated
+        after children are validated.
 
         See :meth:`FieldSchema.validate_element`.
 
