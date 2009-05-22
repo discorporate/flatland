@@ -394,25 +394,23 @@ class Constrained(Scalar):
 
 
 class Enum(Constrained):
-    """A scalar type with a limited set of valid values."""
+    """A scalar type with a limited set of valid values.
+
+    :param name: field name
+
+    :param \*values: valid element values.
+
+    :param valid_values: optional, a sequence or other containment-supporting
+      collection of valid values.
+
+    :param child_type: defaults to :class:`String`.  Any scalar
+      :class:`~flatland.schema.FieldSchema` class for elements of this Enum.
+
+    """
 
     valid_values = ()
 
     def __init__(self, name, *values, **kw):
-        """Create a new Enum.
-
-        :param name: field name
-
-        :param \*values: valid element values.
-
-        :param valid_values: optional, a sequence or other
-          containment-supporting collection of valid values.
-
-        :param child_type: defaults to :class:`String`.  Any scalar
-          :class:`~flatland.schema.FieldSchema` class for elements of this
-          Enum.
-
-        """
         if 'valid_values' in kw:
             assert not values
             self.valid_values = kw.pop('valid_values')
