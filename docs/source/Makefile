@@ -17,7 +17,7 @@ help:
 	@echo "  doctest   to run doctests"
 
 clean:
-	-rm -rf ../{doctrees,html,text,doctest}
+	-rm -rf ../{doctrees,html,text,doctest,pickles}
 
 html:
 	mkdir -p ../html ../doctrees _static _template
@@ -34,3 +34,7 @@ text:
 doctest:
 	mkdir -p ../doctrees ../doctest
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) ../doctest
+
+pickles:
+	mkdir -p ../pickles ../doctest
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) ../pickles
