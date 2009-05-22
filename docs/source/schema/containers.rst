@@ -10,6 +10,8 @@ Containers
 ----------
 
 .. autoclass:: flatland.schema.containers.Container
+   :show-inheritance:
+   :members:
 
 
 Sequences
