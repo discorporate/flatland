@@ -15,6 +15,9 @@ from scalars import (
     ValuesEqual,
     )
 from containers import (
+    HasAtLeast,
+    HasAtMost,
+    HasBetween,
     NotDuplicated,
     )
 import string, number, urls

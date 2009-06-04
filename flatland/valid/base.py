@@ -203,7 +203,10 @@ class Validator(object):
             except KeyError:
                 n = n_key
 
-            message = transform(single, plural, n)
+            if transform:
+                message = transform(single, plural, n)
+            else:
+                message = single if n == 1 else plural
         elif message_transform:
             message = message_transform(message)
 
