@@ -1,6 +1,7 @@
+# -*- coding: utf-8; fill-column: 78 -*-
 import operator
 from ..schema import Slot
-from . base import Validator
+from . base import N_, Validator
 
 
 class NotDuplicated(Validator):
@@ -10,14 +11,16 @@ class NotDuplicated(Validator):
     invalid.  Only useful on immediate children of sequence fields
     such as :class:`flatland.List`.
 
-    Example::
+    Example:
+
+    .. testcode::
 
       import flatland
       from flatland.valid import NotDuplicated
 
-      schema = flatland.List(
-        String('favorite_color', validators=[
-          NotDuplicated(failure="Please enter each color only once.")]))
+      validator = NotDuplicated(failure="Please enter each color only once.")
+      schema = flatland.List('colors', String('favorite_color'),
+                             validators=[validator])
 
     **Attributes**
 
@@ -99,3 +102,183 @@ class NotDuplicated(Validator):
                 element, state, 'failure',
                 position=position, container_label=container.label)
         return True
+
+
+class HasAtLeast(Validator):
+    """A sequence validator that ensures a minimum number of members.
+
+    May be applied to a sequence type such as a :class:`~flatland.List`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import HasAtLeast
+
+      schema = flatland.List('wishes', String('wish'),
+                             validators=[HasAtLeast(minimum=3)])
+
+    **Attributes**
+
+    .. attribute:: minimum
+
+      Any positive integer.
+
+    **Messages**
+
+    .. attribute:: failure
+
+      Emitted if the sequence contains more than :attr:`minimum` members.
+      ``child_label`` will substitute the label of the child schema.
+
+    """
+
+    minimum = 1
+
+    failure = (N_("%(label)s must contain at least one %(child_label)s"),
+               N_("%(label)s must contain at least %(minimum)s "
+                  "%(child_label)ss"),
+               'minimum')
+
+    def validate(self, element, state):
+        assert hasattr(element.schema, 'child_schema'), (
+            'container-length validator is only applicable to sequence types.')
+
+        # stupid edge case
+        if not self.minimum:
+            return True
+
+        if element.value is None or len(element.value) < self.minimum:
+            child_label = element.schema.child_schema.label
+            return self.note_error(element, state, 'failure',
+                                   child_label=child_label)
+        return True
+
+
+class HasAtMost(Validator):
+    """A sequence validator that ensures a maximum number of members.
+
+    May be applied to a sequence type such as a :class:`~flatland.List`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import HasAtMost
+
+      schema = flatland.List('wishes', String('wish'),
+                             validators=[HasAtMost(maximum=3)])
+
+    **Attributes**
+
+    .. attribute:: maximum
+
+      Any positive integer.
+
+    **Messages**
+
+    .. attribute:: failure
+
+      Emitted if the sequence contains fewer than :attr:`minimum` members.
+      ``child_label`` will substitute the label of the child schema.
+
+    """
+
+    maximum = 1
+
+    failure = (N_("%(label)s must contain at most one %(child_label)s"),
+               N_("%(label)s must contain at most %(maximum)s "
+                  "%(child_label)ss"),
+               'maximum')
+
+
+    def validate(self, element, state):
+        assert hasattr(element.schema, 'child_schema'), (
+            'container-length validator is only applicable to sequence types.')
+
+        if element.value and len(element.value) > self.maximum:
+            child_label = element.schema.child_schema.label
+            return self.note_error(element, state, 'failure',
+                                   child_label=child_label)
+        return True
+
+
+class HasBetween(Validator):
+    """Validates that the number of members of a sequence lies within a range.
+
+    May be applied to a sequence type such as a :class:`~flatland.List`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import HasBetween
+
+      schema = flatland.List('wishes', String('wish'),
+                             validators=[HasBetween(minimum=1, maximum=3)])
+
+    **Attributes**
+
+    .. attribute:: minimum
+
+      Any positive integer.
+
+    .. attribute:: maximum
+
+      Any positive integer.
+
+    **Messages**
+
+    .. attribute:: range
+
+      Emitted if the sequence contains fewer than :attr:`minimum` members or
+      more than :attr:`maximum` members. ``child_label`` will substitute the
+      label of the child schema.
+
+    .. attribute:: exact
+
+      Like :attr:`range`, however this message is emitted if :attr:`minimum`
+      and :attr:`maximum` are the same.
+
+      .. testcode::
+
+        schema = flatland.List('wishes', String('wish'),
+                               validators=[HasBetween(minimum=3, maximum=3)])
+
+    """
+
+    minimum = 1
+    maximum = 1
+
+    range = (N_("%(label)s must contain at least %(minimum)s and at most "
+                "%(maximum)s %(child_label)s"),
+             N_("%(label)s must contain at least %(minimum)s and at most "
+                "%(maximum)s %(child_label)ss"),
+             'maximum')
+
+    exact = (N_("%(label)s must contain exactly one %(child_label)s"),
+             N_("%(label)s must contain exactly %(minimum)s %(child_label)ss"),
+             'minimum')
+
+    def __init__(self, **kw):
+        Validator.__init__(self, **kw)
+        if not self.maximum >= self.minimum >= 0:
+            raise TypeError("Nonsensical minimum & maximum values (%r, %r)" %
+                            (self.minimum, self.maximum))
+
+    def validate(self, element, state):
+        assert hasattr(element.schema, 'child_schema'), (
+            'container-length validator is only applicable to sequence types.')
+
+        length = len(element.value) if element.value is not None else 0
+        if self.minimum <= length <= self.maximum:
+            return True
+
+        message = 'exact' if self.minimum == self.maximum else 'range'
+        child_label = element.schema.child_schema.label
+        return self.note_error(element, state, message,
+                               child_label=child_label)
+
