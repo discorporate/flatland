@@ -116,6 +116,8 @@ def to_pairs(dictlike):
         return dictlike.iteritems()
     elif hasattr(dictlike, 'keys'):
         return ((key, dictlike[key]) for key in dictlike.keys())
+    elif hasattr(dictlike, '_asdict'): # namedtuple interface
+        return dictlike._asdict().iteritems()
     else:
         return ((key, value) for key, value in dictlike)
 
