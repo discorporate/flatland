@@ -1,4 +1,5 @@
-from flatland import String, Integer, Dict, List
+from datetime import date, timedelta
+from flatland import String, Integer, Date, Dict, List
 from flatland.valid import scalars
 from tests._util import eq_
 
@@ -16,6 +17,9 @@ def scalar(value):
 
 def integer_scalar(value):
     return Integer('test').create_element(value=value)
+
+def date_scalar(value):
+    return Date('test').create_element(value=value)
 
 def test_is_true():
     i = integer_scalar(1)
@@ -41,6 +45,60 @@ def test_value_in():
     for bad_val in (None, 'x', -1):
         s = scalar(bad_val)
         assert not v.validate(s, None)
+
+def test_value_less_than():
+    i = integer_scalar(1)
+    V = scalars.ValueLessThan
+    assert V(2).validate(i, None)
+    assert not V(1).validate(i, None)
+    assert i.errors == ['test must be less than 1.']
+
+    d = date_scalar(date.today())
+    assert V(date.today() + timedelta(days=2)).validate(d, None)
+    two_days_ago = date.today() - timedelta(days=2)
+    assert not V(two_days_ago).validate(d, None)
+    assert d.errors == ['test must be less than %s.' % two_days_ago]
+
+def test_value_at_most():
+    i = integer_scalar(1)
+    V = scalars.ValueAtMost
+    assert V(2).validate(i, None)
+    assert V(1).validate(i, None)
+    assert not V(0).validate(i, None)
+    assert i.errors == ['test must be less than or equal to 0.']
+
+def test_value_greater_than():
+    i = integer_scalar(1)
+    V = scalars.ValueGreaterThan
+    assert V(0).validate(i, None)
+    assert not V(1).validate(i, None)
+    assert i.errors == ['test must be greater than 1.']
+
+def test_value_at_least():
+    i = integer_scalar(1)
+    V = scalars.ValueAtLeast
+    assert V(0).validate(i, None)
+    assert V(1).validate(i, None)
+    assert not V(2).validate(i, None)
+    assert i.errors == ['test must be greater than or equal to 2.']
+
+def test_value_between():
+    i = integer_scalar(1)
+    V = scalars.ValueBetween
+    assert V(0, 2).validate(i, None)
+    assert V(0, 1, inclusive=True).validate(i, None)
+    assert V(1, 2, inclusive=True).validate(i, None)
+    assert not V(2, 3).validate(i, None)
+    assert i.errors == ['test must be in the range 2 to 3.']
+    i.errors = []
+    assert not V(-1, 0).validate(i, None)
+    assert i.errors == ['test must be in the range -1 to 0.']
+    i.errors = []
+    assert not V(1, 2, inclusive=False).validate(i, None)
+    assert i.errors == ['test must be greater than 1 and less than 2.']
+    i.errors = []
+    assert not V(0, 1, inclusive=False).validate(i, None)
+    assert i.errors == ['test must be greater than 0 and less than 1.']
 
 def test_map_equal():
     v = scalars.MapEqual('x', 'y',

@@ -97,6 +97,240 @@ class LengthBetween(Validator):
         return True
 
 
+class ValueLessThan(Validator):
+    """A validator that ensures that the value is less than a limit.
+
+    May be applied to a scalar type such as a :class:`~flatland.Integer`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import ValueLessThan
+
+      schema = flatland.Integer('wishes', validators=[ValueLessThan(boundary=4)])
+
+    **Attributes**
+
+    .. attribute:: boundary
+
+      Any object implementing the comparison interface ``__ge__`` and friends
+
+    **Messages**
+
+    .. attribute:: failure
+
+      Emitted if the value is greater than or equal to :attr:`boundary`.
+      ``child_label`` will substitute the label of the child schema.
+
+    """
+
+    failure = u'%(label)s must be less than %(boundary)s.'
+
+    def __init__(self, boundary, **kw):
+        Validator.__init__(self, **kw)
+        self.boundary = boundary
+
+    def validate(self, element, state):
+        if not element.value < self.boundary:
+            return self.note_error(element, state, 'failure')
+        return True
+
+
+class ValueAtMost(Validator):
+    """A validator that enforces a maximum value.
+
+    May be applied to a scalar type such as a :class:`~flatland.Integer`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import ValueAtMost
+
+      schema = flatland.Integer('wishes', validators=[ValueAtMost(maximum=3)])
+
+    **Attributes**
+
+    .. attribute:: maximum
+
+      Any object implementing the comparison interface ``__ge__`` and friends
+
+    **Messages**
+
+    .. attribute:: failure
+
+      Emitted if the value is greater than :attr:`maximum`.
+      ``child_label`` will substitute the label of the child schema.
+
+    """
+
+    failure = u'%(label)s must be less than or equal to %(maximum)s.'
+
+    def __init__(self, maximum, **kw):
+        Validator.__init__(self, **kw)
+        self.maximum = maximum
+
+    def validate(self, element, state):
+        if not element.value <= self.maximum:
+            return self.note_error(element, state, 'failure')
+        return True
+
+
+class ValueGreaterThan(Validator):
+    """A validator that ensures that a value is greater than a limit.
+
+    May be applied to a scalar type such as a :class:`~flatland.Integer`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import ValueGreaterThan
+
+      schema = flatland.Integer('wishes', validators=[ValueGreaterThan(boundary=4)])
+
+    **Attributes**
+
+    .. attribute:: boundary
+
+      Any object implementing the comparison interface ``__ge__`` and friends
+
+    **Messages**
+
+    .. attribute:: failure
+
+      Emitted if the value is greater than or equal to :attr:`boundary`.
+      ``child_label`` will substitute the label of the child schema.
+
+    """
+
+    failure = u'%(label)s must be greater than %(boundary)s.'
+
+    def __init__(self, boundary, **kw):
+        Validator.__init__(self, **kw)
+        self.boundary = boundary
+
+    def validate(self, element, state):
+        if not element.value > self.boundary:
+            return self.note_error(element, state, 'failure')
+        return True
+
+
+class ValueAtLeast(Validator):
+    """A validator that enforces a minimum value.
+
+    May be applied to a scalar type such as a :class:`~flatland.Integer`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import ValueAtLeast
+
+      schema = flatland.Integer('wishes', validators=[ValueAtLeast(minimum=3)])
+
+    **Attributes**
+
+    .. attribute:: minimum
+
+      Any object implementing the comparison interface ``__ge__`` and friends
+
+    **Messages**
+
+    .. attribute:: failure
+
+      Emitted if the value is less than :attr:`minimum`.
+      ``child_label`` will substitute the label of the child schema.
+
+    """
+
+    failure = u'%(label)s must be greater than or equal to %(minimum)s.'
+
+    def __init__(self, minimum, **kw):
+        Validator.__init__(self, **kw)
+        self.minimum = minimum
+
+    def validate(self, element, state):
+        if not element.value >= self.minimum:
+            return self.note_error(element, state, 'failure')
+        return True
+
+
+class ValueBetween(Validator):
+    """A validator that enforces minimum and maximum values.
+
+    May be applied to a scalar type such as a :class:`~flatland.Integer`.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import ValueBetween
+
+      schema = flatland.Integer('wishes',
+                               validators=[ValueBetween(minimum=1, maximum=3)])
+
+    **Attributes**
+
+    .. attribute:: minimum
+
+      Any object implementing the comparison interface ``__ge__`` and friends
+
+    .. attribute:: maximum
+
+      Any object implementing the comparison interface ``__ge__`` and friends
+
+    .. attribute:: inclusive
+
+      Boolean value indicating that :attr:`minimum` and :attr:`maximum` are
+      included in the range.  Defaults to True.
+
+    **Messages**
+
+    .. attribute:: failure_inclusive
+
+      Emitted when :attr:`inclusive` is True if the expression
+      :attr:`minimum` <= value <= :attr:`maximum`
+      evaluates to False.
+      ``child_label`` will substitute the label of the child schema.
+
+    .. attribute:: failure_exclusive
+
+      Emitted when :attr:`inclusive` is False if the expression
+      :attr:`minimum` < value < :attr:`maximum`
+      evaluates to False.
+      ``child_label`` will substitute the label of the child schema.
+
+    """
+
+    failure_inclusive = (u'%(label)s must be in the range %(minimum)s '
+                         u'to %(maximum)s.')
+    failure_exclusive = (u'%(label)s must be greater than %(minimum)s '
+                         u'and less than %(maximum)s.')
+
+    inclusive = True
+
+    def __init__(self, minimum, maximum, **kw):
+        Validator.__init__(self, **kw)
+        self.minimum = minimum
+        self.maximum = maximum
+
+    def validate(self, element, state):
+        if self.inclusive:
+            if not self.minimum <= element.value <= self.maximum:
+                return self.note_error(element, state, 'failure_inclusive')
+        else:
+            if not self.minimum < element.value < self.maximum:
+                return self.note_error(element, state, 'failure_exclusive')
+        return True
+
+
 class MapEqual(Validator):
     """A general field equality validator.
 
