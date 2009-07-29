@@ -11,7 +11,12 @@ from scalars import (
     Present,
     ShorterThan,
     UnisEqual,
+    ValueAtLeast,
+    ValueAtMost,
+    ValueBetween,
+    ValueGreaterThan,
     ValueIn,
+    ValueLessThan,
     ValuesEqual,
     )
 from containers import (
