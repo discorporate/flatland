@@ -355,8 +355,8 @@ class Constrained(Scalar):
       2
       >>> element.set(u'5')
       False
-      >>> element.value
-      None
+      >>> element.value is None
+      True
 
     :class:`Enum` is a subclass which provides a convenient enumerated
     wrapper.

@@ -1,20 +1,20 @@
-.. _scalars:
+.. _enums:
 
 ============
 Enumerations
 ============
 
+.. currentmodule:: flatland
+
 Constrained Types
 -----------------
 
-.. autoclass:: flatland.schema.scalars.Constrained
+.. autoclass:: Constrained
    :show-inheritance:
    :members:
 
 Enums
 -----
-
-.. currentmodule:: flatland
 
 .. autoclass:: Enum
    :show-inheritance:

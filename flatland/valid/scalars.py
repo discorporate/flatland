@@ -1,18 +1,41 @@
 from operator import attrgetter
+
+from flatland.util import Unspecified
 from . base import Validator
 
 
 class Present(Validator):
+    """Validates that a value is present.
+
+    **Messages**
+
+    .. attribute:: missing
+
+      Emitted if the :attr:`~flatland.schema.base.Element.u` string
+      value of the element is empty, as in the case for an HTML form
+      submitted with an input box left blank.
+
+    """
+
     missing = u'%(label)s may not be blank.'
 
     def validate(self, element, state):
-        if element.u != u'':
-            return True
-
-        return self.note_error(element, state, 'missing')
+        if element.u == u'':
+            return self.note_error(element, state, 'missing')
+        return True
 
 
 class IsTrue(Validator):
+    """Validates that a value evaluates to true.
+
+    **Messages**
+
+    .. attribute:: false
+
+      Emitted if ``bool(element.value)`` is not True.
+
+    """
+
     false = u'%(label)s must be True.'
 
     def validate(self, element, state):
@@ -22,6 +45,16 @@ class IsTrue(Validator):
 
 
 class IsFalse(Validator):
+    """Validates that a value evaluates to false.
+
+    **Messages**
+
+    .. attribute:: true
+
+      Emitted if ``bool(element.value)`` is not False.
+
+    """
+
     true = u'%(label)s must be False.'
 
     def validate(self, element, state):
@@ -31,12 +64,40 @@ class IsFalse(Validator):
 
 
 class ValueIn(Validator):
+    """Validates that the value is within a set of possible values.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import ValueIn
+
+      is_yesno = ValueIn(valid_options=['yes', 'no'])
+      schema = flatland.String('yn', validators=[is_yesno])
+
+    **Attributes**
+
+    .. attribute:: valid_options
+
+      A list, set, or other container of valid element values.
+
+    **Messages**
+
+    .. attribute:: fail
+
+      Emitted if the element's value is not within the *valid_options*.
+
+    """
+
     fail = u'%(value)s is not a valid value for %(label)s.'
 
-    def __init__(self, valid_options, **kw):
-        Validator.__init__(self, **kw)
-        self.valid_options = valid_options
+    valid_options = ()
 
+    def __init__(self, valid_options=Unspecified, **kw):
+        Validator.__init__(self, **kw)
+        if valid_options is not Unspecified:
+            self.valid_options = valid_options
 
     def validate(self, element, state):
         if element.value not in self.valid_options:
@@ -45,35 +106,123 @@ class ValueIn(Validator):
 
 
 class Converted(Validator):
-    correct = u'%(label)s is not correct.'
+    """Validates that an element was converted to a Python value.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import Converted
+
+      not_bogus = Converted(incorrect='Please enter a valid date.')
+      schema = flatland.DateTime('when', validators=[not_bogus])
+
+    **Messages**
+
+    .. attribute:: incorrect
+
+      Emitted if the :attr:`~flatland.schema.base.Element.value` is
+      None.
+
+    """
+
+    incorrect = u'%(label)s is not correct.'
 
     def validate(self, element, state):
         if element.value is not None:
             return True
 
-        return self.note_error(element, state, 'correct')
+        return self.note_error(element, state, 'incorrect')
 
 
 class ShorterThan(Validator):
-    exceeded = u'%(label)s may not exceed %(maxlength)s characters.'
+    """Validates the length of an element's string value is less than a bound.
 
-    def __init__(self, maxlength, **kw):
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import ShorterThan
+
+      valid_length = ShorterThan(8)
+      schema = flatland.String('password', validators=[valid_length])
+
+    **Attributes**
+
+    .. attribute:: maxlength
+
+      A maximum character length for the
+      :attr:`~flatland.schema.base.Element.u`.
+
+      This attribute may be supplied as the first positional argument
+      to the constructor.
+
+    **Messages**
+
+    .. attribute:: exceeded
+
+      Emitted if the length of the element's string value exceeds
+      *maxlength*.
+
+    """
+
+    exceeded = u'%(label)s may not exceed %(maxlength)s characters.'
+    maxlength = 0
+
+    def __init__(self, maxlength=Unspecified, **kw):
         Validator.__init__(self, **kw)
-        self.maxlength = maxlength
+        if maxlength is not Unspecified:
+            self.maxlength = maxlength
 
     def validate(self, element, state):
         if len(element.u) > self.maxlength:
             return self.note_error(element, state, 'exceeded')
         return True
+
 NoLongerThan = ShorterThan
 
 
 class LongerThan(Validator):
-    short = u'%(label)s must be at least %(minlength)s characters.'
+    """Validates the length of an element's string value is more than a bound.
 
-    def __init__(self, minlength, **kw):
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import LongerThan
+
+      valid_length = LongerThan(4)
+      schema = flatland.String('password', validators=[valid_length])
+
+    **Attributes**
+
+    .. attribute:: minlength
+
+      A minimum character length for the
+      :attr:`~flatland.schema.base.Element.u`.
+
+      This attribute may be supplied as the first positional argument
+      to the constructor.
+
+    **Messages**
+
+    .. attribute:: short
+
+      Emitted if the length of the element's string value falls short
+      of *minlength*.
+
+    """
+
+    short = u'%(label)s must be at least %(minlength)s characters.'
+    minlength = 0
+
+    def __init__(self, minlength=Unspecified, **kw):
         Validator.__init__(self, **kw)
-        self.minlength = minlength
+        if minlength is not Unspecified:
+            self.minlength = minlength
 
     def validate(self, element, state):
         if len(element.u) < self.minlength:
@@ -82,13 +231,57 @@ class LongerThan(Validator):
 
 
 class LengthBetween(Validator):
+    """Validates the length of an element's string value is within bounds.
+
+    Example:
+
+    .. testcode::
+
+      import flatland
+      from flatland.valid import LengthBetween
+
+      valid_length = LengthBetween(4, 8)
+      schema = flatland.String('password', validators=[valid_length])
+
+    **Attributes**
+
+    .. attribute:: minlength
+
+      A minimum character length for the
+      :attr:`~flatland.schema.base.Element.u`.
+
+      This attribute may be supplied as the first positional argument
+      to the constructor.
+
+    .. attribute:: maxlength
+
+      A maximum character length for the
+      :attr:`~flatland.schema.base.Element.u`.
+
+      This attribute may be supplied as the second positional argument
+      to the constructor.
+
+    **Messages**
+
+    .. attribute:: breached
+
+      Emitted if the length of the element's string value is less than
+      *minlength* or greater than *maxlength*.
+
+    """
+
     breached = (u'%(label)s must be between %(minlength)s and '
                 u'%(maxlength)s characters long.')
 
-    def __init__(self, minlength, maxlength, **kw):
+    minlength = 0
+    maxlength = 0
+
+    def __init__(self, minlength=Unspecified, maxlength=Unspecified, **kw):
         Validator.__init__(self, **kw)
-        self.minlength = minlength
-        self.maxlength = maxlength
+        if minlength is not Unspecified:
+            self.minlength = minlength
+        if maxlength is not Unspecified:
+            self.maxlength = maxlength
 
     def validate(self, element, state):
         l = len(element.u)
@@ -99,8 +292,6 @@ class LengthBetween(Validator):
 
 class ValueLessThan(Validator):
     """A validator that ensures that the value is less than a limit.
-
-    May be applied to a scalar type such as a :class:`~flatland.Integer`.
 
     Example:
 
@@ -115,14 +306,13 @@ class ValueLessThan(Validator):
 
     .. attribute:: boundary
 
-      Any object implementing the comparison interface ``__ge__`` and friends
+      Any comparable object.
 
     **Messages**
 
     .. attribute:: failure
 
       Emitted if the value is greater than or equal to :attr:`boundary`.
-      ``child_label`` will substitute the label of the child schema.
 
     """
 
@@ -141,8 +331,6 @@ class ValueLessThan(Validator):
 class ValueAtMost(Validator):
     """A validator that enforces a maximum value.
 
-    May be applied to a scalar type such as a :class:`~flatland.Integer`.
-
     Example:
 
     .. testcode::
@@ -156,14 +344,13 @@ class ValueAtMost(Validator):
 
     .. attribute:: maximum
 
-      Any object implementing the comparison interface ``__ge__`` and friends
+      Any comparable object.
 
     **Messages**
 
     .. attribute:: failure
 
       Emitted if the value is greater than :attr:`maximum`.
-      ``child_label`` will substitute the label of the child schema.
 
     """
 
@@ -182,8 +369,6 @@ class ValueAtMost(Validator):
 class ValueGreaterThan(Validator):
     """A validator that ensures that a value is greater than a limit.
 
-    May be applied to a scalar type such as a :class:`~flatland.Integer`.
-
     Example:
 
     .. testcode::
@@ -197,14 +382,13 @@ class ValueGreaterThan(Validator):
 
     .. attribute:: boundary
 
-      Any object implementing the comparison interface ``__ge__`` and friends
+      Any comparable object.
 
     **Messages**
 
     .. attribute:: failure
 
       Emitted if the value is greater than or equal to :attr:`boundary`.
-      ``child_label`` will substitute the label of the child schema.
 
     """
 
@@ -223,8 +407,6 @@ class ValueGreaterThan(Validator):
 class ValueAtLeast(Validator):
     """A validator that enforces a minimum value.
 
-    May be applied to a scalar type such as a :class:`~flatland.Integer`.
-
     Example:
 
     .. testcode::
@@ -238,14 +420,13 @@ class ValueAtLeast(Validator):
 
     .. attribute:: minimum
 
-      Any object implementing the comparison interface ``__ge__`` and friends
+      Any comparable object.
 
     **Messages**
 
     .. attribute:: failure
 
       Emitted if the value is less than :attr:`minimum`.
-      ``child_label`` will substitute the label of the child schema.
 
     """
 
@@ -264,8 +445,6 @@ class ValueAtLeast(Validator):
 class ValueBetween(Validator):
     """A validator that enforces minimum and maximum values.
 
-    May be applied to a scalar type such as a :class:`~flatland.Integer`.
-
     Example:
 
     .. testcode::
@@ -280,11 +459,11 @@ class ValueBetween(Validator):
 
     .. attribute:: minimum
 
-      Any object implementing the comparison interface ``__ge__`` and friends
+      Any comparable object.
 
     .. attribute:: maximum
 
-      Any object implementing the comparison interface ``__ge__`` and friends
+      Any comparable object.
 
     .. attribute:: inclusive
 
@@ -298,14 +477,12 @@ class ValueBetween(Validator):
       Emitted when :attr:`inclusive` is True if the expression
       :attr:`minimum` <= value <= :attr:`maximum`
       evaluates to False.
-      ``child_label`` will substitute the label of the child schema.
 
     .. attribute:: failure_exclusive
 
       Emitted when :attr:`inclusive` is False if the expression
       :attr:`minimum` < value < :attr:`maximum`
       evaluates to False.
-      ``child_label`` will substitute the label of the child schema.
 
     """
 

@@ -4,7 +4,7 @@ from flatland import valid
 
 class Age(fl.Integer):
     class IsNumber(valid.Converted):
-        correct = u'%(label)s is not a valid number.'
+        incorrect = u'%(label)s is not a valid number.'
 
     class ValidAge(valid.Validator):
         minage = 1
