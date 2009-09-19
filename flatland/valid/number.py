@@ -1,6 +1,6 @@
 from __future__ import division
 import types
-from base import Validator
+from base import N_, Validator
 import flatland.util as util
 
 
@@ -26,7 +26,8 @@ class NANPnpa_nxx(Validator):
     "Validates npa and nxx compound elements."
 
     incomplete = None
-    invalid = u'The %(label)s can not be verified.'
+
+    invalid = N_(u'The %(label)s can not be verified.')
 
     def __init__(self, npa_element, nxx_element, errors_to=None,
                  lookup='aq', method='valid_npanxx', **kw):
@@ -71,7 +72,8 @@ class NANPnpa_nxx(Validator):
 
 class Luhn10(Validator):
     """Int or Long"""
-    invalid = 'The %(label)s was not entered correctly.'
+
+    invalid = N_('The %(label)s was not entered correctly.')
 
     def validate(self, element, state):
         num = element.value

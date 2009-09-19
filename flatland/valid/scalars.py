@@ -1,7 +1,7 @@
 from operator import attrgetter
 
 from flatland.util import Unspecified
-from . base import Validator
+from .base import N_, Validator
 
 
 class Present(Validator):
@@ -17,7 +17,7 @@ class Present(Validator):
 
     """
 
-    missing = u'%(label)s may not be blank.'
+    missing = N_(u'%(label)s may not be blank.')
 
     def validate(self, element, state):
         if element.u == u'':
@@ -36,7 +36,7 @@ class IsTrue(Validator):
 
     """
 
-    false = u'%(label)s must be True.'
+    false = N_(u'%(label)s must be True.')
 
     def validate(self, element, state):
         if not bool(element.value):
@@ -55,7 +55,7 @@ class IsFalse(Validator):
 
     """
 
-    true = u'%(label)s must be False.'
+    true = N_(u'%(label)s must be False.')
 
     def validate(self, element, state):
         if bool(element.value):
@@ -90,7 +90,7 @@ class ValueIn(Validator):
 
     """
 
-    fail = u'%(value)s is not a valid value for %(label)s.'
+    fail = N_(u'%(value)s is not a valid value for %(label)s.')
 
     valid_options = ()
 
@@ -127,7 +127,7 @@ class Converted(Validator):
 
     """
 
-    incorrect = u'%(label)s is not correct.'
+    incorrect = N_(u'%(label)s is not correct.')
 
     def validate(self, element, state):
         if element.value is not None:
@@ -168,7 +168,8 @@ class ShorterThan(Validator):
 
     """
 
-    exceeded = u'%(label)s may not exceed %(maxlength)s characters.'
+    exceeded = N_(u'%(label)s may not exceed %(maxlength)s characters.')
+
     maxlength = 0
 
     def __init__(self, maxlength=Unspecified, **kw):
@@ -216,7 +217,8 @@ class LongerThan(Validator):
 
     """
 
-    short = u'%(label)s must be at least %(minlength)s characters.'
+    short = N_(u'%(label)s must be at least %(minlength)s characters.')
+
     minlength = 0
 
     def __init__(self, minlength=Unspecified, **kw):
@@ -270,8 +272,8 @@ class LengthBetween(Validator):
 
     """
 
-    breached = (u'%(label)s must be between %(minlength)s and '
-                u'%(maxlength)s characters long.')
+    breached = N_(u'%(label)s must be between %(minlength)s and '
+                  u'%(maxlength)s characters long.')
 
     minlength = 0
     maxlength = 0
@@ -316,7 +318,7 @@ class ValueLessThan(Validator):
 
     """
 
-    failure = u'%(label)s must be less than %(boundary)s.'
+    failure = N_(u'%(label)s must be less than %(boundary)s.')
 
     def __init__(self, boundary, **kw):
         Validator.__init__(self, **kw)
@@ -354,7 +356,7 @@ class ValueAtMost(Validator):
 
     """
 
-    failure = u'%(label)s must be less than or equal to %(maximum)s.'
+    failure = N_(u'%(label)s must be less than or equal to %(maximum)s.')
 
     def __init__(self, maximum, **kw):
         Validator.__init__(self, **kw)
@@ -392,7 +394,7 @@ class ValueGreaterThan(Validator):
 
     """
 
-    failure = u'%(label)s must be greater than %(boundary)s.'
+    failure = N_(u'%(label)s must be greater than %(boundary)s.')
 
     def __init__(self, boundary, **kw):
         Validator.__init__(self, **kw)
@@ -430,7 +432,7 @@ class ValueAtLeast(Validator):
 
     """
 
-    failure = u'%(label)s must be greater than or equal to %(minimum)s.'
+    failure = N_(u'%(label)s must be greater than or equal to %(minimum)s.')
 
     def __init__(self, minimum, **kw):
         Validator.__init__(self, **kw)
@@ -486,10 +488,10 @@ class ValueBetween(Validator):
 
     """
 
-    failure_inclusive = (u'%(label)s must be in the range %(minimum)s '
-                         u'to %(maximum)s.')
-    failure_exclusive = (u'%(label)s must be greater than %(minimum)s '
-                         u'and less than %(maximum)s.')
+    failure_inclusive = N_(u'%(label)s must be in the range %(minimum)s '
+                           u'to %(maximum)s.')
+    failure_exclusive = N_(u'%(label)s must be greater than %(minimum)s '
+                           u'and less than %(maximum)s.')
 
     inclusive = True
 
@@ -539,7 +541,7 @@ class MapEqual(Validator):
 
     """
 
-    unequal = u'%(labels)s and %(last_label)s do not match.'
+    unequal = N_(u'%(labels)s and %(last_label)s do not match.')
 
     field_paths = ()
     transform = lambda el: el
@@ -609,4 +611,3 @@ class UnisEqual(MapEqual):
     """
 
     transform = attrgetter('u')
-
