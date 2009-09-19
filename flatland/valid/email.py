@@ -1,10 +1,11 @@
 import re
 from flatland.util import re_ucompile
-from base import Validator
+from base import N_, Validator
 
 
 class IsEmail(Validator):
-    invalid = u'%(label)s is not a valid email.'
+    invalid = N_(u'%(label)s is not a valid email.')
+
     pattern = re.compile(r'^.+@[^.].*\.[a-z]{2,4}$', re.IGNORECASE)
 
     def validate(self, element, state):

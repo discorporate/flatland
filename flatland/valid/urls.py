@@ -1,6 +1,6 @@
 """URL validation."""
 import urlparse
-from . base import Validator, N_
+from . base import N_, Validator
 
 
 # ordered generic URL part names according to urlparse
@@ -233,4 +233,3 @@ class URLCanonicalizer(Validator):
 
         element.value = self.urlparse.urlunparse(url)
         return True
-

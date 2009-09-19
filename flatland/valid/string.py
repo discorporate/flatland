@@ -1,12 +1,13 @@
 import re
 from flatland.util import re_ucompile
-from base import Validator
+from base import N_, Validator
 
 
 class NANPphone(Validator):
-    invalid = u'The %(label)s is not valid.'
-    noext = (u'%(label)s must be a ten-digit phone number '
-             u'without extension.')
+    invalid = N_(u'The %(label)s is not valid.')
+
+    noext = N_(u'%(label)s must be a ten-digit phone number '
+               u'without extension.')
 
     re_cleaner = re_ucompile(ur'\D')
     re_lowbit = re.compile('^[0-9]+$')
