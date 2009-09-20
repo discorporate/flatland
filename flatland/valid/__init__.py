@@ -26,4 +26,7 @@ from containers import (
     NotDuplicated,
     )
 import string, number, urls
+from network import (
+    IsEmail,
+    )
 
