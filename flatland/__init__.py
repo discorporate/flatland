@@ -32,6 +32,8 @@ class deferred_module(types.ModuleType):
             owner = self.__pushed_up[key]
             value = getattr(getattr(self, owner), key)
             setattr(self, key, value)
+            if 'sphinx' in sys.modules and isinstance(value, type):
+                value.__module__ = self.__name__
             return value
         elif key in self.__all__:
             module = __import__(
@@ -39,7 +41,11 @@ class deferred_module(types.ModuleType):
             setattr(self, key, module)
             return module
         else:
-            return types.ModuleType.__getattribute__(self, key)
+            try:
+                return types.ModuleType.__getattribute__(self, key)
+            except AttributeError:
+                raise AttributeError(
+                    'module %r has no attribute %r' % (self.__name__, key))
 
 
 deferred_module.shadow('flatland',
