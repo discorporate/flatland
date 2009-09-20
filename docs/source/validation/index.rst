@@ -68,24 +68,31 @@ Numbers
 .. automodule:: flatland.valid.number
    :members:
 
+Email Addresses
++++++++++++++++
+
+
+.. autoclass:: flatland.valid.IsEmail
+   :show-inheritance:
+
 URLs
 ++++
 
-.. autoclass:: flatland.valid.urls.URLValidator
+.. autoclass:: flatland.valid.URLValidator
    :members: __init__
    :show-inheritance:
 
    **Methods**
 
 
-.. autoclass:: flatland.valid.urls.HTTPURLValidator
+.. autoclass:: flatland.valid.HTTPURLValidator
    :members: __init__, all_parts
    :show-inheritance:
 
    **Methods**
 
 
-.. autoclass:: flatland.valid.urls.URLCanonicalizer
+.. autoclass:: flatland.valid.URLCanonicalizer
    :members: __init__
    :show-inheritance:
 

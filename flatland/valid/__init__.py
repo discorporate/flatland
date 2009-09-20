@@ -25,8 +25,11 @@ from containers import (
     HasBetween,
     NotDuplicated,
     )
-import string, number, urls
+import string, number
 from network import (
+    HTTPURLValidator,
     IsEmail,
+    URLCanonicalizer,
+    URLValidator,
     )
 
