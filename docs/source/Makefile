@@ -17,7 +17,7 @@ help:
 	@echo "  doctest   to run doctests"
 
 clean:
-	-rm -rf ../{doctrees,html,text,doctest,pickles}
+	rm -rf ../{doctrees,html,text,doctest,pickles}
 
 html:
 	mkdir -p ../html ../doctrees _static _template
