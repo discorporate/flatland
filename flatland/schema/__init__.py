@@ -17,7 +17,9 @@ from .scalars import (
     Float,
     Integer,
     Long,
+    Number,
     Ref,
+    Scalar,
     String,
     Time,
     )
