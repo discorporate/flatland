@@ -25,7 +25,8 @@ sys.path.append(path.abspath(path.dirname(__file__) + "../../../"))
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
+              'sphinx.ext.inheritance_diagram']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -181,3 +182,23 @@ latex_documents = [
 
 # If false, no module index is generated.
 #latex_use_modindex = True
+
+
+inheritance_graph_attrs = dict(
+    )
+
+inheritance_edge_attrs = dict(
+    colorscheme = 'ylorbr5',
+    penwidth = 2.0,
+    decorate = True,
+    color = 5,
+    )
+
+inheritance_node_attrs = dict(
+    colorscheme = 'ylorbr5',
+    color = '4',
+    fillcolor = '1',
+    style = 'filled, bold',
+    fontname = 'Helvetica',
+    fontsize = 12,
+    )
