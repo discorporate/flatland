@@ -1,17 +1,17 @@
 """Base functionality for fancy validation."""
 import __builtin__
 import operator
-from flatland.util import adict
+
+from flatland.util import adict, Unspecified
 from flatland.schema.util import find_i18n_function
 
 
 N_ = lambda translatable: translatable
+_ugettext_finder = operator.attrgetter('ugettext')
+_ungettext_finder = operator.attrgetter('ungettext')
 
 class Validator(object):
     """Base class for fancy validators."""
-
-    _transform_finder = operator.attrgetter('ugettext')
-    _tuple_transform_finder = operator.attrgetter('ungettext')
 
     def __init__(self, **kw):
         """Construct a validator.
@@ -33,6 +33,8 @@ class Validator(object):
 
     def validate(self, element, state):
         """Validate an element returning True if valid.
+
+        Abstract.
 
         :param element:
           an :class:`~flatland.schema.base.Element` instance.
@@ -60,8 +62,9 @@ class Validator(object):
           The name of a message-holding attribute on this instance.  Will be
           used to ``message = getattr(self, key)``.
 
-        :param message: semi-optional, default None.
-          A validation message.
+        :param message: semi-optional, default None.  A validation
+          message.  Use to provide a specific message rather than look
+          one up by *key*.
 
         :param \*\*info: optional.
           Additional data to make available to validation message
@@ -121,8 +124,9 @@ class Validator(object):
           The name of a message-holding attribute on this instance.  Will be
           used to ``message = getattr(self, key)``.
 
-        :param message: semi-optional, default None.
-          A validation message.
+        :param message: semi-optional, default None.  A validation
+          message.  Use to provide a specific message rather than look
+          one up by *key*.
 
         :param \*\*info: optional.
           Additional data to make available to validation message
@@ -142,7 +146,54 @@ class Validator(object):
                 self.expand_message(element, state, message, **info))
         return False
 
-    def find_transformer(self, element, state, message, finder):
+    def find_transformer(self, type, element, state, message):
+        """Locate a message-transforming function, such as ugettext.
+
+        Returns None or a callable.  The callable must return a
+        message.  The call signature of the callable is expected to
+        match ``ugettext`` or ``ungettext``:
+
+        - If *type* is 'ugettext', the callable should take a message
+          as a positional argument.
+
+        - If *type* is 'ungettext', the callable should take three
+          positional arguments: a message for the singular form, a
+          message for the plural form, and an integer.
+
+        Subclasses may override this method to provide advanced
+        message transformation and translation functionality, on a
+        per-element or per-message granularity if desired.
+
+        The default implementation uses the following logic to locate
+        a transformer:
+
+        1.  If *state* has an attribute or item named *type*, return that.
+
+        2.  If the *element* or any of its parents have an attribute
+            named *type*, return that.
+
+        3.  If the schema of *element* or the schema of any of its
+            parents have an attribute named *type*, return that.
+
+        4.  If *type* is in ``__builtin__``, return that.
+
+        5.  Otherwise return ``None``.
+
+        """
+        if hasattr(state, type):
+            return getattr(state, type)
+        if hasattr(state, '__getitem__'):
+            try:
+                return state[type]
+            except KeyError:
+                pass
+
+        if type == 'ugettext':
+            finder = _ugettext_finder
+        elif type == 'ungettext':
+            finder = _ungettext_finder
+        else:
+            raise RuntimeError("Unknown transformation %r" % type)
         return find_i18n_function(element, finder)
 
     def expand_message(self, element, state, message, **extra_format_args):
@@ -168,30 +219,23 @@ class Validator(object):
 
         :returns: the formatted string
 
-        See :ref:`validation_messaging` for full information on how messages
-        are expanded.
+        See :ref:`Message Templating`, :ref:`Message Pluralization` and
+        :ref:`Message Internationalization` for full information on how
+        messages are expanded.
 
         """
         if callable(message):
             message = message(element, state)
 
-        message_transform = mapping_transform = self.find_transformer(
-            element, state, message, self._transform_finder)
+        ugettext = self.find_transformer('ugettext', element, state, message)
 
-        if extra_format_args:
-            extra_format_args = adict(extra_format_args)
-            format_map = as_format_mapping(
-                extra_format_args, element, self,
-                transform=mapping_transform)
-        else:
-            format_map = as_format_mapping(
-                element, self,
-                transform=mapping_transform)
+        format_map = as_format_mapping(
+            extra_format_args, state, self, element,
+            transform=ugettext)
 
         if isinstance(message, tuple):
-            # a transformer must be present if message is a tuple
-            transform = self.find_transformer(
-                element, state, message, self._tuple_transform_finder)
+            ungettext = self.find_transformer(
+                'ungettext', element, state, message)
 
             single, plural, n_key = message
             try:
@@ -203,12 +247,15 @@ class Validator(object):
             except KeyError:
                 n = n_key
 
-            if transform:
-                message = transform(single, plural, n)
+            if ungettext:
+                message = ungettext(single, plural, n)
             else:
+                if ugettext:
+                    single = ugettext(single)
+                    plural = ugettext(plural)
                 message = single if n == 1 else plural
-        elif message_transform:
-            message = message_transform(message)
+        elif ugettext:
+            message = ugettext(message)
 
         return message % format_map
 
@@ -217,31 +264,43 @@ class as_format_mapping(object):
     """A unified, optionally transformed, mapping view over multiple instances.
 
     Allows regular instance attributes to be accessed by "%(attrname)s" in
-    string formats.  Optionally passes values through a ``transform`` (such
-    ``gettext``) before returning.
+    string formats.  Dictionaries may be included as well.  Optionally
+    passes values through a ``transform`` (such ``gettext``) before
+    returning.
 
     """
 
     __slots__ = 'targets', 'transform'
 
     def __init__(self, *targets, **kw):
-        self.targets = targets
+        self.targets = [t for t in targets if t is not None]
         self.transform = kw.pop('transform', None)
         if kw:
             raise TypeError('unexpected keyword argument')
 
     def __getitem__(self, item):
         for target in self.targets:
+            # try target[item] first
+            if hasattr(target, '__getitem__'):
+                try:
+                    value = target[item]
+                    break
+                except (LookupError, TypeError):
+                    pass
+            # then target.item
             try:
                 value = getattr(target, item)
+                break
             except AttributeError:
                 pass
-            else:
-                if self.transform:
-                    return self.transform(value)
-                else:
-                    return value
-        raise KeyError(item)
+        else:
+            # not found on any target
+            raise KeyError(item)
+
+        if self.transform:
+            return self.transform(value)
+        else:
+            return value
 
     def __contains__(self, item):
         try:
