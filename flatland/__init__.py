@@ -32,8 +32,6 @@ class deferred_module(types.ModuleType):
             owner = self.__pushed_up[key]
             value = getattr(getattr(self, owner), key)
             setattr(self, key, value)
-            if 'sphinx' in sys.modules and isinstance(value, type):
-                value.__module__ = self.__name__
             return value
         elif key in self.__all__:
             module = __import__(
