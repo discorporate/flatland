@@ -17,7 +17,9 @@ help:
 	@echo "  doctest   to run doctests"
 
 clean:
-	rm -rf ../{doctrees,html,text,doctest,pickles}
+	for i in doctrees html text doctest pickles; do \
+	    rm -rf ../$$i; \
+        done
 
 html:
 	mkdir -p ../html ../doctrees _static _template
