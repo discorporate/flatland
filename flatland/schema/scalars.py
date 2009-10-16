@@ -101,10 +101,10 @@ class ScalarElement(Element):
 class Scalar(FieldSchema):
     """The most common type, a single value such as a string or number.
 
-    Scalar subclasses are responsible for translating most data types in and
-    out of Python native form: strings, numbers, dates, times, Boolean values,
-    etc.  Any data which is represented by a single key, value pair is a
-    likely Scalar.
+    Scalar subclasses are responsible for translating the most common data
+    types in and out of Python-native form: strings, numbers, dates, times,
+    Boolean values, etc.  Any data which can be represented by a single (key,
+    value) pair is a likely Scalar.
 
     Scalar subclasses have two responsibilities: provide a method to adapt a
     value to native Python form, and provide a method to serialize the native
@@ -216,7 +216,9 @@ class Number(Scalar):
 
     """
 
+    #: The Python type for values, such as ``int`` or ``float``.
     type_ = None
+
     format = u'%s'
 
     def __init__(self, name, signed=True, format=Unspecified, **kw):
