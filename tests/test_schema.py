@@ -1,19 +1,25 @@
+from flatland import (
+    Dict,
+    String,
+    )
+
 from tests._util import eq_
-import flatland.schema as schema
 
 
 def test_dict():
-    s = schema.Dict('dict', schema.String('k1'), schema.String('k2'))
-    el = s.create_element()
+    s = Dict.named('dict').of(String.named('k1'),
+                              String.named('k2'))
+    el = s()
     assert s
     assert el
 
+
 def test_string_element():
-    el1 = schema.String('item').create_element()
+    el1 = String()
     el1.set_default()
-    el2 = schema.String('item', default=None).create_element()
+    el2 = String(default=None)
     el2.set_default()
-    el3 = schema.String('item', default=u'').create_element()
+    el3 = String(default=u'')
     el3.set_default()
 
     assert el1.value == None
@@ -32,9 +38,9 @@ def test_string_element():
     assert el1 != el3
     assert el2 != el3
 
-    el4 = schema.String('item', default=u'  ', strip=True).create_element()
+    el4 = String(default=u'  ', strip=True)
     el4.set_default()
-    el5 = schema.String('item', default=u'  ', strip=False).create_element()
+    el5 = String(default=u'  ', strip=False)
     el5.set_default()
 
     assert el4 != el5
@@ -51,11 +57,12 @@ def test_string_element():
     assert el5.u == u'  '
     assert el5.value == u'  '
 
-def test_path():
-    s = schema.Dict('root',
-                    schema.String('element'),
-                    schema.Dict('dict', schema.String('dict_element')))
-    el = s.create_element()
 
-    eq_(list(el.el(['dict', 'dict_element']).path),
-        [el, el['dict'], el['dict']['dict_element']])
+def test_path():
+    schema = Dict.named('root').of(
+        String.named('element'),
+        Dict.named('dict').of(String.named('dict_element')))
+    element = schema()
+
+    eq_(list(element.el(['dict', 'dict_element']).path),
+        [element, element['dict'], element['dict']['dict_element']])

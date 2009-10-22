@@ -1,88 +1,115 @@
-from flatland.schema import base
+from flatland import (
+    Element,
+    Skip,
+    SkipAll,
+    SkipAllFalse,
+    Unevaluated,
+    )
+
 from tests._util import eq_, assert_raises
 
 
-def test_schema_naming():
+def test_naming():
     for arg in (u'unicode', 'sysencoding', None):
-        s = base.FieldSchema(arg)
-        eq_(s.name, arg)
-        eq_(s.label, arg)
+        schema = Element.named(arg)
+        eq_(schema.name, arg)
+        eq_(schema.label, arg)
 
     for arg in (u'unicode', 'sysencoding', None):
-        s = base.FieldSchema(arg, label=u'fleem')
-        eq_(s.name, arg)
-        eq_(s.label, u'fleem')
+        schema = Element.named(arg).using(label=u'fleem')
+        eq_(schema.name, arg)
+        eq_(schema.label, u'fleem')
 
-def test_schema_validators():
-    """Validators may be inherited or supplied at construction."""
 
-    s = base.FieldSchema(None)
-    assert not s.validators
+def test_validators():
+    # Validators may be inherited or supplied at construction.
+    el = Element()
+    assert not el.validators
 
-    s = base.FieldSchema(None, validators=(123, 456))
-    eq_(s.validators, [123, 456])
+    # argument is transformed into a list copy
+    el = Element(validators=(123, 456))
+    eq_(el.validators, [123, 456])
 
-    s = base.FieldSchema(None, validators=xrange(3))
-    eq_(s.validators, list(xrange(3)))
+    el = Element(validators=xrange(3))
+    eq_(el.validators, list(xrange(3)))
 
-    canary = object()
-    s = base.FieldSchema(None, default=canary)
-    assert s.default is canary
+    schema = Element.using(validators=xrange(3))
+    eq_(schema.validators, list(xrange(3)))
 
-def test_schema_optional():
-    """Required is the default."""
 
-    s = base.FieldSchema(None)
-    assert not s.optional
+def test_optional():
+    # Required is the default.
+    el = Element()
+    assert not el.optional
 
-    s = base.FieldSchema(None, optional=False)
-    assert not s.optional
+    el = Element(optional=True)
+    assert el.optional
 
-    s = base.FieldSchema(None, optional=True)
-    assert s.optional
+    el = Element(optional=False)
+    assert not el.optional
 
-def test_element():
-    s = base.FieldSchema(u'abc', label=u'ABC')
-    n = s()
 
-    eq_(n.name, u'abc')
-    eq_(n.label, u'ABC')
-    eq_(n.errors, [])
-    eq_(n.warnings, [])
-    eq_(tuple(el.name for el in n.path), (u'abc',))
-    eq_(n.root, n)
-    eq_(n.flattened_name(), u'abc')
+def test_label():
+    # .label fallback to .name works for instances and classes
+    for item in Element.named(u'x'), Element.named(u'x')(), Element(name=u'x'):
+        assert item.label == u'x'
 
-def test_element_message_buckets():
-    s = base.FieldSchema(u'abc', label=u'ABC')
-    n = s()
+    for item in (Element.using(name=u'x', label=u'L'),
+                 Element.using(name=u'x', label=u'L')(),
+                 Element(name=u'x', label=u'L')):
+        assert item.label == u'L'
 
-    n.add_error('error')
-    eq_(n.errors, ['error'])
-    n.add_error('error')
-    eq_(n.errors, ['error'])
 
-    n.add_warning('warning')
-    eq_(n.warnings, ['warning'])
-    n.add_warning('warning')
-    eq_(n.warnings, ['warning'])
+def test_instance_defaults():
+    el = Element()
 
-def test_element_abstract():
-    s = base.FieldSchema(None)
-    n = s()
+    eq_(el.name, None)
+    eq_(el.label, None)
+    eq_(el.optional, False)
+    eq_(el.default, None)
+    eq_(el.validators, ())
+    eq_(el.valid, Unevaluated)
+    eq_(el.errors, [])
+    eq_(el.warnings, [])
+    eq_(tuple(_.name for _ in el.path), (None,))
+    eq_(el.parent, None)
+    eq_(el.root, el)
+    eq_(el.flattened_name(), u'')
+    eq_(el.value, None)
+    eq_(el.u, u'')
 
-    assert_raises(NotImplementedError, n.set, None)
-    assert_raises(NotImplementedError, n.set_flat, ())
-    assert_raises(NotImplementedError, n.el, 'foo')
-    assert_raises(NotImplementedError, n.el, 'abc')
 
-def test_element_validation():
+def test_abstract():
+    element = Element()
+
+    assert_raises(NotImplementedError, element.set, None)
+    assert_raises(NotImplementedError, element.set_flat, ())
+    assert_raises(NotImplementedError, element.el, 'foo')
+
+
+def test_message_buckets():
+    el = Element()
+
+    el.add_error('error')
+    eq_(el.errors, ['error'])
+    el.add_error('error')
+    eq_(el.errors, ['error'])
+    el.add_error('error2')
+    eq_(el.errors, ['error', 'error2'])
+
+    el.add_warning('warning')
+    eq_(el.warnings, ['warning'])
+    el.add_warning('warning')
+    eq_(el.warnings, ['warning'])
+
+
+def test_validation():
     ok = lambda item, data: True
     not_ok = lambda item, data: False
     none = lambda item, data: None
-    skip = lambda item, data: base.Skip
-    all_ok = lambda item, data: base.SkipAll
-    all_not_ok = lambda item, data: base.SkipAllFalse
+    skip = lambda item, data: Skip
+    all_ok = lambda item, data: SkipAll
+    all_not_ok = lambda item, data: SkipAllFalse
 
     for res, validators in ((True, (ok,)),
                             (True, (ok, ok)),
@@ -98,8 +125,7 @@ def test_element_validation():
                             (False, (ok, not_ok, ok,)),
                             (False, (all_not_ok,)),
                             (False, (ok, all_not_ok, ok))):
-        s = base.FieldSchema(None, validators=validators)
-        el = s.create_element()
+        el = Element(validators=validators, validates_down='validators')
         valid = el.validate()
         assert valid == res
         assert bool(valid) is res
@@ -107,47 +133,48 @@ def test_element_validation():
         assert el.all_valid is res
 
     element = None
+
     def got_element(item, data):
         assert item is element, repr(item)
         return True
-    s = base.FieldSchema(None, validators=(got_element,))
-    element = s()
-    element.validate()
+    element = Element(validators=(got_element,), validates_down='validators')
+    assert element.validate()
 
-def test_element_validator_return():
-    """Validator returns can be bool, int or None."""
+
+def test_validator_return():
+    # Validator returns can be bool, int or None.
 
     class Bool(object):
         """A truthy object that does not implement __and__"""
+
         def __init__(self, val):
             self.val = val
+
         def __nonzero__(self):
             return bool(self.val)
 
+    Validatable = Element.using(validates_down='validators')
+
     # mostly we care about allowing None for False
     true = lambda *a: True
-    skip = lambda *a: base.Skip
-    skipall = lambda *a: base.SkipAll
+    skip = lambda *a: Skip
+    skipall = lambda *a: SkipAll
     one = lambda *a: 1
 
     false = lambda *a: False
-    skipallfalse = lambda *a: base.SkipAllFalse
+    skipallfalse = lambda *a: SkipAllFalse
     zero = lambda *a: 0
     none = lambda *a: None
     no = lambda *a: Bool(False)
 
     for validator in true, one, skip, skipall:
-        s = base.FieldSchema(None, validators=(validator,))
-        n = s()
-        assert n.validate()
+        el = Validatable(validators=(validator,))
+        assert el.validate()
 
     for validator in false, zero, none, skipallfalse:
-        s = base.FieldSchema(None, validators=(validator,))
-        n = s()
-        assert not n.validate()
+        el = Validatable(validators=(validator,))
+        assert not el.validate()
 
     for validator in [no]:
-        s = base.FieldSchema(None, validators=(validator,))
-        n = s()
-        assert_raises(TypeError, n.validate)
-
+        el = Validatable(validators=(validator,))
+        assert_raises(TypeError, el.validate)

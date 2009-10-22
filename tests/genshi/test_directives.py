@@ -1,13 +1,18 @@
+from flatland import String
+
 from tests.genshi._util import (
-    FilteredRenderTest, from_text_files, from_docstring)
-import flatland
+    FilteredRenderTest,
+    from_docstring,
+    )
+
 
 
 def simple_context():
-    schema = flatland.String('field1')
-    el = schema.create_element()
+    schema = String.named('field1')
+    el = schema()
     el.set_prefix('field1')
     return {'field1': el}
+
 
 class TestWith(FilteredRenderTest):
     @from_docstring(context_factory=simple_context)

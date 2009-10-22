@@ -3,7 +3,7 @@ from flatland.exc import AdaptationError
 from . import scalars, containers
 
 
-class CompoundElement(containers.DictElement, scalars.ScalarElement):
+class CompoundElement(containers.Dict, scalars.Scalar):
 
     def u(self):
         uni, value = self.schema.compose(self)
@@ -33,7 +33,7 @@ class CompoundElement(containers.DictElement, scalars.ScalarElement):
 
     def __repr__(self):
         try:
-            return scalars.ScalarElement.__repr__(self)
+            return scalars.Scalar.__repr__(self)
         except Exception, exc:
             return '<%s %r; value raised %s>' % (
                 type(self.schema).__name__, self.name, type(exc).__name__)

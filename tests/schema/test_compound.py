@@ -1,14 +1,21 @@
 import datetime
-from flatland import schema, util
-from tests._util import eq_, assert_raises, raises
+
+from flatland import (
+    Compound,
+    DateYYYYMMDD,
+    Integer,
+    String,
+    )
+
+from tests._util import eq_, raises
 
 
 class TestDoubleField(object):
     def setup(self):
-        class Double(schema.Compound):
+        class Double(Compound):
             def __init__(self, name, **kw):
-                children = [schema.Integer('x'), schema.Integer('y')]
-                schema.Compound.__init__(self, name, *children, **kw)
+                children = [Integer('x'), Integer('y')]
+                Compound.__init__(self, name, *children, **kw)
 
             def compose(self, element):
                 ex, ey = element.get('x'), element.get('y')
@@ -153,25 +160,25 @@ class TestDoubleField(object):
 
 def test_repr_always_safe():
     # use the abstract class to emulate a subclass with broken compose.
-    broken_impl = schema.Compound('x', schema.String('y'))
+    broken_impl = Compound('x', String('y'))
     e = broken_impl.create_element()
     assert repr(e)
 
 @raises(NotImplementedError)
 def test_explode_abstract():
-    e = schema.Compound('x', schema.String('y')).create_element()
+    e = Compound('x', String('y')).create_element()
     e.set('x')
 
 @raises(NotImplementedError)
 def test_compose_abstract():
-    e = schema.Compound('x', schema.String('y')).create_element()
+    e = Compound('x', String('y')).create_element()
     e.value
 
 @raises(TypeError)
-def test_compose_abstract():
+def test_compose_abstract_fixme():
     # really it'd be nice if serialize simply wasn't inherited. would
     # have to rejigger the hierarchy, not sure its worth it.
-    s = schema.Compound('x', schema.String('y'))
+    s = Compound('x', String('y'))
     e = s.create_element()
     s.serialize(e, 'abc')
 
@@ -186,7 +193,7 @@ def assert_us_(el, top, x, y):
     eq_(el['y'].u, y)
 
 def test_sample_compound():
-    s = schema.DateYYYYMMDD('s')
+    s = DateYYYYMMDD('s')
     assert 'year' in s.fields
     assert 'month' in s.fields
     assert 'day' in s.fields
@@ -224,26 +231,26 @@ def test_sample_compound():
     assert e.el('year').value is None
 
 def test_compound_optional():
-    class Form(schema.Form):
-        schema = [schema.DateYYYYMMDD('s', optional=False)]
+    class Form(Form):
+        schema = [DateYYYYMMDD('s', optional=False)]
 
     f = Form.from_defaults()
-    assert not f.el('s.year').schema.optional
-    assert not f.el('s.month').schema.optional
-    assert not f.el('s.day').schema.optional
+    assert not f.el('s.year').optional
+    assert not f.el('s.month').optional
+    assert not f.el('s.day').optional
     assert not f.validate()
 
-    class Form(schema.Form):
-        schema = [schema.DateYYYYMMDD('s', optional=True)]
+    class Form(Form):
+        schema = [DateYYYYMMDD('s', optional=True)]
 
     f = Form.from_defaults()
-    assert f.el('s.year').schema.optional
-    assert f.el('s.month').schema.optional
-    assert f.el('s.day').schema.optional
+    assert f.el('s.year').optional
+    assert f.el('s.month').optional
+    assert f.el('s.day').optional
     assert f.validate()
 
 def test_compound_is_empty():
-    s = schema.DateYYYYMMDD('s')
+    s = DateYYYYMMDD('s')
     e = s.create_element()
     assert e.is_empty
 

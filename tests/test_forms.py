@@ -4,8 +4,15 @@ NOTE: form tests are in the tests.schema package.  This is a legacy
 test file, now providing a sample of some possible usage patterns.
 
 """
+from flatland import (
+    Dict,
+    Form,
+    Integer,
+    List,
+    String,
+    )
+
 from tests._util import eq_
-import flatland as fl
 
 
 REQUEST_DATA = ((u'abc', u'123'),
@@ -21,30 +28,32 @@ REQUEST_DATA = ((u'abc', u'123'),
                 (u'ns_squiznart', u'xyyzy'),
                 (u'ns_age', u'23'))
 
-class SimpleForm1(fl.Form):
-    schema = [fl.String('fname'),
-              fl.String('surname'),
-              fl.Integer('age'),
-              fl.List('snacks', fl.String('name'))]
+
+class SimpleForm1(Form):
+    fname = String
+    surname = String
+    age = Integer
+    snacks = List.of(String.named('name'))
+
 
 def test_straight_parse():
-    f = SimpleForm1.from_flat(REQUEST_DATA)
-    eq_(set(f.flatten()),
-        set(((u'fname', u'FN'),
-             (u'surname', u'SN'),
-             (u'age', u'99'))))
+    form = SimpleForm1.from_flat(REQUEST_DATA)
+    eq_(set(form.flatten()), set(((u'fname', u'FN'),
+                                  (u'surname', u'SN'),
+                                  (u'age', u'99'))))
 
-    eq_(f.value,
-        dict(fname=u'FN',
-             surname=u'SN',
-             age=99,
-             snacks=[]))
+    eq_(form.value, dict(fname=u'FN',
+                         surname=u'SN',
+                         age=99,
+                         snacks=[]))
+
 
 def test_namespaced_parse():
+
     def load(fn):
-        f = SimpleForm1.from_defaults(name='ns')
-        fn(f)
-        return f
+        form = SimpleForm1.from_defaults(name='ns')
+        fn(form)
+        return form
 
     output = dict(fname=u'ns_FN',
                   surname=u'ns_SN',
@@ -63,12 +72,14 @@ def test_namespaced_parse():
                  (u'ns_snacks_2_name', u'chimp'))))
         eq_(form.value, output)
 
-def test_default_behavior():
-    class SimpleForm2(fl.Form):
-        schema = [fl.String('fname', default=u'FN'),
-                  fl.String('surname')]
 
-    form = SimpleForm2.create_blank()
+def test_default_behavior():
+
+    class SimpleForm2(Form):
+        fname = String.using(default=u'FN')
+        surname = String
+
+    form = SimpleForm2()
     eq_(form['fname'].value, None)
     eq_(form['surname'].value, None)
 
@@ -76,11 +87,11 @@ def test_default_behavior():
     eq_(form['fname'].value, u'FN')
     eq_(form['surname'].value, None)
 
-    class DictForm(fl.Form):
-        schema = [fl.Dict('dict',
-            fl.String('fname', default=u'FN'), fl.String('surname'))]
+    class DictForm(Form):
+        dict = Dict.of(String.named('fname').using(default=u'FN'),
+                       String.named('surname'))
 
-    form = DictForm.create_blank()
+    form = DictForm()
     eq_(form.el('dict.fname').value, None)
     eq_(form.el('dict.surname').value, None)
 

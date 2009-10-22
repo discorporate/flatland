@@ -1,12 +1,21 @@
-import flatland as fl
-from flatland import valid
+from flatland import (
+    Dict,
+    Form,
+    Integer,
+    )
+from flatland.valid import (
+    Converted,
+    Present,
+    Validator,
+    )
 
 
-class Age(fl.Integer):
-    class IsNumber(valid.Converted):
+class Age(Integer):
+
+    class IsNumber(Converted):
         incorrect = u'%(label)s is not a valid number.'
 
-    class ValidAge(valid.Validator):
+    class ValidAge(Validator):
         minage = 1
         maxage = 150
 
@@ -15,12 +24,6 @@ class Age(fl.Integer):
 
         at_min = '%(label)s is at the minimum age.'
         at_max = '%(label)s is at the maximum age.'
-
-        def __init__(self, minage=None, maxage=None):
-            if minage is not None:
-                self.minage = minage
-            if maxage is not None:
-                self.maxage = maxage
 
         def validate(self, element, state):
             age = element.value
@@ -34,19 +37,21 @@ class Age(fl.Integer):
                 return self.note_error(element, state, 'too_old')
             return True
 
-    validators = (valid.Present(),
+    validators = (Present(),
                   IsNumber(),
                   ValidAge())
 
+
 class ThirtySomething(Age):
-    validators = (valid.Present(),
+    validators = (Present(),
                   Age.IsNumber(),
-                  Age.ValidAge(30, 39))
+                  Age.ValidAge(minage=30, maxage=39))
 
 
 def test_custom_validation():
-    class MyForm(fl.Form):
-        schema = [ThirtySomething('age')]
+
+    class MyForm(Form):
+        age = ThirtySomething
 
     f = MyForm.from_flat({})
     assert not f.validate()
@@ -64,29 +69,32 @@ def test_custom_validation():
     assert not f.validate()
     assert f['age'].errors == ['age must be at least 30.']
 
+
 def test_child_validation():
-    s = fl.Dict('s', fl.Integer('x', validators=[valid.Present()]))
-    n = s()
 
-    assert not n.validate()
+    class MyForm(Form):
+        x = Integer.using(validators=[Present()])
 
-    n.set({u'x': 10})
+    form = MyForm()
+    assert not form.validate()
 
-    assert n.validate()
+    form.set({u'x': 10})
+    assert form.validate()
+
 
 def test_nested_validation():
-    s = fl.Dict('d1',
-                fl.Integer('x', validators=[valid.Present()]),
-                fl.Dict('d2',
-                        fl.Integer('x2', validators=[valid.Present()])))
-    n = s()
 
-    assert not n.validate()
+    class MyForm(Form):
+        x = Integer.using(validators=[Present()])
 
-    n['x'].set(1)
-    assert not n.validate()
-    assert n.validate(recurse=False)
+        d2 = Dict.of(Integer.named('x2').using(validators=[Present()]))
 
-    n.el('d2.x2').set(2)
-    assert n.validate()
+    form = MyForm()
+    assert not form.validate()
 
+    form['x'].set(1)
+    assert not form.validate()
+    assert form.validate(recurse=False)
+
+    form.el('d2.x2').set(2)
+    assert form.validate()

@@ -5,13 +5,15 @@ import operator
 from flatland.signals import validator_validated
 from flatland.util import (
     Unspecified,
+    assignable_class_property,
     assignable_property,
+    class_cloner,
     named_int_factory,
     symbol,
     )
 
 
-__all__ = 'FieldSchema', 'Element'
+__all__ = 'Element'
 
 NoneType = type(None)
 Root = symbol('Root')
@@ -44,11 +46,42 @@ Assigned to newly created elements that have never been evaluated by
 
 xml = None
 
+
 class _BaseElement(object):
     pass
 
 
 class Element(_BaseElement):
+    """Base class for form fields.
+
+    :param name: the Unicode name of the field.
+
+    :param label: optional, a human readable name for the field.  Defaults to
+      *name* if not provided.
+
+    :param default: optional. A default value for elements created from this
+      Field template.  The interpretation of the *default* is subclass
+      specific.
+
+    :param default_factory: optional. A callable to generate default element
+      values.  Passed an element.  *default_factory* will be used
+      preferentially over *default*.
+
+    :param validators: optional, overrides the class's default validators.
+
+    :param optional: if True, element of this field will be considered valid
+      by :meth:`Element.validate` if no value has been set.
+
+
+    **Instance Attributes**
+
+      .. attribute:: name
+      .. attribute:: label
+      .. attribute:: default
+      .. attribute:: optional
+
+    """
+
     """A data node that stores a Python and a text value plus added state.
 
     :param schema: the :class:`FieldSchema` that defined the element.
@@ -70,13 +103,218 @@ class Element(_BaseElement):
     value = None
     u = u''
 
-    def __init__(self, schema, parent=None):
-        self.schema = schema
+    validates_down = None
+    validates_up = None
+
+    def __init__(self, value=Unspecified, parent=None, **kw):
         self.parent = parent
 
         self.valid = Unevaluated
         self.errors = []
         self.warnings = []
+
+        # FIXME This (and 'using') should also do descent_validators
+        # via lookup
+        if 'validators' in kw:
+            kw['validators'] = list(kw['validators'])
+
+        for attribute, override in kw.items():
+            if hasattr(self, attribute):
+                setattr(self, attribute, override)
+            else:
+                raise TypeError(
+                    "%r is an invalid keyword argument: not a known "
+                    "argument or an overridable class property of %s" % (
+                        attribute, type(self).__name__))
+
+        if value is not Unspecified:
+            self.set(value)
+
+    #######################################################################
+
+    name = None
+    label = Unspecified
+
+    optional = False
+    validators = ()
+
+    default_factory = None
+
+    ugettext = None
+    ungettext = None
+
+    #######################################################################
+
+    @class_cloner
+    def named(cls, name):
+        if not isinstance(name, (unicode, NoneType)):
+            name = unicode(name)
+        cls.name = name
+        return cls
+
+    @class_cloner
+    def using(cls, **overrides):
+        if 'validators' in overrides:
+            overrides['validators'] = list(overrides['validators'])
+
+        for attribute, value in overrides.iteritems():
+            # must make better
+            if callable(value):
+                value = staticmethod(value)
+            if hasattr(cls, attribute):
+                setattr(cls, attribute, value)
+                continue
+            raise TypeError(
+                "%r is an invalid keyword argument: not a known "
+                "argument or an overridable class property of %s" % (
+                    attribute, cls.__name__))
+        return cls
+
+    ############
+
+    @classmethod
+    def create_element(cls, **kw):
+        """Returns a new Element.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        """
+        return cls(**kw)
+
+
+    def validate_element(self, element, state, descending):
+        """Assess the validity of an element.
+
+        :param element: an :class:`Element`
+        :param state: may be None, an optional value of supplied to
+            ``element.validate``
+        :param descending: a boolean, True the first time the element
+            has been seen in this run, False the next
+
+        :returns: boolean; a truth value or None
+
+        The :meth:`Element.validate` process visits each element in
+        the tree twice: once heading down the tree, breadth-first, and
+        again heading back up in the reverse direction.  Scalar fields
+        will typically validate on the first pass, and containers on
+        the second.
+
+        Return no value or None to ``pass``, accepting the element as
+        presumptively valid.
+
+        Exceptions raised by :meth:`validate_element` will not be
+        caught by :meth:`Element.validate`.
+
+        Directly modifying and normalizing :attr:`Element.value` and
+        :attr:`Element.u` within a validation routine is acceptable.
+
+        The standard implementation of validate_element is:
+
+         - If :attr:`element.is_empty` and :attr:`self.optional`,
+           return True.
+
+         - If :attr:`self.validators` is empty and
+           :attr:`element.is_empty`, return False.
+
+         - If :attr:`self.validators` is empty and not
+           :attr:`element.is_empty`, return True.
+
+         - Iterate through :attr:`self.validators`, calling each
+           member with (*element*, *state*).  If one returns a false
+           value, stop iterating and return False immediately.
+
+         - Otherwise return True.
+
+        """
+        return validate_element(element, state, self.validators)
+
+    @classmethod
+    def from_flat(cls, pairs, **kw):
+        """Return a new element with its value initialized from *pairs*.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        .. testsetup::
+
+          import flatland
+          field = flatland.String('test')
+          pairs = {}
+
+        This is a convenience constructor for:
+
+        .. testcode::
+
+          element = field()
+          element.set_flat(pairs)
+
+        """
+        element = cls(**kw)
+        element.set_flat(pairs)
+        return element
+
+    @classmethod
+    def from_value(cls, value, **kw):
+        """Return a new element with its value initialized from *value*.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        .. testsetup::
+
+          import flatland
+          field = flatland.String('test')
+          value = 'val'
+
+        This is a convenience constructor for:
+
+        .. testcode::
+
+          element = field()
+          element.set(value)
+
+        """
+        return cls(value, **kw)
+
+    @classmethod
+    def from_defaults(cls, **kw):
+        """Return a new element with its value initialized from field defaults.
+
+        :param \*\*kw: passed through to the :attr:`element_type`.
+
+        .. testsetup::
+
+          import flatland
+          field = flatland.String('test')
+
+        This is a convenience constructor for:
+
+        .. testcode::
+
+          element = field()
+          element.set_default()
+
+        """
+        element = cls(**kw)
+        element.set_default()
+        return element
+
+    @classmethod
+    def create_blank(cls, **kw):
+        """Return a blank, empty Form element.
+
+        :param \*\*kw: keyword arguments will be passed to the
+            element' constructor.
+
+        FIXME: moved from Form.create_blank.  Maybe drop.
+
+        The returned element will contain all of the keys defined in the
+        :attr:`schema`.  Scalars will have a value of ``None`` and containers
+        will have their empty representation.
+
+        """
+        return cls(**kw)
+
+
+    #######################################################################
 
     def __eq__(self, other):
         try:
@@ -87,16 +325,16 @@ class Element(_BaseElement):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    @property
-    def name(self):
-        """The element's name."""
-        return self.schema.name
+    @assignable_class_property
+    def label(self, cls):
+        """The label of this element.
 
-    @property
-    def label(self):
-        """The element's label."""
-        return self.schema.label
+        TODO
 
+        """
+        return cls.name if self is None else self.name
+
+    # TODO: assignable_class_property, return None for class?
     @assignable_property
     def default(self):
         """The default value of this element.
@@ -109,10 +347,10 @@ class Element(_BaseElement):
         per-element basis.
 
         """
-        if self.schema.default_factory is not None:
-            return self.schema.default_factory(self)
+        if self.default_factory is not None:
+            return self.default_factory(self)
         else:
-            return self.schema.default
+            return None
 
     def _get_all_valid(self):
         """True if this element and all children are valid."""
@@ -249,7 +487,7 @@ class Element(_BaseElement):
                                        String('city')),
                                   default=1
                        )))
-          form = schema.create_element()
+          form = schema()
           form.set_default()
 
         .. doctest::
@@ -335,7 +573,7 @@ class Element(_BaseElement):
           >>> import flatland
           >>> form = flatland.List('addresses',
           ...                      flatland.String('address'))
-          >>> element = form.create_element()
+          >>> element = form()
           >>> element.set([u'uptown', u'downtown'])
           >>> element.el('0').value
           u'uptown'
@@ -369,7 +607,7 @@ class Element(_BaseElement):
           ...                      flatland.String('name'),
           ...                      flatland.Dict('address',
           ...                                    flatland.String('email')))
-          >>> element = form.create_element()
+          >>> element = form()
 
           >>> element.flatten()
           [(u'contact_name', u''), (u'contact_address_email', u'')]
@@ -412,7 +650,7 @@ class Element(_BaseElement):
 
           >>> import flatland
           >>> field = flatland.Integer('number')
-          >>> el = field.create_element()
+          >>> el = field()
           >>> el.u, el.value
           (u'', None)
 
@@ -481,8 +719,13 @@ class Element(_BaseElement):
 
         """
         if not recurse:
-            return (self._validate(state, True) &
-                    self._validate(state, False))
+            down = self._validate(state, True)
+            up = self._validate(state, False)
+            if down is not None:
+                self.valid = bool(down)
+            if up is not None:
+                self.valid = bool(up)
+            return self.valid
 
         valid = True
         elements, seen, queue = [], set(), collections.deque([self])
@@ -495,9 +738,10 @@ class Element(_BaseElement):
             seen.add(id(element))
             elements.append(element)
             validated = element._validate(state, True)
-            element.valid = bool(validated)
-            if valid:
-                valid &= validated
+            if validated is not None:
+                element.valid = bool(validated)
+                if valid:
+                    valid &= validated
             if validated is SkipAll or validated is SkipAllFalse:
                 continue
             queue.extend(element.children)
@@ -505,16 +749,26 @@ class Element(_BaseElement):
         # back up, visiting only the elements that weren't skipped above
         for element in reversed(elements):
             validated = element._validate(state, False)
-            if element.valid:
-                element.valid = bool(validated)
-            if valid:
-                valid &= validated
+            if validated is not None:
+                if element.valid:
+                    element.valid = bool(validated)
+                if valid:
+                    valid &= validated
         return bool(valid)
 
     def _validate(self, state, descending):
         """Run validation, transforming None into success. Internal."""
-        res = self.schema.validate_element(self, state, descending)
-        return True if res is None else res
+        if descending:
+            if self.validates_down:
+                validators = getattr(self, self.validates_down, None)
+                res = validate_element(self, state, validators)
+                return True if res is None else res
+        else:
+            if self.validates_up:
+                validators = getattr(self, self.validates_up, None)
+                res = validate_element(self, state, validators)
+                return True if res is None else res
+        return None
 
     @property
     def x(self):
@@ -572,155 +826,6 @@ class FieldSchema(object):
     validators = ()
     default_factory = None
 
-    def __init__(self, name, label=Unspecified,
-                 default=None, default_factory=Unspecified,
-                 validators=Unspecified, optional=False,
-                 ugettext=Unspecified, ungettext=Unspecified):
-        if not isinstance(name, (unicode, NoneType)):
-            name = unicode(name, errors='strict')
-
-        self.name = name
-        self.label = name if label is Unspecified else label
-        self.default = default
-
-        if validators is not Unspecified:
-            self.validators = list(validators)
-        self.optional = optional
-
-        for override in ('ugettext', 'ungettext', 'default_factory'):
-            value = locals()[override]
-            if value is not Unspecified:
-                setattr(self, override, value)
-
-    def create_element(self, **kw):
-        """Returns a new Element.
-
-        :param \*\*kw: passed through to the :attr:`element_type`.
-
-        """
-        return self.element_type(self, **kw)
-
-    def __call__(self, **kw):
-        """Returns a new Element.
-
-        :param \*\*kw: passed through to the :attr:`element_type`.
-        """
-        return self.create_element(**kw)
-
-    def validate_element(self, element, state, descending):
-        """Assess the validity of an element.
-
-        :param element: an :class:`Element`
-        :param state: may be None, an optional value of supplied to
-            ``element.validate``
-        :param descending: a boolean, True the first time the element
-            has been seen in this run, False the next
-
-        :returns: boolean; a truth value or None
-
-        The :meth:`Element.validate` process visits each element in
-        the tree twice: once heading down the tree, breadth-first, and
-        again heading back up in the reverse direction.  Scalar fields
-        will typically validate on the first pass, and containers on
-        the second.
-
-        Return no value or None to ``pass``, accepting the element as
-        presumptively valid.
-
-        Exceptions raised by :meth:`validate_element` will not be
-        caught by :meth:`Element.validate`.
-
-        Directly modifying and normalizing :attr:`Element.value` and
-        :attr:`Element.u` within a validation routine is acceptable.
-
-        The standard implementation of validate_element is:
-
-         - If :attr:`element.is_empty` and :attr:`self.optional`,
-           return True.
-
-         - If :attr:`self.validators` is empty and
-           :attr:`element.is_empty`, return False.
-
-         - If :attr:`self.validators` is empty and not
-           :attr:`element.is_empty`, return True.
-
-         - Iterate through :attr:`self.validators`, calling each
-           member with (*element*, *state*).  If one returns a false
-           value, stop iterating and return False immediately.
-
-         - Otherwise return True.
-
-        """
-        return validate_element(element, state, self.validators)
-
-    def from_flat(self, pairs, **kw):
-        """Return a new element with its value initialized from *pairs*.
-
-        :param \*\*kw: passed through to the :attr:`element_type`.
-
-        .. testsetup::
-
-          import flatland
-          field = flatland.String('test')
-          pairs = {}
-
-        This is a convenience constructor for:
-
-        .. testcode::
-
-          element = field.create_element()
-          element.set_flat(pairs)
-
-        """
-        element = self.create_element(**kw)
-        element.set_flat(pairs)
-        return element
-
-    def from_value(self, value, **kw):
-        """Return a new element with its value initialized from *value*.
-
-        :param \*\*kw: passed through to the :attr:`element_type`.
-
-        .. testsetup::
-
-          import flatland
-          field = flatland.String('test')
-          value = 'val'
-
-        This is a convenience constructor for:
-
-        .. testcode::
-
-          element = field.create_element()
-          element.set(value)
-
-        """
-        element = self.create_element(**kw)
-        element.set(value)
-        return element
-
-    def from_defaults(self, **kw):
-        """Return a new element with its value initialized from field defaults.
-
-        :param \*\*kw: passed through to the :attr:`element_type`.
-
-        .. testsetup::
-
-          import flatland
-          field = flatland.String('test')
-
-        This is a convenience constructor for:
-
-        .. testcode::
-
-          element = field.create_element()
-          element.set_default()
-
-        """
-        element = self.create_element(**kw)
-        element.set_default()
-        return element
-
 
 class Slot(object):
     """Marks a semi-visible Element-holding Element, like the 0 in list[0]."""
@@ -746,7 +851,7 @@ def validate_element(element, state, validators):
     validator is tested.
 
     """
-    if element.is_empty and element.schema.optional:
+    if element.is_empty and element.optional:
         return True
     if not validators:
         valid = not element.is_empty

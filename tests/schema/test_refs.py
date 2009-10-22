@@ -1,80 +1,83 @@
-import datetime
-import flatland
-from flatland import schema
-from tests._util import eq_, assert_raises
+from flatland import (
+    Dict,
+    Integer,
+    Ref,
+    )
+
+from tests._util import assert_raises
 
 
-def test_ref_binops():
-    s = schema.Dict('d',
-                    schema.Integer('main'),
-                    schema.Ref('aux', 'main'),
-                    schema.Integer('other'))
-    n = s.create_element()
-    n['main'].set(5)
+def test_binops():
+    schema = Dict.of(Integer.named('main'),
+                     Ref.named('aux').to('main'),
+                     Integer.named('other'))
+    el = schema({'main': 5})
 
-    int_el = lambda v: schema.Integer('anon').create_element(value=v)
+    assert el['aux'] == Integer(5)
+    assert el['aux'].value == 5
+    assert el['aux'].u == u'5'
+    assert Integer(5) == el['aux']
+    assert 5 == el['aux'].value
+    assert u'5' == el['aux'].u
 
-    assert n['aux'] == int_el(5)
-    assert n['aux'].value == 5
-    assert n['aux'].u == u'5'
-    assert int_el(5) == n['aux']
-    assert 5 == n['aux'].value
-    assert u'5' == n['aux'].u
+    assert el['aux'] != Integer(6)
+    assert el['aux'].value != 6
+    assert el['aux'].u != u'6'
+    assert Integer(6) != el['aux']
+    assert 6 != el['aux']
+    assert u'6' != el['aux']
 
-    assert n['aux'] != int_el(6)
-    assert n['aux'].value != 6
-    assert n['aux'].u != u'6'
-    assert int_el(6) != n['aux']
-    assert 6 != n['aux']
-    assert u'6' != n['aux']
+    assert el['aux'] == el['main']
+    assert el['main'] == el['aux']
+    assert el['aux'] != el['other']
+    assert el['other'] != el['aux']
 
-    assert n['aux'] == n['main']
-    assert n['main'] == n['aux']
-    assert n['aux'] != n['other']
-    assert n['other'] != n['aux']
 
-def test_ref_writable_ignore():
-    s = schema.Dict('d',
-                    schema.Integer('main'),
-                    schema.Ref('aux', 'main'))
+def test_writable_ignore():
 
-    n = s.create_element()
-    n['aux'] = 6
-    assert n['main'].value is None
+    def element(writable):
+        ref = Ref.named('aux').to('main')
+        if writable:
+            ref = ref.using(writable=writable)
+        return Dict.of(Integer.named('main'), ref)()
 
-def test_ref_writable():
-    s = schema.Dict('d',
-                    schema.Integer('main'),
-                    schema.Ref('aux', 'main', writable=True))
+    # class default and explicit writable=ignore
+    for el in element(None), element('ignore'):
+        el['aux'] = 6
+        assert el['main'].value is None
+        assert el['aux'].value is None
 
-    n = s.create_element()
-    n['aux'] = 6
-    assert n['main'].value == 6
 
-def test_ref_not_writable():
-    s = schema.Dict('d',
-                    schema.Integer('main'),
-                    schema.Ref('aux', 'main', writable=False))
+def test_writable():
+    schema = Dict.of(Integer.named('main'),
+                     Ref.named('aux').to('main').using(writable=True))
 
-    n = s.create_element()
-    assert_raises(TypeError, n['aux'].set, 6)
+    el = schema()
+    el['aux'] = 6
+    assert el['main'].value == 6
+    assert el['aux'].value == 6
+
+
+def test_not_writable():
+    schema = Dict.of(Integer.named('main'),
+                     Ref.named('aux').to('main').using(writable=False))
+
+    el = schema()
+    assert_raises(TypeError, el['aux'].set, 6)
+
 
 def test_dereference_twice():
-    class RefForm(flatland.Form):
-        schema = [
-            schema.Integer('main', default=1),
-            schema.Ref('aux', 'main', writable=True),
-        ]
+    schema = Dict.of(Integer.named('main'),
+                     Ref.named('aux').to('main').using(writable=True))
 
-    f = RefForm.from_defaults()
-    assert f.el('aux').value == 1
+    # Previous revisions would fail after two dereferences
+    element = schema()
 
-    f.el('aux').set(10)
-    assert f.el('main').value == 10
+    element['aux'] = 1
+    assert element['aux'].value == 1
 
-    f.set_flat({'aux': 15})
-    assert f.el('main').value == 15
+    element['aux'].set(1)
+    assert element['aux'].value == 1
 
-    # Previous versions would fail after two dereferences
-    f.el(f.el('aux').schema.path)
-    f.el(f.el('aux').schema.path)
+    assert element.el(element['aux'].target_path) is element['main']
+    assert element.el(element['aux'].target_path) is element['main']

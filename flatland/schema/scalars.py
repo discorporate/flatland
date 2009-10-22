@@ -5,8 +5,8 @@ import re
 
 from flatland import valid
 from flatland.exc import AdaptationError
-from flatland.util import Unspecified, as_mapping, lazy_property
-from .base import FieldSchema, Element
+from flatland.util import Unspecified, as_mapping, class_cloner, lazy_property
+from .base import Element
 
 
 __all__ = (
@@ -23,16 +23,25 @@ __all__ = (
     )
 
 
-class ScalarElement(Element):
+class Scalar(Element):
+    """The most common type, a single value such as a string or number.
+
+    Scalar subclasses are responsible for translating the most common data
+    types in and out of Python-native form: strings, numbers, dates, times,
+    Boolean values, etc.  Any data which can be represented by a single (key,
+    value) pair is a likely Scalar.
+
+    Scalar subclasses have two responsibilities: provide a method to adapt a
+    value to native Python form, and provide a method to serialize the native
+    form to a Unicode string.
+
+    Elements can be equality compared (==) to their Unicode representation,
+    their native representation or other elements.
+
+    """
     flattenable = True
 
-    def __init__(self, schema, **kw):
-        value = kw.pop('value', Unspecified)
-
-        Element.__init__(self, schema, **kw)
-
-        if value is not Unspecified:
-            self.set(value)
+    validates_down = 'validators'
 
     def set(self, value):
         """Assign the native and Unicode value.
@@ -51,7 +60,7 @@ class ScalarElement(Element):
         """
         try:
             # adapt and normalize the value, if possible
-            value = self.value = self.schema.adapt(self, value)
+            value = self.value = self.adapt(value)
         except AdaptationError:
             self.value = None
             if value is None:
@@ -70,7 +79,7 @@ class ScalarElement(Element):
         if value is None:
             self.u = u''
         else:
-            self.u = self.schema.serialize(self, value)
+            self.u = self.serialize(value)
         return True
 
     def _index(self, name):
@@ -95,29 +104,11 @@ class ScalarElement(Element):
 
     def __repr__(self):
         return '<%s %r; value=%r>' % (
-            type(self.schema).__name__, self.name, self.value)
+            type(self).__name__, self.name, self.value)
 
 
-class Scalar(FieldSchema):
-    """The most common type, a single value such as a string or number.
-
-    Scalar subclasses are responsible for translating the most common data
-    types in and out of Python-native form: strings, numbers, dates, times,
-    Boolean values, etc.  Any data which can be represented by a single (key,
-    value) pair is a likely Scalar.
-
-    Scalar subclasses have two responsibilities: provide a method to adapt a
-    value to native Python form, and provide a method to serialize the native
-    form to a Unicode string.
-
-    Elements can be equality compared (==) to their Unicode representation,
-    their native representation or other elements.
-
-    """
-
-    element_type = ScalarElement
-
-    def adapt(self, element, value):
+    #######################################################################
+    def adapt(self, value):
         """Given any value, try to coerce it into native format.
 
         Returns the native format or raises AdaptationError on failure.
@@ -125,7 +116,7 @@ class Scalar(FieldSchema):
         """
         raise NotImplementedError()
 
-    def serialize(self, element, value):
+    def serialize(self, value):
         """Given any value, coerce it into a Unicode representation.
 
         No special effort is made to coerce values not of native or a
@@ -136,26 +127,18 @@ class Scalar(FieldSchema):
         """
         return unicode(value)
 
-    def validate_element(self, element, state, descending):
+    def validate_element(self, state, descending):
         """Validates on the first, downward pass.
 
         See :meth:`FieldSchema.validate_element`.
 
         """
+        # FIXME: now unused
         if descending:
             return FieldSchema.validate_element(
                 self, element, state, descending)
         else:
             return None
-
-
-class StringElement(ScalarElement):
-    """An Element type with string specific behavior."""
-
-    @property
-    def is_empty(self):
-        """True if the string is blank or has no value."""
-        return True if (not self.value and self.u == u'') else False
 
 
 class String(Scalar):
@@ -167,13 +150,17 @@ class String(Scalar):
 
     """
 
-    element_type = StringElement
+    @property
+    def is_empty(self):
+        """True if the string is blank or has no value."""
+        return True if (not self.value and self.u == u'') else False
 
-    def __init__(self, name, strip=True, **kw):
-        super(String, self).__init__(name, **kw)
-        self.strip = strip
+    #######################################################################
 
-    def adapt(self, element, value):
+
+    strip = True
+
+    def adapt(self, value):
         """Return a Unicode representation.
 
         If ``strip=True``, leading and trailing whitespace will be removed.
@@ -188,7 +175,7 @@ class String(Scalar):
         else:
             return unicode(value)
 
-    def serialize(self, element, value):
+    def serialize(self, value):
         """Return a Unicode representation.
 
         If ``strip=True``, leading and trailing whitespace will be removed.
@@ -202,6 +189,8 @@ class String(Scalar):
             return unicode(value).strip()
         else:
             return unicode(value)
+
+    #######################################################################
 
 
 class Number(Scalar):
@@ -218,17 +207,10 @@ class Number(Scalar):
 
     #: The Python type for values, such as ``int`` or ``float``.
     type_ = None
-
+    signed = True
     format = u'%s'
 
-    def __init__(self, name, signed=True, format=Unspecified, **kw):
-        super(Number, self).__init__(name, **kw)
-        self.signed = signed
-        if format is not Unspecified:
-            assert isinstance(format, unicode)
-            self.format = format
-
-    def adapt(self, element, value):
+    def adapt(self, value):
         """Generic numeric coercion.
 
         Attempt to convert *value* using the class's :attr:`type_` callable.
@@ -246,7 +228,7 @@ class Number(Scalar):
                     raise AdaptationError()
             return native
 
-    def serialize(self, element, value):
+    def serialize(self, value):
         """Generic numeric serialization.
 
         Converts *value* to a string using Python's string formatting function
@@ -291,18 +273,13 @@ class Boolean(Scalar):
 
     """
 
+    true = u'1'
     true_synonyms = (u'on', u'true', u'True', u'1')
+
+    false = u''
     false_synonyms = (u'off', u'false', u'False', u'0', u'')
 
-    def __init__(self, name, true=u'1', false=u'', **kw):
-        super(Scalar, self).__init__(name, **kw)
-        assert isinstance(true, unicode)
-        assert isinstance(false, unicode)
-
-        self.true = true
-        self.false = false
-
-    def adapt(self, element, value):
+    def adapt(self, value):
         """Coerce value to bool.
 
         If value is a string, returns True if the value is in
@@ -320,7 +297,7 @@ class Boolean(Scalar):
             return False
         return None
 
-    def serialize(self, element, value):
+    def serialize(self, value):
         """Convert bool(value) to a canonical string representation.
 
         Will return either :attr:`self.true` or :attr:`self.false`.
@@ -367,16 +344,14 @@ class Constrained(Scalar):
 
     child_type = String
 
-    def __init__(self, name, child_type=None, **kw):
-        if child_type:
-            self.child_type = child_type
-        if 'valid_value' in kw:
-            self.valid_value = kw.pop('valid_value')
-        Scalar.__init__(self, name, **kw)
-        self.child_schema = child = self.child_type(name)
-        self.element_type = child.element_type
+    def __init__(self, value=Unspecified, **kw):
+        Scalar.__init__(self, **kw)
+        self.child_schema = self.child_type()
+        if value is not Unspecified:
+            self.set(value)
 
-    def valid_value(self, element, value):
+    @staticmethod
+    def valid_value(element, value):
         """Returns True if *value* for *element* is within the constraints.
 
         This method is abstract.  Override in a subclass or pass a custom
@@ -385,14 +360,14 @@ class Constrained(Scalar):
         """
         return False
 
-    def adapt(self, element, value):
-        value = self.child_schema.adapt(element, value)
-        if not self.valid_value(element, value):
+    def adapt(self, value):
+        value = self.child_schema.adapt(value)
+        if not self.valid_value(self, value):
             raise AdaptationError()
         return value
 
-    def serialize(self, element, value):
-        return self.child_schema.serialize(element, value)
+    def serialize(self, value):
+        return self.child_schema.serialize(value)
 
 
 class Enum(Constrained):
@@ -412,13 +387,10 @@ class Enum(Constrained):
 
     valid_values = ()
 
-    def __init__(self, name, *values, **kw):
-        if 'valid_values' in kw:
-            assert not values
-            self.valid_values = kw.pop('valid_values')
-        Constrained.__init__(self, name, **kw)
-        if values:
-            self.valid_values = values
+    def __init__(self, value=Unspecified, **kw):
+        Constrained.__init__(self, **kw)
+        if value is not Unspecified:
+            self.set(value)
 
     def valid_value(self, element, value):
         """True if *value* is within the enumerated values.
@@ -439,11 +411,9 @@ class Temporal(Scalar):
     format = None
     used = None
 
-    def __init__(self, name, strip=True, **kw):
-        Scalar.__init__(self, name, **kw)
-        self.strip = strip
+    strip = True
 
-    def adapt(self, element, value):
+    def adapt(self, value):
         """Coerces value to a native type.
 
         If *value* is an instance of :attr:`type_`, returns it unchanged.  If
@@ -467,7 +437,7 @@ class Temporal(Scalar):
         else:
             raise AdaptationError()
 
-    def serialize(self, element, value):
+    def serialize(self, value):
         """Serializes value to string.
 
         If *value* is an instance of :attr:`type`, formats it as described in
@@ -524,21 +494,45 @@ class Time(Temporal):
     used = ('hour', 'minute', 'second')
 
 
-class RefElement(ScalarElement):
+class Ref(Scalar):
     flattenable = False
+
+    #######################################################################
+    writable = 'ignore'
+
+    sep = '.'
+
+    target_path = None
+
+    @class_cloner
+    def to(cls, name, sep=Unspecified):
+        if sep is Unspecified:
+            sep = cls.sep
+        cls.target_path = list(cls._parse_element_path(name, sep))
+        if cls.target_path is None:
+            raise TypeError("Could not parse path %r" % name)
+        return cls
+
+    def adapt(self, value):
+        return self.target.adapt(value)
+
+    def serialize(self, value):
+        return self.target.serialize(value)
+
+    #######################################################################
 
     @lazy_property
     def target(self):
-        return self.root.el(self.schema.path)
+        return self.root.el(self.target_path)
 
     def _get_u(self):
         """The Unicode representation of the reference target."""
         return self.target.u
 
     def _set_u(self, ustr):
-        if self.schema.writable == 'ignore':
+        if self.writable == 'ignore':
             return
-        elif self.schema.writable:
+        elif self.writable:
             self.target.u = ustr
         else:
             raise TypeError(u'Ref "%s" is not writable.' % self.name)
@@ -551,32 +545,12 @@ class RefElement(ScalarElement):
         return self.target.value
 
     def _set_value(self, value):
-        if self.schema.writable == 'ignore':
+        if self.writable == 'ignore':
             return
-        elif self.schema.writable:
+        elif self.writable:
             self.target.value = value
         else:
             raise TypeError(u'Ref "%s" is not writable.' % self.name)
 
     value = property(_get_value, _set_value)
     del _get_value, _set_value
-
-
-class Ref(Scalar):
-    """A functional reference to another element."""
-
-    element_type = RefElement
-
-    def __init__(self, name, path, writable='ignore', sep='.', **kw):
-        super(Ref, self).__init__(name, **kw)
-
-        self.path = list(self.element_type._parse_element_path(path, sep))
-        assert self.path is not None
-
-        self.writable = writable
-
-    def adapt(self, element, value):
-        return element.target.schema.adapt(element, value)
-
-    def serialize(self, element, value):
-        return element.target.schema.serialize(element, value)

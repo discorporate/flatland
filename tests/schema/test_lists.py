@@ -1,49 +1,50 @@
-from flatland import schema
+from flatland import (
+    Integer,
+    List,
+    String,
+)
+
 from tests._util import eq_, assert_raises
 
 
-def test_list_linear_set_scalars():
-    s = schema.List('l', schema.String('s'))
-    el = s.create_element()
+def test_set_flat_linear():
+    pairs = [('l_0_i', 1), ('l_1_i', 2), ('l_2_i', 3)]
 
-    pairs = list(('l_%s_s' % i, 'val%s' % i) for i in xrange(1, 10))
-    el.set_flat(pairs)
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema.from_flat(pairs)
+
     eq_(len(el), len(pairs))
     eq_(el.value, list(pair[1] for pair in pairs))
 
 
-def test_list_miss_set_flat():
-    s = schema.List('l', schema.String('s'))
-    el = s.create_element()
+def test_set_flat_miss():
+    pairs = [(u'l_galump', u'3'), (u'l_snorgle', u'4')]
 
-    pairs = ((u'l_galump', u'foo'), (u'l_snorgle', u'bar'))
-    el.set_flat(pairs)
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema.from_flat(pairs)
+
     eq_(len(el), 0)
     eq_(el.value, [])
 
 
-def test_list_lossy_set_scalars():
-    s = schema.List('l', schema.String('s'))
-    el = s.create_element()
+def test_set_flat_lossy():
+    # lossy won't insert empty elements for a skipped index
+    pairs = [('l_0_i', 1), ('l_2_i', 3)]
 
-    pairs = list(('l_%s_s' % i, 'val%s' % i) for i in xrange(1, 10, 2))
-    el.set_flat(pairs)
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema.from_flat(pairs)
 
     eq_(len(el), len(pairs))
     eq_(el.value, list(pair[1] for pair in pairs))
 
-    # lossy won't insert empty elements
-    eq_(el[1].value, pairs[1][1])
 
-
-def test_list_linear_set_dict():
-    s = schema.List('l', schema.String('x'), schema.String('y'))
-    el = s.create_element()
-
+def test_set_flat_linear_dict():
     pairs = ((u'l_0_x', u'x0'), (u'l_0_y', u'y0'),
              (u'l_1_x', u'x1'), (u'l_1_y', u'y1'),
              (u'l_2_x', u'x2'), )
-    el.set_flat(pairs)
+
+    schema = List.named('l').of(String.named('x'), String.named('y'))
+    el = schema.from_flat(pairs)
 
     eq_(len(el), 3)
     eq_(el[0].value, dict((k[-1], v) for k, v in pairs[0:2]))
@@ -51,17 +52,18 @@ def test_list_linear_set_dict():
     eq_(el[2].value, {u'x': u'x2', u'y': None})
 
 
-def test_list_set_default():
-    def factory(count, **kw):
-        return schema.List('l', schema.String('s', default=u'val'),
-                           default=count, **kw)
-    s = factory(3)
+def test_set_default():
 
-    el = s.create_element()
+    def factory(count, **kw):
+        return List.named('l').using(default=count, **kw).of(
+            String.named('s').using(default=u'val'))
+
+    schema = factory(3)
+    el = schema()
     eq_(len(el), 0)
     eq_(el.value, [])
 
-    el = s.create_element()
+    el = schema()
     el.set_default()
     eq_(len(el), 3)
     eq_(el.value, [u'val'] * 3)
@@ -72,53 +74,53 @@ def test_list_set_default():
     el[-1].set_default()
     eq_(el[-1].value, u'val')
 
-    el = s.create_element(value=[u'a', u'b'])
+    el = schema([u'a', u'b'])
     eq_(len(el), 2)
     eq_(el.value, [u'a', u'b'])
     el.set_default()
     eq_(len(el), 3)
     eq_(el.value, [u'val'] * 3)
 
-    s = factory(0)
-    el = s.create_element()
+    schema0 = factory(0)
+
+    el = schema0()
     el.set_default()
     eq_(len(el), 0)
     eq_(el.value, [])
 
-    def default_generator(element):
-        assert isinstance(element, schema.containers.ListElement)
-        assert element.schema.default == 10
+    def calculated_default(element):
+        assert isinstance(element, List)
         return 2
 
-    s = factory(10, default_factory=default_generator)
-    el = s.create_element()
+    schemaf = List.named('l').using(default_factory=calculated_default).of(
+        String.named('s').using(default=u'val'))
+
+    el = schemaf()
     el.set_default()
     eq_(len(el), 2)
     eq_(el.value, [u'val'] * 2)
 
 
-def test_list_set():
-    def new_element(**kw):
-        s = schema.List('l', schema.Integer('i'))
-        return s.create_element(**kw)
+def test_set():
+    schema = List.of(Integer)
 
-    el = new_element()
+    el = schema()
     assert list(el) == []
     assert_raises(TypeError, el.set, 1)
     assert_raises(TypeError, el.set, None)
 
-    el = new_element()
+    el = schema()
     el.set(range(3))
     assert el.value == [0, 1, 2]
 
-    el = new_element()
+    el = schema()
     el.set(xrange(3))
     assert el.value == [0, 1, 2]
 
-    el = new_element(value=[0, 1, 2])
+    el = schema([0, 1, 2])
     assert el.value == [0, 1, 2]
 
-    el = new_element()
+    el = schema()
     el.extend([1, 2, 3])
     assert el.value == [1, 2, 3]
     el.set([4, 5, 6])
@@ -127,15 +129,14 @@ def test_list_set():
     assert el.value == []
 
 
-def test_list_access():
-    s = schema.List('l', schema.Integer('i'))
-    el = s.create_element()
-
+def test_access():
     pairs = ((u'l_0_i', u'10'), (u'l_1_i', u'11'), (u'l_2_i', u'12'),)
-    el.set_flat(pairs)
 
-    elements = list(schema.Integer('i').create_element(value=val)
-                 for val in (u'10', u'11', u'12'))
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema.from_flat(pairs)
+
+    elements = list(Integer.named('i')(val)
+                    for val in (u'10', u'11', u'12'))
 
     assert len(el) == 3
     assert el[0] == elements[0]
@@ -163,11 +164,11 @@ def test_list_access():
     assert el.index(10) == 0
 
 
-def test_list_mutation():
-    s = schema.List('l', schema.Integer('i'))
-    el = s.create_element()
+def test_mutation():
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema()
 
-    new_element = lambda val: schema.Integer('i').create_element(value=val)
+    new_element = Integer.named('i')
 
     def order_ok():
         slot_names = list(_.name for _ in el._slots)
@@ -217,9 +218,10 @@ def test_list_mutation():
     order_ok()
 
 
-def test_list_mutate_slices():
-    s = schema.List('l', schema.Integer('i'))
-    el = s.create_element()
+def test_mutate_slices():
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema()
+
     canary = []
 
     el.extend([u'3', u'4'])
@@ -236,33 +238,33 @@ def test_list_mutate_slices():
     assert canary == [1, 2]
 
 
-def test_list_unimplemented():
-    s = schema.List('l', schema.Integer('i'))
-    el = s.create_element()
+def test_unimplemented():
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema([2, 1])
 
     assert_raises(TypeError, el.sort)
     assert_raises(TypeError, el.reverse)
 
 
-def test_list_slots():
-    s = schema.List('l', schema.String('s'))
-    n = s.create_element(value=[u'x'])
-    for slot in n._slots:
+def test_slots():
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema([1, 2])
+
+    assert len(list(el._slots)) == 2
+    for slot in el._slots:
         # don't really care what it says, just no crashy.
         assert repr(slot)
-        assert slot.value == u'x'
-        assert slot.value != u'y'
+
+    assert [slot.value for slot in el._slots] == [1, 2]
 
 
-def test_list_u():
-    s = schema.List('l', schema.String('s'))
-    n = s.create_element()
-    n[:] = [u'x', u'x']
-    eq_(n.u, u"[u'x', u'x']")
+def test_u():
+    schema = List.of(String)
+    el = schema([u'x', u'x'])
+    eq_(el.u, u"[u'x', u'x']")
 
 
-def test_list_value():
-    s = schema.List('l', schema.String('s'))
-    n = s.create_element()
-    n[:] = [u'x', u'x']
-    eq_(n.value, [u'x', u'x'])
+def test_value():
+    schema = List.of(String)
+    el = schema([u'x', u'x'])
+    eq_(el.value, [u'x', u'x'])
