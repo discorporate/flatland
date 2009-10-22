@@ -6,8 +6,9 @@ def element_ancestry(element):
     """Iterates element plus element.parents."""
     return itertools.chain((element,), element.parents)
 
+
 def search_ancestry(element, predicate):
-    """Run *predicate* against element's ancestry and schema ancestry.
+    """Run *predicate* against element's ancestry.
 
     :param element: an :class:`~flatland.schema.base.Element`
 
@@ -19,14 +20,14 @@ def search_ancestry(element, predicate):
     a pass.  Any other exception is raised to the caller.
 
     """
-    elements = list(element_ancestry(element))
-    for obj in itertools.chain(elements, (el.schema for el in elements)):
+    for obj in element_ancestry(element):
         try:
             transform = predicate(obj)
             if transform:
                 return transform
         except AttributeError:
             pass
+
 
 def find_i18n_function(element, finder):
     """Find i18n form helpers such as ``ugettext``.

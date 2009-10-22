@@ -1,12 +1,66 @@
 # -*- coding: utf-8; fill-column: 78 -*-
-from flatland.util import keyslice_pairs, to_pairs
-from . import containers
+from .base import Element
+from .containers import Dict
 
 
 __all__ = 'Form',
 
 
-class Form(containers.Dict):
+class _ElementCollection(object):
+    """TODO"""
+
+    def __init__(self):
+        self.elements = []
+        self.names = set()
+
+    def add_unseen(self, iterable):
+        """TODO"""
+        for field in iterable:
+            if field.name in self.names:
+                continue
+            self.elements.append(field)
+            self.names.add(field.name)
+
+    def add_and_overwrite(self, iterable):
+        """TODO"""
+        for field in iterable:
+            if field.name in self.names:
+                for have in self.elements:
+                    if have.name == field.name:
+                        self.elements.remove(have)
+                        break
+            self.elements.append(field)
+
+
+class MetaForm(type):
+    """TODO"""
+
+    def __new__(self, class_name, bases, members):
+        fields = _ElementCollection()
+
+        # collect existing fields from super classes in __mro__ order
+        for base in bases:
+            fields.add_unseen(getattr(base, 'field_schema', ()))
+
+        # add / replace fields supplied in a field_schema on this class
+        fields.add_and_overwrite(members.get('field_schema', ()))
+
+        # add / replace fields declared as attributes on this class
+        declared_fields = []
+        for name, value in members.items():
+            if isinstance(value, type) and issubclass(value, Element):
+                if name != value.name:
+                    value = value.named(name)
+                declared_fields.append(value)
+                del members[name]
+        fields.add_and_overwrite(declared_fields)
+
+        # the new type's field_schema is the final result of all this
+        members['field_schema'] = fields.elements
+        return type.__new__(self, class_name, bases, members)
+
+
+class Form(Dict):
     """A collection of named fields or schema items.
 
     Forms are the most common top-level mapping.  They behave like
@@ -43,142 +97,22 @@ class Form(containers.Dict):
 
     """
 
-    def __init__(self, name=None, **kw):
-        try:
-            members = self.schema
-        except AttributeError:
-            raise TypeError('a schema is required')
+    __metaclass__ = MetaForm
 
-        if hasattr(self, 'validators'):
-            if 'validators' in kw:
-                v = self.validators[:]
-                v.extend(kw['validators'])
-                kw['validators'] = v
-            else:
-                kw['validators'] = self.validators[:]
-
-        containers.Dict.__init__(self, name, *members, **kw)
-
-    @classmethod
-    def from_flat(cls, items, **kw):
-        """Return a Form element initialized from a sequence of pairs.
-
-        :param items: a sequence of ``(key, value)`` pairs, as for
-           :meth:`Element.from_flat`.
-
-        :param \*\*kw: keyword arguments will be passed to the
-            :class:`Form` constructor.
-
-        """
-        element = cls(**kw).create_element()
-        element.set_flat(items)
-        return element
-
-    @classmethod
-    def from_value(cls, value, **kw):
-        """Return a Form element initialized from a compatible value.
-
-        :param value: any value, will be passed to :meth:`Element.set`.
-
-        :param \*\*kw: keyword arguments will be passed to the
-            :class:`Form` constructor.
-
-        """
-        element = cls(**kw).create_element()
-        element.set(value)
-        return element
-
-    @classmethod
-    def create_blank(cls, **kw):
-        """Return a blank, empty Form element.
-
-        :param \*\*kw: keyword arguments will be passed to the
-            :class:`Form` constructor.
-
-        The returned element will contain all of the keys defined in the
-        :attr:`schema`.  Scalars will have a value of ``None`` and containers
-        will have their empty representation.
-
-        """
-        return cls(**kw).create_element()
-
-    @classmethod
-    def from_defaults(cls, **kw):
-        """Return a Form element initialized with FieldSchema defaults."""
-        element = cls(**kw).create_element()
-        element.set_default()
-        return element
-
-    @classmethod
-    def from_object(cls, obj, include=None, omit=None, rename=None, **kw):
-        """Return a Form element initialized with an object's attributes.
-
-        :param obj: any object
-        :param include: optional, an iterable of attribute names to
-            pull from *obj*, if present on the object.  Only these
-            attributes will be included.
-        :param omit: optional, an iterable of attribute names to
-            ignore on **obj**.  All other attributes matching a
-            named field on the Form will be included.
-        :param rename: optional, a mapping of attribute-to-field name
-            transformations.  Attributes specified in the mapping will
-            be included regardless of *include* or *omit*.
-        :param \*\*kw: keyword arguments will be passed to the
-            :class:`Form` constructor.
-
-        *include* and *omit* are mutually exclusive.
-
-        Creates and initializes a Form element, using as many attributes as
-        possible from *obj*.  Object attributes that do not correspond to
-        field names are ignored.
-
-        Elements have two corresponding methods useful for round-tripping
-        values in and out of your domain objects.
-
-        .. testsetup::
-
-          import flatland
-          class UserForm(flatland.Form):
-              schema = [ flatland.String('login'),
-                         flatland.String('password'),
-                         flatland.String('verify_password'), ]
-
-          class User(object):
-              def __init__(self, login=None, password=None):
-                  self.login = login
-                  self.password = password
-
-          user = User('squiznart')
-
-        :meth:`DictElement.update_object` performs the inverse of
-        :meth:`from_object`, and :meth:`DictElement.slice` is useful
-        for constructing new objects.
-
-        .. doctest::
-
-          >>> form = UserForm.from_object(user)
-          >>> form.update_object(user, omit=['verify_password'])
-          >>> new_user = User(**form.slice(omit=['verify_password'], key=str))
-
-        """
-        self = cls(**kw)
-
-        attributes = set(self.fields.iterkeys())
-        if rename:
-            rename = list(to_pairs(rename))
-            attributes.update(key for key, value in rename
-                                  if value in attributes)
-        if omit:
-            omit = list(omit)
-            attributes.difference_update(omit)
-
-        possible = ((attr, getattr(obj, attr))
-                    for attr in attributes
-                    if hasattr(obj, attr))
-
-        sliced = keyslice_pairs(possible, include=include,
-                                omit=omit, rename=rename)
-        final = dict((key, value)
-                     for key, value in sliced
-                     if key in set(self.fields.iterkeys()))
-        return self.create_element(value=final)
+    # TODO:
+    #   some kind of validator merging helper?  or punt?
+    # def __init__(self, name=None, **kw):
+    #     try:
+    #         members = self.schema
+    #     except AttributeError:
+    #         raise TypeError('a schema is required')
+    #
+    #     if hasattr(self, 'validators'):
+    #         if 'validators' in kw:
+    #             v = self.validators[:]
+    #             v.extend(kw['validators'])
+    #             kw['validators'] = v
+    #         else:
+    #             kw['validators'] = self.validators[:]
+    #
+    #     containers.Dict.__init__(self, name, *members, **kw)

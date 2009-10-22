@@ -1,83 +1,87 @@
-from flatland import schema, util
-from flatland.util import Unspecified
+from flatland import (
+    Dict,
+    Integer,
+    String,
+    )
+from flatland.util import Unspecified, keyslice_pairs
 from tests._util import eq_, assert_raises
 
 
 def test_dict():
-    assert_raises(TypeError, schema.Dict, 's')
+    assert_raises(TypeError, Dict)
 
 
 def test_dict_immutable_keys():
-    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.create_element()
+    schema = Dict.of(Integer.named(u'x'), Integer.named(u'y'))
+    el = schema()
 
-    assert_raises(TypeError, n.__setitem__, 'z', 123)
-    assert_raises(TypeError, n.__delitem__, u'x')
-    assert_raises(KeyError, n.__delitem__, u'z')
-    assert_raises(TypeError, n.setdefault, u'x', 123)
-    assert_raises(TypeError, n.setdefault, u'z', 123)
-    assert_raises(TypeError, n.pop, u'x')
-    assert_raises(KeyError, n.pop, u'z')
-    assert_raises(TypeError, n.popitem)
-    assert_raises(TypeError, n.clear)
+    assert_raises(TypeError, el.__setitem__, u'z', 123)
+    assert_raises(TypeError, el.__delitem__, u'x')
+    assert_raises(KeyError, el.__delitem__, u'z')
+    assert_raises(TypeError, el.setdefault, u'x', 123)
+    assert_raises(TypeError, el.setdefault, u'z', 123)
+    assert_raises(TypeError, el.pop, u'x')
+    assert_raises(KeyError, el.pop, u'z')
+    assert_raises(TypeError, el.popitem)
+    assert_raises(TypeError, el.clear)
 
 
 def test_dict_reads():
-    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.create_element()
+    schema = Dict.of(Integer.named(u'x'), Integer.named(u'y'))
+    el = schema()
 
-    n[u'x'] = 10
-    n[u'y'] = 20
+    el[u'x'].set(u'10')
+    el[u'y'].set(u'20')
 
-    eq_(n[u'x'].value, 10)
-    eq_(n[u'y'].value, 20)
+    eq_(el[u'x'].value, 10)
+    eq_(el[u'y'].value, 20)
 
     # the values are unhashable Elements, so this is a little painful
-    assert set(n.keys()) == set(u'xy')
+    assert set(el.keys()) == set(u'xy')
     eq_(set([(u'x', 10), (u'y', 20)]),
-        set([(_[0], _[1].value) for _ in n.items()]))
-    eq_(set([10, 20]), set([_.value for _ in n.values()]))
+        set([(_[0], _[1].value) for _ in el.items()]))
+    eq_(set([10, 20]), set([_.value for _ in el.values()]))
 
-    eq_(n.get(u'x').value, 10)
-    n[u'x'] = None
-    eq_(n.get(u'x').value, None)
-    eq_(n.get(u'x', 'default is never used').value, None)
+    eq_(el.get(u'x').value, 10)
+    el[u'x'] = None
+    eq_(el.get(u'x').value, None)
+    eq_(el.get(u'x', 'default is never used').value, None)
 
-    assert_raises(KeyError, n.get, u'z')
-    assert_raises(KeyError, n.get, u'z', 'even with a default')
+    assert_raises(KeyError, el.get, u'z')
+    assert_raises(KeyError, el.get, u'z', 'even with a default')
 
 
 def test_dict_update():
-    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.create_element()
+    schema = Dict.of(Integer.named(u'x'), Integer.named(u'y'))
+    el = schema()
 
     def value_dict(element):
         return dict((k, v.value) for k, v in element.iteritems())
 
-    n.update(x=20, y=30)
-    assert dict(x=20, y=30) == value_dict(n)
+    el.update(x=20, y=30)
+    assert dict(x=20, y=30) == el.value
 
-    n.update({u'y': 40})
-    assert dict(x=20, y=40) == value_dict(n)
+    el.update({u'y': 40})
+    assert dict(x=20, y=40) == el.value
 
-    n.update()
-    assert dict(x=20, y=40) == value_dict(n)
+    el.update()
+    assert dict(x=20, y=40) == el.value
 
-    n.update((_, 100) for _ in u'xy')
-    assert dict(x=100, y=100) == value_dict(n)
+    el.update((_, 100) for _ in u'xy')
+    assert dict(x=100, y=100) == el.value
 
-    n.update([(u'x', 1)], y=2)
-    assert dict(x=1, y=2) == value_dict(n)
+    el.update([(u'x', 1)], y=2)
+    assert dict(x=1, y=2) == el.value
 
-    n.update([(u'x', 10), (u'y', 10)], x=20, y=20)
-    assert dict(x=20, y=20) == value_dict(n)
+    el.update([(u'x', 10), (u'y', 10)], x=20, y=20)
+    assert dict(x=20, y=20) == el.value
 
-    assert_raises(TypeError, n.update, z=1)
-    assert_raises(TypeError, n.update, x=1, z=1)
-    assert_raises(TypeError, n.update, {u'z': 1})
-    assert_raises(TypeError, n.update, {u'x': 1, u'z': 1})
-    assert_raises(TypeError, n.update, ((u'z', 1),))
-    assert_raises(TypeError, n.update, ((u'x', 1), (u'z', 1)))
+    assert_raises(TypeError, el.update, z=1)
+    assert_raises(TypeError, el.update, x=1, z=1)
+    assert_raises(TypeError, el.update, {u'z': 1})
+    assert_raises(TypeError, el.update, {u'x': 1, u'z': 1})
+    assert_raises(TypeError, el.update, ((u'z', 1),))
+    assert_raises(TypeError, el.update, ((u'x', 1), (u'z', 1)))
 
 
 class DictSetTest(object):
@@ -94,14 +98,14 @@ class DictSetTest(object):
         if self.y_default is not Unspecified:
             y_kw['default'] = self.y_default
 
-        return schema.Dict(u's',
-                           schema.Integer(u'x', **x_kw),
-                           schema.Integer(u'y', **y_kw),
-                           **dictkw)
+        return Dict.named(u's').using(**dictkw).of(
+            Integer.named(u'x').using(**x_kw),
+            Integer.named(u'y').using(**y_kw))
+
     def new_element(self, schema=Unspecified, **kw):
         if schema is Unspecified:
             schema = self.new_schema()
-        return schema.create_element(**kw)
+        return schema(**kw)
 
     def test_empty_sets(self):
         wanted = {u'x': None, u'y': None}
@@ -214,8 +218,10 @@ class DictSetTest(object):
         el.set_default()
 
         wanted = {
-            u'x': self.x_default if self.x_default is not Unspecified else None,
-            u'y': self.y_default if self.y_default is not Unspecified else None,
+            u'x': self.x_default if self.x_default is not Unspecified
+                                 else None,
+            u'y': self.y_default if self.y_default is not Unspecified
+                                 else None,
             }
         eq_(el.value, wanted)
 
@@ -230,40 +236,37 @@ class TestDefaultDictSet(DictSetTest):
 
 
 def test_dict_valid_policies():
-    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.create_element()
+    schema = Dict.of(Integer)
+    el = schema()
 
-    assert_raises(AssertionError, n.set, {}, policy='bogus')
+    assert_raises(AssertionError, el.set, {}, policy='bogus')
 
 
 def test_dict_strict():
     # a mini test, this policy thing may get whacked
-    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'),
-                    policy='strict')
+    schema = Dict.using(policy='strict').of(Integer.named(u'x'),
+                                            Integer.named(u'y'))
 
-    n = s.create_element()
-    n.set({u'x': 123, u'y': 456})
+    el = schema({u'x': 123, u'y': 456})
 
-    n = s.create_element()
-    assert_raises(TypeError, n.set, {u'x': 123})
+    el = schema()
+    assert_raises(TypeError, el.set, {u'x': 123})
 
-    n = s.create_element()
-    assert_raises(KeyError, n.set, {u'x': 123, u'y': 456, u'z': 7})
+    el = schema()
+    assert_raises(KeyError, el.set, {u'x': 123, u'y': 456, u'z': 7})
 
 
 def test_dict_as_unicode():
-    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.create_element()
-    n.set(dict(x=1, y=2))
+    schema = Dict.of(Integer.named(u'x'), Integer.named(u'y'))
+    el = schema(dict(x=1, y=2))
 
-    uni = n.u
-    assert uni in (u"{u'x': u'1', u'y': u'2'}", "{u'y': u'2', u'x': u'1'}")
+    assert el.u in (u"{u'x': u'1', u'y': u'2'}", "{u'y': u'2', u'x': u'1'}")
 
 
 def test_nested_dict_as_unicode():
-    s = schema.Dict(u's', schema.Dict('d', schema.Integer(u'x', default=10)))
-    el = s.create_element()
-    el.set_default()
+    schema = Dict.of(Dict.named(u'd').of(
+        Integer.named(u'x').using(default=10)))
+    el = schema.from_defaults()
 
     eq_(el.value, {u'd': {u'x': 10}})
     eq_(el.u, u"{u'd': {u'x': u'10'}}")
@@ -271,32 +274,34 @@ def test_nested_dict_as_unicode():
 
 def test_dict_el():
     # stub
-    s = schema.Dict(u's', schema.Integer(u'x'), schema.Integer(u'y'))
-    n = s.create_element()
+    schema = Dict.named(u's').of(Integer.named(u'x'), Integer.named(u'y'))
+    element = schema()
 
-    assert n.el('x').name == u'x'
-    assert_raises(KeyError, n.el, 'not_x')
+    assert element.el('x').name == u'x'
+    assert_raises(KeyError, element.el, 'not_x')
 
 
 def test_update_object():
+
     class Obj(object):
+
         def __init__(self, **kw):
             for (k, v) in kw.items():
                 setattr(self, k, v)
 
-    s = schema.Dict(u's', schema.String(u'x'), schema.String(u'y'))
+    schema = Dict.of(String.named(u'x'), String.named(u'y'))
 
     o = Obj()
     assert not hasattr(o, 'x')
     assert not hasattr(o, 'y')
 
     def updated_(obj_factory, initial_value, wanted=None, **update_kw):
-        e = s.create_element(value=initial_value)
-        o = obj_factory()
-        e.update_object(o, **update_kw)
+        el = schema(initial_value)
+        obj = obj_factory()
+        el.update_object(obj, **update_kw)
         if wanted is None:
             wanted = initial_value
-        have = dict(o.__dict__)
+        have = dict(obj.__dict__)
         assert have == wanted
 
     updated_(Obj, {'x': 'X', 'y': 'Y'})
@@ -308,13 +313,13 @@ def test_update_object():
 
 
 def test_slice():
-    s = schema.Dict(u's', schema.String(u'x'), schema.String(u'y'))
+    schema = Dict.of(String.named(u'x'), String.named(u'y'))
 
     def same_(source, kw):
-        e = s.create_element(value=source)
+        el = schema(source)
 
-        sliced = e.slice(**kw)
-        wanted = dict(util.keyslice_pairs(e.value.items(), **kw))
+        sliced = el.slice(**kw)
+        wanted = dict(keyslice_pairs(el.value.items(), **kw))
 
         eq_(sliced, wanted)
         eq_(set(type(_) for _ in sliced.keys()),

@@ -2,9 +2,9 @@
 from collections import defaultdict
 import re
 
-from flatland.util import Unspecified, keyslice_pairs, to_pairs
-from .base import FieldSchema, Element, Slot, validate_element
-from .scalars import Scalar, ScalarElement
+from flatland.util import Unspecified, class_cloner, keyslice_pairs, to_pairs
+from .base import Element, Slot, validate_element
+from .scalars import Scalar
 
 
 __all__ = (
@@ -18,11 +18,7 @@ __all__ = (
     )
 
 
-class ContainerElement(Element):
-    """Holds other elements."""
-
-
-class Container(FieldSchema):
+class Container(Element):
     """Holds other schema items.
 
     Base class for schemas that can contain other schemas, such as
@@ -39,13 +35,11 @@ class Container(FieldSchema):
 
     """
 
-    element_type = ContainerElement
-    descent_validators = ()
+    #######################################################################
+    validates_down = 'descent_validators'
+    validates_up = 'validators'
 
-    def __init__(self, name, descent_validators=Unspecified, **kw):
-        super(Container, self).__init__(name, **kw)
-        if descent_validators is not Unspecified:
-            self.descent_validators = descent_validators
+    descent_validators = ()
 
     def validate_element(self, element, state, descending):
         """Validates on the first (downward) and second (upward) pass.
@@ -71,17 +65,29 @@ class Container(FieldSchema):
         else:
             return validate_element(element, state, self.validators)
 
+    #######################################################################
 
-class SequenceElement(ContainerElement, list):
 
-    def __init__(self, schema, parent=None, value=Unspecified):
-        ContainerElement.__init__(self, schema, parent=parent)
-        if value is not Unspecified:
-            self.extend(value)
+class Sequence(Container, list):
+    """Base of sequence-like Containers."""
+
+    #######################################################################
+
+    child_schema = None
+
+    @class_cloner
+    def of(cls, *fields):
+        if len(fields) == 1:
+            cls.child_schema = fields[0]
+        else:
+            cls.child_schema = Dict.of(*fields)
+        return cls
+
+    #######################################################################
 
     def set(self, iterable):
         del self[:]
-        self.extend(iterable)
+        self.extend(self.child_schema(value=v) for v in iterable)
 
     def set_default(self):
         default = self.default
@@ -91,9 +97,6 @@ class SequenceElement(ContainerElement, list):
 
     def _set_flat(self, pairs, sep):
         raise NotImplementedError()
-
-    def create_child_element(self, **kw):
-        return self.schema.child_schema.create_element(**kw)
 
     @property
     def children(self):
@@ -112,7 +115,7 @@ class SequenceElement(ContainerElement, list):
 
     def append(self, value):
         if not isinstance(value, Element):
-            value = self.create_child_element(value=value)
+            value = self.child_schema(value=value)
         value.parent = self
         list.append(self, value)
 
@@ -122,7 +125,7 @@ class SequenceElement(ContainerElement, list):
 
     def insert(self, index, value):
         if not isinstance(value, Element):
-            value = self.create_child_element(value=value)
+            value = self.child_schema(value=value)
         value.parent = self
         list.insert(self, index, value)
 
@@ -131,13 +134,13 @@ class SequenceElement(ContainerElement, list):
             as_elements = []
             for item in value:
                 if not isinstance(item, Element):
-                    item = self.create_child_element(value=item)
+                    item = self.child_schema(value=item)
                 item.parent = self
                 as_elements.append(item)
             value = as_elements
         else:
             if not isinstance(value, Element):
-                value = self.create_child_element(value=value)
+                value = self.child_schema(value=value)
                 value.parent = self
         list.__setitem__(self, index, value)
 
@@ -146,22 +149,22 @@ class SequenceElement(ContainerElement, list):
 
     def remove(self, value):
         if not isinstance(value, Element):
-            value = self.create_child_element(value=value)
+            value = self.child_schema(value=value)
         list.remove(self, value)
 
     def index(self, value):
         if not isinstance(value, Element):
-            value = self.create_child_element(value=value)
+            value = self.child_schema(value=value)
         return list.index(self, value)
 
     def count(self, value):
         if not isinstance(value, Element):
-            value = self.create_child_element(value=value)
+            value = self.child_schema(value=value)
         return list.count(self, value)
 
     def __contains__(self, value):
         if not isinstance(value, Element):
-            value = self.create_child_element(value=value)
+            value = self.child_schema(value=value)
         return list.__contains__(self, value)
 
     @property
@@ -171,43 +174,104 @@ class SequenceElement(ContainerElement, list):
     @property
     def u(self):
         return u'[%s]' % ', '.join(
-            element.u if isinstance(element, ContainerElement)
+            element.u if isinstance(element, Container)
                       else repr(element.u)
             for element in self.children)
 
 
-class Sequence(Container):
-    """Base of sequence-like Containers."""
+class ListSlot(Container, Slot):
+    """Wraps elements of Lists & models their position in the list.
 
-    element_type = SequenceElement
+    :class:`List ` makes these mostly invisible to the outside, appearing only
+    when flattening names.  The :attr:`name` is set by the List and will be a
+    unicoded integer index.  Flattening a list name will join the parent's
+    name with the slot's name with the child element's name:
 
-    def __init__(self, name, **kw):
-        super(Sequence, self).__init__(name, **kw)
-        self.child_schema = None
+      'listname_0_childname', 'listname_1_childname'
+
+    """
+
+    def __init__(self, name, parent, element):
+        self.name = name
+        self.parent = parent
+        self.element = element
+        element.parent = self
+
+    @property
+    def u(self):
+        return self.element.u
+
+    @property
+    def value(self):
+        return self.element.value
+
+    def __repr__(self):
+        return u'<ListSlot[%s] for %r>' % (self.name, self.element)
 
 
-class ListElement(SequenceElement):
+class List(Sequence):
+    """An ordered, homogeneous Container.
 
-    def _new_slot(self, value=Unspecified, **kw):
-        wrapper = self.schema.slot_type(len(self), self)
-        if isinstance(value, Element):
-            value.parent = wrapper
-        else:
-            value = self._new_member(value, parent=wrapper, **kw)
-        wrapper.element = value
-        return wrapper
+    Example:
 
-    def _new_member(self, value=Unspecified, **kw):
+    .. doctest::
+
+      >>> import flatland
+      >>> name_schema = flatland.List('names', flatland.String('name'))
+      >>> names = name_schema.create_element()
+      >>> names.set([u'a', u'b'])
+      >>> names.append(u'c')
+      >>> names.value
+      [u'a', u'b', u'c']
+      >>> names.flatten()
+      [(u'names_0_name', u'a'), (u'names_1_name', u'b'), (u'names_2_name', u'c')]
+
+    :param name: field name
+
+    :param \*schema: one or more
+      :class:`~flatland.schema.base.FieldSchema` to contain.  If
+      multiple are provided, an anonymous :class:`Dict` will be
+      implicitly created to hold them.
+
+    :param default: optional, the number of child elements to build
+      out by default.
+
+    :param descent_validators: optional, a sequence of validators that
+      will be run before contained elements are validated.
+
+    :param validators: optional, a sequence of validators that will be
+      run after contained elements are validated.
+
+    :param \*\*kw: other arguments common to
+      :class:`~flatland.schema.base.FieldSchema`.
+
+    """
+
+    ###
+    slot_type = ListSlot
+    prune_empty = True
+    child_schema = None
+
+    ###
+
+    def _as_element(self, value):
+        """TODO"""
         if value is Unspecified:
-            return self.create_child_element(**kw)
-        elif isinstance(value, Element):
+            return self.child_schema()
+        if isinstance(value, Element):
             return value
         else:
-            return self.create_child_element(value=value, **kw)
+            return self.child_schema(value)
+
+    def _new_slot(self, value=Unspecified):
+        """Wrap *element* in a Slot named as the element's index in the list."""
+        return self.slot_type(name=unicode(len(self)),
+                              parent=self,
+                              element=self._as_element(value))
 
     @property
     def _slots(self):
-        """An iterator of the ListElement's otherwise hidden Slots."""
+        """An iterator of the List's otherwise hidden Slots."""
         return list.__iter__(self)
 
     def append(self, value):
@@ -263,16 +327,19 @@ class ListElement(SequenceElement):
         self._renumber()
 
     def remove(self, value):
-        list.remove(self, self._new_member(value))
+        list.remove(self, self._as_element(value))
         self._renumber()
 
+    # TODO count, index?
+
     def sort(self, *args, **kw):
+        # TODO: implementing this is do-able
         raise TypeError('List object may not be reordered.')
     reverse = sort
 
     def _renumber(self):
         for idx, element in enumerate(self._slots):
-            element.name = idx
+            element.name = unicode(idx)
 
     @property
     def children(self):
@@ -288,7 +355,7 @@ class ListElement(SequenceElement):
                            ur'(\d+)' + re.escape(sep))
 
         slots = defaultdict(list)
-        prune = self.schema.prune_empty
+        prune = self.prune_empty
 
         for key, value in pairs:
             if value == u'' and prune:
@@ -320,106 +387,52 @@ class ListElement(SequenceElement):
         if default is not None and default is not Unspecified:
             del self[:]
             for _ in xrange(0, default):
-                el = self._new_slot()
-                list.append(self, el)
-                el.set_default()
+                slot = self._new_slot()
+                list.append(self, slot)
+                slot.element.set_default()
 
 
-class SlotElement(ContainerElement, Slot):
-    schema = FieldSchema(None)
+class Array(Sequence):
+    """A transparent homogeneous Container, for multivalued form elements.
 
-    def __init__(self, name, parent):
-        self.name = name
-        self.parent = parent
-        self.element = None
-
-    def name(self, name):
-        if isinstance(name, int):
-            name = unicode(name)
-        self._name = name
-
-    name = property(lambda self: self._name, name)
-
-    @property
-    def u(self):
-        return self.element.u
-
-    @property
-    def value(self):
-        return self.element.value
-
-    def __repr__(self):
-        return u'<SlotElement[%s] for %r>' % (self.name, self.element)
-
-    def set_default(self):
-        self.element.set_default()
-
-
-class List(Sequence):
-    """An ordered, homogeneous Container.
-
-    Example:
-
-    .. doctest::
-
-      >>> import flatland
-      >>> name_schema = flatland.List('names', flatland.String('name'))
-      >>> names = name_schema.create_element()
-      >>> names.set([u'a', u'b'])
-      >>> names.append(u'c')
-      >>> names.value
-      [u'a', u'b', u'c']
-      >>> names.flatten()
-      [(u'names_0_name', u'a'), (u'names_1_name', u'b'), (u'names_2_name', u'c')]
-
-    :param name: field name
-
-    :param \*schema: one or more
-      :class:`~flatland.schema.base.FieldSchema` to contain.  If
-      multiple are provided, an anonymous :class:`Dict` will be
-      implicitly created to hold them.
-
-    :param default: optional, the number of child elements to build
-      out by default.
-
-    :param descent_validators: optional, a sequence of validators that
-      will be run before contained elements are validated.
-
-    :param validators: optional, a sequence of validators that will be
-      run after contained elements are validated.
-
-    :param \*\*kw: other arguments common to
-      :class:`~flatland.schema.base.FieldSchema`.
+    Arrays hold a collection of values under a single name, allowing
+    all values of a repeated `(key, value)` pair to be captured and
+    used.  Elements are sequence-like.
 
     """
 
-    element_type = ListElement
-    slot_type = SlotElement
+    #######################################################################
+    prune_empty = True
 
-    def __init__(self, name, *schema, **kw):
-        super(List, self).__init__(name, **kw)
+    def __init__(self, value=Unspecified, **kw):
+        Sequence.__init__(self, value=value, **kw)
+        # FIXME: is this true?
+        if self.name is None:
+            self.name = self.child_schema.name
 
-        # TODO: why? maybe only ok for non-Dict?
-        self.prune_empty = kw.get('prune_empty', True)
-
-        if not len(schema):
-            raise TypeError(
-                "Need one or more child FieldSchema arguments, received 0.")
-        elif len(schema) > 1:
-            self.child_schema = Dict(None, *schema)
-        else:
-            self.child_schema = schema[0]
-
-
-class ArrayElement(SequenceElement):
+    #######################################################################
 
     def _set_flat(self, pairs, sep):
-        prune = self.schema.prune_empty
+        prune = self.prune_empty
         self.set(value for key, value in pairs
                  if key == self.name and not prune or value != u'')
 
 
-class MultiValueElement(ArrayElement, ScalarElement):
+class MultiValue(Array, Scalar):
+    """A transparent homogeneous Container, for multivalued form elements.
+
+    MultiValues combine aspects of :class:`Scalar` and
+    :class:`Sequence` fields, allowing all values of a repeated `(key,
+    value)` pair to be captured and used.
+
+    MultiValues take on the name of their child and have no identity
+    of their own when flattened.  Elements are mostly sequence-like
+    and can be indexed and iterated. However the :attr:`.u` or
+    :attr:`.value` are scalar-like, and return values from the first
+    element in the sequence.
+
+    """
+
     def u(self):
         """The .u of the first item in the sequence, or u''."""
         if not self:
@@ -456,54 +469,123 @@ class MultiValueElement(ArrayElement, ScalarElement):
         return len(self)
 
 
-class Array(Sequence):
-    """A transparent homogeneous Container, for multivalued form elements.
-
-    Arrays hold a collection of values under a single name, allowing
-    all values of a repeated `(key, value)` pair to be captured and
-    used.  Elements are sequence-like.
-
-    """
-
-    element_type = ArrayElement
-
-    def __init__(self, array_of, **kw):
-        assert isinstance(array_of, Scalar)
-        self.prune_empty = kw.pop('prune_empty', True)
-        super(Array, self).__init__(array_of.name, **kw)
-        self.child_schema = array_of
-
-
-class MultiValue(Array, Scalar):
-    """A transparent homogeneous Container, for multivalued form elements.
-
-    MultiValues combine aspects of :class:`Scalar` and
-    :class:`Sequence` fields, allowing all values of a repeated `(key,
-    value)` pair to be captured and used.
-
-    MultiValues take on the name of their child and have no identity
-    of their own when flattened.  Elements are mostly sequence-like
-    and can be indexed and iterated. However the :attr:`.u` or
-    :attr:`.value` are scalar-like, and return values from the first
-    element in the sequence.
-
-    """
-
-    element_type = MultiValueElement
-
-
 class Mapping(Container):
     """Base of mapping-like Containers."""
 
 
-class DictElement(ContainerElement, dict):
-    def __init__(self, schema, **kw):
-        value = kw.pop('value', Unspecified)
-        Element.__init__(self, schema, **kw)
+class Dict(Container, dict):
+    """A mapping Container with named members."""
 
+    #######
+
+    @class_cloner
+    def of(cls, *fields):
+        unique_names = set(field.name for field in fields)
+        # TODO: ensure these are types, not instances
+        if len(unique_names) != len(fields):
+            names = [field.name for field in fields]
+            dupes = [name for name in unique_names if names.count(name) > 1]
+            raise TypeError(
+                "All fields in a %s must have unique names. "
+                "Duplicates of: %s " % (
+                    cls.__name__,
+                    ', '.join(repr(f) for f in dupes)))
+
+        cls.field_schema = fields
+        return cls
+
+    #######################################################################
+    policy = 'subset'
+    field_schema = ()
+
+    def __init__(self, value=Unspecified, **kw):
+        Container.__init__(self, **kw)
+        if not self.field_schema:
+            raise TypeError("%r dictionary type has no fields defined" % (
+                type(self).__name__))
         self._reset()
         if value is not Unspecified:
             self.set(value)
+
+
+    @classmethod
+    def from_object(cls, obj, include=None, omit=None, rename=None, **kw):
+        """Return an element initialized with an object's attributes.
+
+        :param obj: any object
+        :param include: optional, an iterable of attribute names to pull from
+            *obj*, if present on the object.  Only these attributes will be
+            included.
+        :param omit: optional, an iterable of attribute names to ignore on
+            **obj**.  All other attributes matching a named field on the Form
+            will be included.
+        :param rename: optional, a mapping of attribute-to-field name
+            transformations.  Attributes specified in the mapping will be
+            included regardless of *include* or *omit*.
+        :param \*\*kw: keyword arguments will be passed to the element's
+            constructor.
+
+        *include* and *omit* are mutually exclusive.
+
+        Creates and initializes an element, using as many attributes as
+        possible from *obj*.  Object attributes that do not correspond to
+        field names are ignored.
+
+        Elements have two corresponding methods useful for round-tripping
+        values in and out of your domain objects.
+
+        .. testsetup::
+
+          # FIXME
+          import flatland
+          class UserForm(flatland.Form):
+              schema = [ flatland.String('login'),
+                         flatland.String('password'),
+                         flatland.String('verify_password'), ]
+
+          class User(object):
+              def __init__(self, login=None, password=None):
+                  self.login = login
+                  self.password = password
+
+          user = User('squiznart')
+
+        :meth:`DictElement.update_object` performs the inverse of
+        :meth:`from_object`, and :meth:`DictElement.slice` is useful
+        for constructing new objects.
+
+        .. doctest::
+
+          >>> form = UserForm.from_object(user)
+          >>> form.update_object(user, omit=['verify_password'])
+          >>> new_user = User(**form.slice(omit=['verify_password'], key=str))
+
+        """
+        self = cls(**kw)
+
+        fields = set(self.iterkeys())
+        attributes = fields.copy()
+        if rename:
+            rename = list(to_pairs(rename))
+            attributes.update(key for key, value in rename
+                                  if value in attributes)
+        if omit:
+            omit = list(omit)
+            attributes.difference_update(omit)
+
+        possible = ((attr, getattr(obj, attr))
+                    for attr in attributes
+                    if hasattr(obj, attr))
+
+        sliced = keyslice_pairs(possible, include=include,
+                                omit=omit, rename=rename)
+        final = dict((key, value)
+                     for key, value in sliced
+                     if key in fields)
+        self.set(final)
+        return self
+
+    #######################################################################
 
     def __setitem__(self, key, value):
         if not key in self:
@@ -522,7 +604,8 @@ class DictElement(ContainerElement, dict):
 
     def _reset(self):
         """Set all child elements to their defaults."""
-        for key, child_schema in self.schema.fields.items():
+        for child_schema in self.field_schema:
+            key = child_schema.name
             dict.__setitem__(
                 self, key, child_schema.create_element(parent=self))
 
@@ -563,7 +646,7 @@ class DictElement(ContainerElement, dict):
         if policy is not None:
             assert policy in ('strict', 'subset', 'duck')
         else:
-            policy = self.schema.policy
+            policy = self.policy
 
         # not really convinced yet that these modes are required
         # only testing 'subset' policy
@@ -576,7 +659,7 @@ class DictElement(ContainerElement, dict):
                         'Dict "%s" schema does not allow key "%r"' % (
                             self.name, key))
                 continue
-            self[key] = value
+            self[key].set(value)
             seen.add(key)
 
         if policy == 'strict':
@@ -630,7 +713,7 @@ class DictElement(ContainerElement, dict):
 
     @property
     def u(self):
-        pairs = ((key, value.u if isinstance(value, ContainerElement)
+        pairs = ((key, value.u if isinstance(value, Container)
                                else repr(value.u))
                   for key, value in self.iteritems())
         return u'{%s}' % ', '.join("%r: %s" % (k, v) for k, v in pairs)
@@ -665,27 +748,4 @@ class DictElement(ContainerElement, dict):
             keyslice_pairs(
                 ((key, element.value) for key, element in self.iteritems()),
                 include=include, omit=omit, rename=rename, key=key))
-
-
-class Dict(Mapping):
-    """A mapping Container with named members."""
-
-    element_type = DictElement
-    policy = 'subset'
-
-    def __init__(self, name, *fields, **kw):
-        if not fields:
-            raise TypeError("One or more child schema required.")
-
-        policy = kw.pop('policy', Unspecified)
-
-        Mapping.__init__(self, name, **kw)
-        self.fields = {}
-        for child_schema in fields:
-            self.fields[child_schema.name] = child_schema
-
-        if policy is not Unspecified:
-            self.policy = policy
-        assert self.policy in ('strict', 'subset', 'duck')
-
 

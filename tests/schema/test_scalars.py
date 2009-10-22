@@ -1,25 +1,36 @@
 import datetime
-from flatland import schema, valid
+
+from flatland import (
+    Boolean,
+    Constrained,
+    Date,
+    DateTime,
+    Enum,
+    Float,
+    Integer,
+    Long,
+    Scalar,
+    String,
+    Time,
+    )
+
 from tests._util import eq_, assert_raises
 
 
 def test_scalar_abstract():
-    sc = schema.scalars.Scalar('foo')
-
-    element = sc()
-    assert_raises(NotImplementedError, element.set, 'blagga')
+    el = Scalar()
+    assert_raises(NotImplementedError, el.set, 'blagga')
 
 
 def test_scalar_assignments_are_independent():
-    sc = schema.scalars.Scalar('foo')
+    element = Scalar()
 
-    element = sc()
     assert not element.u
     assert not element.value
     element.u = u'abc'
     assert element.value is None
 
-    element = sc()
+    element = Scalar()
     assert not element.u
     assert not element.value
     element.value = u'abc'
@@ -30,8 +41,9 @@ def test_scalar_assignments_are_independent():
 def test_scalar_set_flat():
     """Scalars take on the first value if duplicates are present."""
 
-    class SimpleScalar(schema.scalars.Scalar):
-        def adapt(self, element, value):
+    class SimpleScalar(Scalar):
+
+        def adapt(self, value):
             return value
 
     data = ((u'a', 1),
@@ -39,8 +51,7 @@ def test_scalar_set_flat():
             (u'a', 3))
 
     def element_for(name):
-        s = SimpleScalar(name)
-        element = s()
+        element = SimpleScalar(name=name)
         element.set_flat(data)
         return element
 
@@ -50,52 +61,38 @@ def test_scalar_set_flat():
 
 
 def test_string():
-    assert_raises(TypeError, schema.String)
-
     for value, expected in ((u'abc', u'abc'), ('abc', u'abc'), (123, u'123'),
                             (u'abc ', u'abc'), (' abc ', u'abc')):
-        for st in schema.String('foo'), schema.String('foo', strip=True):
-            element = st()
+        for element in String(), String(strip=True):
             element.set(value)
             eq_(element.u, expected)
             eq_(unicode(element), expected)
             eq_(element.value, expected)
 
     for value, expected in ((u'abc ', u'abc '), (' abc ', u' abc ')):
-        st = schema.String('foo', strip=False)
-        element = st()
-        element.set(value)
+        element = String(value, strip=False)
         eq_(element.u, expected)
         eq_(unicode(element), expected)
         eq_(element.value, expected)
 
-    for value, expected_value, expected_unicode in (
-                        (u'', u'', u''), (None, None, u'')):
-        st = schema.String('foo')
-        element = st()
-        element.set(value)
+    for value, expected_value, expected_unicode in ((u'', u'', u''),
+                                                    (None, None, u'')):
+        element = String(value)
         eq_(element.u, expected_unicode)
         eq_(unicode(element), expected_unicode)
         eq_(element.value, expected_value)
 
 
 def test_string_is_empty():
-    st = schema.String('foo')
-    element = st()
-    element.set(u'')
+    element = String(u'')
     assert element.is_empty
 
-    element = st()
-    element.set(u'foo')
+    element = String(u'foo')
     assert not element.is_empty
-
-    element = st()
-    assert element.is_empty
 
 
 def validate_element_set(type_, raw, value, uni, schema_opts={}):
-    element = type_('i', **schema_opts).create_element()
-    element.set(raw)
+    element = type_(raw, **schema_opts)
     eq_(element.value, value)
     eq_(element.u, uni)
     eq_(unicode(element), uni)
@@ -108,7 +105,7 @@ def test_scalar_set():
         ([],         None, u'[]'),
         ('\xef\xf0', None, ur'\ufffd\ufffd'),
         (None,       None, u'')):
-        yield (validate_element_set, schema.Integer) + spec
+        yield (validate_element_set, Integer) + spec
 
 
 def test_integer():
@@ -126,7 +123,7 @@ def test_integer():
                  (u'-123',   None, u'-123', dict(signed=False)),
                  (123,       123,  u'123'),
                  (-123,      None, u'-123', dict(signed=False))):
-        yield (validate_element_set, schema.Integer) + spec
+        yield (validate_element_set, Integer) + spec
 
 
 def test_long():
@@ -142,7 +139,7 @@ def test_long():
                  (u' -123 ', -123L, u'-123'),
                  (u'+123',   123L,  u'123', dict(signed=False)),
                  (u'-123',   None,  u'-123', dict(signed=False))):
-        yield (validate_element_set, schema.Long) + spec
+        yield (validate_element_set, Long) + spec
 
 
 def test_float():
@@ -158,9 +155,9 @@ def test_float():
                  (u' -123 ', -123.0, u'-123.000000'),
                  (u'+123',   123.0,  u'123.000000', dict(signed=False)),
                  (u'-123',   None,  u'-123', dict(signed=False))):
-        yield (validate_element_set, schema.Float) + spec
+        yield (validate_element_set, Float) + spec
 
-    class TwoDigitFloat(schema.Float):
+    class TwoDigitFloat(Float):
         format = u'%0.2f'
 
     for spec in ((u'123',    123.0,  u'123.00'),
@@ -175,51 +172,50 @@ def test_float():
 
 
 def test_boolean():
-    for ok in schema.Boolean.true_synonyms:
-        yield validate_element_set, schema.Boolean, ok, True, u'1'
-        yield (validate_element_set, schema.Boolean, ok, True, u'baz',
+    for ok in Boolean.true_synonyms:
+        yield validate_element_set, Boolean, ok, True, u'1'
+        yield (validate_element_set, Boolean, ok, True, u'baz',
                dict(true=u'baz'))
 
-    for not_ok in schema.Boolean.false_synonyms:
-        yield validate_element_set, schema.Boolean, not_ok, False, u''
-        yield (validate_element_set, schema.Boolean, not_ok, False, u'quux',
+    for not_ok in Boolean.false_synonyms:
+        yield validate_element_set, Boolean, not_ok, False, u''
+        yield (validate_element_set, Boolean, not_ok, False, u'quux',
                dict(false=u'quux'))
 
     for bogus in u'abc', u'1.0', u'0.0', u'None':
-        yield validate_element_set, schema.Boolean, bogus, None, u''
+        yield validate_element_set, Boolean, bogus, None, u''
 
 
 def test_scalar_set_default():
-    el = schema.Integer('i', ).create_element()
+    el = Integer()
     el.set_default()
     assert el.value is None
 
-    el = schema.Integer('i', default=10).create_element()
+    el = Integer(default=10)
     el.set_default()
     assert el.value == 10
 
-    el = schema.Integer('i', default_factory=lambda e: 20).create_element()
+    el = Integer(default_factory=lambda e: 20)
     el.set_default()
     assert el.value == 20
 
 
 def test_constrained_is_abstract():
-    c = schema.Constrained('foo')
-    el = c.create_element()
-    el.set(u'anything')
+    el = Constrained(u'anything')
     assert el.value is None
     assert el.u == u'anything'
 
 
 def test_constrained_instance_override():
-    def valid(ok_values, eltype=schema.scalars.StringElement):
+
+    def valid(ok_values):
+
         def validator(element, value):
-            assert isinstance(element, eltype)
+            assert isinstance(element, Constrained)
             return value in ok_values
         return validator
 
-    c = schema.Constrained('foo', valid_value=valid((u'a',)))
-    el = c.create_element()
+    el = Constrained(valid_value=valid((u'a',)))
     assert el.set(u'a')
     assert el.value == u'a'
     assert el.u == u'a'
@@ -228,9 +224,7 @@ def test_constrained_instance_override():
     assert el.value is None
     assert el.u == u'b'
 
-    c = schema.Constrained('foo', schema.Integer, valid_value=valid(
-        (1,), eltype=schema.scalars.ScalarElement))
-    el = c.create_element()
+    el = Constrained(child_type=Integer, valid_value=valid((1,)))
     assert el.set(u'1')
     assert el.value == 1
     assert el.u == u'1'
@@ -243,16 +237,17 @@ def test_constrained_instance_override():
 
 def test_constrained_instance_contrived():
     # check that fringe types that adapt as None can used in bounds
-    class CustomInteger(schema.Integer):
-        def adapt(self, element, value):
+
+    class CustomInteger(Integer):
+
+        def adapt(self, value):
             try:
-                return schema.Integer.adapt(self, element, value)
+                return Integer.adapt(self, value)
             except:
                 return None
 
-    c = schema.Constrained('foo', CustomInteger,
-                           valid_value=lambda e, v: v in (1, None))
-    el = c.create_element()
+    el = Constrained(child_type=CustomInteger,
+                     valid_value=lambda e, v: v in (1, None))
     assert el.set(u'1')
 
     for out_of_bounds in u'2', u'3':
@@ -266,64 +261,43 @@ def test_constrained_instance_contrived():
 
 def test_default_enum():
     good_values = ('a', 'b', 'c')
-    for enum in (schema.Enum('abcs', *good_values),
-                 schema.Enum('abcs', valid_values=good_values)):
-        for good_val in good_values:
-            el = enum.create_element()
-            el.set(good_val)
-            assert el.value == good_val
-            assert el.u == good_val
-            assert el.validate()
-            assert not el.errors
-
-        el = enum.create_element()
-        el.set('d')
-        assert el.value is None
-        assert el.u == u'd'
-        # present but not converted
+    for good_val in good_values:
+        el = Enum(good_val, valid_values=good_values)
+        assert el.value == good_val
+        assert el.u == good_val
         assert el.validate()
+        assert not el.errors
 
-        el = enum.create_element()
-        el.set(None)
-        assert el.value is None
-        assert el.u == u''
-        # not present
-        assert not el.validate()
+    el = Enum(u'd', valid_values=good_values)
+    assert el.value is None
+    assert el.u == u'd'
+    # present but not converted
+    assert el.validate()
+
+    el = Enum(None, valid_values=good_values)
+    assert el.value is None
+    assert el.u == u''
+    # not present
+    assert not el.validate()
 
 
 def test_typed_enum():
     good_values = range(1, 4)
-    enum = schema.Enum('e', valid_values=good_values, child_type=schema.Integer)
+    schema = Enum.using(valid_values=good_values, child_type=Integer)
 
     for good_val in good_values:
-        el = enum.create_element()
-        el.set(unicode(good_val))
+        el = schema(unicode(good_val))
         assert el.value == good_val
         assert el.u == unicode(good_val)
         assert not el.errors
 
-    el = enum.create_element()
-    el.set('x')
+    el = schema('x')
     assert el.value is None
     assert el.u == u'x'
 
-    el = enum.create_element()
-    el.set('5')
+    el = schema('5')
     assert el.value is None
     assert el.u == u'5'
-
-
-def test_enum_with_dynamic_option():
-    enum = schema.scalars.Enum('abcs', 'a', 'b', 'c')
-    el = enum()
-    el.valid_values = ('a', 'b')
-
-    el.set('a')
-    assert el.value == u'a'
-
-    el.set('c')
-    assert el.value == None
-    assert el.u == u'c'
 
 
 def test_date():
@@ -335,7 +309,7 @@ def test_date():
         (u' 2010-08-02 ', None, u' 2010-08-02 ', dict(strip=False)),
         (u'2011-8-2',     None, u'2011-8-2'),
         (u'blagga',       None, u'blagga')):
-        yield (validate_element_set, schema.Date) + spec
+        yield (validate_element_set, Date) + spec
 
 
 def test_time():
@@ -345,7 +319,7 @@ def test_time():
         (u'23:24:25', t(23, 24, 25), u'23:24:25'),
         (u'24:25:26', None, u'24:25:26'),
         (u'bogus', None, u'bogus')):
-        yield (validate_element_set, schema.Time) + spec
+        yield (validate_element_set, Time) + spec
 
 
 def test_datetime():
@@ -355,5 +329,4 @@ def test_datetime():
          u'2009-10-10 08:09:10'),
         (u'2010-08-02 25:26:27', None, u'2010-08-02 25:26:27'),
         (u'2010-13-22 09:09:09', None, u'2010-13-22 09:09:09')):
-        yield (validate_element_set, schema.DateTime) + spec
-
+        yield (validate_element_set, DateTime) + spec

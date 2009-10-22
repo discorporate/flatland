@@ -1,6 +1,9 @@
 from tests.genshi._util import (
-    RenderTest, FilteredRenderTest, from_text_files, from_docstring)
-import flatland
+    FilteredRenderTest,
+    RenderTest,
+    from_docstring,
+    )
+
 
 
 class TestPrefilterTags(RenderTest):

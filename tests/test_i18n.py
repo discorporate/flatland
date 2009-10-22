@@ -1,8 +1,16 @@
-import flatland as fl
-from flatland import valid
+from flatland import (
+    Dict,
+    String,
+    )
+from flatland.valid import (
+    Converted,
+    NoLongerThan,
+    )
 
 
 class GetTextish(object):
+    """Mimics a gettext translation."""
+
     catalog = {
         u'%(label)s is not correct.':
             u'reg %(label)s',
@@ -17,6 +25,7 @@ class GetTextish(object):
             u'single %(label)s %(maxlength)s',
 
         u'age': u'AGE',
+
         u'name': u'NAME',
         }
 
@@ -31,7 +40,7 @@ class GetTextish(object):
         return self.ugettext(lookup)
 
 
-class LocalizedShort(valid.NoLongerThan):
+class LocalizedShort(NoLongerThan):
     exceeded = (u'%(label)s max is %(maxlength)s character.',
                 u'%(label)s max is %(maxlength)s characters.',
                 'maxlength')
@@ -39,49 +48,58 @@ class LocalizedShort(valid.NoLongerThan):
 
 def test_regular_gettext():
     catalog = GetTextish()
-    root = fl.Dict('root',
-                   fl.String('age', validators=[valid.Converted()]),
-                   ugettext=catalog.ugettext,
+
+    # translators placed at the top of the form
+    schema = Dict.of(String.named('age').using(validators=[Converted()])).\
+             using(ugettext=catalog.ugettext,
                    ungettext=catalog.ungettext)
 
-    data = root.create_element()
+    data = schema()
     data.validate()
     assert data['age'].errors == [u'reg AGE']
+
 
 def test_local_gettext():
     catalog = GetTextish()
-    root = fl.Dict('root',
-                   fl.String('age', validators=[valid.Converted()],
-                             ugettext=catalog.ugettext,
-                             ungettext=catalog.ungettext))
 
-    data = root.create_element()
+    # translators placed on a specific form element
+    schema = Dict.of(String.named('age').using(validators=[Converted()],
+                                               ugettext=catalog.ugettext,
+                                               ungettext=catalog.ungettext))
+
+    data = schema()
     data.validate()
     assert data['age'].errors == [u'reg AGE']
+
 
 def test_local_gettext_search_is_not_overeager():
     catalog = GetTextish()
-    def poision(*a):
+
+    def poison(*a):
         assert False
 
-    root = fl.Dict('root',
-                   fl.String('age', validators=[valid.Converted()],
-                             ugettext=catalog.ugettext,
-                             ungettext=catalog.ungettext),
-                   ugettext=catalog.ugettext,
-                   ungettext=catalog.ungettext)
+    # if a translator is found on an element, its parents won't be searched
+    schema = (Dict.of(String.named('age').
+                     using(validators=[Converted()],
+                           ugettext=catalog.ugettext,
+                           ungettext=catalog.ungettext)).
+              using(ugettext=poison,
+                    ungettext=poison))
 
-    data = root.create_element()
+    data = schema()
     data.validate()
     assert data['age'].errors == [u'reg AGE']
 
+
 def test_builtin_gettext():
     catalog = GetTextish()
-    root = fl.Dict('root',
-                   fl.String('age', validators=[valid.Converted()]))
 
-    data = root.create_element()
+    schema = Dict.of(String.named('age').using(validators=[Converted()]))
+
+    data = schema()
+
     try:
+        # translators can go into the builtins
         import __builtin__
         __builtin__.ugettext = catalog.ugettext
         __builtin__.ungettext = catalog.ungettext
@@ -91,25 +109,39 @@ def test_builtin_gettext():
         del __builtin__.ugettext
         del __builtin__.ungettext
 
+
+def test_state_gettext():
+    catalog = GetTextish()
+
+    schema = Dict.of(String.named('age').using(validators=[Converted()]))
+
+    # if state has ugettext or ungettext attributes, those will be used
+    data = schema()
+    data.validate(catalog)
+    assert data['age'].errors == [u'reg AGE']
+
+    # also works if state is dict-like
+    data = schema()
+    state = dict(ugettext=catalog.ugettext, ungettext=catalog.ungettext)
+    data.validate(state)
+    assert data['age'].errors == [u'reg AGE']
+
+
 def test_tuple_single():
     catalog = GetTextish()
-    root = fl.Dict('root',
-                   fl.String('name', validators=[LocalizedShort(1)]),
-                   ugettext=catalog.ugettext,
-                   ungettext=catalog.ungettext)
+    schema = Dict.of(String.named('name').
+                     using(validators=[LocalizedShort(1)]))
 
-    data = root.from_value(dict(name='xxx'))
-    data.validate()
+    data = schema(dict(name='xxx'))
+    data.validate(catalog)
     assert data['name'].errors == [u'single NAME 1']
+
 
 def test_tuple_plural():
     catalog = GetTextish()
-    root = fl.Dict('root',
-                   fl.String('name', validators=[LocalizedShort(2)]),
-                   ugettext=catalog.ugettext,
-                   ungettext=catalog.ungettext)
+    schema = Dict.of(String.named('name').
+                     using(validators=[LocalizedShort(2)]))
 
-    data = root.from_value(dict(name='xxx'))
-    data.validate()
+    data = schema(dict(name='xxx'))
+    data.validate(catalog)
     assert data['name'].errors == [u'plural NAME 2']
-

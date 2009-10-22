@@ -1,18 +1,30 @@
 import datetime
+
+from flatland import (
+    Array,
+    Boolean,
+    DateYYYYMMDD,
+    Dict,
+    String,
+    )
+
 from tests.genshi._util import (
-    RenderTest, FilteredRenderTest, from_text_files, from_docstring)
-import flatland
+    FilteredRenderTest,
+    RenderTest,
+    from_docstring,
+    )
 
 
 def small_form(values=None):
-    schema = flatland.Dict(
+    # FIXME: compounds
+    schema = Dict(
         None,
-        flatland.String('field1'),
-        flatland.String('field2'),
-        flatland.Boolean('toggle1'),
-        flatland.Boolean('toggle2'),
-        flatland.Array(flatland.String('multi')),
-        flatland.DateYYYYMMDD('date1'),
+        String('field1'),
+        String('field2'),
+        Boolean('toggle1'),
+        Boolean('toggle2'),
+        Array(String('multi')),
+        DateYYYYMMDD('date1'),
         )
     if values is None:
         values = {
@@ -809,15 +821,14 @@ class TestTags(FilteredRenderTest):
     """
 
 def user_filter_form(values=None):
-    schema = flatland.Dict(
-        None,
-        flatland.String('field1', optional=True),
-        flatland.String('field2'))
+    schema = Dict.of(
+        String.named('field1').using(optional=True),
+        String.named('field2'))
     if values is None:
         values = {
             'field1': 'val',
             }
-    el = schema.create_element(value=values)
+    el = schema(values)
     el['field2'].errors.append('Missing')
 
     def label_filter(tag, attrs, stream, context, el):

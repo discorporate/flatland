@@ -1,21 +1,26 @@
+from flatland import (
+    Dict,
+    List,
+    String,
+    )
+
 from tests.genshi._util import FilteredRenderTest, from_docstring
 
 
 class TestExpressions(FilteredRenderTest):
     def form():
-        from flatland import Dict, String, List
+        schema = Dict.named('field0').of(
+            String.named('field1'),
+            String.named('field2'),
+            List.named('field3').of(String.named('field4')),
+            List.named('field5').of(
+                List.named('field6').of(String.named('field7'))))
 
-        schema = Dict('field0',
-                      String('field1'),
-                      String('field2'),
-                      List('field3', String('field4')),
-                      List('field5',
-                           List('field6', String('field7'))))
-        element = schema.create_element(
-            value={'field1': u'val1',
-                   'field2': u'val2',
-                   'field3': [u'val3'],
-                   'field5': [['val4']]})
+        element = schema(
+            {'field1': u'val1',
+             'field2': u'val2',
+             'field3': [u'val3'],
+             'field5': [['val4']]})
         element.set_prefix('form')
         return {'form': element, 'bound': element.bind}
 
@@ -199,13 +204,12 @@ val4
 
 class TestShadowed(FilteredRenderTest):
     def shadow():
-        from flatland import Dict, String
-        s = Dict('dict_name',
-                 String('name'),
-                 String('u'))
+        schema = Dict.named('dict_name').of(
+            String.named('name'),
+            String.named('u'))
 
-        element = s.create_element(value={'name': u'string name',
-                                          'u': u'string u'})
+        element = schema({'name': u'string name',
+                          'u': u'string u'})
         element.set_prefix('top')
         return {'top': element, 'bound': element.bind}
 
@@ -279,9 +283,9 @@ name
 class TestPrefixes(FilteredRenderTest):
     def elements():
         from flatland import Dict, String
-        anon = Dict(None, String('anon_field')).create_element()
-        named = Dict('named', String('named_field')).create_element()
-        prefixed = Dict('prefixed', String('prefixed_field')).create_element()
+        anon = Dict.of(String.named('anon_field'))()
+        named = Dict.named('named').of(String.named('named_field'))()
+        prefixed = Dict.named('prefixed').of(String.named('prefixed_field'))()
         prefixed.set_prefix('three.levels.down')
 
         return {'form': anon,

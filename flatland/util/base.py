@@ -11,6 +11,8 @@ except ImportError:                                           # pragma:nocover
 
 # derived from ASPN Cookbook (#36302)
 class lazy_property(object):
+    """TODO: doc"""
+
     def __init__(self, deferred):
         self._deferred = deferred
 
@@ -49,6 +51,74 @@ class assignable_property(object):
             del instance.__dict__[self.name]
         except KeyError:
             raise AttributeError("%r object has no overriden attribute %r" % (
+                type(instance).__name__, self.name))
+
+
+class assignable_class_property(object):
+    """A @property, computed by default but assignable on a per-instance basis.
+
+    #FIXME: doc difference from instance version
+
+    May be used as a decorator.
+    """
+
+    def __init__(self, fget, name=None, doc=None):
+        self.name = name or fget.__name__
+        self.fget = fget
+        self.__doc__ = doc or fget.__doc__
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self.fget(None, cls)
+        if self.name in instance.__dict__:
+            return instance.__dict__[self.name]
+        else:
+            return self.fget(instance, cls)
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = value
+
+    def __delete__(self, instance):
+        try:
+            del instance.__dict__[self.name]
+        except KeyError:
+            raise AttributeError("%r object has no overriden attribute %r" % (
+                type(instance).__name__, self.name))
+
+
+class class_cloner(object):
+    """TODO: doc!"""
+
+    def __init__(self, fn):
+        self.name = fn.__name__
+        self.fn = fn
+        self.__doc__ = fn.__doc__
+
+    def cloner(self, cls):
+        """TODO: doc"""
+
+        def decorator(*args, **kw):
+            clone = type(cls.__name__, (cls,), {})
+            return self.fn(clone, *args, **kw)
+        functools.update_wrapper(decorator, self.fn)
+        return decorator
+
+    def __get__(self, instance, cls):
+        if instance is not None:
+            try:
+                return instance.__dict__[self.name]
+            except KeyError:
+                raise AttributeError(self.name)
+        return self.cloner(cls)
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = value
+
+    def __delete__(self, instance):
+        try:
+            del instance.__dict__[self.name]
+        except KeyError:
+            raise AttributeError("%r object has no attribute %r" % (
                 type(instance).__name__, self.name))
 
 
@@ -92,6 +162,7 @@ def re_ucompile(pattern, flags=0):
     """Compile a regex with re.UNICODE on by default."""
     return re.compile(pattern, flags | re.UNICODE)
 
+
 def luhn10(number):
     """Return True if the number passes the Luhn checksum algorithm."""
 
@@ -104,6 +175,7 @@ def luhn10(number):
         sum += r // 10 + r % 10 + z
 
     return 0 == sum % 10
+
 
 def to_pairs(dictlike):
     """Yield (key, value) pairs from any dict-like object.
@@ -120,6 +192,7 @@ def to_pairs(dictlike):
         return dictlike._asdict().iteritems()
     else:
         return ((key, value) for key, value in dictlike)
+
 
 def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
     """Filter (key, value) pairs by key and return a subset.
@@ -173,6 +246,7 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
                 continue
         yield key, value
 
+
 class Maybe(object):
     """A ternary logic value, bitwise-comparable to bools"""
 
@@ -224,13 +298,16 @@ class Maybe(object):
         return 'Maybe'
     __repr__ = __str__
 
+
 Maybe = Maybe()
+
 
 def named_int_factory(name, value, doc=''):
     report_name = lambda self: name
     cls = type(name, (int,), dict(
-        __doc__ = doc, __str__=report_name, __repr__=report_name))
+        __doc__=doc, __str__=report_name, __repr__=report_name))
     return cls(value)
+
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
 def format_argspec_plus(fn, grouped=True):
@@ -274,7 +351,7 @@ def format_argspec_plus(fn, grouped=True):
     else:
         self_arg = None
     apply_pos = inspect.formatargspec(spec[0], spec[1], spec[2])
-    defaulted_vals = spec[3] is not None and spec[0][0-len(spec[3]):] or ()
+    defaulted_vals = spec[3] is not None and spec[0][0 - len(spec[3]):] or ()
     apply_kw = inspect.formatargspec(spec[0], spec[1], spec[2], defaulted_vals,
                                      formatvalue=lambda x: '=' + x)
     if grouped:
@@ -283,6 +360,7 @@ def format_argspec_plus(fn, grouped=True):
     else:
         return dict(args=args[1:-1], self_arg=self_arg,
                     apply_pos=apply_pos[1:-1], apply_kw=apply_kw[1:-1])
+
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
 def unique_symbols(used, *bases):
@@ -299,6 +377,7 @@ def unique_symbols(used, *bases):
         else:
             raise NameError("exhausted namespace for symbol base %s" % base)
 
+
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
 def decorator(target):
     """A signature-matching decorator factory."""
@@ -313,7 +392,7 @@ def decorator(target):
 
         code = 'lambda %(args)s: %(target)s(%(fn)s, %(apply_kw)s)' % (
                 metadata)
-        decorated = eval(code, {targ_name:target, fn_name:fn})
+        decorated = eval(code, {targ_name: target, fn_name: fn})
         decorated.func_defaults = getattr(fn, 'im_func', fn).func_defaults
         return functools.update_wrapper(decorated, fn)
     return functools.update_wrapper(decorate, target)
@@ -321,15 +400,19 @@ def decorator(target):
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
 class _symbol(object):
+
     def __init__(self, name):
         """Construct a new named symbol."""
         assert isinstance(name, str)
         self.__name__ = self.name = name
+
     def __reduce__(self):
         return symbol, (self.name,)
+
     def __repr__(self):
         return self.name
 _symbol.__name__ = 'symbol'
+
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
 class symbol(object):
@@ -358,5 +441,6 @@ class symbol(object):
             return sym
         finally:
             symbol._lock.release()
+
 
 Unspecified = symbol('Unspecified')

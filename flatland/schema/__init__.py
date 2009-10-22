@@ -1,7 +1,6 @@
 """Schema components."""
 from .base import (
     Element,
-    FieldSchema,
     Skip,
     SkipAll,
     SkipAllFalse,
@@ -25,9 +24,12 @@ from .scalars import (
     )
 from .containers import (
     Array,
+    Container,
     Dict,
     List,
+    Mapping,
     MultiValue,
+    Sequence,
     )
 from .compound import (
     Compound,
