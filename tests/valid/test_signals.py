@@ -1,53 +1,60 @@
-from flatland import signals, String, valid
+from flatland import String, signals
 from flatland.schema.base import NotEmpty
+from flatland.valid import (
+    Converted,
+    NoLongerThan,
+    Present,
+    )
+
 from tests._util import eq_
 
 
 def test_validator_validated():
-    s = String('text',
-               validators=[valid.Present(),
-                           valid.Converted(),
-                           valid.NoLongerThan(5)])
-
     sentinel = []
+
     def listener(**kw):
         sentinel.append(kw)
 
     signals.validator_validated.connect(listener)
 
-    el = s.create_element()
+    schema = String.using(validators=[Present(),
+                                      Converted(),
+                                      NoLongerThan(5)])
+    el = schema()
     assert not el.validate()
-    eq_(sentinel, [dict(sender=s.validators[0],
+    eq_(sentinel, [dict(sender=schema.validators[0],
                         element=el,
                         state=None,
                         result=False)])
     del sentinel[:]
-    el = s.create_element(value='abcd')
+    el = schema(value='abcd')
     assert el.validate()
     assert len(sentinel) == 3
     assert sentinel[-1]['result']
 
     del sentinel[:]
-    el = s.create_element(value='squiznart')
+    el = schema('squiznart')
     assert not el.validate()
     assert len(sentinel) == 3
     assert not sentinel[-1]['result']
 
-    s2 = String('text', optional=False)
+    s2 = String.using(optional=False)
 
     del sentinel[:]
-    el = s2.create_element()
+    el = s2()
     assert not el.validate()
-    eq_(sentinel, [dict(sender=NotEmpty, element=el, state=None, result=False)])
+    eq_(sentinel, [dict(sender=NotEmpty, element=el,
+                        state=None, result=False)])
 
     del sentinel[:]
-    el = s2.create_element(value='squiznart')
+    el = s2('squiznart')
     assert el.validate()
-    eq_(sentinel, [dict(sender=NotEmpty, element=el, state=None, result=True)])
+    eq_(sentinel, [dict(sender=NotEmpty, element=el,
+                        state=None, result=True)])
 
     del listener
     del sentinel[:]
-    el = s.create_element(value='squiznart')
+    el = schema('squiznart')
     assert not el.validate()
     assert not sentinel
 
