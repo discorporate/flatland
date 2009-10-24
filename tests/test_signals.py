@@ -1,48 +1,60 @@
-from flatland.util import signals
+from flatland.util.signals import (
+    ANY,
+    ANY_ID,
+    NamedSignal,
+    Namespace,
+    Signal,
+    receiver_connected,
+    )
+
 from tests._util import eq_, assert_raises
 
 
 def test_meta_connect():
     sentinel = []
+
     def meta_received(**kw):
         sentinel.append(kw)
 
-    assert not signals.receiver_connected.receivers
-    signals.receiver_connected.connect(meta_received)
+    assert not receiver_connected.receivers
+    receiver_connected.connect(meta_received)
     assert not sentinel
 
     def receiver(**kw):
         pass
-    sig = signals.Signal()
+    sig = Signal()
     sig.connect(receiver)
 
     eq_(sentinel, [dict(sender=sig,
                         receiver_arg=receiver,
-                        sender_arg=signals.ANY,
+                        sender_arg=ANY,
                         weak_arg=True)])
 
-    signals.receiver_connected._clear_state()
+    receiver_connected._clear_state()
+
 
 def test_meta_connect_failure():
+
     def meta_received(**kw):
         raise TypeError('boom')
 
-    assert not signals.receiver_connected.receivers
-    signals.receiver_connected.connect(meta_received)
+    assert not receiver_connected.receivers
+    receiver_connected.connect(meta_received)
 
     def receiver(**kw):
         pass
-    sig = signals.Signal()
+    sig = Signal()
 
     assert_raises(TypeError, sig.connect, receiver)
     assert not sig.receivers
     assert not sig._by_receiver
-    eq_(sig._by_sender, {signals.ANY_ID: set()})
+    eq_(sig._by_sender, {ANY_ID: set()})
 
-    signals.receiver_connected._clear_state()
+    receiver_connected._clear_state()
+
 
 def test_singletons():
-    ns = signals.Namespace()
+    ns = Namespace()
     assert not ns.signals
     s1 = ns.signal('abc')
     assert s1 is ns.signal('abc')
@@ -53,12 +65,14 @@ def test_singletons():
     del s1
     assert 'abc' not in ns.signals
 
+
 def test_weak_receiver():
     sentinel = []
+
     def received(**kw):
         sentinel.append(kw)
 
-    sig = signals.Signal()
+    sig = Signal()
     sig.connect(received, weak=True)
     del received
 
@@ -69,13 +83,15 @@ def test_weak_receiver():
     values_are_empty_sets_(sig._by_receiver)
     values_are_empty_sets_(sig._by_sender)
 
+
 def test_strong_receiver():
     sentinel = []
+
     def received(**kw):
         sentinel.append(kw)
     fn_id = id(received)
 
-    sig = signals.Signal()
+    sig = Signal()
     sig.connect(received, weak=False)
     del received
 
@@ -84,12 +100,14 @@ def test_strong_receiver():
     assert sentinel
     eq_([id(fn) for fn in sig.receivers.values()], [fn_id])
 
+
 def test_filtered_receiver():
     sentinel = []
+
     def received(sender):
         sentinel.append(sender)
 
-    sig = signals.Signal()
+    sig = Signal()
 
     sig.connect(received, 123)
 
@@ -101,8 +119,10 @@ def test_filtered_receiver():
     sig.send()
     assert sentinel == [123]
 
+
 def test_filtered_receiver_weakref():
     sentinel = []
+
     def received(sender):
         sentinel.append(sender)
 
@@ -110,7 +130,7 @@ def test_filtered_receiver_weakref():
         pass
     obj = Object()
 
-    sig = signals.Signal()
+    sig = Signal()
     sig.connect(received, obj)
 
     assert not sentinel
@@ -125,12 +145,14 @@ def test_filtered_receiver_weakref():
     values_are_empty_sets_(sig._by_receiver)
     values_are_empty_sets_(sig._by_sender)
 
+
 def test_no_double_send():
     sentinel = []
+
     def received(sender):
         sentinel.append(sender)
 
-    sig = signals.Signal()
+    sig = Signal()
 
     sig.connect(received, 123)
     sig.connect(received)
@@ -143,16 +165,17 @@ def test_no_double_send():
     sig.send()
     assert sentinel == [None, 123, None]
 
+
 def test_has_receivers():
     received = lambda sender: None
 
-    sig = signals.Signal()
+    sig = Signal()
     assert not sig.has_receivers_for(None)
-    assert not sig.has_receivers_for(signals.ANY)
+    assert not sig.has_receivers_for(ANY)
 
     sig.connect(received, 'xyz')
     assert not sig.has_receivers_for(None)
-    assert not sig.has_receivers_for(signals.ANY)
+    assert not sig.has_receivers_for(ANY)
     assert sig.has_receivers_for('xyz')
 
     class Object(object):
@@ -171,19 +194,22 @@ def test_has_receivers():
     assert sig.has_receivers_for('xyz')
     assert sig.has_receivers_for(o)
     assert sig.has_receivers_for(None)
-    assert sig.has_receivers_for(signals.ANY)
+    assert sig.has_receivers_for(ANY)
     assert sig.has_receivers_for('xyz')
 
+
 def test_instance_doc():
-    sig = signals.Signal(doc='x')
+    sig = Signal(doc='x')
     assert sig.__doc__ == 'x'
 
-    sig = signals.Signal('x')
+    sig = Signal('x')
     assert sig.__doc__ == 'x'
+
 
 def test_named_signals():
-    sig = signals.NamedSignal('squiznart')
+    sig = NamedSignal('squiznart')
     assert 'squiznart' in repr(sig)
+
 
 def values_are_empty_sets_(dictionary):
     for val in dictionary.itervalues():
