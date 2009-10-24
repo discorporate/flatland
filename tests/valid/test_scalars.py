@@ -1,42 +1,72 @@
 from datetime import date, timedelta
-from flatland import String, Integer, Date, Dict, List
-from flatland.valid import scalars
+
+from flatland import (
+    Date,
+    Dict,
+    Form,
+    Integer,
+    List,
+    String,
+    )
+from flatland.valid import (
+    IsFalse,
+    IsTrue,
+    MapEqual,
+    UnisEqual,
+    ValueAtLeast,
+    ValueAtMost,
+    ValueBetween,
+    ValueGreaterThan,
+    ValueIn,
+    ValueLessThan,
+    ValuesEqual,
+    )
+
 from tests._util import eq_
 
 
 def form(value):
-    schema = Dict('test',
-                  String('x'),
-                  String('y'),
-                  String('z'),
-                  Dict('sub', String('xx')))
-    return schema.create_element(value=value)
+
+    class Schema(Form):
+        name = 'test'
+        x = String
+        y = String
+        z = String
+        sub = Dict.of(String.named('xx'))
+
+    return Schema(value)
+
 
 def scalar(value):
-    return String('test').create_element(value=value)
+    return String(value, name='test')
+
 
 def integer_scalar(value):
-    return Integer('test').create_element(value=value)
+    return Integer(value, name='test')
+
 
 def date_scalar(value):
-    return Date('test').create_element(value=value)
+    return Date(value, name='test')
+
 
 def test_is_true():
     i = integer_scalar(1)
     z = integer_scalar(0)
-    v = scalars.IsTrue()
+    v = IsTrue()
     assert v.validate(i, None)
     assert not v.validate(z, None)
+
 
 def test_is_false():
     i = integer_scalar(1)
     z = integer_scalar(0)
-    v = scalars.IsFalse()
+    v = IsFalse()
     assert not v.validate(i, None)
     assert v.validate(z, None)
 
+
 def test_value_in():
-    v = scalars.ValueIn(('a', 'b', 'c'))
+    v = ValueIn(('a', 'b', 'c'))
 
     for good_val in ('a', 'b', 'c'):
         s = scalar(good_val)
@@ -46,9 +76,10 @@ def test_value_in():
         s = scalar(bad_val)
         assert not v.validate(s, None)
 
+
 def test_value_less_than():
     i = integer_scalar(1)
-    V = scalars.ValueLessThan
+    V = ValueLessThan
     assert V(2).validate(i, None)
     assert not V(1).validate(i, None)
     assert i.errors == ['test must be less than 1.']
@@ -59,32 +90,36 @@ def test_value_less_than():
     assert not V(two_days_ago).validate(d, None)
     assert d.errors == ['test must be less than %s.' % two_days_ago]
 
+
 def test_value_at_most():
     i = integer_scalar(1)
-    V = scalars.ValueAtMost
+    V = ValueAtMost
     assert V(2).validate(i, None)
     assert V(1).validate(i, None)
     assert not V(0).validate(i, None)
     assert i.errors == ['test must be less than or equal to 0.']
 
+
 def test_value_greater_than():
     i = integer_scalar(1)
-    V = scalars.ValueGreaterThan
+    V = ValueGreaterThan
     assert V(0).validate(i, None)
     assert not V(1).validate(i, None)
     assert i.errors == ['test must be greater than 1.']
 
+
 def test_value_at_least():
     i = integer_scalar(1)
-    V = scalars.ValueAtLeast
+    V = ValueAtLeast
     assert V(0).validate(i, None)
     assert V(1).validate(i, None)
     assert not V(2).validate(i, None)
     assert i.errors == ['test must be greater than or equal to 2.']
 
+
 def test_value_between():
     i = integer_scalar(1)
-    V = scalars.ValueBetween
+    V = ValueBetween
     assert V(0, 2).validate(i, None)
     assert V(0, 1, inclusive=True).validate(i, None)
     assert V(1, 2, inclusive=True).validate(i, None)
@@ -100,8 +135,9 @@ def test_value_between():
     assert not V(0, 1, inclusive=False).validate(i, None)
     assert i.errors == ['test must be greater than 0 and less than 1.']
 
+
 def test_map_equal():
-    v = scalars.MapEqual('x', 'y',
+    v = MapEqual('x', 'y',
                          transform=lambda el: el.value.upper(),
                          unequal='%(labels)s/%(last_label)s')
     el = form(dict(x='a', y='A'))
@@ -111,8 +147,9 @@ def test_map_equal():
     assert not v.validate(el, None)
     eq_(el.errors, ['x/y'])
 
+
 def test_values_equal_two():
-    v = scalars.ValuesEqual('x', 'y')
+    v = ValuesEqual('x', 'y')
     el = form(dict(x='a', y='a', z='a'))
     assert v.validate(el, None)
 
@@ -123,9 +160,10 @@ def test_values_equal_two():
     el = form(dict(x='a'))
     assert not v.validate(el, None)
     eq_(el.errors, ['x and y do not match.'])
+
 
 def test_values_equal_three():
-    v = scalars.ValuesEqual('x', 'y', 'z')
+    v = ValuesEqual('x', 'y', 'z')
     el = form(dict(x='a', y='a', z='a'))
     assert v.validate(el, None)
 
@@ -137,29 +175,31 @@ def test_values_equal_three():
     assert not v.validate(el, None)
     eq_(el.errors, ['x, y and z do not match.'])
 
+
 def test_values_equal_resolution():
-    v = scalars.ValuesEqual('x', '.sub.xx')
+    v = ValuesEqual('x', '.sub.xx')
     el = form(dict(x='a', sub=dict(xx='a')))
     assert v.validate(el, None)
 
-    v = scalars.ValuesEqual('.x', 'xx')
+    v = ValuesEqual('.x', 'xx')
     el = form(dict(x='a', sub=dict(xx='a')))
     assert v.validate(el['sub'], None)
 
     # unhashable
-    v = scalars.ValuesEqual('a', 'b')
-    schema = Dict('test',
-                  List('a', String('x')),
-                  List('b', String('x')))
-    el = schema.create_element(value=dict(a=['a', 'b'], b=['a', 'b']))
+    v = ValuesEqual('a', 'b')
+    schema = Dict.of(List.named('a').of(String.named('x')),
+                     List.named('b').of(String.named('x')))
+
+    el = schema(dict(a=['a', 'b'], b=['a', 'b']))
     assert v.validate(el, None)
 
-    el = schema.create_element(value=dict(a=['a', 'b'], b=['x', 'y']))
+    el = schema(dict(a=['a', 'b'], b=['x', 'y']))
     assert not v.validate(el, None)
 
-def test_unis_equal():
-    schema = Dict('test', String('s'), Integer('i'))
-    el = schema.create_element(value=dict(s='abc', i='abc'))
 
-    v = scalars.UnisEqual('s', 'i')
+def test_unis_equal():
+    schema = Dict.of(String.named('s'), Integer.named('i'))
+    el = schema(dict(s='abc', i='abc'))
+
+    v = UnisEqual('s', 'i')
     assert v.validate(el, None)

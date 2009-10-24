@@ -720,10 +720,15 @@ class Element(_BaseElement):
         """
         if not recurse:
             down = self._validate(state, True)
-            up = self._validate(state, False)
-            if down is not None:
+            if down is Unevaluated:
+                self.valid = down
+            else:
                 self.valid = bool(down)
-            if up is not None:
+
+            up = self._validate(state, False)
+            # an Unevaluated ascent validator does not override the results
+            # of descent validation
+            if up is not Unevaluated:
                 self.valid = bool(up)
             return self.valid
 
@@ -738,7 +743,10 @@ class Element(_BaseElement):
             seen.add(id(element))
             elements.append(element)
             validated = element._validate(state, True)
-            if validated is not None:
+
+            if validated is Unevaluated:
+                element.valid = validated
+            else:
                 element.valid = bool(validated)
                 if valid:
                     valid &= validated
@@ -749,9 +757,13 @@ class Element(_BaseElement):
         # back up, visiting only the elements that weren't skipped above
         for element in reversed(elements):
             validated = element._validate(state, False)
-            if validated is not None:
-                if element.valid:
-                    element.valid = bool(validated)
+
+            # an Unevaluated ascent validator does not override the results
+            # of descent validation
+            if validated is Unevaluated:
+                pass
+            elif element.valid:
+                element.valid = bool(validated)
                 if valid:
                     valid &= validated
         return bool(valid)
@@ -761,14 +773,12 @@ class Element(_BaseElement):
         if descending:
             if self.validates_down:
                 validators = getattr(self, self.validates_down, None)
-                res = validate_element(self, state, validators)
-                return True if res is None else res
+                return validate_element(self, state, validators)
         else:
             if self.validates_up:
                 validators = getattr(self, self.validates_up, None)
-                res = validate_element(self, state, validators)
-                return True if res is None else res
-        return None
+                return validate_element(self, state, validators)
+        return Unevaluated
 
     @property
     def x(self):

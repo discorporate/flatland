@@ -2,8 +2,13 @@
 from collections import defaultdict
 import re
 
-from flatland.util import Unspecified, class_cloner, keyslice_pairs, to_pairs
-from .base import Element, Slot, validate_element
+from flatland.util import (
+    Unspecified,
+    class_cloner,
+    keyslice_pairs,
+    to_pairs,
+    )
+from .base import Element, Unevaluated, Slot, validate_element
 from .scalars import Scalar
 
 
@@ -65,6 +70,25 @@ class Container(Element):
         else:
             return validate_element(element, state, self.validators)
 
+
+    def _validate(self, state, descending):
+        """Run validation, transforming None into success. Internal."""
+        # FIXME: refactor this to allow for this logic ("Don't apply default
+        # validation on downward pass") to be defined declaratively.
+        if descending:
+            if self.validates_down:
+                validators = getattr(self, self.validates_down, None)
+                if not validators:
+                    return Unevaluated
+                return validate_element(self, state, validators)
+        else:
+            if self.validates_up:
+                validators = getattr(self, self.validates_up, None)
+                return validate_element(self, state, validators)
+        return Unevaluated
+
+
+
     #######################################################################
 
 
@@ -75,8 +99,18 @@ class Sequence(Container, list):
 
     child_schema = None
 
+    def __init__(self, value=Unspecified, **kw):
+        Container.__init__(self, value, **kw)
+        if not self.child_schema:
+            raise TypeError("Invalid schema: %r has no child_schema" %
+                            type(self))
+
     @class_cloner
     def of(cls, *fields):
+        for field in fields:
+            if isinstance(field, Element):
+                raise TypeError("'of' must be initialized with types, got "
+                                "instance %r" % field)
         if len(fields) == 1:
             cls.child_schema = fields[0]
         else:
@@ -480,6 +514,11 @@ class Dict(Container, dict):
 
     @class_cloner
     def of(cls, *fields):
+        for field in fields:
+            if isinstance(field, Element):
+                raise TypeError("'of' must be initialized with types, got "
+                                "instance %r" % field)
+
         unique_names = set(field.name for field in fields)
         # TODO: ensure these are types, not instances
         if len(unique_names) != len(fields):
