@@ -1,21 +1,21 @@
 import re
-from flatland import *
-from flatland.ext import creditcard
+
+from flatland import Form, String
+from flatland.ext.creditcard import CreditCardNumber, VISA, MASTERCARD
 
 
 class SimpleSchema(Form):
-    schema = [creditcard.CreditCardNumber('num')]
+    num = CreditCardNumber.named('num')
 
-class MyCreditCard(creditcard.CreditCardNumber):
-    class Present(creditcard.CreditCardNumber.Present):
+class MyCreditCard(CreditCardNumber):
+
+    class Present(CreditCardNumber.Present):
         missing = u'Yo! You need a %(label)s!'
 
 class SimpleSchema2(Form):
-    schema = [MyCreditCard('num',
-                           label='Visa/MC Number',
-                           types=(creditcard.VISA,
-                                  creditcard.MASTERCARD)),
-              String('name', optional=True)]
+    num = MyCreditCard.using(label='Visa/MC Number',
+                             accepted=(VISA, MASTERCARD))
+    name = String.using(optional=True)
 
 
 def test_simple():

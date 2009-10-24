@@ -506,12 +506,6 @@ class MultiValue(Array, Scalar):
 class Mapping(Container):
     """Base of mapping-like Containers."""
 
-
-class Dict(Container, dict):
-    """A mapping Container with named members."""
-
-    #######
-
     @class_cloner
     def of(cls, *fields):
         for field in fields:
@@ -532,6 +526,12 @@ class Dict(Container, dict):
 
         cls.field_schema = fields
         return cls
+
+
+class Dict(Mapping, dict):
+    """A mapping Container with named members."""
+
+    #######
 
     #######################################################################
     policy = 'subset'

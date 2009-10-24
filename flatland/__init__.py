@@ -47,7 +47,7 @@ class deferred_module(types.ModuleType):
 
 
 deferred_module.shadow('flatland',
-                       { 'exc': (),
+                       { 'exc': ('AdaptationError',),
                          'schema': ('Array',
                                     'Boolean',
                                     'Compound',

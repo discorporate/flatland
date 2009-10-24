@@ -1,60 +1,88 @@
+from functools import update_wrapper
 import operator
+
 from flatland.exc import AdaptationError
-from . import scalars, containers
+from flatland.util import Unspecified, threading
+from .containers import Dict
+from .scalars import Date, Integer, Scalar
 
 
-class CompoundElement(containers.Dict, scalars.Scalar):
+class _MetaCompound(type):
+    """Adds a class-level initialization hook """
 
-    def u(self):
-        uni, value = self.schema.compose(self)
-        return uni
+    _lock = threading.Lock()
 
-    def set_u(self, value):
-        self.schema.explode(self, value)
+    def __new__(self, name, bases, members):
+        members['_compound_prepared'] = False
+        if '__compound_init__' in members:
+            members['__compound_init__'] = \
+              _wrap_compound_init(members['__compound_init__'])
+        return type.__new__(self, name, bases, members)
 
-    u = property(u, set_u)
-    del set_u
+    def __call__(cls, value=Unspecified, **kw):
+        """Run __compound_init__ on first instance construction."""
 
-    def value(self):
-        uni, value = self.schema.compose(self)
-        return value
+        # Find **kw that would override existing class properties and
+        # remove them from kw.
+        overrides = {}
+        for key in kw.keys():
+            if hasattr(cls, key):
+                overrides[key] = kw.pop(key)
 
-    def set_value(self, value):
-        self.schema.explode(self, value)
+        if overrides:
+            # If there are overrides, construct a subtype on the fly
+            # so that __compound_init__ has a chance to run again with
+            # this new configuration.
+            cls = cls.using(**overrides)
+            cls.__compound_init__()
+        elif not cls.__dict__.get('_compound_prepared'):
+            # If this class hasn't been prepared yet, prepare it.
+            lock = cls._lock
+            lock.acquire()
+            try:
+                if not cls.__dict__.get('_compound_prepared'):
+                    cls.__compound_init__()
+            finally:
+                lock.release()
 
-    value = property(value, set_value)
-    del set_value
-
-    def set(self, value):
-        self.schema.explode(self, value)
-
-    def _set_flat(self, pairs, sep):
-        containers.DictElement._set_flat(self, pairs, sep)
-
-    def __repr__(self):
-        try:
-            return scalars.Scalar.__repr__(self)
-        except Exception, exc:
-            return '<%s %r; value raised %s>' % (
-                type(self.schema).__name__, self.name, type(exc).__name__)
-
-    @property
-    def is_empty(self):
-        """True if all subfields are empty."""
-        return reduce(operator.and_, (c.is_empty for c in self.children))
+        # Finally, implement type.__call__, invoking __init__ with the
+        # members of kw that were not class overrides.
+        self = cls.__new__(cls, value, **kw)
+        if self.__class__ is cls:
+            if value is Unspecified:
+                self.__init__(**kw)
+            else:
+                self.__init__(value, **kw)
+        return self
 
 
-class Compound(containers.Mapping, scalars.Scalar):
-    """A mapping container that acts as a scalar proxy for its children.
+def _wrap_compound_init(fn):
+    """Decorate __compound_init__ with a status setter & classmethod."""
+    if isinstance(fn, classmethod):
+        fn = fn.__get__(str).im_func  # type doesn't matter here
+    def __compound_init__(cls):
+        res = fn(cls)
+        cls._compound_prepared = True
+        return res
+    update_wrapper(__compound_init__, fn)
+    return classmethod(__compound_init__)
+
+
+class Compound(Dict, Scalar):
+    """A mapping container that acts like a scalar value.
 
     Compound fields are dictionary-like fields that can assemble a
-    :attr:`.u` and :attr:`.value` from their children, and can apply a
-    structures value passed to a :meth:`.set` to its children.
+    :attr:`.u` and :attr:`.value` from their children, and can
+    decompose a structured value passed to a :meth:`.set` into values
+    for its children.
 
     A simple example is a logical calendar date field composed of 3
-    separate component fields, year, month and day.  The Compound can
-    wrap the 3 parts up into a single field that handles
-    :class:`datetime.date` values.
+    separate Integer component fields, year, month and day.  The
+    Compound can wrap the 3 parts up into a single logical field that
+    handles :class:`datetime.date` values.  Set a ``date`` on the
+    logical field and its component fields will be set with year,
+    month and day; alter the int value of the year component field and
+    the logical field updates the ``date`` to match.
 
     :class:`Compound` is an abstract class.  Subclasses must implement
     :meth:`compose` and :meth:`explode`.
@@ -63,22 +91,23 @@ class Compound(containers.Mapping, scalars.Scalar):
 
     """
 
-    element_type = CompoundElement
+    __metaclass__ = _MetaCompound
 
-    def __init__(self, name, *fields, **kw):
-        super(Compound, self).__init__(name, **kw)
+    def __compound_init__(cls):
+        """TODO: doc
 
-        if any(not field.name for field in fields):
-            raise TypeError("Child fields of %s %r must be named." %
-                            type(self).__name__, name)
+        Gist: runs *once* per class, at the time the first element is
+        constructed.  You can run it by hand if you want to finalize
+        the construction (see TODO above).
 
-        self.fields = dict((field.name, field) for field in fields)
+        Changing class params on instance construction will cause this
+        to run again.
 
-    def compose(self, element):
+        """
+
+    def compose(self):
         """Return a unicode, native tuple built from children's state.
 
-        :param element: a :class:`CompoundElement`, a dict-like
-            element type.
         :returns: a 2-tuple of unicode representation, native value.
            These correspond to the :meth:`Scalar.serialize_element`
            and :meth:`Scalar.adapt_element` methods of :class:`Scalar`
@@ -91,11 +120,9 @@ class Compound(containers.Mapping, scalars.Scalar):
         """
         raise NotImplementedError()
 
-    def explode(self, element, value):
+    def explode(self, value):
         """Given a compound value, assign values to children.
 
-        :param element: a :class:`CompoundElement`, a dict-like
-            element type.
         :param value: a value to be adapted and exploded
 
         For example, a compound date field may read attributes from a
@@ -109,44 +136,94 @@ class Compound(containers.Mapping, scalars.Scalar):
         """
         raise NotImplementedError()
 
-    def serialize(self, element, value):
+    def serialize(self, value):
         raise TypeError("Not implemented for Compound types.")
 
+    def u(self):
+        uni, value = self.compose()
+        return uni
 
-class DateYYYYMMDD(Compound, scalars.Date):
-    def __init__(self, name, *fields, **kw):
-        assert len(fields) <= 3
-        fields = list(fields)
-        optional = kw.get('optional', False)
+    def set_u(self, value):
+        self.explode(value)
+
+    u = property(u, set_u)
+    del set_u
+
+    def value(self):
+        uni, value = self.compose()
+        return value
+
+    def set_value(self, value):
+        self.explode(value)
+
+    value = property(value, set_value)
+    del set_value
+
+    def set(self, value):
+        self.explode(value)
+
+    def _set_flat(self, pairs, sep):
+        Dict._set_flat(self, pairs, sep)
+
+    def __repr__(self):
+        try:
+            return Scalar.__repr__(self)
+        except Exception, exc:
+            return '<%s %r; value raised %s>' % (
+                type(self).__name__, self.name, type(exc).__name__)
+
+    @property
+    def is_empty(self):
+        """True if all subfields are empty."""
+        return reduce(operator.and_, (c.is_empty for c in self.children))
+
+
+class DateYYYYMMDD(Compound, Date):
+
+    @classmethod
+    def __compound_init__(cls):
+        assert len(cls.field_schema) < 4
+        if len(cls.field_schema) == 3:
+            return
+
+        fields = list(cls.field_schema)
+        optional = cls.optional
 
         if len(fields) == 0:
-            fields.append(scalars.Integer('year', format=u'%04i',
-                                          optional=optional))
+            fields.append(Integer.named('year').using(format=u'%04i',
+                                                      optional=optional))
         if len(fields) == 1:
-            fields.append(scalars.Integer('month', format=u'%02i',
-                                          optional=optional))
+            fields.append(Integer.named('month').using(format=u'%02i',
+                                                       optional=optional))
         if len(fields) == 2:
-            fields.append(scalars.Integer('day', format=u'%02i',
-                                          optional=optional))
-        super(DateYYYYMMDD, self).__init__(name, *fields, **kw)
-        self.ordered_fields = fields
+            fields.append(Integer.named('day').using(format=u'%02i',
+                                                     optional=optional))
 
-    def compose(self, element):
+        cls.field_schema = fields
+
+    #if any(not field.name for field in fields):
+    #    raise TypeError("Child fields of %s %r must be named." %
+    #                    type(self).__name__, name)
+
+
+    def compose(self):
         try:
-            data = dict( [(label, element[child_schema.name].value)
+            data = dict( [(label, self[child_schema.name].value)
                           for label, child_schema
-                          in zip(self.used, self.ordered_fields)] )
+                          in zip(self.used, self.field_schema)] )
             as_str = self.format % data
-            value = scalars.Date.adapt(self, element, as_str)
+            value = Date.adapt(self, as_str)
+
             return as_str, value
         except (AdaptationError, TypeError):
             return u'', None
 
-    def explode(self, element, value):
+    def explode(self, value):
         try:
-            value = scalars.Date.adapt(self, element, value)
-            for attrib, child_schema in zip(self.used, self.ordered_fields):
-                element[child_schema.name].set(getattr(value, attrib))
+            value = Date.adapt(self, value)
+
+            for attrib, child_schema in zip(self.used, self.field_schema):
+                self[child_schema.name].set(getattr(value, attrib))
         except (AdaptationError, TypeError):
-            for child_schema in self.ordered_fields:
-                element[child_schema.name].set(None)
+            for child_schema in self.field_schema:
+                self[child_schema.name].set(None)

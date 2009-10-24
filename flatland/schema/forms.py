@@ -48,6 +48,7 @@ class MetaForm(type):
         # add / replace fields declared as attributes on this class
         declared_fields = []
         for name, value in members.items():
+            # TODO warn about instances found here?
             if isinstance(value, type) and issubclass(value, Element):
                 if name != value.name:
                     value = value.named(name)
