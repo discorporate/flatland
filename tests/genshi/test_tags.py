@@ -5,6 +5,7 @@ from flatland import (
     Boolean,
     DateYYYYMMDD,
     Dict,
+    Form,
     String,
     )
 
@@ -16,16 +17,16 @@ from tests.genshi._util import (
 
 
 def small_form(values=None):
-    # FIXME: compounds
-    schema = Dict(
-        None,
-        String('field1'),
-        String('field2'),
-        Boolean('toggle1'),
-        Boolean('toggle2'),
-        Array(String('multi')),
-        DateYYYYMMDD('date1'),
-        )
+
+    class SmallForm(Form):
+        field1 = String
+        field2 = String
+        toggle1 = Boolean
+        toggle2 = Boolean
+        multi = Array.of(String)
+        date1 = DateYYYYMMDD
+
+
     if values is None:
         values = {
             'field1': 'val',
@@ -33,8 +34,9 @@ def small_form(values=None):
             'multi': ['a', 'b'],
             'date1': datetime.date(1999, 12, 31),
             }
-    el = schema.create_element(value=values)
+    el = SmallForm(values)
     return {'form': el}
+
 
 class TestUnfilteredTags(RenderTest):
     @from_docstring(context_factory=small_form)
@@ -80,8 +82,7 @@ form.el(u'.field1')
 
 class TestTags(FilteredRenderTest):
     def setup(self):
-        from flatland import Dict, String
-        self.schema = Dict(None, String('field'))
+        self.schema = Dict.of(String.named('field'))
 
     @from_docstring(context_factory=small_form)
     def test_empty(self):
@@ -838,10 +839,10 @@ def user_filter_form(values=None):
         content = stream.render()
         if not content:
             label = el.label
-            if not el.schema.optional:
+            if not el.optional:
                 label += ' *'
             stream = label
-        if not el.schema.optional:
+        if not el.optional:
             css = (attrs.get('class', '') + ' required').strip()
             attrs |= [(QName('class'), css)]
         return tag, attrs, stream

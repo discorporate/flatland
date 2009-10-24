@@ -179,8 +179,8 @@ class ValueAttribute(ToggledAttribute):
                 attrs = self.set_simple_value(override, attrs, node)
         elif type == 'checkbox':
             value = attrs.get(H_VALUE, None)
-            if value is None and isinstance(node.schema, flatland.Boolean):
-                value = node.schema.true
+            if value is None and isinstance(node, flatland.Boolean):
+                value = node.true
                 attrs |= ((H_VALUE, value),)
             attrs = self.set_checked(attrs, node)
         elif type == 'radio':
@@ -199,7 +199,7 @@ class ValueAttribute(ToggledAttribute):
             return attrs
         if value == node.u:
             attrs |= ((H_CHECKED, 'checked'),)
-        elif isinstance(node, flatland.schema.compound.Compound):
+        elif isinstance(node, flatland.Compound):
             attrs -= H_CHECKED
         else:
             for child in node.children:

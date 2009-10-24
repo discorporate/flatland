@@ -1,30 +1,34 @@
 import re
 
-from flatland import schema, valid, exc
-
+from flatland import AdaptationError, Long
+from flatland.util import Unspecified
+from flatland.valid import (
+    Converted,
+    Luhn10,
+    Present,
+    Validator,
+)
 
 VISA = 'Visa',
 MASTERCARD = 'MasterCard',
 AMEX = 'American Express',
 DISCOVER = 'Discover',
 
-class CreditCardNumber(schema.Long):
-    DEFAULT_TYPES = (VISA, MASTERCARD, AMEX)
 
-    def __init__(self, name, **kw):
+class CreditCardNumber(Long):
+    accepted = (VISA, MASTERCARD, AMEX)
+
+    def __init__(self, value=Unspecified, **kw):
         validators = [
             self.Present(),
             self.Converted(),
             self.Luhn10(),
             self.AcceptedType()
         ]
-
         kw.setdefault('validators', validators)
-        self.accepted = kw.pop('types', self.DEFAULT_TYPES)
-        super(CreditCardNumber, self).__init__(name, **kw)
+        Long.__init__(self, value, **kw)
 
-
-    def adapt(self, element, value):
+    def adapt(self, value):
         if value is None:
             return None
         elif isinstance(value, (int, long)):
@@ -33,11 +37,11 @@ class CreditCardNumber(schema.Long):
         value = _from_string(value)
 
         if value is None:
-            raise exc.AdaptationError()
+            raise AdaptationError()
 
         return value
 
-    def serialize(self, element, value):
+    def serialize(self, value):
         if value is None:
             return u''
         elif isinstance(value, long):
@@ -45,18 +49,15 @@ class CreditCardNumber(schema.Long):
         else:
             return unicode(value)
 
-    class Present(valid.Present):
-        pass
+    Present = Present
 
-    class Converted(valid.Converted):
-        pass
+    Converted = Converted
 
-    class Luhn10(valid.number.Luhn10):
-        pass
+    Luhn10 = Luhn10
 
-    class AcceptedType(valid.Validator):
+    class AcceptedType(Validator):
         def _formatter(element, state):
-            accepted = element.schema.accepted
+            accepted = element.accepted
             if len(accepted) > 2:
                 types = (', '.join(label for label, in accepted) +
                        ', and ' + accepted[-1][0])
@@ -71,7 +72,7 @@ class CreditCardNumber(schema.Long):
 
         def validate(self, element, state):
             type_ = _card_type(element.value)
-            if type_ in element.schema.accepted:
+            if type_ in element.accepted:
                 return True
 
             return self.note_error(element, state, 'not_accepted')

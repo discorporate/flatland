@@ -25,11 +25,15 @@ from containers import (
     HasBetween,
     NotDuplicated,
     )
-import string, number
 from network import (
     HTTPURLValidator,
     IsEmail,
     URLCanonicalizer,
     URLValidator,
     )
-
+from number import (
+    Luhn10,
+    )
+from string import (
+    NANPphone,
+    )
