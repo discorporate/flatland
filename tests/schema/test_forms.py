@@ -1,5 +1,6 @@
 from flatland import (
     Form,
+    Integer,
     String,
     )
 
@@ -68,3 +69,77 @@ def test_composition():
 
     el.set(wanted)
     eq_(el.value, wanted)
+
+
+def test_inheritance_straight():
+
+    class Base(Form):
+        base_member = String
+
+    assert len(Base.field_schema) == 1
+    assert Base().keys() == ['base_member']
+
+    class Sub(Base):
+        added_member = String
+
+    assert len(Base.field_schema) == 1
+    assert Base().keys() == ['base_member']
+
+    assert len(Sub.field_schema) == 2
+    assert set(Sub().keys()) == set(['base_member', 'added_member'])
+
+
+def test_inheritance_diamond():
+
+    class A(Form):
+        a_member = String
+
+    class B(Form):
+        b_member = String
+
+    class AB1(A, B):
+        pass
+
+    class BA1(B, A):
+        pass
+
+    for cls in AB1, BA1:
+        assert len(cls.field_schema) == 2
+        assert set(cls().keys()) == set(['a_member', 'b_member'])
+
+    class AB2(A, B):
+        ab_member = String
+
+    assert len(AB2.field_schema) == 3
+    assert set(AB2().keys()) == set(['a_member', 'b_member', 'ab_member'])
+
+    class AB3(A, B):
+        a_member = Integer
+
+    assert len(AB3.field_schema) == 2
+    assert isinstance(AB3()['a_member'], Integer)
+
+    class BA2(B, A):
+        a_member = Integer
+        b_member = Integer
+
+    assert len(BA2.field_schema) == 2
+    assert isinstance(BA2()['a_member'], Integer)
+    assert isinstance(BA2()['b_member'], Integer)
+
+    class BA3(B, A):
+        field_schema = [Integer.named('b_member')]
+
+        a_member = Integer
+
+    assert len(BA3.field_schema) == 2
+    assert isinstance(BA3()['a_member'], Integer)
+    assert isinstance(BA3()['b_member'], Integer)
+
+    class BA4(B, A):
+        field_schema = [Integer.named('ab_member')]
+
+        ab_member = String
+
+    assert len(BA4.field_schema) == 3
+    assert isinstance(BA4()['ab_member'], String)
