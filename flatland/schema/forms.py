@@ -1,4 +1,5 @@
 # -*- coding: utf-8; fill-column: 78 -*-
+"""Class attribute-style declarative schema construction."""
 from .base import Element
 from .containers import Dict
 
@@ -6,34 +7,23 @@ from .containers import Dict
 __all__ = 'Form',
 
 
-class _ElementCollection(object):
-    """TODO"""
+class _MetaForm(type):
+    """Allows fields to be specified as class attribute declarations.
 
-    def __init__(self):
-        self.elements = []
-        self.names = set()
+    Processes class declarations of the form:
 
-    def add_unseen(self, iterable):
-        """TODO"""
-        for field in iterable:
-            if field.name in self.names:
-                continue
-            self.elements.append(field)
-            self.names.add(field.name)
+      from flatland import Form, String
 
-    def add_and_overwrite(self, iterable):
-        """TODO"""
-        for field in iterable:
-            if field.name in self.names:
-                for have in self.elements:
-                    if have.name == field.name:
-                        self.elements.remove(have)
-                        break
-            self.elements.append(field)
+      class MyForm(Form):
+          name = String
+          favorite_color = String.using(optional=True)
 
+    and converts them to a :attr:`~flatland.Dict.field_schema` specification
+    at class construction time.  Forms may inherit from other Forms, with
+    schema declarations following normal Python class property inheritance
+    semantics.
 
-class MetaForm(type):
-    """TODO"""
+    """
 
     def __new__(self, class_name, bases, members):
         fields = _ElementCollection()
@@ -61,59 +51,97 @@ class MetaForm(type):
         return type.__new__(self, class_name, bases, members)
 
 
-class Form(Dict):
-    """A collection of named fields or schema items.
+class _ElementCollection(object):
+    """Internal helper collection for calculating Form field inheritance."""
 
-    Forms are the most common top-level mapping.  They behave like
-    :class:`flatland.Dict`, but do not need to be named.  Forms are defined
-    with Python class syntax:
+    def __init__(self):
+        self.elements = []
+        self.names = set()
+
+    def add_unseen(self, iterable):
+        """Add new items from *iterable*."""
+        for field in iterable:
+            if field.name in self.names:
+                continue
+            self.elements.append(field)
+            self.names.add(field.name)
+
+    def add_and_overwrite(self, iterable):
+        """Add from *iterable*, replacing existing items of the same name."""
+        for field in iterable:
+            if field.name in self.names:
+                for have in self.elements:
+                    if have.name == field.name:
+                        self.elements.remove(have)
+                        break
+            self.names.add(field.name)
+            self.elements.append(field)
+
+
+class Form(Dict):
+    """A declarative collection of named fields.
+
+    Forms behave like :class:`flatland.Dict`, but are defined with Python
+    class syntax:
 
     .. doctest::
 
-      >>> import flatland
-      >>> class HelloForm(flatland.Form):
-      ...     schema = [ flatland.String('hello'),
-      ...                flatland.String('world') ]
+      >>> from flatland import Form, String
+      >>> class HelloForm(Form):
+      ...     hello = String
+      ...     world = String
       ...
 
-    Subclasses must define a :attr:`schema` property, containing an ordered
-    sequence of fields.  Forms may embed other container fields and other
-    forms:
+    Fields are assigned names from the declaration.  If a named schema is
+    used, a renamed copy will be assigned to the Form.
 
     .. doctest::
 
-      >>> class BigForm(flatland.Form):
-      ...     schema = [
-      ...       HelloForm('main_hello'),
-      ...       flatland.List('alt_hellos',
-      ...                     flatland.Dict('alt',
-      ...                                   flatland.String('alt_name'),
-      ...                                   HelloForm('alt_hello')))
-      ...              ]
+      >>> class HelloForm(Form):
+      ...     hello = String.named('hello')   # redundant
+      ...     world = String.named('goodbye') # will be renamed 'world'
+      ...
+      >>> form = HelloForm()
+      >>> sorted(form.keys())
+      [u'hello', u'world']
+
+    Forms may embed other container fields and other forms:
+
+    .. doctest::
+
+      >>> from flatland import List
+      >>> class BigForm(Form):
+      ...     main_hello = HelloForm
+      ...     alt_hello = List.of(String.named('alt_name'),
+      ...                         HelloForm.named('alt_hello'))
       ...
 
     This would create a form with one ``HelloForm`` embedded as
     ``main_hello``, and a list of zero or more dicts, each containing an
-    ``alt_name`` and another ``HelloForm``.
+    ``alt_name`` and another ``HelloForm`` named ``alt_hello``.
+
+    Forms may inherit from other Forms or Dicts.  Field declared in a subclass
+    will override those of a superclass.  Multiple inheritance is supported.
+
+    The special behavior of ``Form`` is limited to class construction time
+    only.  After construction, the ``Form`` acts exactly like a
+    :class:`~flatland.Dict`.  In particular, fields declared in class
+    attribute style do **not** remain class attributes.  They are removed from
+    the class dictionary and placed in the
+    :attr:`~flatland.Dict.field_schema`:
+
+    .. doctest::
+
+      >>> hasattr(HelloForm, 'hello')
+      False
+      >>> sorted([field.name for field in HelloForm.field_schema])
+      [u'hello', u'world']
+
+    The order of ``field_schema`` after construction is undefined.
 
     """
 
-    __metaclass__ = MetaForm
+    __metaclass__ = _MetaForm
 
     # TODO:
     #   some kind of validator merging helper?  or punt?
-    # def __init__(self, name=None, **kw):
-    #     try:
-    #         members = self.schema
-    #     except AttributeError:
-    #         raise TypeError('a schema is required')
-    #
-    #     if hasattr(self, 'validators'):
-    #         if 'validators' in kw:
-    #             v = self.validators[:]
-    #             v.extend(kw['validators'])
-    #             kw['validators'] = v
-    #         else:
-    #             kw['validators'] = self.validators[:]
-    #
-    #     containers.Dict.__init__(self, name, *members, **kw)
