@@ -106,8 +106,8 @@ class Element(_BaseElement):
     validates_down = None
     validates_up = None
 
-    def __init__(self, value=Unspecified, parent=None, **kw):
-        self.parent = parent
+    def __init__(self, value=Unspecified, **kw):
+        self.parent = kw.pop('parent', None)
 
         self.valid = Unevaluated
         self.errors = []
@@ -237,14 +237,14 @@ class Element(_BaseElement):
         .. testsetup::
 
           import flatland
-          field = flatland.String('test')
-          pairs = {}
+          cls = flatland.String
+          pairs = kw = {}
 
         This is a convenience constructor for:
 
         .. testcode::
 
-          element = field()
+          element = cls(**kw)
           element.set_flat(pairs)
 
         """
@@ -261,14 +261,15 @@ class Element(_BaseElement):
         .. testsetup::
 
           import flatland
-          field = flatland.String('test')
-          value = 'val'
+          cls = flatland.String
+          kw = {}
+          value = u''
 
         This is a convenience constructor for:
 
         .. testcode::
 
-          element = field()
+          element = cls()
           element.set(value)
 
         """
@@ -283,13 +284,14 @@ class Element(_BaseElement):
         .. testsetup::
 
           import flatland
-          field = flatland.String('test')
+          cls = flatland.String
+          kw = {}
 
         This is a convenience constructor for:
 
         .. testcode::
 
-          element = field()
+          element = cls(**kw)
           element.set_default()
 
         """
@@ -415,8 +417,9 @@ class Element(_BaseElement):
         element.
 
           >>> from flatland import Dict, Integer
-          >>> p = Dict('point', Integer('x'), Integer('y')).create_element()
-          >>> p.set(dict(x=10, y=20))
+          >>> Point = Dict.named(u'point').of(Integer.named(u'x'),
+          ...                                 Integer.named(u'y'))
+          >>> p = Point(dict(x=10, y=20))
           >>> p.name
           u'point'
           >>> p.fq_name()
@@ -431,8 +434,8 @@ class Element(_BaseElement):
         numeric index.
 
           >>> from flatland import List, String
-          >>> form = List('addresses', String('address')).create_element()
-          >>> form.set([u'uptown', u'downtown'])
+          >>> Addresses = List.named('addresses').of(String.named('address'))
+          >>> form = Addresses([u'uptown', u'downtown'])
           >>> form.name
           u'addresses'
           >>> form.fq_name()
@@ -479,16 +482,12 @@ class Element(_BaseElement):
         .. testsetup::
 
           from flatland import Form, Dict, List, String
-          schema = Dict(None,
-                        Dict('contact',
-                             List('addresses',
-                                  Dict(None,
-                                       String('street1'),
-                                       String('city')),
-                                  default=1
-                       )))
-          form = schema()
-          form.set_default()
+          class Profile(Form):
+              contact = Dict.of(List.named('addresses').
+                                of(Dict.of(String.named('street1'),
+                                           String.named('city'))).
+                                using(default=1))
+          form = Profile.from_defaults()
 
         .. doctest::
 
@@ -600,15 +599,15 @@ class Element(_BaseElement):
         output of the default :meth:`flatten` can be round-tripped
         with :meth:`set_flat`.
 
-        Given a simple form with a nested dictionary::
+        Given a simple form with a string field and a nested dictionary::
 
-          >>> import flatland
-          >>> form = flatland.Dict('contact',
-          ...                      flatland.String('name'),
-          ...                      flatland.Dict('address',
-          ...                                    flatland.String('email')))
-          >>> element = form()
-
+          >>> from flatland import Dict, String
+          >>> class Nested(Form):
+          ...     contact = Dict.of(String.named(u'name'),
+          ...                       Dict.named(u'address').\
+          ...                            of(String.named(u'email')))
+          ...
+          >>> element = Nested()
           >>> element.flatten()
           [(u'contact_name', u''), (u'contact_address_email', u'')]
 
@@ -648,9 +647,8 @@ class Element(_BaseElement):
         If adaptation fails, :attr:`value` will be ``None`` and :attr:`u` will
         contain ``unicode(value)`` or ``u''`` for None.
 
-          >>> import flatland
-          >>> field = flatland.Integer('number')
-          >>> el = field()
+          >>> from flatland import Integer
+          >>> el = Integer()
           >>> el.u, el.value
           (u'', None)
 
@@ -693,7 +691,7 @@ class Element(_BaseElement):
         raise NotImplementedError()
 
     def set_default(self):
-        """Set element value to the schema default."""
+        """set() the element to the schema default."""
         raise NotImplementedError()
 
     @property

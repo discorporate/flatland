@@ -202,3 +202,5 @@ inheritance_node_attrs = dict(
     fontname = 'Helvetica',
     fontsize = 12,
     )
+
+autodoc_member_order = 'groupwise'

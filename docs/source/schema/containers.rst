@@ -4,12 +4,13 @@
 Containers
 ==========
 
-.. currentmodule:: flatland
+.. currentmodule:: flatland.schema.containers
+
 
 Containers
 ----------
 
-.. autoclass:: flatland.schema.containers.Container
+.. autoclass:: Container
    :show-inheritance:
    :members:
 
@@ -17,7 +18,7 @@ Containers
 Sequences
 ---------
 
-.. autoclass:: flatland.schema.containers.Sequence
+.. autoclass:: Sequence
 
 
 List
@@ -47,7 +48,7 @@ MultiValue
 Mappings
 --------
 
-.. autoclass:: flatland.schema.containers.Mapping
+.. autoclass:: Mapping
 
 
 Dict

@@ -4,17 +4,19 @@
 Strings, Numbers and Booleans
 =============================
 
+.. currentmodule:: flatland.schema.scalars
+
 Simple Fields
 -------------
 
-.. autoclass:: flatland.schema.scalars.Scalar
+.. autoclass:: Scalar
    :show-inheritance:
    :members:
+   :exclude-members: set_default
+
 
 Strings
 -------
-
-.. currentmodule:: flatland
 
 .. autoclass:: String
    :show-inheritance:
@@ -24,53 +26,29 @@ Strings
 Numbers
 -------
 
-.. autoclass:: flatland.schema.scalars.Number
+.. autoclass:: Number
    :show-inheritance:
    :members:
 
-   .. attribute:: type_ = None
-
-   .. attribute:: format = "%s"
-
-.. currentmodule:: flatland
 
 .. autoclass:: Integer
    :show-inheritance:
+   :members:
 
-   .. attribute:: type_ = int
-
-   .. attribute:: format = "%i"
 
 .. autoclass:: Long
    :show-inheritance:
+   :members:
 
-   .. attribute:: type_ = long
-
-   .. attribute:: format = "%i"
 
 .. autoclass:: Float
    :show-inheritance:
+   :members:
 
-   .. attribute:: type_ = float
-
-   .. attribute:: format = "%f"
 
 Booleans
 --------
 
-.. currentmodule:: flatland
-
-.. autoclass:: flatland.Boolean
+.. autoclass:: Boolean
    :show-inheritance:
    :members:
-
-   .. attribute:: true_synonyms
-
-     A sequence of acceptable string equivalents for True, such as
-     ``u'on'``, ``u'1'``, etc.
-
-   .. attribute:: false_synonyms
-
-     A sequence of acceptable string equivalents for False, such as
-     ``u'off'``, ``u''``, etc.
-

@@ -5,7 +5,13 @@ import re
 
 from flatland import valid
 from flatland.exc import AdaptationError
-from flatland.util import Unspecified, as_mapping, class_cloner, lazy_property
+from flatland.util import (
+    Unspecified,
+    as_mapping,
+    autodocument_from_superclasses,
+    class_cloner,
+    lazy_property,
+    )
 from .base import Element
 
 
@@ -18,25 +24,25 @@ __all__ = (
     'Integer',
     'Long',
     'Ref',
+    'Scalar',
     'String',
     'Time',
     )
 
 
 class Scalar(Element):
-    """The most common type, a single value such as a string or number.
+    """The base implementation of simple values such as a string or number.
 
     Scalar subclasses are responsible for translating the most common data
     types in and out of Python-native form: strings, numbers, dates, times,
-    Boolean values, etc.  Any data which can be represented by a single (key,
-    value) pair is a likely Scalar.
+    Boolean values, etc.  Any data which can be represented by a single
+    ``(name, value)`` pair is a likely Scalar.
 
     Scalar subclasses have two responsibilities: provide a method to adapt a
     value to native Python form, and provide a method to serialize the native
     form to a Unicode string.
 
-    Elements can be equality compared (==) to their Unicode representation,
-    their native representation or other elements.
+    This class is abstract.
 
     """
     flattenable = True
@@ -46,16 +52,19 @@ class Scalar(Element):
     def set(self, value):
         """Assign the native and Unicode value.
 
-        Attempts to adapt the given value and assigns this element's `.value`
-        and `.u` attributes in tandem.  Returns True if the adaptation was
-        successful.
+        :returns: True if adaptation of *value* was successful.
 
-        If adaptation succeeds, `.value` will contain the adapted native value
-        and `.u` will contain a Unicode serialized version of it. A native
-        value of None will be represented as u'' in `.u`.
+        Attempts to adapt the given value and assigns this element's
+        :attr:`~flatland.Element.value` and :attr:`u`
+        attributes in tandem.
 
-        If adaptation fails, `.value` will be None and `.u` will contain
-        `unicode(value)` or u'' for none.
+        If adaptation succeeds, ``.value`` will contain the
+        :meth:`adapted<adapt>` native Python value and ``.u`` will contain a
+        Unicode :meth:`serialized<serialize>` version of it.  A native value
+        of ``None`` will be represented as ``u''`` in ``.u``.
+
+        If adaptation fails, ``.value`` will be ``None`` and ``.u`` will
+        contain ``unicode(value)`` or ``u''`` for none.
 
         """
         try:
@@ -81,6 +90,30 @@ class Scalar(Element):
         else:
             self.u = self.serialize(value)
         return True
+
+    def adapt(self, value):
+        """Given any value, try to coerce it into native format.
+
+        :returns: the native format or raises AdaptationError on failure.
+
+        This abstract method is called by :meth:`set`.
+
+        """
+        raise NotImplementedError()
+
+    def serialize(self, value):
+        """Given any value, coerce it into a Unicode representation.
+
+        :returns: **Must** return a Unicode object, always.
+
+        No special effort is made to coerce values not of native or a
+        compatible type.
+
+        This semi-abstract method is called by :meth:`set`.  The base
+        implementation returns ``unicode(value)``.
+
+        """
+        return unicode(value)
 
     def _index(self, name):
         raise IndexError(name)
@@ -108,24 +141,6 @@ class Scalar(Element):
 
 
     #######################################################################
-    def adapt(self, value):
-        """Given any value, try to coerce it into native format.
-
-        Returns the native format or raises AdaptationError on failure.
-
-        """
-        raise NotImplementedError()
-
-    def serialize(self, value):
-        """Given any value, coerce it into a Unicode representation.
-
-        No special effort is made to coerce values not of native or a
-        compatible type.
-
-        *Must* return a Unicode object, always.
-
-        """
-        return unicode(value)
 
     def validate_element(self, state, descending):
         """Validates on the first, downward pass.
@@ -142,30 +157,18 @@ class Scalar(Element):
 
 
 class String(Scalar):
-    """A regular old Unicode string.
-
-    :arg name: field name
-    :arg strip: if ``True``, strip leading and trailing whitespace during
-                normalization.
-
-    """
-
-    @property
-    def is_empty(self):
-        """True if the string is blank or has no value."""
-        return True if (not self.value and self.u == u'') else False
-
-    #######################################################################
-
+    """A regular old Unicode string."""
 
     strip = True
+    """If true, strip leading and trailing whitespace during conversion."""
 
     def adapt(self, value):
         """Return a Unicode representation.
 
-        If ``strip=True``, leading and trailing whitespace will be removed.
+        :returns: a ``unicode`` value or ``None``
 
-        :returns: ``unicode(value)`` or ``None``
+        If :attr:`strip` is true, leading and trailing whitespace will be
+        removed.
 
         """
         if value is None:
@@ -178,9 +181,10 @@ class String(Scalar):
     def serialize(self, value):
         """Return a Unicode representation.
 
-        If ``strip=True``, leading and trailing whitespace will be removed.
+        :returns: a ``unicode`` value or ``u'' if *value* is ``None``
 
-        :returns: ``unicode(value)`` or ``u'' if value == None``
+        If :attr:`strip` is true, leading and trailing whitespace will be
+        removed.
 
         """
         if value is None:
@@ -190,28 +194,33 @@ class String(Scalar):
         else:
             return unicode(value)
 
-    #######################################################################
+    @property
+    def is_empty(self):
+        """True if the String is missing or has no value."""
+        return True if (not self.value and self.u == u'') else False
 
 
 class Number(Scalar):
     """Base for numeric fields.
-
-    :arg name: field name
-    :arg signed: if ``False``, disallow negative numbers
-    :arg format: override the class's default serialization format
 
     Subclasses provide :attr:`type_` and :attr:`format` attributes for
     :meth:`adapt` and :meth:`serialize`.
 
     """
 
-    #: The Python type for values, such as ``int`` or ``float``.
     type_ = None
+    """The Python type for values, such as ``int`` or ``float``."""
+
     signed = True
+    """If true, allow negative numbers.  Default ``True``."""
+
     format = u'%s'
+    """The ``unicode`` serialization format."""
 
     def adapt(self, value):
         """Generic numeric coercion.
+
+        :returns: an instance of :attr:`type_` or ``None``
 
         Attempt to convert *value* using the class's :attr:`type_` callable.
 
@@ -231,6 +240,9 @@ class Number(Scalar):
     def serialize(self, value):
         """Generic numeric serialization.
 
+        :returns: a ``unicode`` string formatted with :attr:`format` or the
+          ``unicode()`` of *value* if *value* is not of :attr:`type_`
+
         Converts *value* to a string using Python's string formatting function
         and the :attr:`format` as the template.  The *value* is provided to
         the format as a single, positional format argument.
@@ -242,49 +254,65 @@ class Number(Scalar):
 
 
 class Integer(Number):
-    """Field type for Python's int."""
+    """Element type for Python's int."""
 
     type_ = int
+    """``int``"""
+
     format = u'%i'
+    """``u'%i'``"""
 
 
 class Long(Number):
-    """Field type for Python's long."""
+    """Element type for Python's long."""
 
     type_ = long
-    format = u'%i'
+    """``long``"""
 
+    format = u'%i'
+    """``u'%i'``"""
 
 class Float(Number):
-    """Field type for Python's float."""
+    """Element type for Python's float."""
 
     type_ = float
+    """``float``"""
+
     format = u'%f'
+    """``u'%f'``"""
 
 
 # TODO: Decimal
 
 class Boolean(Scalar):
-    """Field type for Python's bool.
-
-    :arg name: field name
-    :arg true: The Unicode serialization for True
-    :arg false: The Unicode serialization for False
-
-    """
+    """Element type for Python's ``bool``."""
 
     true = u'1'
+    """The ``unicode`` serialization for ``True``: ``u'1'``."""
+
     true_synonyms = (u'on', u'true', u'True', u'1')
+    """A sequence of acceptable string equivalents for True.
+
+    Defaults to ``(u'on', u'true', u'True', u'1')``
+    """
 
     false = u''
+    """The ``unicode`` serialization for ``False``: ``u''``."""
+
     false_synonyms = (u'off', u'false', u'False', u'0', u'')
+    """A sequence of acceptable string equivalents for False.
+
+    Defaults to ``(u'off', u'false', u'False', u'0', u'')``
+    """
 
     def adapt(self, value):
-        """Coerce value to bool.
+        """Coerce *value* to ``bool``.
 
-        If value is a string, returns True if the value is in
-        :attr:`true_synonyms`, False if in :attr:`false_synonyms` and None
-        otherwise.
+        :returns: a ``bool`` or ``None``
+
+        If *value* is a string, returns ``True`` if the value is in
+        :attr:`true_synonyms`, ``False`` if in :attr:`false_synonyms` and
+        ``None`` otherwise.
 
         For non-string values, equivalent to ``bool(value)``.
 
@@ -298,9 +326,9 @@ class Boolean(Scalar):
         return None
 
     def serialize(self, value):
-        """Convert bool(value) to a canonical string representation.
+        """Convert ``bool(value)`` to a canonical string representation.
 
-        Will return either :attr:`self.true` or :attr:`self.false`.
+        :returns: either :attr:`self.true` or :attr:`self.false`.
 
         """
         return self.true if value else self.false
@@ -322,12 +350,12 @@ class Constrained(Scalar):
     An example of a wrapper of int values that only allows the values of 1, 2
     or 3:
 
-      >>> from flatland.schema import Constrained, Integer
+      >>> from flatland import Constrained, Integer
       >>> def is_valid(element, value):
       ...     return value in (1, 2, 3)
       ...
-      >>> schema = Constrained('digit', Integer, valid_value=is_valid)
-      >>> element = schema.create_element()
+      >>> schema = Constrained.using(child_type=Integer, valid_value=is_valid)
+      >>> element = schema()
       >>> element.set(u'2')
       True
       >>> element.value
@@ -384,6 +412,8 @@ class Enum(Constrained):
       :class:`~flatland.schema.FieldSchema` class for elements of this Enum.
 
     """
+
+    # TODO: better DSL here.. maybe Enum.over('value', 'value2') ?
 
     valid_values = ()
 
@@ -451,7 +481,7 @@ class Temporal(Scalar):
 
 
 class DateTime(Temporal):
-    """Field type for Python datetime.datetime.
+    """Element type for Python datetime.datetime.
 
     Serializes to and from YYYY-MM-DD HH:MM:SS format.
 
@@ -467,7 +497,7 @@ class DateTime(Temporal):
 
 
 class Date(Temporal):
-    """Field type for Python datetime.date.
+    """Element type for Python datetime.date.
 
     Serializes to and from YYYY-MM-DD format.
 
@@ -481,7 +511,7 @@ class Date(Temporal):
 
 
 class Time(Temporal):
-    """Field type for Python datetime.time.
+    """Element type for Python datetime.time.
 
     Serializes to and from HH:MM:SS format.
 
@@ -554,3 +584,8 @@ class Ref(Scalar):
 
     value = property(_get_value, _set_value)
     del _get_value, _set_value
+
+
+for cls_name in __all__:
+    autodocument_from_superclasses(globals()[cls_name])
+del cls_name
