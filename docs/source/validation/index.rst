@@ -18,8 +18,7 @@ Validating an Element
 .. doctest::
 
   >>> from flatland import String
-  >>> schema = String('name')
-  >>> form = schema.create_element()
+  >>> form = String()
   >>> form.is_empty
   True
   >>> form.valid
@@ -69,11 +68,10 @@ validation, optional fields become more useful.
 .. doctest::
 
   >>> from flatland import Dict, Integer
-  >>> schema = Dict('loc', Integer('x'),
-  ...                      Integer('y'),
-  ...                      Integer('z', optional=True))
-  >>> form = schema.create_element()
-  >>> form.set({'x': 1})
+  >>> schema = Dict.of(Integer.named('x'),
+  ...                  Integer.named('y'),
+  ...                  Integer.named('z').using(optional=True))
+  >>> form = schema(dict(x=1))
   >>> form.validate()
   False
   >>> form.valid
@@ -112,8 +110,7 @@ aid in debugging.
 .. doctest:: signals
 
   >>> from flatland import String
-  >>> schema = String('surname')
-  >>> form = schema.create_element()
+  >>> form = String(name='surname')
   >>> form.validate()
   validation: NotEmpty(surname) valid == False
   False
@@ -166,8 +163,7 @@ element:
 
   # Try out the validator
   from flatland import String
-  schema = String('status', validators=[no_shouting])
-  form = schema.create_element()
+  form = String(validators=[no_shouting])
   form.set('OH HAI')
   assert not form.validate()
   assert not form.valid
@@ -197,10 +193,11 @@ validity and status of child elements.
   ...     print element.name
   ...     return True
   ...
-  >>> schema = Dict('outer',
-  ...               String('inner', validators=[tattle]),
-  ...               validators=[tattle])
-  >>> form = schema.create_element()
+  >>> schema = (Dict.named('outer').
+  ...                of(String.named('inner').
+  ...                          using(validators=[tattle])).
+  ...                using(validators=[tattle]))
+  >>> form = schema()
   >>> form.validate()
   inner
   outer
@@ -228,10 +225,9 @@ Decent validation is the only phase that may be short-circuited.
   >>> def always_fail(element, state):
   ...     return False
   ...
-  >>> schema = Dict('container',
-  ...               String('child', validators=[always_fail]),
-  ...               descent_validators=[skip_children])
-  >>> form = schema.create_element()
+  >>> schema = Dict.of(String.named('child').using(validators=[always_fail])).\
+  ...               using(descent_validators=[skip_children])
+  >>> form = schema()
   >>> form.validate()
   True
   >>> form['child'].valid
@@ -306,8 +302,7 @@ access ``state``, so no worries about type conflicts there.
       return user.check_password(element.value)
 
   from flatland import String
-  schema = String('current_password', validators=[password_validator])
-  form = schema.create_element()
+  form = String(validators=[password_validator])
   form.set('WrongPassword')
   state = dict(user=User())
   assert not form.validate(state)
@@ -330,13 +325,13 @@ harder.
       element.errors.append("Passwords must match.")
       return False
 
-  from flatland import Dict, String
-  schema = Dict('change',
-                String('password', validators=[passwords_must_match]),
-                String('password2'),
-                String('new_password'))
+  from flatland import Form, String
+  class ChangePassword(Form):
+      password = String.using(validators=[passwords_must_match])
+      password2 = String
+      new_password = String
 
-  form = schema.create_element()
+  form = ChangePassword()
   form.set({'password': 'foo', 'password2': 'f00', 'new_password': 'bar'})
   assert not form.validate()
   assert form['password'].errors
@@ -360,9 +355,8 @@ validator:
       return False
 
   from flatland import String
-  schema = String('foo', validators=[succeed_early, always_fails])
-  element = schema.create_element()
-  assert element.validate()
+  form = String(validators=[succeed_early, always_fails])
+  assert form.validate()
 
 Above, ``always_fails`` is never invoked.
 
@@ -396,7 +390,7 @@ To use it, subclass ``Validator`` and implement
 
   from flatland import String
 
-  schema = String('status', validators=[NoShouting()])
+  schema = String.using(validators=[NoShouting()])
 
 Above is a ``Validator`` version of the basic :ref:`custom validator
 <no_shouting>` example.  In this version, the
@@ -415,7 +409,7 @@ overridden on the instance.
 
 .. testcode:: NoShouting
 
-  schema = String('status', validators=[NoShouting(has_shouting='shh.')])
+  schema = String.using(validators=[NoShouting(has_shouting='shh.')])
 
 Subclassing achieves the same effect.
 
@@ -424,7 +418,7 @@ Subclassing achieves the same effect.
   class QuietPlease(NoShouting):
       has_shouting = 'shh.'
 
-  schema = String('status', validators=[QuietPlease()])
+  schema = String.using(validators=[QuietPlease()])
 
 The validators that ship with Flatland place all of their messaging and as
 much configurable behavior as possible in class attributes to support easy

@@ -82,7 +82,7 @@ class assignable_class_property(object):
         try:
             del instance.__dict__[self.name]
         except KeyError:
-            raise AttributeError("%r object has no overriden attribute %r" % (
+            raise AttributeError("%r object has no overridden attribute %r" % (
                 type(instance).__name__, self.name))
 
 
@@ -307,6 +307,27 @@ def named_int_factory(name, value, doc=''):
     cls = type(name, (int,), dict(
         __doc__=doc, __str__=report_name, __repr__=report_name))
     return cls(value)
+
+
+def autodocument_from_superclasses(cls):
+    """Fill in missing documentation on overridden methods.
+
+    Can be used as a class decorator.
+    """
+    undocumented = []
+    for name, attribute in cls.__dict__.items():
+        # is it a method on the class that is locally undocumented?
+        if hasattr(attribute, '__call__') and not attribute.__doc__:
+            # find docs on a superclass
+            for supercls in cls.__bases__:
+                try:
+                    superdoc = getattr(supercls, name).__doc__
+                    if superdoc:
+                        setattr(attribute, '__doc__', superdoc)
+                        break
+                except (AttributeError, TypeError):
+                    pass
+    return cls
 
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License

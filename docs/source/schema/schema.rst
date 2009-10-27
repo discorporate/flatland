@@ -1,22 +1,23 @@
-==========================
-Field Schemas and Elements
-==========================
+.. -*- coding: utf-8; fill-column: 78 -*-
+
+===================
+Schema and Elements
+===================
 
 .. currentmodule:: flatland.schema.base
 
-FieldSchema objects
--------------------
+Element classes
+---------------
 
-FieldSchema describe the possible fields of a form; their names,
-structure, Python types and rules for validation.  A typical schema
-consists of at least one :ref:`container <containers>` type and one or
-more :ref:`scalar <scalars>` types:
+Elements describe the possible fields of a form; their names, structure,
+Python types and rules for validation.  A typical schema consists of at least
+one :ref:`container <containers>` type and one or more :ref:`scalar <scalars>`
+types:
 
 .. testcode:: fso
 
-  import flatland
-  search_schema = flatland.Dict(u'search_form',
-                                flatland.String(u'keywords'))
+  from flatland import Dict, String
+  SearchSchema = Dict.named('search').of(String.named(u'keywords'))
 
 FieldSchemas are a bit like Python ``class`` definitions: they need be
 defined only once and don't do much on their own.
@@ -28,31 +29,27 @@ number of ``Element`` instances.
 .. doctest:: fso
   :options: +ELLIPSIS
 
-  >>> form = search_schema.create_element()
-  >>> form.set({u'keywords': u'foo bar baz'})
+  >>> form = SearchSchema({u'keywords': u'foo bar baz'})
   >>> form.value
   {u'keywords': u'foo bar baz'}
-  >>> form.schema
-  <flatland.schema.containers.Dict object at 0x...>
 
 FieldSchema instances may be freely composed and shared among many
 containers.
 
 .. doctest:: fso
 
-  >>> form_schema = flatland.Dict(u'composed_form',
-  ...                            search_schema,
-  ...                            flatland.List(u'many_searches',
-  ...                                          search_schema))
-  >>> form = form_schema.create_element()
+  >>> from flatland import List
+  >>> ComposedSchema = Dict.of(SearchSchema,
+  ...                          List.named(u'many_searches').of(SearchSchema))
+  >>> form = ComposedSchema()
   >>> sorted(form.value.keys())
-  [u'many_searches', u'search_form']
+  [u'many_searches', u'search']
 
 
 --------
 
 
-.. autoclass:: FieldSchema
+.. class:: FieldSchema
 
    .. attribute:: element_type = Element
 

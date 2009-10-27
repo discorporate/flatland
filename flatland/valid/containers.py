@@ -19,8 +19,8 @@ class NotDuplicated(Validator):
       from flatland.valid import NotDuplicated
 
       validator = NotDuplicated(failure="Please enter each color only once.")
-      schema = flatland.List('colors', String('favorite_color'),
-                             validators=[validator])
+      schema = List.of(String.named('favorite_color')).\
+                    using(validators=[validator])
 
     **Attributes**
 
@@ -34,7 +34,7 @@ class NotDuplicated(Validator):
 
       .. testcode::
 
-        from flatland import Dict, List, String, Integer, Boolean
+        from flatland import Form, List, String, Integer, Boolean
         from flatland.valid import NotDuplicated
 
         def live_addrs(element, sibling):
@@ -46,19 +46,20 @@ class NotDuplicated(Validator):
             return (thisval['street'] == thatval['street'] and
                     thisval['city'] == thatval['city'])
 
-        schema = List('addresses',
-                      Dict('address',
-                           Integer('id', optional=True),
-                           Boolean('deleted'),
-                           String('street'),
-                           String('city'),
-                           validators=[NotDuplicated(comparator=live_addrs)]
-                           ))
+        class Address(Form):
+            validators = [NotDuplicated(comparator=live_addrs)]
+
+            id = Integer.using(optional=True)
+            deleted = Boolean
+            street = String
+            city = String
+
+        schema = List.of(Address)
 
     .. testcode:: :hide:
 
         data = {'id': 1, 'deleted': False, 'street': 'a', 'city': 'b'}
-        el = schema.create_element(value=[data, data])
+        el = schema([data, data])
         assert not el.validate()
         del el[:]
         el.set([data, dict(data, deleted=True)])
@@ -113,11 +114,11 @@ class HasAtLeast(Validator):
 
     .. testcode::
 
-      import flatland
+      from flatland import List, String
       from flatland.valid import HasAtLeast
 
-      schema = flatland.List('wishes', String('wish'),
-                             validators=[HasAtLeast(minimum=3)])
+      schema = List.of(String.named('wish')).\
+                    using(validators=[HasAtLeast(minimum=3)])
 
     **Attributes**
 
@@ -165,11 +166,11 @@ class HasAtMost(Validator):
 
     .. testcode::
 
-      import flatland
+      from flatland import List, String
       from flatland.valid import HasAtMost
 
-      schema = flatland.List('wishes', String('wish'),
-                             validators=[HasAtMost(maximum=3)])
+      schema = List.of(String.named('wish')).\
+                    using(validators=[HasAtMost(maximum=3)])
 
     **Attributes**
 
@@ -193,7 +194,6 @@ class HasAtMost(Validator):
                   "%(child_label)ss"),
                'maximum')
 
-
     def validate(self, element, state):
         assert hasattr(element, 'child_schema'), (
             'container-length validator is only applicable to sequence types.')
@@ -214,11 +214,12 @@ class HasBetween(Validator):
 
     .. testcode::
 
-      import flatland
+      from flatland import List, String
       from flatland.valid import HasBetween
 
-      schema = flatland.List('wishes', String('wish'),
-                             validators=[HasBetween(minimum=1, maximum=3)])
+      schema = List.of(String.named('wish')).\
+                    using(validators=[HasBetween(minimum=1, maximum=3)])
+
 
     **Attributes**
 
@@ -245,8 +246,8 @@ class HasBetween(Validator):
 
       .. testcode::
 
-        schema = flatland.List('wishes', String('wish'),
-                               validators=[HasBetween(minimum=3, maximum=3)])
+        schema = List.of(String.named('wish')).\
+                      using(validators=[HasBetween(minimum=3, maximum=3)])
 
     """
 
@@ -281,4 +282,3 @@ class HasBetween(Validator):
         child_label = element.child_schema.label
         return self.note_error(element, state, message,
                                child_label=child_label)
-

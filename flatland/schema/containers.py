@@ -250,9 +250,9 @@ class List(Sequence):
 
     .. doctest::
 
-      >>> import flatland
-      >>> name_schema = flatland.List('names', flatland.String('name'))
-      >>> names = name_schema.create_element()
+      >>> from flatland import List
+      >>> Names = List.named('names').of(String.named('name'))
+      >>> names = Names()
       >>> names.set([u'a', u'b'])
       >>> names.append(u'c')
       >>> names.value
@@ -508,6 +508,8 @@ class Mapping(Container):
 
     @class_cloner
     def of(cls, *fields):
+        # TODO: doc
+        # TODO: maybe accept **kw?
         for field in fields:
             if isinstance(field, Element):
                 raise TypeError("'of' must be initialized with types, got "
@@ -576,11 +578,11 @@ class Dict(Mapping, dict):
         .. testsetup::
 
           # FIXME
-          import flatland
-          class UserForm(flatland.Form):
-              schema = [ flatland.String('login'),
-                         flatland.String('password'),
-                         flatland.String('verify_password'), ]
+          from flatland import Form, String
+          class UserForm(Form):
+              login = String
+              password = String
+              verify_password = String
 
           class User(object):
               def __init__(self, login=None, password=None):

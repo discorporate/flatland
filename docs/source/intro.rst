@@ -46,8 +46,8 @@ even more exotic types.
   from flatland import Form, String
 
   class SignInForm(Form):
-      schema = [ String('username'),
-                 String('password') ]
+      username = String
+      password = String
 
 Field schemas are long-lived objects similar to class definitions.  The
 instantiations of a flatland schema are called data elements, a tree structure
@@ -84,10 +84,8 @@ as-is in output templates for form layout, redisplay and error reporting.
   <type 'dict'>
   >>> as_regular_python_data['username']
   u'jek'
-  >>> form2 = SignInForm.create_blank()
-  >>> form2.set(as_regular_python_data)
-
-  >>> assert form.el('username').value == form2.el('username').value
+  >>> form2 = SignInForm(as_regular_python_data)
+  >>> assert form['username'].value == form2['username'].value
 
 License
 -------

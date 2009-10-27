@@ -12,6 +12,7 @@ type(sys.modules['flatland']).shadow(
             'as_mapping',
             'assignable_class_property',
             'assignable_property',
+            'autodocument_from_superclasses',
             'class_cloner',
             'decorator',
             'format_argspec_plus',
