@@ -91,17 +91,8 @@ class class_cloner(object):
 
     def __init__(self, fn):
         self.name = fn.__name__
-        self.fn = fn
+        self.cloner = classmethod(fn)
         self.__doc__ = fn.__doc__
-
-    def cloner(self, cls):
-        """TODO: doc"""
-
-        def decorator(*args, **kw):
-            clone = type(cls.__name__, (cls,), {})
-            return self.fn(clone, *args, **kw)
-        functools.update_wrapper(decorator, self.fn)
-        return decorator
 
     def __get__(self, instance, cls):
         if instance is not None:
@@ -109,7 +100,8 @@ class class_cloner(object):
                 return instance.__dict__[self.name]
             except KeyError:
                 raise AttributeError(self.name)
-        return self.cloner(cls)
+        clone = type(cls.__name__, (cls,), {})
+        return self.cloner.__get__(None, clone)
 
     def __set__(self, instance, value):
         instance.__dict__[self.name] = value
