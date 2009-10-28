@@ -107,6 +107,7 @@ class Sequence(Container, list):
 
     @class_cloner
     def of(cls, *fields):
+        """TODO:doc of()"""
         for field in fields:
             if isinstance(field, Element):
                 raise TypeError("'of' must be initialized with types, got "
