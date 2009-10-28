@@ -1,6 +1,4 @@
-import functools
-import inspect
-import itertools
+# -*- coding: utf-8; fill-column: 78 -*-
 import re
 
 try:
@@ -11,7 +9,13 @@ except ImportError:                                           # pragma:nocover
 
 # derived from ASPN Cookbook (#36302)
 class lazy_property(object):
-    """TODO: doc"""
+    """An @property that is only calculated once.
+
+    The results of the decorated function are stored in the instance
+    dictionary after the first access.  Subsequent accesses are serviced out
+    of the __dict__ by Python at native attribute access speed.
+
+    """
 
     def __init__(self, deferred):
         self._deferred = deferred
@@ -27,7 +31,11 @@ class lazy_property(object):
 class assignable_property(object):
     """A @property, computed by default but assignable on a per-instance basis.
 
+    Similar to ``property``, except that the attribute may be assigned to and
+    assignments may be deleted.
+
     May be used as a decorator.
+
     """
 
     def __init__(self, fget, name=None, doc=None):
@@ -55,11 +63,20 @@ class assignable_property(object):
 
 
 class assignable_class_property(object):
-    """A @property, computed by default but assignable on a per-instance basis.
+    """A read/write property for access on a class or an instance.
 
-    #FIXME: doc difference from instance version
+    Similar to :class:`assignable_property`, except that access as a class
+    attribute will also return a computed value.
+
+    The decorated function will be passed two arguments: ``instance`` and
+    ``class`` (the same signature as the descriptor __get__ protocol).
+    Instance will be ``None`` if the attribute access was against the class.
+
+    Note that assignments at the class level are not intercepted by this
+    property.  They will replace the property on the class.
 
     May be used as a decorator.
+
     """
 
     def __init__(self, fget, name=None, doc=None):
@@ -89,12 +106,11 @@ class assignable_class_property(object):
 class class_cloner(object):
     """A class-copying ``classmethod``.
 
-    Calls the decorated method as a classmethod, passing a copy of the
-    class.  The copy will be a direct subclass of the class the method
-    is invoked on.
+    Calls the decorated method as a classmethod, passing a copy of the class.
+    The copy will be a direct subclass of the class the method is invoked on.
 
-    The class_cloner is only visible at the class level.  Instance
-    access is proxied to the instance dictionary.
+    The class_cloner is only visible at the class level.  Instance access is
+    proxied to the instance dictionary.
 
     """
 
@@ -111,6 +127,7 @@ class class_cloner(object):
                 raise AttributeError(self.name)
         members = {}
         try:
+            members['__doc__'] = getattr(cls, '__doc__', '')
             members['__module__'] = cls.__module__
         except KeyError:
             pass
@@ -131,8 +148,8 @@ class class_cloner(object):
 class as_mapping(object):
     """Provide a mapping view of an instance.
 
-    Similar to vars(), but effective on extension types and will
-    invoke descriptors on access.
+    Similar to vars(), but effective on extension types and will invoke
+    descriptors on access.
 
     """
 
@@ -205,26 +222,23 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
 
     :param pairs: an iterable of ``(key, value)`` pairs (2-tuples).
 
-    :param include: optional, a sequence of key values.  If supplied,
-        only pairs whose key is a member of this sequence will be
-        returned.
+    :param include: optional, a sequence of key values.  If supplied, only
+        pairs whose key is a member of this sequence will be returned.
 
-    :param omit: optional, a sequence of key values. If supplied, all
-        pairs will be returned, save those whose key is a member of
-        this sequence.
+    :param omit: optional, a sequence of key values. If supplied, all pairs
+        will be returned, save those whose key is a member of this sequence.
 
-    :param rename: optional, a mapping or sequence of 2-tuples
-        specifying a key-to-key translation.  A pair whose key has
-        been renamed by this translation will always be emitted,
-        regardless of *include* or *omit* rules.  The mapping will be
-        converted to a dict internally, and keys must be hashable.
+    :param rename: optional, a mapping or sequence of 2-tuples specifying a
+        key-to-key translation.  A pair whose key has been renamed by this
+        translation will always be emitted, regardless of *include* or *omit*
+        rules.  The mapping will be converted to a dict internally, and keys
+        must be hashable.
 
-    :param key: optional, a function of one argument that is used to
-        extract a comparison key from the first item of each pair.
-        Similar to the ``key`` parameter to Python's ``sort`` and
-        ``sorted``.  Useful for transforming unicode keys to
-        bytestrings with ```key=str``, adding or removing prefixes en
-        masse, etc.
+    :param key: optional, a function of one argument that is used to extract a
+        comparison key from the first item of each pair.  Similar to the
+        ``key`` parameter to Python's ``sort`` and ``sorted``.  Useful for
+        transforming unicode keys to bytestrings with ```key=str``, adding or
+        removing prefixes en masse, etc.
 
     :returns: yields ``(key, value)`` pairs.
 
@@ -309,6 +323,7 @@ Maybe = Maybe()
 
 
 def named_int_factory(name, value, doc=''):
+    """Return a unique integer *value* with a str() and repr() of *name*."""
     report_name = lambda self: name
     cls = type(name, (int,), dict(
         __doc__=doc, __str__=report_name, __repr__=report_name))
@@ -334,95 +349,6 @@ def autodocument_from_superclasses(cls):
                 except (AttributeError, TypeError):
                     pass
     return cls
-
-
-# derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
-def format_argspec_plus(fn, grouped=True):
-    """Returns a dictionary of formatted, introspected function arguments.
-
-    A enhanced variant of inspect.formatargspec to support code generation.
-
-    fn
-       An inspectable callable or tuple of inspect getargspec() results.
-    grouped
-      Defaults to True; include (parens, around, argument) lists
-
-    Returns:
-
-    args
-      Full inspect.formatargspec for fn
-    self_arg
-      The name of the first positional argument, varargs[0], or None
-      if the function defines no positional arguments.
-    apply_pos
-      args, re-written in calling rather than receiving syntax.  Arguments are
-      passed positionally.
-    apply_kw
-      Like apply_pos, except keyword-ish args are passed as keywords.
-
-    Example::
-
-      >>> format_argspec_plus(lambda self, a, b, c=3, **d: 123) #doctest: +SKIP
-      {'args': '(self, a, b, c=3, **d)',
-       'self_arg': 'self',
-       'apply_kw': '(self, a, b, c=c, **d)',
-       'apply_pos': '(self, a, b, c, **d)'}
-
-    """
-    spec = callable(fn) and inspect.getargspec(fn) or fn
-    args = inspect.formatargspec(*spec)
-    if spec[0]:
-        self_arg = spec[0][0]
-    elif spec[1]:
-        self_arg = '%s[0]' % spec[1]
-    else:
-        self_arg = None
-    apply_pos = inspect.formatargspec(spec[0], spec[1], spec[2])
-    defaulted_vals = spec[3] is not None and spec[0][0 - len(spec[3]):] or ()
-    apply_kw = inspect.formatargspec(spec[0], spec[1], spec[2], defaulted_vals,
-                                     formatvalue=lambda x: '=' + x)
-    if grouped:
-        return dict(args=args, self_arg=self_arg,
-                    apply_pos=apply_pos, apply_kw=apply_kw)
-    else:
-        return dict(args=args[1:-1], self_arg=self_arg,
-                    apply_pos=apply_pos[1:-1], apply_kw=apply_kw[1:-1])
-
-
-# derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
-def unique_symbols(used, *bases):
-    used = set(used)
-    for base in bases:
-        pool = itertools.chain((base,),
-                               itertools.imap(lambda i: base + str(i),
-                                              xrange(1000)))
-        for sym in pool:
-            if sym not in used:
-                used.add(sym)
-                yield sym
-                break
-        else:
-            raise NameError("exhausted namespace for symbol base %s" % base)
-
-
-# derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
-def decorator(target):
-    """A signature-matching decorator factory."""
-
-    def decorate(fn):
-        spec = inspect.getargspec(fn)
-        names = tuple(spec[0]) + spec[1:3] + (fn.func_name,)
-        targ_name, fn_name = unique_symbols(names, 'target', 'fn')
-
-        metadata = dict(target=targ_name, fn=fn_name)
-        metadata.update(format_argspec_plus(spec, grouped=False))
-
-        code = 'lambda %(args)s: %(target)s(%(fn)s, %(apply_kw)s)' % (
-                metadata)
-        decorated = eval(code, {targ_name: target, fn_name: fn})
-        decorated.func_defaults = getattr(fn, 'im_func', fn).func_defaults
-        return functools.update_wrapper(decorated, fn)
-    return functools.update_wrapper(decorate, target)
 
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
