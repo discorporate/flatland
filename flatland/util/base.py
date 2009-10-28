@@ -87,7 +87,16 @@ class assignable_class_property(object):
 
 
 class class_cloner(object):
-    """TODO: doc!"""
+    """A class-copying ``classmethod``.
+
+    Calls the decorated method as a classmethod, passing a copy of the
+    class.  The copy will be a direct subclass of the class the method
+    is invoked on.
+
+    The class_cloner is only visible at the class level.  Instance
+    access is proxied to the instance dictionary.
+
+    """
 
     def __init__(self, fn):
         self.name = fn.__name__
@@ -100,7 +109,12 @@ class class_cloner(object):
                 return instance.__dict__[self.name]
             except KeyError:
                 raise AttributeError(self.name)
-        clone = type(cls.__name__, (cls,), {})
+        members = {}
+        try:
+            members['__module__'] = cls.__module__
+        except KeyError:
+            pass
+        clone = type(cls.__name__, (cls,), members)
         return self.cloner.__get__(None, clone)
 
     def __set__(self, instance, value):
