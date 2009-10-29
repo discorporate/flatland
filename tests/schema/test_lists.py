@@ -3,6 +3,7 @@ from flatland import (
     List,
     String,
 )
+from flatland.schema.base import Unspecified
 
 from tests._util import eq_, assert_raises
 
@@ -27,15 +28,37 @@ def test_set_flat_miss():
     eq_(el.value, [])
 
 
-def test_set_flat_lossy():
-    # lossy won't insert empty elements for a skipped index
-    pairs = [('l_0_i', 1), ('l_2_i', 3)]
+def test_set_flat_pruned():
+    # pruned won't insert empty elements for a skipped index or empty rhs
+    pairs = [('l_0_i', '0'), ('l_2_i', ''), ('l_3_i', '3')]
 
     schema = List.named('l').of(Integer.named('i'))
     el = schema.from_flat(pairs)
 
-    eq_(len(el), len(pairs))
-    eq_(el.value, list(pair[1] for pair in pairs))
+    eq_(len(el), 2)
+    eq_(el.value, [0, 3])
+
+    schema2 = schema.using(maximum_set_flat_members=1)
+    el = schema2.from_flat(pairs)
+
+    eq_(len(el), 1)
+    eq_(el.value, [0])
+
+
+def test_set_flat_unpruned():
+    pairs = [('l_0_i', '0'), ('l_2_i', ''), ('l_3_i', '3')]
+
+    schema = List.named('l').of(Integer.named('i')).using(prune_empty=False)
+    el = schema.from_flat(pairs)
+
+    eq_(len(el), 4)
+    eq_(el.value, [0, None, None, 3])
+
+    schema2 = schema.using(maximum_set_flat_members=2)
+    el = schema2.from_flat(pairs)
+
+    eq_(len(el), 2)
+    eq_(el.value, [0, None])
 
 
 def test_set_flat_linear_dict():
@@ -52,7 +75,7 @@ def test_set_flat_linear_dict():
     eq_(el[2].value, {u'x': u'x2', u'y': None})
 
 
-def test_set_default():
+def test_set_default_int():
 
     def factory(count, **kw):
         return List.named('l').using(default=count, **kw).of(
@@ -101,20 +124,105 @@ def test_set_default():
     eq_(el.value, [u'val'] * 2)
 
 
+def test_set_default_value():
+
+    def factory(default, **kw):
+        return List.using(default=default, **kw).of(
+            String.using(default=u'val'))
+
+    schema = factory([u'a', u'b'])
+    el = schema()
+    eq_(len(el), 0)
+    eq_(el.value, [])
+
+    el = schema()
+    el.set_default()
+    eq_(len(el), 2)
+    eq_(el.value, [u'a', u'b'])
+
+    el = schema([u'c', u'd'])
+    eq_(el.value, [u'c', u'd'])
+    el.set_default()
+    eq_(el.value, [u'a', u'b'])
+
+    schema0 = factory([])
+    el = schema0()
+    el.set_default()
+    eq_(len(el), 0)
+    eq_(el.value, [])
+
+def test_set_default_value():
+
+    def factory(default, **kw):
+        return List.using(default=default, **kw).of(
+            String.using(default=u'val'))
+
+    schema = factory([u'a', u'b'])
+    el = schema()
+    eq_(len(el), 0)
+    eq_(el.value, [])
+
+    el = schema()
+    el.set_default()
+    eq_(len(el), 2)
+    eq_(el.value, [u'a', u'b'])
+
+    el = schema([u'c', u'd'])
+    eq_(el.value, [u'c', u'd'])
+    el.set_default()
+    eq_(el.value, [u'a', u'b'])
+
+    schema0 = factory([])
+    el = schema0()
+    el.set_default()
+    eq_(len(el), 0)
+    eq_(el.value, [])
+
+
+def test_set_default_none():
+
+    def factory(default, **kw):
+        return List.using(default=default, **kw).of(
+            String.using(default=u'val'))
+
+    for default in None, Unspecified:
+        schema = factory(default)
+        el = schema()
+        eq_(el.value, [])
+
+        el = schema()
+        el.set_default()
+        eq_(el.value, [])
+
+    # TODO: exercising this here (set_default of None doesn't reset
+    # the value), but unsure if this is the correct behavior
+    schema = factory(None)
+    el = schema([u'a', u'b'])
+    eq_(el.value, [u'a', u'b'])
+    el.set_default()
+    eq_(el.value, [u'a', u'b'])
+
+
 def test_set():
     schema = List.of(Integer)
 
     el = schema()
     assert list(el) == []
-    assert_raises(TypeError, el.set, 1)
-    assert_raises(TypeError, el.set, None)
 
     el = schema()
-    el.set(range(3))
+    assert not el.set(1)
+    assert el.value == []
+
+    el = schema()
+    assert not el.set(None)
+    assert el.value == []
+
+    el = schema()
+    assert el.set(range(3))
     assert el.value == [0, 1, 2]
 
     el = schema()
-    el.set(xrange(3))
+    assert el.set(xrange(3))
     assert el.value == [0, 1, 2]
 
     el = schema([0, 1, 2])
@@ -125,7 +233,7 @@ def test_set():
     assert el.value == [1, 2, 3]
     el.set([4, 5, 6])
     assert el.value == [4, 5, 6]
-    el.set([])
+    assert el.set([])
     assert el.value == []
 
 
@@ -238,12 +346,27 @@ def test_mutate_slices():
     assert canary == [1, 2]
 
 
-def test_unimplemented():
+def test_reverse():
+    schema = List.named('l').of(Integer.named('i'))
+    el = schema([2, 1])
+    assert el.flatten() == [('l_0_i', '2'), ('l_1_i', '1')]
+
+    el.reverse()
+    assert el.value == [1, 2]
+    assert el.flatten() == [('l_0_i', '1'), ('l_1_i', '2')]
+
+
+def test_sort():
     schema = List.named('l').of(Integer.named('i'))
     el = schema([2, 1])
 
-    assert_raises(TypeError, el.sort)
-    assert_raises(TypeError, el.reverse)
+    el.sort(key=lambda el: el.value)
+    assert el.value == [1, 2]
+    assert el.flatten() == [('l_0_i', '1'), ('l_1_i', '2')]
+
+    el.sort(key=lambda el: el.value, reverse=True)
+    assert el.value == [2, 1]
+    assert el.flatten() == [('l_0_i', '2'), ('l_1_i', '1')]
 
 
 def test_slots():
