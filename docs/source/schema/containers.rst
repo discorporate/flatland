@@ -19,7 +19,8 @@ Sequences
 ---------
 
 .. autoclass:: Sequence
-
+   :show-inheritance:
+   :members:
 
 List
 ----
@@ -27,6 +28,7 @@ List
 .. autoclass:: List
    :show-inheritance:
    :members:
+   :exclude-members: slot_type
 
 
 Array

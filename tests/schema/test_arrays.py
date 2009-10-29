@@ -35,14 +35,22 @@ def test_set():
     el = schema()
     assert not el
 
-    assert_raises(TypeError, el.set, 1)
+    el = schema()
+    assert not el.set(1)
+    assert not el.value
 
-    el.set([1])
+    el = schema()
+    assert el.set([])
+    assert not el.value
+
+    el = schema()
+    assert el.set([1])
     assert el[0].u == u'1'
     assert el.value == [1]
     assert el[0].parent is el
 
-    el.set([1, 2, 3])
+    el = schema()
+    assert el.set([1, 2, 3])
     assert el[0].u == u'1'
     assert el[0].value == 1
     assert el.value == [1, 2, 3]
@@ -155,9 +163,13 @@ def test_multivalue_set():
     eq_(len(el), 0)
     assert not el
 
-    assert_raises(TypeError, el.set, 0)
+    assert not el.set(0)
+    assert el.value is None
 
-    el.set([0])
+    assert el.set([])
+    assert not el.value
+
+    assert el.set([0])
     eq_(el.value, 0)
     eq_(el.u, u'0')
     assert len(el) == 1

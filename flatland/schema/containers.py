@@ -4,6 +4,7 @@ import re
 
 from flatland.util import (
     Unspecified,
+    autodocument_from_superclasses,
     class_cloner,
     keyslice_pairs,
     to_pairs,
@@ -70,7 +71,6 @@ class Container(Element):
         else:
             return validate_element(element, state, self.validators)
 
-
     def _validate(self, state, descending):
         """Run validation, transforming None into success. Internal."""
         # FIXME: refactor this to allow for this logic ("Don't apply default
@@ -88,16 +88,36 @@ class Container(Element):
         return Unevaluated
 
 
-
-    #######################################################################
-
-
 class Sequence(Container, list):
-    """Base of sequence-like Containers."""
+    """Abstract base of sequence-like Containers.
 
-    #######################################################################
+    Instances of :class:`Sequence` hold other elements and operate like Python
+    lists.  Each sequence member will be an instance of :attr:`child_schema`.
+
+    Python list methods and operators may be passed instances of
+    :attr:`child_schema` or plain Python values.  Using plain values is a
+    shorthand for creating an :attr:`child_schema` instance and
+    :meth:`set()ting<flatland.schema.base.Element.set>` it with the value:
+
+    .. doctest::
+
+      >>> from flatland import Array, Integer
+      >>> Numbers = Array.of(Integer)
+      >>> ones = Numbers()
+      >>> ones.append(1)
+      >>> ones
+      [<Integer None; value=1>]
+      >>> another_one = Integer()
+      >>> another_one.set(1)
+      True
+      >>> ones.append(another_one)
+      >>> ones
+      [<Integer None; value=1>, <Integer None; value=1>]
+
+    """
 
     child_schema = None
+    """An :class:`~flatland.schema.base.Element` class for sequence members."""
 
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, value, **kw)
@@ -106,23 +126,85 @@ class Sequence(Container, list):
                             type(self))
 
     @class_cloner
-    def of(cls, *fields):
-        """TODO:doc of()"""
-        for field in fields:
+    def of(cls, *schema):
+        """Declare the class to hold a sequence of *\*schema*.
+
+        :params \*schema: one or more :class:`flatland.Element` classes
+        :returns: *cls*
+
+        Configures the :attr:`child_schema` of *cls* to hold instances of
+        *\*schema*.
+
+        .. doctest::
+
+          >>> from flatland import Array, String
+          >>> Names = Array.of(String.named('name'))
+          >>> Names.child_schema
+          <class 'flatland.schema.scalars.String'>
+          >>> el = Names(['Bob', 'Biff'])
+          >>> el
+          [<String u'name'; value=u'Bob'>, <String u'name'; value=u'Biff'>]
+
+        If more than one :class:`~flatland.Element` is specified in
+        *\*schema*, an anonymous :class:`Dict` is created to hold them.
+
+        .. doctest::
+
+          >>> from flatland import Integer
+          >>> Points = Array.of(Integer.named('x'), Integer.named('y'))
+          >>> Points.child_schema
+          <class 'flatland.schema.containers.Dict'>
+          >>> el = Points([dict(x=1, y=2)])
+          >>> el
+          [{u'y': <Integer u'y'; value=2>, u'x': <Integer u'x'; value=1>}]
+
+        """
+        for field in schema:
             if isinstance(field, Element):
                 raise TypeError("'of' must be initialized with types, got "
                                 "instance %r" % field)
-        if len(fields) == 1:
-            cls.child_schema = fields[0]
+        if not schema:
+            raise TypeError("One or more Element classes is required")
+        elif len(schema) == 1:
+            cls.child_schema = schema[0]
         else:
-            cls.child_schema = Dict.of(*fields)
+            cls.child_schema = Dict.of(*schema)
         return cls
 
-    #######################################################################
-
     def set(self, iterable):
+        """Assign the native and Unicode value.
+
+        Attempts to adapt the given *iterable* and assigns this element's
+        :attr:`value` and :attr:`u` attributes in tandem.  Returns True if the
+        adaptation was successful.  See
+        :meth:`Element.set()<flatland.schema.base.Element.set>`.
+
+        Set must be supplied a Python sequence or iterable:
+
+        .. doctest::
+
+          >>> from flatland import Integer, List
+          >>> Numbers = List.of(Integer)
+          >>> nums = Numbers()
+          >>> nums.set([1, 2, 3, 4])
+          True
+          >>> nums.value
+          [1, 2, 3, 4]
+
+        """
+
         del self[:]
-        self.extend(self.child_schema(value=v) for v in iterable)
+        values, converted = [], True
+        try:
+            for v in iterable:
+                el = self.child_schema()
+                converted &= el.set(v)
+                values.append(el)
+            self.extend(values)
+        except TypeError:
+            return False
+        else:
+            return converted
 
     def set_default(self):
         default = self.default
@@ -149,16 +231,34 @@ class Sequence(Container, list):
         return self[idx]
 
     def append(self, value):
+        """Append *value* to end.
+
+        If *value* is not an instance of :attr:`child_schema`, it will be
+        wrapped in a new element of that type before appending.
+
+        """
         if not isinstance(value, Element):
             value = self.child_schema(value=value)
         value.parent = self
         list.append(self, value)
 
     def extend(self, iterable):
+        """Append *iterable* values to the end.
+
+        If values of *iterable* are not instances of :attr:`child_schema`,
+        they will be wrapped in a new element of that type before extending.
+
+        """
         for value in iterable:
             self.append(value)
 
     def insert(self, index, value):
+        """Insert *value* at *index*.
+
+        If *value* is not an instance of :attr:`child_schema`, it will be
+        wrapped in a new element of that type before inserting.
+
+        """
         if not isinstance(value, Element):
             value = self.child_schema(value=value)
         value.parent = self
@@ -183,21 +283,49 @@ class Sequence(Container, list):
         self.__setitem__(slice(i, j), value)
 
     def remove(self, value):
+        """Remove member with value *value*.
+
+        If *value* is not an instance of :attr:`child_schema`, it will be
+        wrapped in a new element of that type before searching for a matching
+        element to remove.
+
+        """
         if not isinstance(value, Element):
             value = self.child_schema(value=value)
         list.remove(self, value)
 
     def index(self, value):
+        """Return first index of *value*.
+
+        If *value* is not an instance of :attr:`child_schema`, it will be
+        wrapped in a new element of that type before searching for a matching
+        element in the sequence.
+
+        """
         if not isinstance(value, Element):
             value = self.child_schema(value=value)
         return list.index(self, value)
 
     def count(self, value):
+        """Return number of occurrences of *value*.
+
+        If *value* is not an instance of :attr:`child_schema`, it will be
+        wrapped in a new element of that type before searching for matching
+        elements in the sequence.
+
+        """
         if not isinstance(value, Element):
             value = self.child_schema(value=value)
         return list.count(self, value)
 
     def __contains__(self, value):
+        """Return True if sequence contains *value*.
+
+        If *value* is not an instance of :attr:`child_schema`, it will be
+        wrapped in a new element of that type before searching for a matching
+        element in the sequence.
+
+        """
         if not isinstance(value, Element):
             value = self.child_schema(value=value)
         return list.__contains__(self, value)
@@ -247,47 +375,62 @@ class ListSlot(Container, Slot):
 class List(Sequence):
     """An ordered, homogeneous Container.
 
+    Extends :class:`Sequence` and adds positional naming.  Elements are
+    addressable via index in :meth:`~flatland.schema.base.Element.el` and
+    their position in the list is reflected in their flattened name:
+
     Example:
 
     .. doctest::
 
       >>> from flatland import List
       >>> Names = List.named('names').of(String.named('name'))
-      >>> names = Names()
-      >>> names.set([u'a', u'b'])
-      >>> names.append(u'c')
+      >>> names = Names([u'a', u'b'])
       >>> names.value
-      [u'a', u'b', u'c']
+      [u'a', u'b']
       >>> names.flatten()
-      [(u'names_0_name', u'a'), (u'names_1_name', u'b'), (u'names_2_name', u'c')]
-
-    :param name: field name
-
-    :param \*schema: one or more
-      :class:`~flatland.schema.base.FieldSchema` to contain.  If
-      multiple are provided, an anonymous :class:`Dict` will be
-      implicitly created to hold them.
-
-    :param default: optional, the number of child elements to build
-      out by default.
-
-    :param descent_validators: optional, a sequence of validators that
-      will be run before contained elements are validated.
-
-    :param validators: optional, a sequence of validators that will be
-      run after contained elements are validated.
-
-    :param \*\*kw: other arguments common to
-      :class:`~flatland.schema.base.FieldSchema`.
+      [(u'names_0_name', u'a'), (u'names_1_name', u'b')]
+      >>> names.el('.1').value
+      u'b'
 
     """
 
-    ###
-    slot_type = ListSlot
-    prune_empty = True
-    child_schema = None
+    # TODO: clarify if descent_validators run on empty, optional sequences
 
-    ###
+    slot_type = ListSlot
+
+    prune_empty = True
+    """If true, skip missing index numbers in :meth:`set_flat`. Default True.
+
+      >>> from flatland import List, String
+      >>> Names = List.named('names').of(String.named('name'))
+
+      >>> pruned = Names()
+      >>> pruned.set_flat([('names_0_name', 'first'),
+      ...                  ('names_99_name', 'last')])
+      >>> pruned.value
+      [u'first', u'last']
+
+      >>> unpruned = Names(prune_empty=False)
+      >>> unpruned.set_flat([('names_0_name', 'first'),
+      ...                    ('names_99_name', 'last')])
+      >>> len(unpruned.value)
+      100
+      >>> unpruned.value[0:3]
+      [u'first', None, None]
+
+    """
+
+    maximum_set_flat_members = 1024
+    """Maximum list members set in a :meth:`set_flat` operation.
+
+    Once this maximum of child members has been added, subsequent data will be
+    dropped.  This ceiling prevents denial of service attacks when processing
+    Lists with :attr:`prune_empty` set to False; without it remote attackers
+    can trivially exhaust memory by specifying one low and one very high
+    index.
+
+    """
 
     def _as_element(self, value):
         """TODO"""
@@ -299,7 +442,7 @@ class List(Sequence):
             return self.child_schema(value)
 
     def _new_slot(self, value=Unspecified):
-        """Wrap *element* in a Slot named as the element's index in the list."""
+        """Wrap *value* in a Slot named as the element's index in the list."""
         return self.slot_type(name=unicode(len(self)),
                               parent=self,
                               element=self._as_element(value))
@@ -340,12 +483,10 @@ class List(Sequence):
         for i in list.__iter__(self):
             yield i.element
 
-    ## Reordering methods
-    # Optimizing __delitem__ or pop when removing only the last item
-    # doesn't seem worth it.
     def __delitem__(self, index):
-        # slices ok
-        list.__delitem__(self, index)
+        # Optimizing __delitem__ or pop when removing only the last item
+        # doesn't seem worth it.
+        list.__delitem__(self, index)  # slices ok
         self._renumber()
 
     def __delslice__(self, i, j):
@@ -365,16 +506,17 @@ class List(Sequence):
         list.remove(self, self._as_element(value))
         self._renumber()
 
-    # TODO count, index?
+    def sort(self, cmp=None, key=None, reverse=False):
+        list.sort(self, cmp, key, reverse)
+        self._renumber()
 
-    def sort(self, *args, **kw):
-        # TODO: implementing this is do-able
-        raise TypeError('List object may not be reordered.')
-    reverse = sort
+    def reverse(self):
+        list.reverse(self)
+        self._renumber()
 
     def _renumber(self):
-        for idx, element in enumerate(self._slots):
-            element.name = unicode(idx)
+        for idx, slot in enumerate(self._slots):
+            slot.name = unicode(idx)
 
     @property
     def children(self):
@@ -389,7 +531,7 @@ class List(Sequence):
         regex = re.compile(u'^' + re.escape(self.name + sep) +
                            ur'(\d+)' + re.escape(sep))
 
-        slots = defaultdict(list)
+        indexes = defaultdict(list)
         prune = self.prune_empty
 
         for key, value in pairs:
@@ -399,32 +541,63 @@ class List(Sequence):
             if not m:
                 continue
             try:
-                slot = long(m.group(1))
-                slots[slot].append((key[len(m.group(0)):], value))
+                index = long(m.group(1))
             except TypeError:
                 # Ignore keys with outrageously large indexes- they
                 # aren't valid data for us.
                 pass
+            else:
+                indexes[index].append((key[len(m.group(0)):], value))
 
-        if not slots:
+        if not indexes:
             return
 
-        # FIXME: lossy, not-lossy. allow maxidx on not-lossy
-        # Only implementing lossy here.
-
-        for slot_index in sorted(slots):
-            slot = self._new_slot()
-            list.append(self, slot)
-            slot.element.set_flat(slots[slot_index], sep)
+        # lossy: missing (or empty-valued) indexes are omitted.
+        #        the python indexes may not match the flat indexes
+        if prune:
+            for offset, index in enumerate(sorted(indexes)):
+                if offset == self.maximum_set_flat_members:
+                    break
+                slot = self._new_slot()
+                list.append(self, slot)
+                slot.element.set_flat(indexes[index], sep)
+        # lossless: elements are built up to the highest seen index or a
+        #           schema-configured maximum. flat + python indexes match.
+        else:
+            max_index = min(max(indexes) + 1, self.maximum_set_flat_members)
+            for index in xrange(0, max_index):
+                slot = self._new_slot()
+                list.append(self, slot)
+                flat = indexes.get(index, None)
+                if flat:
+                    slot.element.set_flat(flat, sep)
 
     def set_default(self):
+        """set() the element to the schema default.
+
+        List's set_default supports two modes for
+        :attr:`~flatland.schema.base.Element.default` values:
+
+        - If default is an integer, the List will be filled with that many
+          elements.  Each element will then have
+          :meth:`~flatland.schema.base.Element.set_default` called on it.
+
+        - Otherwise if default has a value, the list will be :meth:`set` with
+          it.
+
+        """
         default = self.default
-        if default is not None and default is not Unspecified:
-            del self[:]
+        if default is None or default is Unspecified:
+            return
+
+        del self[:]
+        if isinstance(default, int):
             for _ in xrange(0, default):
                 slot = self._new_slot()
                 list.append(self, slot)
                 slot.element.set_default()
+        else:
+            self.set(default)
 
 
 class Array(Sequence):
@@ -549,7 +722,6 @@ class Dict(Mapping, dict):
         if value is not Unspecified:
             self.set(value)
 
-
     @classmethod
     def from_object(cls, obj, include=None, omit=None, rename=None, **kw):
         """Return an element initialized with an object's attributes.
@@ -660,6 +832,7 @@ class Dict(Mapping, dict):
         raise TypeError('Dict keys are immutable.')
 
     def update(self, dictish=None, **kwargs):
+        """TODO"""
         if dictish is not None:
             for key, value in to_pairs(dictish):
                 self[key] = value
@@ -712,6 +885,7 @@ class Dict(Mapping, dict):
                     'strict-mode Dict requires all keys for '
                     'a set() operation, missing %s.' % (
                         ','.join(repr(key) for key in missing)))
+        return True
 
     def _set_flat(self, pairs, sep):
         if self.name is None:
@@ -726,7 +900,7 @@ class Dict(Mapping, dict):
                     pass
                 if key.startswith(prefix):
                     # accept child element
-                    possibles.append( (key[plen:], value) )
+                    possibles.append((key[plen:], value))
 
         if not possibles:
             return
@@ -791,3 +965,7 @@ class Dict(Mapping, dict):
                 ((key, element.value) for key, element in self.iteritems()),
                 include=include, omit=omit, rename=rename, key=key))
 
+
+for cls_name in __all__:
+    autodocument_from_superclasses(globals()[cls_name])
+del cls_name

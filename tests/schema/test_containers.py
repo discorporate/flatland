@@ -12,6 +12,17 @@ from flatland.schema.base import Root
 from tests._util import eq_, assert_raises
 
 
+def test_dsl_of():
+    assert_raises(TypeError, Sequence.of)
+
+    t1 = Sequence.of(Integer)
+    assert t1.child_schema is Integer
+
+    t2 = Sequence.of(Integer.named('x'), Integer.named('y'))
+    assert issubclass(t2.child_schema, Dict)
+    assert sorted(t2.child_schema().keys()) == [u'x', u'y']
+
+
 def test_simple_validation_shortcircuit():
     Regular = Dict.of(Integer.using(optional=False))
     el = Regular()
