@@ -101,6 +101,5 @@ Configurable Attributes
   :inherited-members:
   :exclude-members: child_schema, prune_empty,
      slot_type, maximum_set_flat_members,
-     from_defaults, from_flat, from_value,
-     create_blank
+     from_defaults, from_flat, from_value
 
