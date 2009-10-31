@@ -456,7 +456,7 @@ class Element(_BaseElement):
 
         :returns: an :class:`Element` or raises :exc:`KeyError`.
 
-        .. testsetup::
+        .. testsetup:: el
 
           from flatland import Form, Dict, List, String
           class Profile(Form):
@@ -466,7 +466,7 @@ class Element(_BaseElement):
                                 using(default=1))
           form = Profile.from_defaults()
 
-        .. doctest::
+        .. doctest:: el
 
           >>> first_address = form.el('contact.addresses.0')
           >>> first_address.el('street1')
@@ -480,7 +480,7 @@ class Element(_BaseElement):
         leading *sep* will always match the root node, regardless of its
         :attr:`.name`.
 
-        .. doctest::
+        .. doctest:: el
 
           >>> form.el('.contact.addresses.0.city')
           <String u'city'; value=None>

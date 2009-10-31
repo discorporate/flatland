@@ -44,7 +44,7 @@ Example:
 
 .. doctest::
 
-  >>> from flatland import List
+  >>> from flatland import List, String
   >>> Names = List.named('names').of(String.named('name'))
   >>> names = Names([u'a', u'b'])
   >>> names.value
