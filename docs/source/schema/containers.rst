@@ -1,11 +1,11 @@
+.. -* coding: utf-8; fill-column: 78 -*-
 .. _containers:
 
-==========
-Containers
-==========
+===================
+Abstract Containers
+===================
 
 .. currentmodule:: flatland.schema.containers
-
 
 Containers
 ----------
@@ -18,45 +18,30 @@ Containers
 Sequences
 ---------
 
+::
+  >>> from flatland import List, String
+  >>> Names = List.named('names').of(String.named('name'))
+
+  >>> pruned = Names()
+  >>> pruned.set_flat([('names_0_name', 'first'),
+  ...                  ('names_99_name', 'last')])
+  >>> pruned.value
+  [u'first', u'last']
+
+  >>> unpruned = Names(prune_empty=False)
+  >>> unpruned.set_flat([('names_0_name', 'first'),
+  ...                    ('names_99_name', 'last')])
+  >>> len(unpruned.value)
+  100
+  >>> unpruned.value[0:3]
+  [u'first', None, None]
+
 .. autoclass:: Sequence
    :show-inheritance:
-   :members:
-
-List
-----
-
-.. autoclass:: List
-   :show-inheritance:
-   :members:
-   :exclude-members: slot_type
-
-
-Array
------
-
-.. autoclass:: Array
-   :show-inheritance:
-   :members:
-
-
-MultiValue
-----------
-
-.. autoclass:: MultiValue
-   :show-inheritance:
-   :members:
+   :members: prune_empty
 
 
 Mappings
 --------
 
 .. autoclass:: Mapping
-
-
-Dict
-----
-
-.. autoclass:: Dict
-   :show-inheritance:
-   :members:
-

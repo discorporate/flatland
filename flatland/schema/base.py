@@ -54,55 +54,57 @@ class _BaseElement(object):
 class Element(_BaseElement):
     """Base class for form fields.
 
-    :param name: the Unicode name of the field.
-
-    :param label: optional, a human readable name for the field.  Defaults to
-      *name* if not provided.
-
-    :param default: optional. A default value for elements created from this
-      Field template.  The interpretation of the *default* is subclass
-      specific.
-
-    :param default_factory: optional. A callable to generate default element
-      values.  Passed an element.  *default_factory* will be used
-      preferentially over *default*.
-
-    :param validators: optional, overrides the class's default validators.
-
-    :param optional: if True, element of this field will be considered valid
-      by :meth:`Element.validate` if no value has been set.
-
-
-    **Instance Attributes**
-
-      .. attribute:: name
-      .. attribute:: label
-      .. attribute:: default
-      .. attribute:: optional
-
+    A data node that stores a Python and a text value plus added state.
     """
 
-    """A data node that stores a Python and a text value plus added state.
+    name = None
+    """The Unicode name of the element."""
 
-    :param schema: the :class:`FieldSchema` that defined the element.
+    optional = False
+    """If True, :meth:`validate` with return True if no value has been set.
 
-    :param parent: a parent :class:`Element` or None.
+    :attr:`validators` are not called for optional, empty elements.
+    """
 
-    Elements can be supplied to template environments and used to
-    great effect there: elements contain all of the information needed
-    to display or redisplay a HTML form field, including errors
-    specific to a field.
+    validators = ()
+    """A sequence of validators, invoked by :meth:`validate`.
 
-    The :attr:`.u`, :attr:`.x`, :attr:`.xa` and :meth:`el` members are
-    especially useful in templates and have shortened names to help
-    preserve your sanity when used in markup.
+    See `Validation`_
+    """
 
+    default_factory = None
+    """A callable to generate default element values.  Passed an element.
+
+    *default_factory* will be used preferentially over :attr:`default`.
+    """
+
+    ugettext = None
+    """If set, provides translation support to validation messages.
+
+    See `Message Internationalization`_.
+    """
+
+    ungettext = None
+    """If set, provides translation support to validation messages.
+
+    See `Message Internationalization`_.
+    """
+
+    value = None
+    """The element's native Python value.
+
+    Only validation routines should write this attribute directly: use
+    :meth:`set` to update the element's value.
+    """
+
+    u = u''
+    """A Unicode representation of the element's value.
+
+    As in :attr:`value`, writing directly to this attribute should be
+    restricted to validation routines.
     """
 
     flattenable = False
-    value = None
-    u = u''
-
     validates_down = None
     validates_up = None
 
@@ -130,23 +132,15 @@ class Element(_BaseElement):
         if value is not Unspecified:
             self.set(value)
 
-    #######################################################################
-
-    name = None
-    label = Unspecified
-
-    optional = False
-    validators = ()
-
-    default_factory = None
-
-    ugettext = None
-    ungettext = None
-
-    #######################################################################
-
     @class_cloner
     def named(cls, name):
+        """Return a class with ``name`` = *name*
+
+        :param name: a string or None.  ``str`` will be converted to
+          ``unicode``.
+        :returns: a new class
+
+        """
         if not isinstance(name, (unicode, NoneType)):
             name = unicode(name)
         cls.name = name
@@ -154,6 +148,13 @@ class Element(_BaseElement):
 
     @class_cloner
     def using(cls, **overrides):
+        """Return a class with attributes set from *\*\*overrides*.
+
+        :param \*\*overrides: new values for any attributes already present on
+          the class.  A ``TypeError`` is raised for unknown attributes.
+        :returns: a new class
+        """
+
         if 'validators' in overrides:
             overrides['validators'] = list(overrides['validators'])
 
@@ -246,6 +247,7 @@ class Element(_BaseElement):
 
           element = cls(**kw)
           element.set_flat(pairs)
+          return element
 
         """
         element = cls(**kw)
@@ -271,6 +273,7 @@ class Element(_BaseElement):
 
           element = cls()
           element.set(value)
+          return element
 
         """
         return cls(value, **kw)
@@ -293,6 +296,7 @@ class Element(_BaseElement):
 
           element = cls(**kw)
           element.set_default()
+          return element
 
         """
         element = cls(**kw)
@@ -341,12 +345,8 @@ class Element(_BaseElement):
     def default(self):
         """The default value of this element.
 
-        Default values are derived from the
-        :attr:`FieldSchema.default_factory` or :attr:`FieldSchema.default` of
-        the element's schema.
-
-        This property may also be assigned, overriding the value on a
-        per-element basis.
+        If unset, the default will be derived from the
+        :attr:`~flatland.schema.base.Element.default_factory`.
 
         """
         if self.default_factory is not None:
@@ -362,6 +362,7 @@ class Element(_BaseElement):
             if not element.valid:
                 return False
         return True
+
     def _set_all_valid(self, value):
         self.valid = value
         for element in self.all_children:

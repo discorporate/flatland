@@ -9,6 +9,9 @@ Defining and Using Forms
    schema
    scalars
    datetimes
+   dicts
+   lists
+   arrays
    enums
    references
    compound
