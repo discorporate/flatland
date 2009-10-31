@@ -27,7 +27,7 @@ __all__ = (
 class Container(Element):
     """Holds other schema items.
 
-    Base class for schemas that can contain other schemas, such as
+    Base class for elements that can contain other elements, such as
     :class:`List` and :class:`Dict`.
 
     :param descent_validators: optional, a sequence of validators that
@@ -41,11 +41,12 @@ class Container(Element):
 
     """
 
-    #######################################################################
     validates_down = 'descent_validators'
+
     validates_up = 'validators'
 
     descent_validators = ()
+    """TODO: doc descent_validators"""
 
     def validate_element(self, element, state, descending):
         """Validates on the first (downward) and second (upward) pass.
@@ -118,6 +119,13 @@ class Sequence(Container, list):
 
     child_schema = None
     """An :class:`~flatland.schema.base.Element` class for sequence members."""
+
+    prune_empty = True
+    """If true, skip missing index numbers in :meth:`set_flat`. Default True.
+
+    See `Sequences`_ for more information.
+
+    """
 
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, value, **kw)
@@ -373,51 +381,17 @@ class ListSlot(Container, Slot):
 
 
 class List(Sequence):
-    """An ordered, homogeneous Container.
-
-    Extends :class:`Sequence` and adds positional naming.  Elements are
-    addressable via index in :meth:`~flatland.schema.base.Element.el` and
-    their position in the list is reflected in their flattened name:
-
-    Example:
-
-    .. doctest::
-
-      >>> from flatland import List
-      >>> Names = List.named('names').of(String.named('name'))
-      >>> names = Names([u'a', u'b'])
-      >>> names.value
-      [u'a', u'b']
-      >>> names.flatten()
-      [(u'names_0_name', u'a'), (u'names_1_name', u'b')]
-      >>> names.el('.1').value
-      u'b'
-
-    """
+    """An ordered, homogeneous Sequence."""
 
     # TODO: clarify if descent_validators run on empty, optional sequences
 
     slot_type = ListSlot
 
-    prune_empty = True
-    """If true, skip missing index numbers in :meth:`set_flat`. Default True.
+    # Default definition duplicated for sphinx documentation purposes
+    child_schema = ()
+    """An :class:`~flatland.schema.base.Element` class for member elements.
 
-      >>> from flatland import List, String
-      >>> Names = List.named('names').of(String.named('name'))
-
-      >>> pruned = Names()
-      >>> pruned.set_flat([('names_0_name', 'first'),
-      ...                  ('names_99_name', 'last')])
-      >>> pruned.value
-      [u'first', u'last']
-
-      >>> unpruned = Names(prune_empty=False)
-      >>> unpruned.set_flat([('names_0_name', 'first'),
-      ...                    ('names_99_name', 'last')])
-      >>> len(unpruned.value)
-      100
-      >>> unpruned.value[0:3]
-      [u'first', None, None]
+    See also the :meth:`~Sequence.of` schema configuration method.
 
     """
 
@@ -680,8 +654,12 @@ class MultiValue(Array, Scalar):
 class Mapping(Container):
     """Base of mapping-like Containers."""
 
+    field_schema = ()
+    """TODO: doc field_schema"""
+
     @class_cloner
     def of(cls, *fields):
+        """TODO: doc of()"""
         # TODO: doc
         # TODO: maybe accept **kw?
         for field in fields:
@@ -702,25 +680,6 @@ class Mapping(Container):
 
         cls.field_schema = fields
         return cls
-
-
-class Dict(Mapping, dict):
-    """A mapping Container with named members."""
-
-    #######
-
-    #######################################################################
-    policy = 'subset'
-    field_schema = ()
-
-    def __init__(self, value=Unspecified, **kw):
-        Container.__init__(self, **kw)
-        if not self.field_schema:
-            raise TypeError("%r dictionary type has no fields defined" % (
-                type(self).__name__))
-        self._reset()
-        if value is not Unspecified:
-            self.set(value)
 
     @classmethod
     def from_object(cls, obj, include=None, omit=None, rename=None, **kw):
@@ -745,8 +704,8 @@ class Dict(Mapping, dict):
         possible from *obj*.  Object attributes that do not correspond to
         field names are ignored.
 
-        Elements have two corresponding methods useful for round-tripping
-        values in and out of your domain objects.
+        Elements instances have two corresponding methods useful for
+        round-tripping values in and out of your domain objects.
 
         .. testsetup::
 
@@ -764,9 +723,8 @@ class Dict(Mapping, dict):
 
           user = User('squiznart')
 
-        :meth:`DictElement.update_object` performs the inverse of
-        :meth:`from_object`, and :meth:`DictElement.slice` is useful
-        for constructing new objects.
+        :meth:`update_object` performs the inverse of :meth:`from_object`, and
+        :meth:`slice` is useful for constructing new objects.
 
         .. doctest::
 
@@ -799,7 +757,24 @@ class Dict(Mapping, dict):
         self.set(final)
         return self
 
-    #######################################################################
+
+class Dict(Mapping, dict):
+    """A mapping Container with named members."""
+
+    policy = 'subset'
+    """TODO: doc policy = subset
+
+    See :ref:`set_policy`
+    """
+
+    def __init__(self, value=Unspecified, **kw):
+        Container.__init__(self, **kw)
+        if not self.field_schema:
+            raise TypeError("%r dictionary type has no fields defined" % (
+                type(self).__name__))
+        self._reset()
+        if value is not Unspecified:
+            self.set(value)
 
     def __setitem__(self, key, value):
         if not key in self:
@@ -855,6 +830,7 @@ class Dict(Mapping, dict):
         return self.itervalues()
 
     def set(self, value, policy=None):
+        """TODO: doc set()"""
         pairs = to_pairs(value)
         self._reset()
 
@@ -929,6 +905,7 @@ class Dict(Mapping, dict):
 
     @property
     def u(self):
+        """A string repr of the element."""
         pairs = ((key, value.u if isinstance(value, Container)
                                else repr(value.u))
                   for key, value in self.iteritems())
@@ -936,6 +913,7 @@ class Dict(Mapping, dict):
 
     @property
     def value(self):
+        """The element as a regular Python dictionary."""
         return dict((key, value.value) for key, value in self.iteritems())
 
     @property
