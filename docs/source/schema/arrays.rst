@@ -40,7 +40,7 @@ Configurable Attributes
   :inherited-members:
   :exclude-members: child_schema, prune_empty,
      from_defaults, from_flat, from_value,
-     create_element, create_blank
+     create_blank
 
 ``MultiValue``
 --------------

@@ -796,7 +796,7 @@ class Dict(Mapping, dict):
         for child_schema in self.field_schema:
             key = child_schema.name
             dict.__setitem__(
-                self, key, child_schema.create_element(parent=self))
+                self, key, child_schema(parent=self))
 
     def popitem(self):
         raise TypeError('Dict keys are immutable.')

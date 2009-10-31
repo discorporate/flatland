@@ -94,7 +94,7 @@ class Validator(object):
         .. testcode:: :hide:
 
           from flatland import String
-          el = String('x').create_element()
+          el = String()
           v = MyValidator()
           assert not v.validate(el, None)
           assert el.errors == ['Oh noes!']
