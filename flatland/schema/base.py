@@ -18,9 +18,11 @@ __all__ = 'Element'
 NoneType = type(None)
 Root = symbol('Root')
 NotEmpty = symbol('NotEmpty')
+
 Skip = named_int_factory('Skip', True, doc="""\
 Abort validation of the element & mark as valid.
 """)
+
 SkipAll = named_int_factory('SkipAll', True, doc="""\
 Abort validation of the element and its children & mark as valid.
 
@@ -29,6 +31,7 @@ Unless otherwise set, the child elements will retain the default value
 (:obj:`Unevaluated`).  Only meaningful during a decent validation.  Functions
 as :obj:`Skip` on upward validation.
 """)
+
 SkipAllFalse = named_int_factory('SkipAllFalse', False, doc="""\
 Aborts validation of the element and its children & mark as invalid.
 
@@ -37,6 +40,7 @@ Unless otherwise set, the child elements will retain the default value
 (:obj:`Unevaluated`). Only meaningful during a decent validation.  Functions
 as ``False`` on upward validation.
 """)
+
 Unevaluated = named_int_factory('Unevaluated', True, doc="""\
 A psuedo-boolean representing a presumptively valid state.
 
@@ -44,10 +48,12 @@ Assigned to newly created elements that have never been evaluated by
 :meth:`Element.validate`.  Evaluates to true.
 """)
 
+# TODO: implement a lighter version of the xml quoters
 xml = None
 
 
 class _BaseElement(object):
+    # Required by the genshi support's __bases__ manipulation, unfortunately.
     pass
 
 
@@ -116,7 +122,7 @@ class Element(_BaseElement):
         self.warnings = []
 
         # FIXME This (and 'using') should also do descent_validators
-        # via lookup
+        # via lookup - or don't copy at all
         if 'validators' in kw:
             kw['validators'] = list(kw['validators'])
 
@@ -155,11 +161,12 @@ class Element(_BaseElement):
         :returns: a new class
         """
 
+        # TODO: See TODO in __init__
         if 'validators' in overrides:
             overrides['validators'] = list(overrides['validators'])
 
         for attribute, value in overrides.iteritems():
-            # must make better
+            # TODO: must make better
             if callable(value):
                 value = staticmethod(value)
             if hasattr(cls, attribute):
@@ -173,6 +180,9 @@ class Element(_BaseElement):
 
     def validate_element(self, element, state, descending):
         """Assess the validity of an element.
+
+        TODO: this method is dead.  Evaluate docstring for good bits that
+        should be elsewhere.
 
         :param element: an :class:`Element`
         :param state: may be None, an optional value of supplied to
@@ -304,7 +314,7 @@ class Element(_BaseElement):
     def label(self, cls):
         """The label of this element.
 
-        TODO
+        If unassigned, the *label* will evaluate to the :attr:`name`.
 
         """
         return cls.name if self is None else self.name
@@ -519,7 +529,6 @@ class Element(_BaseElement):
             assert False
             return None
 
-    ## Errors and warnings- any element can have them.
     def add_error(self, message):
         "Register an error message on this element, ignoring duplicates."
         if message not in self.errors:
@@ -766,43 +775,6 @@ class Element(_BaseElement):
 
     def __hash__(self):
         raise TypeError('%s object is unhashable', self.__class__.__name__)
-
-
-class FieldSchema(object):
-    """Base class for form fields.
-
-    :param name: the Unicode name of the field.
-
-    :param label: optional, a human readable name for the field.  Defaults to
-      *name* if not provided.
-
-    :param default: optional. A default value for elements created from this
-      Field template.  The interpretation of the *default* is subclass
-      specific.
-
-    :param default_factory: optional. A callable to generate default element
-      values.  Passed an element.  *default_factory* will be used
-      preferentially over *default*.
-
-    :param validators: optional, overrides the class's default validators.
-
-    :param optional: if True, element of this field will be considered valid
-      by :meth:`Element.validate` if no value has been set.
-
-
-    **Instance Attributes**
-
-      .. attribute:: name
-      .. attribute:: label
-      .. attribute:: default
-      .. attribute:: optional
-
-    """
-    element_type = Element
-    ugettext = None
-    ungettext = None
-    validators = ()
-    default_factory = None
 
 
 class Slot(object):
