@@ -291,25 +291,6 @@ class Element(_BaseElement):
         element.set_default()
         return element
 
-    @classmethod
-    def create_blank(cls, **kw):
-        """Return a blank, empty Form element.
-
-        :param \*\*kw: keyword arguments will be passed to the
-            element' constructor.
-
-        FIXME: moved from Form.create_blank.  Maybe drop.
-
-        The returned element will contain all of the keys defined in the
-        :attr:`schema`.  Scalars will have a value of ``None`` and containers
-        will have their empty representation.
-
-        """
-        return cls(**kw)
-
-
-    #######################################################################
-
     def __eq__(self, other):
         try:
             return self.value == other.value and self.u == other.u

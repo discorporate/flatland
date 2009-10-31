@@ -64,7 +64,7 @@ def test_composition():
     el = Outer.from_defaults()
     eq_(el.value, wanted)
 
-    el = Outer.create_blank()
+    el = Outer()
     eq_(el.value, unset)
 
     el.set(wanted)
