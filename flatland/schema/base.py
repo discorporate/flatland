@@ -171,18 +171,6 @@ class Element(_BaseElement):
                     attribute, cls.__name__))
         return cls
 
-    ############
-
-    @classmethod
-    def create_element(cls, **kw):
-        """Returns a new Element.
-
-        :param \*\*kw: passed through to the :attr:`element_type`.
-
-        """
-        return cls(**kw)
-
-
     def validate_element(self, element, state, descending):
         """Assess the validity of an element.
 

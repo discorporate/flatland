@@ -209,7 +209,7 @@ class DictSetTest(object):
         schema = self.new_schema()
         schema.default = wanted
 
-        el = schema.create_element()
+        el = schema()
         el.set_default()
         eq_(el.value, wanted)
 

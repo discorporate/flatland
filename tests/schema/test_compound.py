@@ -11,12 +11,13 @@ from flatland import (
 from tests._util import assert_raises, eq_, raises
 
 
-
 def test_compound_init_sequencing():
+
     class Canary(Exception):
         pass
 
     class InitNotCalledAtClassConstruction(Compound):
+
         @classmethod
         def __compound_init__(cls):
             raise Canary
@@ -97,6 +98,7 @@ def test_compound_init_sequencing2():
 
 
 def test_compound_snarfs_override_init_keywords():
+
     class MyCompound(Compound):
         field_schema = [String.named('x')]
         attr = 'value'
@@ -211,28 +213,28 @@ class TestDoubleField(object):
 
     def test_flatten(self):
         s = self.Double.named('s')
-        e = s.create_element(value='1x2')
+        e = s('1x2')
         eq_(set(e.flatten()),
             set([(u's', u''), (u's_y', u''), (u's_x', u'')]))
 
     def test_set(self):
         s = self.Double.named('s')
 
-        e = s.create_element(value={})
+        e = s({})
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
-        e = s.create_element(value=u'4x5')
+        e = s(u'4x5')
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
-        e = s.create_element(value=(4, 5))
+        e = s((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
 
     def test_set_default(self):
         s = self.Double.named('s').using(default=(4, 5))
-        el = s.create_element()
+        el = s()
         assert_values_(el, None, None, None)
         assert_us_(el, u'', u'', u'')
 
@@ -247,7 +249,7 @@ class TestDoubleField(object):
         fields['x'].default = 4
         fields['y'].default = 5
 
-        el = schema.create_element()
+        el = schema()
         assert_values_(el, None, None, None)
         assert_us_(el, u'', u'', u'')
 
@@ -258,7 +260,7 @@ class TestDoubleField(object):
     def test_update(self):
         s = self.Double.named('s')
 
-        e = s.create_element(value=(4, 5))
+        e = s((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
 
@@ -266,14 +268,14 @@ class TestDoubleField(object):
         assert_values_(e, (6, 5), 6, 5)
         assert_us_(e, u'6x5', u'6', u'5')
 
-        e.set((7,8))
+        e.set((7, 8))
         assert_values_(e, (7, 8), 7, 8)
         assert_us_(e, u'7x8', u'7', u'8')
 
     def test_explode_does_not_require_typechecks(self):
         s = self.Double.named('s')
 
-        e = s.create_element(value=(4, 5))
+        e = s((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
 
@@ -284,19 +286,19 @@ class TestDoubleField(object):
     def test_value_assignement(self):
         s = self.Double.named('s')
 
-        e = s.create_element()
+        e = s()
         e.value = (1, 2)
         assert_values_(e, (1, 2), 1, 2)
         assert_us_(e, u'1x2', u'1', u'2')
 
-        e = s.create_element()
+        e = s()
         e.u = "1x2"
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
     def test_repr(self):
         s = self.Double.named('s')
-        e = s.create_element()
+        e = s()
         assert repr(e)
 
         e.set((1, 2))
@@ -309,20 +311,20 @@ class TestDoubleField(object):
 def test_repr_always_safe():
     # use the abstract class to emulate a subclass with broken compose.
     broken_impl = Compound.of(String.named('y'))
-    e = broken_impl.create_element()
+    e = broken_impl()
     assert repr(e)
 
 
 @raises(NotImplementedError)
 def test_explode_abstract():
-    schema =  Compound.of(String.named('y'))
+    schema = Compound.of(String.named('y'))
     el = schema()
     el.set('x')
 
 
 @raises(NotImplementedError)
 def test_compose_abstract():
-    schema =  Compound.of(String.named('y'))
+    schema = Compound.of(String.named('y'))
     el = schema()
     el.value
 
@@ -331,7 +333,7 @@ def test_compose_abstract():
 def test_compose_abstract_fixme():
     # really it'd be nice if serialize simply wasn't inherited. would
     # have to rejigger the hierarchy, not sure its worth it.
-    schema =  Compound.of(String.named('y'))
+    schema = Compound.of(String.named('y'))
     el = schema()
     schema.serialize(el, 'abc')
 
@@ -354,7 +356,7 @@ def test_sample_compound():
 
     assert [field.name for field in s.field_schema] == ['year', 'month', 'day']
 
-    e = s.create_element()
+    e = s()
     assert e.value is None
     assert e['year'].value is None
     assert e.el('year').value is None
@@ -372,14 +374,14 @@ def test_sample_compound():
     assert e.el('day').value == 5
     assert e.u == u'2000-10-05'
 
-    e = s.create_element()
+    e = s()
     e.set(None)
     assert e.value is None
     assert e.u == u''
     assert e['year'].value is None
     assert e.el('year').value is None
 
-    e = s.create_element()
+    e = s()
     e.set('snaggle')
     assert e.value is None
     assert e.u == u''
@@ -388,6 +390,7 @@ def test_sample_compound():
 
 
 def test_compound_optional():
+
     class RequiredForm(Form):
         s = DateYYYYMMDD.using(optional=False)
 
