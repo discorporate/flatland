@@ -1,14 +1,13 @@
 """Base functionality for fancy validation."""
-import __builtin__
-import operator
+from operator import attrgetter
 
-from flatland.util import adict, Unspecified
 from flatland.schema.util import find_i18n_function
 
 
 N_ = lambda translatable: translatable
-_ugettext_finder = operator.attrgetter('ugettext')
-_ungettext_finder = operator.attrgetter('ungettext')
+_ugettext_finder = attrgetter('ugettext')
+_ungettext_finder = attrgetter('ungettext')
+
 
 class Validator(object):
     """Base class for fancy validators."""
@@ -314,5 +313,3 @@ class as_format_mapping(object):
         for target in self.targets:
             keys |= set(dir(target))
         return iter(keys)
-
-
