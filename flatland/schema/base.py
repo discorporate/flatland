@@ -245,7 +245,6 @@ class Element(_BaseElement):
 
           element = cls(**kw)
           element.set_flat(pairs)
-          return element
 
         """
         element = cls(**kw)
@@ -271,7 +270,6 @@ class Element(_BaseElement):
 
           element = cls()
           element.set(value)
-          return element
 
         """
         return cls(value, **kw)
@@ -294,7 +292,6 @@ class Element(_BaseElement):
 
           element = cls(**kw)
           element.set_default()
-          return element
 
         """
         element = cls(**kw)
