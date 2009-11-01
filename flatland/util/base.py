@@ -339,6 +339,9 @@ def autodocument_from_superclasses(cls):
     for name, attribute in cls.__dict__.items():
         # is it a method on the class that is locally undocumented?
         if hasattr(attribute, '__call__') and not attribute.__doc__:
+            # don't muck with builtins
+            if not hasattr(attribute, '__module__'):
+                continue
             # find docs on a superclass
             for supercls in cls.__bases__:
                 try:
