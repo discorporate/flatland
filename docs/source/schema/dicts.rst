@@ -52,5 +52,5 @@ Configurable Attributes
   :inherited-members:
   :exclude-members: fromkeys, field_schema, policy, from_object,
      named, of, using,
-     from_defaults, from_flat, from_value
+     from_defaults, from_flat
 
