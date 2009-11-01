@@ -35,9 +35,6 @@ Factory Methods
 .. automethod:: Element.from_flat
    :noindex:
 
-.. automethod:: Element.from_value
-   :noindex:
-
 Configurable Attributes
 -----------------------
 
@@ -55,4 +52,4 @@ Configurable Attributes
   :inherited-members:
   :exclude-members: child_type,
      named, using,
-     from_defaults, from_flat, from_value
+     from_defaults, from_flat

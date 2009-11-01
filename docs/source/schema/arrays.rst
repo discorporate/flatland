@@ -20,8 +20,6 @@ Factory Methods
 
 .. automethod:: Array.from_flat
 
-.. automethod:: Array.from_value
-
 Configurable Attributes
 -----------------------
 
@@ -39,7 +37,7 @@ Configurable Attributes
   :members:
   :inherited-members:
   :exclude-members: child_schema, prune_empty,
-     from_defaults, from_flat, from_value
+     from_defaults, from_flat
 
 ``MultiValue``
 --------------

@@ -252,29 +252,6 @@ class Element(_BaseElement):
         return element
 
     @classmethod
-    def from_value(cls, value, **kw):
-        """Return a new element with its value initialized from *value*.
-
-        :param \*\*kw: passed through to the :attr:`element_type`.
-
-        .. testsetup::
-
-          import flatland
-          cls = flatland.String
-          kw = {}
-          value = u''
-
-        This is a convenience constructor for:
-
-        .. testcode::
-
-          element = cls()
-          element.set(value)
-
-        """
-        return cls(value, **kw)
-
-    @classmethod
     def from_defaults(cls, **kw):
         """Return a new element with its value initialized from field defaults.
 

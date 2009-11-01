@@ -174,7 +174,7 @@ def test_mixed_all_children():
                     List.named('A3B3Cx').of(
                         String.named('A3B3x'))))))
 
-    top = schema.from_value(data)
+    top = schema(data)
 
     names = list(e.name for e in top.all_children)
 
