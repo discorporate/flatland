@@ -371,6 +371,7 @@ class Constrained(Scalar):
     """
 
     child_type = String
+    """TODO: doc"""
 
     def __init__(self, value=Unspecified, **kw):
         Scalar.__init__(self, **kw)
@@ -399,23 +400,31 @@ class Constrained(Scalar):
 
 
 class Enum(Constrained):
-    """A scalar type with a limited set of valid values.
+    """A scalar type with a limited set of allowed values.
 
-    :param name: field name
-
-    :param \*values: valid element values.
-
-    :param valid_values: optional, a sequence or other containment-supporting
-      collection of valid values.
-
-    :param child_type: defaults to :class:`String`.  Any scalar
-      :class:`~flatland.schema.FieldSchema` class for elements of this Enum.
+    By default values are :class:`strings<String>`, but can be of any type you
+    like by customizing :attr:`~Constrained.child_type`.
 
     """
 
-    # TODO: better DSL here.. maybe Enum.over('value', 'value2') ?
+    @class_cloner
+    def valued(cls, *enum_values):
+        """Return a class with ``valid_values`` = *enum_values*
+
+        :param \*enum_values: zero or more values for :attr:`valid_values`.
+        :returns: a new class
+
+        """
+        cls.valid_values = enum_values
+        return cls
 
     valid_values = ()
+    """Valid element values.
+
+    Attempting to :meth:`set` a value not present in *valid_values* will cause
+    an adaptation failure, and :attr:`value` will be ``None``.
+
+    """
 
     def __init__(self, value=Unspecified, **kw):
         Constrained.__init__(self, **kw)
@@ -423,14 +432,8 @@ class Enum(Constrained):
             self.set(value)
 
     def valid_value(self, element, value):
-        """True if *value* is within the enumerated values.
-
-        Checks for membership in ``element.valid_values``, if available,
-        otherwise falls back to the schema's ``valid_values``.
-
-        """
-        valid_values = getattr(element, 'valid_values', self.valid_values)
-        return value in valid_values
+        """True if *value* is within :attr:`valid_values`."""
+        return value in self.valid_values
 
 
 class Temporal(Scalar):
