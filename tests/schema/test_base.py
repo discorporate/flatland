@@ -67,6 +67,8 @@ def test_instance_defaults():
     eq_(el.label, None)
     eq_(el.optional, False)
     eq_(el.default, None)
+    eq_(el.default_factory, None)
+    eq_(el.default_value, None)
     eq_(el.validators, ())
     eq_(el.valid, Unevaluated)
     eq_(el.errors, [])
@@ -178,3 +180,21 @@ def test_validator_return():
     for validator in [no]:
         el = Validatable(validators=(validator,))
         assert_raises(TypeError, el.validate)
+
+
+def test_default_value():
+    el = Element()
+    assert el.default_value is None
+
+    el = Element(default='abc')
+    assert el.default_value == 'abc'
+
+    el = Element(default_factory=lambda x: 'def')
+    assert el.default_value == 'def'
+
+    el = Element(default='ghi', default_factory=lambda x: 'jkl')
+    assert el.default_value == 'jkl'
+
+    # a default_factory may reference el.default
+    el = Element(default='mno', default_factory=lambda x: x.default)
+    assert el.default_value == 'mno'

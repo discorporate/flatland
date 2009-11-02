@@ -124,8 +124,8 @@ class Scalar(Element):
                 break
 
     def set_default(self):
-        default = self.default
-        if self.default is not Unspecified:
+        default = self.default_value
+        if default is not Unspecified:
             self.set(default)
 
     def __nonzero__(self):
