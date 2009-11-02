@@ -79,6 +79,5 @@ deferred_module.shadow('flatland',
                                     ),
                          'signals': (),
                          'util': ('Unspecified', 'class_cloner',),
-                         'valid': (),
+                         'validation': (),
                          })
-
