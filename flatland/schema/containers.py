@@ -651,11 +651,167 @@ class MultiValue(Array, Scalar):
         return len(self)
 
 
-class Mapping(Container):
+class Mapping(Container, dict):
     """Base of mapping-like Containers."""
 
     field_schema = ()
     """TODO: doc field_schema"""
+
+    def __init__(self, value=Unspecified, **kw):
+        Container.__init__(self, **kw)
+        if not self.field_schema:
+            raise TypeError("%r dictionary type has no fields defined" % (
+                type(self).__name__))
+        self._reset()
+        if value is not Unspecified:
+            self.set(value)
+
+    def __setitem__(self, key, value):
+        if not key in self:
+            raise TypeError(u'May not set unknown key "%s" on %s "%s"' %
+                           (key, type(self).__name__, self.name))
+        self[key].set(value)
+
+    def __delitem__(self, key):
+        # this may be overly pedantic
+        if key not in self:
+            raise KeyError(key)
+        raise TypeError('%s keys are immutable.' % type(self).__name__)
+
+    def clear(self):
+        raise TypeError('%s keys are immutable.' % type(self).__name__)
+
+    def _reset(self):
+        """Place blank children in all fields."""
+        for member_schema in self.field_schema:
+            key = member_schema.name
+            dict.__setitem__(
+                self, key, member_schema(parent=self))
+
+    def popitem(self):
+        raise TypeError('%s keys are immutable.' % type(self).__name__)
+
+    def pop(self, key):
+        if key not in self:
+            raise KeyError(key)
+        raise TypeError('%s keys are immutable.' % type(self).__name__)
+
+    def update(self, *dictish, **kwargs):
+        """Update with keys from dict-like *\*dictish* and *\*\*kwargs*"""
+        if len(dictish) > 1:
+            raise TypeError(
+                "update expected at most 1 arguments, got %s" % len(dictish))
+        elif dictish:
+            for key, value in to_pairs(dictish[0]):
+                self[key] = value
+        for key, value in kwargs.iteritems():
+            self[key] = value
+
+    def setdefault(self, key, default=None):
+        # The key will always either be present or not creatable.
+        raise TypeError('%s keys are immutable.' % type(self).__name__)
+
+    def get(self, key, default=None):
+        if key not in self:
+            raise KeyError(
+                'immutable %s %s schema does not contain key %r.' % (
+                    type(self).__name__, self.name, key))
+        # default will never be used.
+        return self[key]
+
+    @property
+    def children(self):
+        # order not guaranteed
+        return self.itervalues()
+
+    def set(self, value):
+        """TODO: doc set()"""
+        pairs = to_pairs(value)
+        self._reset()
+
+        seen = set()
+        for key, value in pairs:
+            if key not in self:
+                raise KeyError(
+                    '%s %r schema does not allow key %r' % (
+                        type(self).__name__, self.name, key))
+            self[key].set(value)
+            seen.add(key)
+        required = set(self.iterkeys())
+        if seen != required:
+            missing = required - seen
+            raise TypeError(
+                'all keys required for a set() operation, missing %s.' % (
+                    ','.join(repr(key) for key in missing)))
+        return True
+
+    def _set_flat(self, pairs, sep):
+        if self.name is None:
+            possibles = pairs  # accept all
+        else:
+            possibles = []
+            prefix = self.name + sep
+            plen = len(prefix)
+            for key, value in pairs:
+                if key == prefix:
+                    # No flat representation of dicts, ignore.
+                    pass
+                if key.startswith(prefix):
+                    # accept child element
+                    possibles.append((key[plen:], value))
+
+        if not possibles:
+            return
+
+        # FIXME: pivot on length of pairs: top loop either fields or pairs
+        # FIXME2: wtf does that mean
+
+        for field in self:
+            accum = []
+            for key, value in possibles:
+                if key.startswith(field):
+                    accum.append((key, value))
+            if accum:
+                self[field].set_flat(accum, sep)
+
+    def set_default(self):
+        default = self.default
+        if default is not None and default is not Unspecified:
+            self.set(default)
+        else:
+            for child in self.children:
+                child.set_default()
+
+    def _index(self, name):
+        return self[name]
+
+    @property
+    def u(self):
+        """A string repr of the element."""
+        pairs = ((key, value.u if isinstance(value, Container)
+                               else repr(value.u))
+                  for key, value in self.iteritems())
+        return u'{%s}' % ', '.join("%r: %s" % (k, v) for k, v in pairs)
+
+    @property
+    def value(self):
+        """The element as a regular Python dictionary."""
+        return dict((key, value.value) for key, value in self.iteritems())
+
+    @property
+    def is_empty(self):
+        """Mappings are never empty."""
+        return False
+
+
+class Dict(Mapping, dict):
+    """A mapping Container with named members."""
+
+    policy = 'subset'
+    """TODO: doc policy = subset
+
+    See :ref:`set_policy`
+    """
 
     @class_cloner
     def of(cls, *fields):
@@ -709,6 +865,37 @@ class Mapping(Container):
         self = cls(**kw)
         self.set_by_object(obj=obj, include=include, omit=omit, rename=rename)
         return self
+
+    def set(self, value, policy=None):
+        """TODO: doc set()"""
+        pairs = to_pairs(value)
+        self._reset()
+
+        if policy is not None:
+            assert policy in ('strict', 'subset', 'duck')
+        else:
+            policy = self.policy
+
+        seen = set()
+        for key, value in pairs:
+            if key not in self:
+                if policy != 'duck':
+                    raise KeyError(
+                        'Dict "%s" schema does not allow key "%r"' % (
+                            self.name, key))
+                continue
+            self[key].set(value)
+            seen.add(key)
+
+        if policy == 'strict':
+            required = set(self.iterkeys())
+            if seen != required:
+                missing = required - seen
+                raise TypeError(
+                    'strict-mode Dict requires all keys for '
+                    'a set() operation, missing %s.' % (
+                        ','.join(repr(key) for key in missing)))
+        return True
 
     def set_by_object(self, obj, include=None, omit=None, rename=None):
         """Set fields with an object's attributes.
@@ -788,172 +975,6 @@ class Mapping(Container):
                      if key in fields)
         self.set(final)
 
-
-
-
-class Dict(Mapping, dict):
-    """A mapping Container with named members."""
-
-    policy = 'subset'
-    """TODO: doc policy = subset
-
-    See :ref:`set_policy`
-    """
-
-    def __init__(self, value=Unspecified, **kw):
-        Container.__init__(self, **kw)
-        if not self.field_schema:
-            raise TypeError("%r dictionary type has no fields defined" % (
-                type(self).__name__))
-        self._reset()
-        if value is not Unspecified:
-            self.set(value)
-
-    def __setitem__(self, key, value):
-        if not key in self:
-            raise TypeError(u'May not set unknown key "%s" on Dict "%s"' %
-                           (key, self.name))
-        self[key].set(value)
-
-    def __delitem__(self, key):
-        # this may be overly pedantic
-        if key not in self:
-            raise KeyError(key)
-        raise TypeError('Dict keys are immutable.')
-
-    def clear(self):
-        raise TypeError('Dict keys are immutable.')
-
-    def _reset(self):
-        """Set all child elements to their defaults."""
-        for member_schema in self.field_schema:
-            key = member_schema.name
-            dict.__setitem__(
-                self, key, member_schema(parent=self))
-
-    def popitem(self):
-        raise TypeError('Dict keys are immutable.')
-
-    def pop(self, key):
-        if key not in self:
-            raise KeyError(key)
-        raise TypeError('Dict keys are immutable.')
-
-    def update(self, dictish=None, **kwargs):
-        """TODO"""
-        if dictish is not None:
-            for key, value in to_pairs(dictish):
-                self[key] = value
-        for key, value in kwargs.iteritems():
-            self[key] = value
-
-    def setdefault(self, key, default=None):
-        # The key will always either be present or not creatable.
-        raise TypeError('Dict keys are immutable.')
-
-    def get(self, key, default=None):
-        if key not in self:
-            raise KeyError(u'Immutable Dict "%s" schema does not contain '
-                           u'key "%s".' % (self.name, key))
-        # default will never be used.
-        return self[key]
-
-    @property
-    def children(self):
-        return self.itervalues()
-
-    def set(self, value, policy=None):
-        """TODO: doc set()"""
-        pairs = to_pairs(value)
-        self._reset()
-
-        if policy is not None:
-            assert policy in ('strict', 'subset', 'duck')
-        else:
-            policy = self.policy
-
-        # not really convinced yet that these modes are required
-        # only testing 'subset' policy
-
-        seen = set()
-        for key, value in pairs:
-            if key not in self:
-                if policy != 'duck':
-                    raise KeyError(
-                        'Dict "%s" schema does not allow key "%r"' % (
-                            self.name, key))
-                continue
-            self[key].set(value)
-            seen.add(key)
-
-        if policy == 'strict':
-            required = set(self.iterkeys())
-            if seen != required:
-                missing = required - seen
-                raise TypeError(
-                    'strict-mode Dict requires all keys for '
-                    'a set() operation, missing %s.' % (
-                        ','.join(repr(key) for key in missing)))
-        return True
-
-    def _set_flat(self, pairs, sep):
-        if self.name is None:
-            possibles = pairs  # accept all
-        else:
-            possibles = []
-            prefix = self.name + sep
-            plen = len(prefix)
-            for key, value in pairs:
-                if key == prefix:
-                    # No flat representation of dicts, ignore.
-                    pass
-                if key.startswith(prefix):
-                    # accept child element
-                    possibles.append((key[plen:], value))
-
-        if not possibles:
-            return
-
-        # FIXME: pivot on length of pairs: top loop either fields or pairs
-        # FIXME2: wtf does that mean
-
-        for field in self:
-            accum = []
-            for key, value in possibles:
-                if key.startswith(field):
-                    accum.append((key, value))
-            if accum:
-                self[field].set_flat(accum, sep)
-
-    def set_default(self):
-        default = self.default
-        if default is not None and default is not Unspecified:
-            self.set(default)
-        else:
-            for child in self.children:
-                child.set_default()
-
-    def _index(self, name):
-        return self[name]
-
-    @property
-    def u(self):
-        """A string repr of the element."""
-        pairs = ((key, value.u if isinstance(value, Container)
-                               else repr(value.u))
-                  for key, value in self.iteritems())
-        return u'{%s}' % ', '.join("%r: %s" % (k, v) for k, v in pairs)
-
-    @property
-    def value(self):
-        """The element as a regular Python dictionary."""
-        return dict((key, value.value) for key, value in self.iteritems())
-
-    @property
-    def is_empty(self):
-        """Mappings are never empty."""
-        return False
-
     def update_object(self, obj, include=None, omit=None, rename=None,
                       key=str):
         """Update an object's attributes using the element's values.
@@ -970,7 +991,7 @@ class Dict(Mapping, dict):
             setattr(obj, attribute, value)
 
     def slice(self, include=None, omit=None, rename=None, key=None):
-        """Return a new dict containing a subset of the element's values."""
+        """Return a ``dict`` containing a subset of the element's values."""
         return dict(
             keyslice_pairs(
                 ((key, element.value) for key, element in self.iteritems()),
