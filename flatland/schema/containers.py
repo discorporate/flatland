@@ -215,7 +215,7 @@ class Sequence(Container, list):
             return converted
 
     def set_default(self):
-        default = self.default
+        default = self.default_value
         if default is not None and default is not Unspecified:
             del self[:]
             self.extend(default)
@@ -560,7 +560,7 @@ class List(Sequence):
           it.
 
         """
-        default = self.default
+        default = self.default_value
         if default is None or default is Unspecified:
             return
 
@@ -775,7 +775,7 @@ class Mapping(Container, dict):
                 self[field].set_flat(accum, sep)
 
     def set_default(self):
-        default = self.default
+        default = self.default_value
         if default is not None and default is not Unspecified:
             self.set(default)
         else:

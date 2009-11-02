@@ -78,6 +78,9 @@ class Element(_BaseElement):
     See `Validation`_
     """
 
+    default = None
+    """The default value of this element."""
+
     default_factory = None
     """A callable to generate default element values.  Passed an element.
 
@@ -292,20 +295,6 @@ class Element(_BaseElement):
 
         """
         return cls.name if self is None else self.name
-
-    # TODO: assignable_class_property, return None for class?
-    @assignable_property
-    def default(self):
-        """The default value of this element.
-
-        If unset, the default will be derived from the
-        :attr:`~flatland.schema.base.Element.default_factory`.
-
-        """
-        if self.default_factory is not None:
-            return self.default_factory(self)
-        else:
-            return None
 
     def _get_all_valid(self):
         """True if this element and all children are valid."""
@@ -730,6 +719,25 @@ class Element(_BaseElement):
                 validators = getattr(self, self.validates_up, None)
                 return validate_element(self, state, validators)
         return Unevaluated
+
+    @property
+    def default_value(self):
+        """A calculated "default" value.
+
+        If :attr:`default_factory` is present, it will be called with the
+        element as a single positional argument.  The result of the call will
+        be returned.
+
+        Otherwise, returns :attr:`default`.
+
+        When comparing an element's :attr:`value` to its default value, use
+        this property in the comparison.
+
+        """
+        if self.default_factory is not None:
+            return self.default_factory(self)
+        else:
+            return self.default
 
     @property
     def x(self):
