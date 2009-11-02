@@ -2,7 +2,7 @@ from flatland import (
     Dict,
     String,
     )
-from flatland.valid import (
+from flatland.validation import (
     Converted,
     NoLongerThan,
     )

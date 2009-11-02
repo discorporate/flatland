@@ -1,13 +1,13 @@
 import re
 
 from flatland import String
-from flatland.valid import (
+from flatland.validation import (
     IsEmail,
     HTTPURLValidator,
     URLCanonicalizer,
     URLValidator,
     )
-from flatland.valid.network import _url_parts
+from flatland.validation.network import _url_parts
 from tests._util import eq_
 
 

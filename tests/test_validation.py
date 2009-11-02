@@ -3,7 +3,7 @@ from flatland import (
     Form,
     Integer,
     )
-from flatland.valid import (
+from flatland.validation import (
     Converted,
     Present,
     Validator,
