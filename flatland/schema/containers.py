@@ -700,11 +700,37 @@ class Mapping(Container):
 
         *include* and *omit* are mutually exclusive.
 
-        Creates and initializes an element, using as many attributes as
-        possible from *obj*.  Object attributes that do not correspond to
-        field names are ignored.
+        This is a convenience constructor for :meth:`set_by_object`::
 
-        Elements instances have two corresponding methods useful for
+          element = cls(**kw)
+          element.set_by_object(obj, include, omit, rename)
+
+        """
+        self = cls(**kw)
+        self.set_by_object(obj=obj, include=include, omit=omit, rename=rename)
+        return self
+
+    def set_by_object(self, obj, include=None, omit=None, rename=None):
+        """Set fields with an object's attributes.
+
+        :param obj: any object
+        :param include: optional, an iterable of attribute names to pull from
+            *obj*, if present on the object.  Only these attributes will be
+            included.
+        :param omit: optional, an iterable of attribute names to ignore on
+            **obj**.  All other attributes matching a named field on the Form
+            will be included.
+        :param rename: optional, a mapping of attribute-to-field name
+            transformations.  Attributes specified in the mapping will be
+            included regardless of *include* or *omit*.
+
+        *include* and *omit* are mutually exclusive.
+
+        Sets fields on *self*, using as many attributes as possible from
+        *obj*.  Object attributes that do not correspond to field names are
+        ignored.
+
+        Mapping instances have two corresponding methods useful for
         round-tripping values in and out of your domain objects.
 
         .. testsetup::
@@ -721,20 +747,26 @@ class Mapping(Container):
                   self.login = login
                   self.password = password
 
-          user = User('squiznart')
-
-        :meth:`update_object` performs the inverse of :meth:`from_object`, and
+        :meth:`update_object` performs the inverse of :meth:`set_object`, and
         :meth:`slice` is useful for constructing new objects.
 
         .. doctest::
 
-          >>> form = UserForm.from_object(user)
+          >>> user = User('biff', 'secret')
+          >>> form = UserForm()
+          >>> form.set_by_object(user)
+          >>> form['login'].value
+          u'biff'
+          >>> form['password'] = u'new-password'
           >>> form.update_object(user, omit=['verify_password'])
-          >>> new_user = User(**form.slice(omit=['verify_password'], key=str))
+          >>> user.password
+          u'new-password'
+          >>> user_keywords = form.slice(omit=['verify_password'], key=str)
+          >>> sorted(user_keywords.keys())
+          ['login', 'password']
+          >>> new_user = User(**user_keywords)
 
         """
-        self = cls(**kw)
-
         fields = set(self.iterkeys())
         attributes = fields.copy()
         if rename:
@@ -755,7 +787,8 @@ class Mapping(Container):
                      for key, value in sliced
                      if key in fields)
         self.set(final)
-        return self
+
+
 
 
 class Dict(Mapping, dict):
