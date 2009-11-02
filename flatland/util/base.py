@@ -45,7 +45,8 @@ class assignable_property(object):
 
     def __get__(self, instance, cls):
         if instance is None:
-            return self
+            # Class.prop == None
+            return None
         if self.name in instance.__dict__:
             return instance.__dict__[self.name]
         else:
