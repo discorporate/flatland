@@ -93,11 +93,11 @@ class Sequence(Container, list):
     """Abstract base of sequence-like Containers.
 
     Instances of :class:`Sequence` hold other elements and operate like Python
-    lists.  Each sequence member will be an instance of :attr:`child_schema`.
+    lists.  Each sequence member will be an instance of :attr:`member_schema`.
 
     Python list methods and operators may be passed instances of
-    :attr:`child_schema` or plain Python values.  Using plain values is a
-    shorthand for creating an :attr:`child_schema` instance and
+    :attr:`member_schema` or plain Python values.  Using plain values is a
+    shorthand for creating an :attr:`member_schema` instance and
     :meth:`set()ting<flatland.schema.base.Element.set>` it with the value:
 
     .. doctest::
@@ -117,7 +117,7 @@ class Sequence(Container, list):
 
     """
 
-    child_schema = None
+    member_schema = None
     """An :class:`~flatland.schema.base.Element` class for sequence members."""
 
     prune_empty = True
@@ -129,8 +129,8 @@ class Sequence(Container, list):
 
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, value, **kw)
-        if not self.child_schema:
-            raise TypeError("Invalid schema: %r has no child_schema" %
+        if not self.member_schema:
+            raise TypeError("Invalid schema: %r has no member_schema" %
                             type(self))
 
     @class_cloner
@@ -140,14 +140,14 @@ class Sequence(Container, list):
         :params \*schema: one or more :class:`flatland.Element` classes
         :returns: *cls*
 
-        Configures the :attr:`child_schema` of *cls* to hold instances of
+        Configures the :attr:`member_schema` of *cls* to hold instances of
         *\*schema*.
 
         .. doctest::
 
           >>> from flatland import Array, String
           >>> Names = Array.of(String.named('name'))
-          >>> Names.child_schema
+          >>> Names.member_schema
           <class 'flatland.schema.scalars.String'>
           >>> el = Names(['Bob', 'Biff'])
           >>> el
@@ -160,7 +160,7 @@ class Sequence(Container, list):
 
           >>> from flatland import Integer
           >>> Points = Array.of(Integer.named('x'), Integer.named('y'))
-          >>> Points.child_schema
+          >>> Points.member_schema
           <class 'flatland.schema.containers.Dict'>
           >>> el = Points([dict(x=1, y=2)])
           >>> el
@@ -174,9 +174,9 @@ class Sequence(Container, list):
         if not schema:
             raise TypeError("One or more Element classes is required")
         elif len(schema) == 1:
-            cls.child_schema = schema[0]
+            cls.member_schema = schema[0]
         else:
-            cls.child_schema = Dict.of(*schema)
+            cls.member_schema = Dict.of(*schema)
         return cls
 
     def set(self, iterable):
@@ -205,7 +205,7 @@ class Sequence(Container, list):
         values, converted = [], True
         try:
             for v in iterable:
-                el = self.child_schema()
+                el = self.member_schema()
                 converted &= el.set(v)
                 values.append(el)
             self.extend(values)
@@ -241,19 +241,19 @@ class Sequence(Container, list):
     def append(self, value):
         """Append *value* to end.
 
-        If *value* is not an instance of :attr:`child_schema`, it will be
+        If *value* is not an instance of :attr:`member_schema`, it will be
         wrapped in a new element of that type before appending.
 
         """
         if not isinstance(value, Element):
-            value = self.child_schema(value=value)
+            value = self.member_schema(value=value)
         value.parent = self
         list.append(self, value)
 
     def extend(self, iterable):
         """Append *iterable* values to the end.
 
-        If values of *iterable* are not instances of :attr:`child_schema`,
+        If values of *iterable* are not instances of :attr:`member_schema`,
         they will be wrapped in a new element of that type before extending.
 
         """
@@ -263,12 +263,12 @@ class Sequence(Container, list):
     def insert(self, index, value):
         """Insert *value* at *index*.
 
-        If *value* is not an instance of :attr:`child_schema`, it will be
+        If *value* is not an instance of :attr:`member_schema`, it will be
         wrapped in a new element of that type before inserting.
 
         """
         if not isinstance(value, Element):
-            value = self.child_schema(value=value)
+            value = self.member_schema(value=value)
         value.parent = self
         list.insert(self, index, value)
 
@@ -277,13 +277,13 @@ class Sequence(Container, list):
             as_elements = []
             for item in value:
                 if not isinstance(item, Element):
-                    item = self.child_schema(value=item)
+                    item = self.member_schema(value=item)
                 item.parent = self
                 as_elements.append(item)
             value = as_elements
         else:
             if not isinstance(value, Element):
-                value = self.child_schema(value=value)
+                value = self.member_schema(value=value)
                 value.parent = self
         list.__setitem__(self, index, value)
 
@@ -293,49 +293,49 @@ class Sequence(Container, list):
     def remove(self, value):
         """Remove member with value *value*.
 
-        If *value* is not an instance of :attr:`child_schema`, it will be
+        If *value* is not an instance of :attr:`member_schema`, it will be
         wrapped in a new element of that type before searching for a matching
         element to remove.
 
         """
         if not isinstance(value, Element):
-            value = self.child_schema(value=value)
+            value = self.member_schema(value=value)
         list.remove(self, value)
 
     def index(self, value):
         """Return first index of *value*.
 
-        If *value* is not an instance of :attr:`child_schema`, it will be
+        If *value* is not an instance of :attr:`member_schema`, it will be
         wrapped in a new element of that type before searching for a matching
         element in the sequence.
 
         """
         if not isinstance(value, Element):
-            value = self.child_schema(value=value)
+            value = self.member_schema(value=value)
         return list.index(self, value)
 
     def count(self, value):
         """Return number of occurrences of *value*.
 
-        If *value* is not an instance of :attr:`child_schema`, it will be
+        If *value* is not an instance of :attr:`member_schema`, it will be
         wrapped in a new element of that type before searching for matching
         elements in the sequence.
 
         """
         if not isinstance(value, Element):
-            value = self.child_schema(value=value)
+            value = self.member_schema(value=value)
         return list.count(self, value)
 
     def __contains__(self, value):
         """Return True if sequence contains *value*.
 
-        If *value* is not an instance of :attr:`child_schema`, it will be
+        If *value* is not an instance of :attr:`member_schema`, it will be
         wrapped in a new element of that type before searching for a matching
         element in the sequence.
 
         """
         if not isinstance(value, Element):
-            value = self.child_schema(value=value)
+            value = self.member_schema(value=value)
         return list.__contains__(self, value)
 
     @property
@@ -388,7 +388,7 @@ class List(Sequence):
     slot_type = ListSlot
 
     # Default definition duplicated for sphinx documentation purposes
-    child_schema = ()
+    member_schema = ()
     """An :class:`~flatland.schema.base.Element` class for member elements.
 
     See also the :meth:`~Sequence.of` schema configuration method.
@@ -409,11 +409,11 @@ class List(Sequence):
     def _as_element(self, value):
         """TODO"""
         if value is Unspecified:
-            return self.child_schema()
+            return self.member_schema()
         if isinstance(value, Element):
             return value
         else:
-            return self.child_schema(value)
+            return self.member_schema(value)
 
     def _new_slot(self, value=Unspecified):
         """Wrap *value* in a Slot named as the element's index in the list."""
@@ -590,7 +590,7 @@ class Array(Sequence):
         Sequence.__init__(self, value=value, **kw)
         # FIXME: is this true?
         if self.name is None:
-            self.name = self.child_schema.name
+            self.name = self.member_schema.name
 
     #######################################################################
 
@@ -826,10 +826,10 @@ class Dict(Mapping, dict):
 
     def _reset(self):
         """Set all child elements to their defaults."""
-        for child_schema in self.field_schema:
-            key = child_schema.name
+        for member_schema in self.field_schema:
+            key = member_schema.name
             dict.__setitem__(
-                self, key, child_schema(parent=self))
+                self, key, member_schema(parent=self))
 
     def popitem(self):
         raise TypeError('Dict keys are immutable.')

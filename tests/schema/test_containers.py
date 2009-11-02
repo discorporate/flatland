@@ -16,11 +16,11 @@ def test_dsl_of():
     assert_raises(TypeError, Sequence.of)
 
     t1 = Sequence.of(Integer)
-    assert t1.child_schema is Integer
+    assert t1.member_schema is Integer
 
     t2 = Sequence.of(Integer.named('x'), Integer.named('y'))
-    assert issubclass(t2.child_schema, Dict)
-    assert sorted(t2.child_schema().keys()) == [u'x', u'y']
+    assert issubclass(t2.member_schema, Dict)
+    assert sorted(t2.member_schema().keys()) == [u'x', u'y']
 
 
 def test_simple_validation_shortcircuit():
@@ -147,7 +147,7 @@ class TestContainerValidation(object):
 
 def test_sequence():
     schema = Sequence.named('s')
-    assert hasattr(schema, 'child_schema')
+    assert hasattr(schema, 'member_schema')
 
 
 def test_mixed_all_children():

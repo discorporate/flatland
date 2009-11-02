@@ -23,7 +23,7 @@ Factory Methods
 Configurable Attributes
 -----------------------
 
-.. autoattribute:: Sequence.child_schema
+.. autoattribute:: Sequence.member_schema
   :noindex:
 
 .. autoattribute:: Sequence.prune_empty
@@ -36,7 +36,7 @@ Configurable Attributes
   :show-inheritance:
   :members:
   :inherited-members:
-  :exclude-members: child_schema, prune_empty,
+  :exclude-members: member_schema, prune_empty,
      from_defaults, from_flat
 
 ``MultiValue``
