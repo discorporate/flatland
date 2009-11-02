@@ -16,7 +16,7 @@ class NotDuplicated(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import NotDuplicated
+      from flatland.validation import NotDuplicated
 
       validator = NotDuplicated(failure="Please enter each color only once.")
       schema = List.of(String.named('favorite_color')).\
@@ -35,7 +35,7 @@ class NotDuplicated(Validator):
       .. testcode::
 
         from flatland import Form, List, String, Integer, Boolean
-        from flatland.valid import NotDuplicated
+        from flatland.validation import NotDuplicated
 
         def live_addrs(element, sibling):
             thisval, thatval = element.value, sibling.value
@@ -115,7 +115,7 @@ class HasAtLeast(Validator):
     .. testcode::
 
       from flatland import List, String
-      from flatland.valid import HasAtLeast
+      from flatland.validation import HasAtLeast
 
       schema = List.of(String.named('wish')).\
                     using(validators=[HasAtLeast(minimum=3)])
@@ -167,7 +167,7 @@ class HasAtMost(Validator):
     .. testcode::
 
       from flatland import List, String
-      from flatland.valid import HasAtMost
+      from flatland.validation import HasAtMost
 
       schema = List.of(String.named('wish')).\
                     using(validators=[HasAtMost(maximum=3)])
@@ -215,7 +215,7 @@ class HasBetween(Validator):
     .. testcode::
 
       from flatland import List, String
-      from flatland.valid import HasBetween
+      from flatland.validation import HasBetween
 
       schema = List.of(String.named('wish')).\
                     using(validators=[HasBetween(minimum=1, maximum=3)])
