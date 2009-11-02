@@ -143,7 +143,7 @@ class HasAtLeast(Validator):
                'minimum')
 
     def validate(self, element, state):
-        assert hasattr(element, 'child_schema'), (
+        assert hasattr(element, 'member_schema'), (
             'container-length validator is only applicable to sequence types.')
 
         # stupid edge case
@@ -151,7 +151,7 @@ class HasAtLeast(Validator):
             return True
 
         if element.value is None or len(element.value) < self.minimum:
-            child_label = element.child_schema.label
+            child_label = element.member_schema.label
             return self.note_error(element, state, 'failure',
                                    child_label=child_label)
         return True
@@ -195,11 +195,11 @@ class HasAtMost(Validator):
                'maximum')
 
     def validate(self, element, state):
-        assert hasattr(element, 'child_schema'), (
+        assert hasattr(element, 'member_schema'), (
             'container-length validator is only applicable to sequence types.')
 
         if element.value and len(element.value) > self.maximum:
-            child_label = element.child_schema.label
+            child_label = element.member_schema.label
             return self.note_error(element, state, 'failure',
                                    child_label=child_label)
         return True
@@ -271,7 +271,7 @@ class HasBetween(Validator):
                             (self.minimum, self.maximum))
 
     def validate(self, element, state):
-        assert hasattr(element, 'child_schema'), (
+        assert hasattr(element, 'member_schema'), (
             'container-length validator is only applicable to sequence types.')
 
         length = len(element.value) if element.value is not None else 0
@@ -279,6 +279,6 @@ class HasBetween(Validator):
             return True
 
         message = 'exact' if self.minimum == self.maximum else 'range'
-        child_label = element.child_schema.label
+        child_label = element.member_schema.label
         return self.note_error(element, state, message,
                                child_label=child_label)

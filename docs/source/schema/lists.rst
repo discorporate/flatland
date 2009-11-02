@@ -5,21 +5,21 @@ Lists
 .. currentmodule:: flatland.schema.containers
 
 Instances of :class:`List` hold other elements and operate like Python
-lists.  Lists are configured with a :attr:`~List.child_schema`, such
+lists.  Lists are configured with a :attr:`~List.member_schema`, such
 as an :class:`~flatland.schema.scalars.Integer`. Each list member will
 be an instance of that type.  The :meth:`List.of` schema constructor
-will set ``child_schema``:
+will set ``member_schema``:
 
 .. doctest::
 
   >>> from flatland import List, Integer
   >>> Numbers = List.of(Integer)
-  >>> Numbers.child_schema
+  >>> Numbers.member_schema
   <class 'flatland.schema.scalars.Integer'>
 
 Python list methods and operators may be passed instances of
-:attr:`~List.child_schema` or plain Python values.  Using plain values
-is a shorthand for creating a ``child_schema`` instance and
+:attr:`~List.member_schema` or plain Python values.  Using plain values
+is a shorthand for creating a ``member_schema`` instance and
 :meth:`set()ting<flatland.schema.base.Element.set>` it with the value:
 
 .. doctest::
@@ -82,7 +82,7 @@ Factory Methods
 Configurable Attributes
 -----------------------
 
-.. autoattribute:: Sequence.child_schema
+.. autoattribute:: Sequence.member_schema
   :noindex:
 
 .. autoattribute:: Sequence.prune_empty
@@ -97,7 +97,7 @@ Configurable Attributes
   :show-inheritance:
   :members:
   :inherited-members:
-  :exclude-members: child_schema, prune_empty,
+  :exclude-members: member_schema, prune_empty,
      slot_type, maximum_set_flat_members,
      from_defaults, from_flat
 
