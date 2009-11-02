@@ -3,7 +3,7 @@ import operator
 
 from flatland.exc import AdaptationError
 from flatland.util import Unspecified, threading
-from .containers import Dict
+from .containers import Mapping
 from .scalars import Date, Integer, Scalar
 
 
@@ -68,7 +68,7 @@ def _wrap_compound_init(fn):
     return classmethod(__compound_init__)
 
 
-class Compound(Dict, Scalar):
+class Compound(Mapping, Scalar):
     """A mapping container that acts like a scalar value.
 
     Compound fields are dictionary-like fields that can assemble a
@@ -170,7 +170,7 @@ class Compound(Dict, Scalar):
             return False
 
     def _set_flat(self, pairs, sep):
-        Dict._set_flat(self, pairs, sep)
+        Mapping._set_flat(self, pairs, sep)
 
     def __repr__(self):
         try:

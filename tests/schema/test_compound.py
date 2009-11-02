@@ -321,21 +321,21 @@ class TestDoubleField(object):
 
 def test_repr_always_safe():
     # use the abstract class to emulate a subclass with broken compose.
-    broken_impl = Compound.of(String.named('y'))
+    broken_impl = Compound.using(field_schema=[String.named('y')])
     e = broken_impl()
     assert repr(e)
 
 
 @raises(NotImplementedError)
 def test_explode_abstract():
-    schema = Compound.of(String.named('y'))
+    schema = Compound.using(field_schema=[String.named('y')])
     el = schema()
     el.set('x')
 
 
 @raises(NotImplementedError)
 def test_compose_abstract():
-    schema = Compound.of(String.named('y'))
+    schema = Compound.using(field_schema=[String.named('y')])
     el = schema()
     el.value
 
@@ -344,7 +344,7 @@ def test_compose_abstract():
 def test_compose_abstract_fixme():
     # really it'd be nice if serialize simply wasn't inherited. would
     # have to rejigger the hierarchy, not sure its worth it.
-    schema = Compound.of(String.named('y'))
+    schema = Compound.using(field_schema=[String.named('y')])
     el = schema()
     schema.serialize(el, 'abc')
 
