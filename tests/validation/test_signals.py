@@ -1,6 +1,6 @@
 from flatland import String, signals
 from flatland.schema.base import NotEmpty
-from flatland.valid import (
+from flatland.validation import (
     Converted,
     NoLongerThan,
     Present,

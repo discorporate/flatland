@@ -5,7 +5,7 @@ from flatland import (
     List,
     String,
     )
-from flatland.valid import (
+from flatland.validation import (
     HasAtLeast,
     HasAtMost,
     HasBetween,

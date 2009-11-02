@@ -2,7 +2,7 @@ import re
 
 from flatland import AdaptationError, Long
 from flatland.util import Unspecified
-from flatland.valid import (
+from flatland.validation import (
     Converted,
     Luhn10,
     Present,

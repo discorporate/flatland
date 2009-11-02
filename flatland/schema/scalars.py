@@ -3,7 +3,6 @@
 import datetime
 import re
 
-from flatland import valid
 from flatland.exc import AdaptationError
 from flatland.util import (
     Unspecified,
