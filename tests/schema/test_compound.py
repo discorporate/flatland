@@ -181,10 +181,12 @@ class TestDoubleField(object):
             def explode(self, value):
                 if value == 'boom':
                     raise AttributeError('boom')
+                if value == 'return-none':
+                    return
                 try:
                     x, y = value
                 except (TypeError, ValueError):
-                    return
+                    return False
                 self['x'].set(x)
                 self['y'].set(y)
                 return True
@@ -225,6 +227,12 @@ class TestDoubleField(object):
 
         e = schema()
         assert not e.set({})
+        assert_values_(e, None, None, None)
+        assert_us_(e, u'', u'', u'')
+
+        # return-none and boom should get moved to their own test
+        e = schema()
+        assert e.set('return-none')
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 

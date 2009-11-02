@@ -161,7 +161,10 @@ class Compound(Mapping, Scalar):
 
     def set(self, value):
         try:
-            return self.explode(value)
+            # TODO: historically explode() did not need to have a return value
+            # but it would be nice to return it form set() as below.
+            res = self.explode(value)
+            return True if res is None else res
         except (SystemExit, KeyboardInterrupt, NotImplementedError):
             raise
         except Exception:
