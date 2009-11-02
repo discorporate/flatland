@@ -92,9 +92,9 @@ Validation Signals
 
 The :obj:`flatland.signals.validator_validated` signal is emitted each time a
 validator evaluates an element.  The signal's sender is the validator (or the
-symbol :obj:`flatland.valid.NotEmpty` for the default validation strategy).
-The signal also sends the ``element``, the ``state``, and the ``result`` of
-the validation function.
+symbol :obj:`flatland.validation.NotEmpty` for the default validation
+strategy).  The signal also sends the ``element``, the ``state``, and the
+``result`` of the validation function.
 
 During development, it can be convenient to connect the
 :obj:`~flatland.signals.validator_validated` signal to a logging function to
@@ -369,16 +369,16 @@ To stop validation early with a failure, simply return False.
 Validator API
 -------------
 
-The :class:`~flatland.valid.Validator` class implements the validator callable
-interface and adds conveniences for messaging, internationalization, and
-customization.
+The :class:`~flatland.validation.Validator` class implements the validator
+callable interface and adds conveniences for messaging, internationalization,
+and customization.
 
 To use it, subclass ``Validator`` and implement
-:meth:`~flatland.valid.Validator.validate`.
+:meth:`~flatland.validation.Validator.validate`.
 
 .. testcode:: NoShouting
 
-  from flatland.valid import Validator
+  from flatland.validation import Validator
 
   class NoShouting(Validator):
       """Disallow ALL CAPS TEXT."""
@@ -397,9 +397,9 @@ To use it, subclass ``Validator`` and implement
 
 Above is a ``Validator`` version of the basic :ref:`custom validator
 <no_shouting>` example.  In this version, the
-:meth:`flatland.valid.Validator.note_error` method allows the messaging to be
-separated from the validation logic.  ``note_error`` has some useful features,
-including templating and automatic I18N translation.
+:meth:`flatland.validation.Validator.note_error` method allows the messaging
+to be separated from the validation logic.  ``note_error`` has some useful
+features, including templating and automatic I18N translation.
 
 
 Customizing Validators
@@ -461,7 +461,7 @@ used.  Otherwise the plural.
 
 .. testcode::
 
-  from flatland.valid import Validator
+  from flatland.validation import Validator
 
   class MinLength(Validator):
 
@@ -522,7 +522,7 @@ through :meth:`Validator.note_error` and :meth:`Validator.note_warning`:
 The Validator Class
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: flatland.valid.Validator
+.. autoclass:: flatland.validation.Validator
    :members:
 
 Included Validators
@@ -532,52 +532,52 @@ Included Validators
 Scalars
 ~~~~~~~
 
-.. automodule:: flatland.valid.scalars
+.. automodule:: flatland.validation.scalars
    :members:
 
 Containers
 ~~~~~~~~~~
 
-.. automodule:: flatland.valid.containers
+.. automodule:: flatland.validation.containers
    :members:
 
 Strings
 ~~~~~~~
 
-.. automodule:: flatland.valid.string
+.. automodule:: flatland.validation.string
    :members:
 
 Numbers
 ~~~~~~~
 
-.. automodule:: flatland.valid.number
+.. automodule:: flatland.validation.number
    :members:
 
 Email Addresses
 ~~~~~~~~~~~~~~~
 
 
-.. autoclass:: flatland.valid.IsEmail
+.. autoclass:: flatland.validation.IsEmail
    :show-inheritance:
 
 URLs
 ~~~~
 
-.. autoclass:: flatland.valid.URLValidator
+.. autoclass:: flatland.validation.URLValidator
    :members: __init__
    :show-inheritance:
 
    **Methods**
 
 
-.. autoclass:: flatland.valid.HTTPURLValidator
+.. autoclass:: flatland.validation.HTTPURLValidator
    :members: __init__, all_parts
    :show-inheritance:
 
    **Methods**
 
 
-.. autoclass:: flatland.valid.URLCanonicalizer
+.. autoclass:: flatland.validation.URLCanonicalizer
    :members: __init__
    :show-inheritance:
 

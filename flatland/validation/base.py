@@ -80,7 +80,7 @@ class Validator(object):
 
         .. testcode::
 
-          from flatland.valid import Validator
+          from flatland.validation import Validator
 
           class MyValidator(Validator):
               my_message = 'Oh noes!'

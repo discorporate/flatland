@@ -71,7 +71,7 @@ class ValueIn(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import ValueIn
+      from flatland.validation import ValueIn
 
       is_yesno = ValueIn(valid_options=['yes', 'no'])
       schema = flatland.String('yn', validators=[is_yesno])
@@ -113,7 +113,7 @@ class Converted(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import Converted
+      from flatland.validation import Converted
 
       not_bogus = Converted(incorrect='Please enter a valid date.')
       schema = flatland.DateTime('when', validators=[not_bogus])
@@ -144,7 +144,7 @@ class ShorterThan(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import ShorterThan
+      from flatland.validation import ShorterThan
 
       valid_length = ShorterThan(8)
       schema = flatland.String('password', validators=[valid_length])
@@ -193,7 +193,7 @@ class LongerThan(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import LongerThan
+      from flatland.validation import LongerThan
 
       valid_length = LongerThan(4)
       schema = flatland.String('password', validators=[valid_length])
@@ -240,7 +240,7 @@ class LengthBetween(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import LengthBetween
+      from flatland.validation import LengthBetween
 
       valid_length = LengthBetween(4, 8)
       schema = flatland.String('password', validators=[valid_length])
@@ -300,7 +300,7 @@ class ValueLessThan(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import ValueLessThan
+      from flatland.validation import ValueLessThan
 
       schema = flatland.Integer('wishes', validators=[ValueLessThan(boundary=4)])
 
@@ -338,7 +338,7 @@ class ValueAtMost(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import ValueAtMost
+      from flatland.validation import ValueAtMost
 
       schema = flatland.Integer('wishes', validators=[ValueAtMost(maximum=3)])
 
@@ -376,7 +376,7 @@ class ValueGreaterThan(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import ValueGreaterThan
+      from flatland.validation import ValueGreaterThan
 
       schema = flatland.Integer('wishes', validators=[ValueGreaterThan(boundary=4)])
 
@@ -414,7 +414,7 @@ class ValueAtLeast(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import ValueAtLeast
+      from flatland.validation import ValueAtLeast
 
       schema = flatland.Integer('wishes', validators=[ValueAtLeast(minimum=3)])
 
@@ -452,7 +452,7 @@ class ValueBetween(Validator):
     .. testcode::
 
       import flatland
-      from flatland.valid import ValueBetween
+      from flatland.validation import ValueBetween
 
       schema = flatland.Integer('wishes',
                                validators=[ValueBetween(minimum=1, maximum=3)])
@@ -583,7 +583,7 @@ class ValuesEqual(MapEqual):
     .. testcode::
 
       import flatland
-      from flatland.valid import ValuesEqual
+      from flatland.validation import ValuesEqual
 
       class MyForm(flatland.Form):
           schema = [ String('password'), String('password_again') ]
