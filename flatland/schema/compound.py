@@ -160,7 +160,14 @@ class Compound(Dict, Scalar):
     del set_value
 
     def set(self, value):
-        self.explode(value)
+        try:
+            return self.explode(value)
+        except (SystemExit, KeyboardInterrupt, NotImplementedError):
+            raise
+        except Exception:
+            # not wild about quashing here, but set() doesn't allow
+            # adaptation exceptions to bubble up.
+            return False
 
     def _set_flat(self, pairs, sep):
         Dict._set_flat(self, pairs, sep)

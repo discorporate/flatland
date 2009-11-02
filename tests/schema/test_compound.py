@@ -179,12 +179,15 @@ class TestDoubleField(object):
                 return string, value
 
             def explode(self, value):
+                if value == 'boom':
+                    raise AttributeError('boom')
                 try:
                     x, y = value
                 except (TypeError, ValueError):
                     return
                 self['x'].set(x)
                 self['y'].set(y)
+                return True
 
         self.Double = Double
 
@@ -218,17 +221,25 @@ class TestDoubleField(object):
             set([(u's', u''), (u's_y', u''), (u's_x', u'')]))
 
     def test_set(self):
-        s = self.Double.named('s')
+        schema = self.Double.named('s')
 
-        e = s({})
+        e = schema()
+        assert not e.set({})
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
-        e = s(u'4x5')
+        e = schema()
+        assert not e.set('boom')
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
-        e = s((4, 5))
+        e = schema()
+        assert not e.set(u'4x5')
+        assert_values_(e, None, None, None)
+        assert_us_(e, u'', u'', u'')
+
+        e = schema()
+        assert e.set((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
 
