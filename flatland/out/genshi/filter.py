@@ -15,28 +15,28 @@ __all__ = 'flatland_filter',
 
 log = logging.getLogger('flatland.out.genshi')
 
-NAMESPACE  = Namespace('http://ns.discorporate.us/flatland/genshi')
+NAMESPACE  = Namespace(u'http://ns.discorporate.us/flatland/genshi')
 
 # filter attributes
-F_BIND     = NAMESPACE['bind']
+F_BIND     = NAMESPACE[u'bind']
 
-# HTML attribues
-H_CHECKED = QName('checked')
-H_FOR = QName('for')
-H_ID = QName('id')
-H_NAME = QName('name')
-H_SELECTED = QName('selected')
-H_TABINDEX = QName('tabindex')
-H_VALUE = QName('value')
+# HTML attributes
+H_CHECKED = QName(u'checked')
+H_FOR = QName(u'for')
+H_ID = QName(u'id')
+H_NAME = QName(u'name')
+H_SELECTED = QName(u'selected')
+H_TABINDEX = QName(u'tabindex')
+H_VALUE = QName(u'value')
 
-MAYBE = ('auto',)
-YES   = ('1', 'true', 't', 'on', 'yes')
-NO    = ('0', 'false', 'nil', 'off', 'no')
+MAYBE = (u'auto',)
+YES   = (u'1', u'true', u't', u'on', u'yes')
+NO    = (u'0', u'false', u'nil', u'off', u'no')
 
 # TODO:jek remember why mixing - and _ in these was a good idea and document
-CTX_CUR_TABINDEX      = 'auto-tabindex_value'
-CTX_FMT_DOMID         = 'auto-domid_format'
-CTX_FILTERS           = 'auto-filter_filters'
+CTX_CUR_TABINDEX      = u'auto-tabindex_value'
+CTX_FMT_DOMID         = u'auto-domid_format'
+CTX_FILTERS           = u'auto-filter_filters'
 
 
 
@@ -61,10 +61,10 @@ class ToggledAttribute(object):
 
     def pop_toggle(self, attrs, context):
         attrs, proceed = self.pop_attribute(
-            attrs, self.toggle_attribute, 'auto', parse_trool)
+            attrs, self.toggle_attribute, u'auto', parse_trool)
         forced = proceed is True
         if proceed is Maybe:
-            proceed = parse_trool(context.get(self.toggle_context_key, 'auto'))
+            proceed = parse_trool(context.get(self.toggle_context_key, u'auto'))
             if proceed is Maybe:
                 proceed = self.toggle_default
         return attrs, proceed, forced
@@ -78,11 +78,11 @@ class ToggledAttribute(object):
 
 class NameAttribute(ToggledAttribute):
     toggle_default = True
-    toggle_attribute = NAMESPACE['auto-name']
-    toggle_context_key = 'auto-name'
+    toggle_attribute = NAMESPACE[u'auto-name']
+    toggle_context_key = u'auto-name'
 
     attribute = H_NAME
-    auto_tags = set(('input', 'button', 'select', 'textarea', 'form'))
+    auto_tags = set((u'input', u'button', u'select', u'textarea', u'form'))
 
     def apply_to(self, tag, attrs, context, node):
         attrs, proceed, forced = self.pop_toggle(attrs, context)
@@ -102,13 +102,13 @@ class NameAttribute(ToggledAttribute):
 
 class ValueAttribute(ToggledAttribute):
     toggle_default = True
-    toggle_attribute = NAMESPACE['auto-value']
-    toggle_context_key = 'auto-value'
+    toggle_attribute = NAMESPACE[u'auto-value']
+    toggle_context_key = u'auto-value'
 
     attribute = H_VALUE
-    auto_tags = set(('input', 'select', 'textarea', 'button'))
+    auto_tags = set((u'input', u'select', u'textarea', u'button'))
 
-    apply_child = ('textarea',)
+    apply_child = (u'textarea',)
     apply_mixed = ()
 
     def apply_to(self, tag, attrs, stream, context, node):
@@ -129,13 +129,13 @@ class ValueAttribute(ToggledAttribute):
         if tag.localname in self.apply_child:
             stream = self.set_stream_value(stream, node.u)
 
-        elif tag.localname == 'select':
+        elif tag.localname == u'select':
             stream = self.set_select(forced, attrs, stream, node)
 
         elif tag.localname in self.apply_mixed:
             stream, attrs = self.set_mixed_value(forced, attrs, stream, node)
 
-        elif tag.localname == 'input':
+        elif tag.localname == u'input':
             attrs = self.set_input(forced, attrs, node)
 
         else:
@@ -170,20 +170,20 @@ class ValueAttribute(ToggledAttribute):
         return stream, attrs
 
     def set_input(self, override, attrs, node):
-        type = attrs.get('type', 'text').lower()
+        type = attrs.get(u'type', u'text').lower()
 
-        if type in ('text', 'hidden', 'button', 'submit', 'reset'):
+        if type in (u'text', u'hidden', u'button', u'submit', u'reset'):
             attrs = self.set_simple_value(override, attrs, node)
-        elif type in ('password', 'file', 'image'):
+        elif type in (u'password', u'file', u'image'):
             if override is True:
                 attrs = self.set_simple_value(override, attrs, node)
-        elif type == 'checkbox':
+        elif type == u'checkbox':
             value = attrs.get(H_VALUE, None)
             if value is None and isinstance(node, flatland.Boolean):
                 value = node.true
                 attrs |= ((H_VALUE, value),)
             attrs = self.set_checked(attrs, node)
-        elif type == 'radio':
+        elif type == u'radio':
             attrs = self.set_checked(attrs, node)
         else:
             if override is True:
@@ -198,13 +198,13 @@ class ValueAttribute(ToggledAttribute):
         if value is None:
             return attrs
         if value == node.u:
-            attrs |= ((H_CHECKED, 'checked'),)
+            attrs |= ((H_CHECKED, u'checked'),)
         elif isinstance(node, flatland.Compound):
             attrs -= H_CHECKED
         else:
             for child in node.children:
                 if value == child.u:
-                    attrs |= ((H_CHECKED, 'checked'),)
+                    attrs |= ((H_CHECKED, u'checked'),)
                     break
             else:
                 attrs -= H_CHECKED
@@ -212,11 +212,11 @@ class ValueAttribute(ToggledAttribute):
 
 
 class DomIDAttribute(ToggledAttribute):
-    toggle_attribute = NAMESPACE['auto-domid']
-    toggle_context_key = 'auto-domid'
+    toggle_attribute = NAMESPACE[u'auto-domid']
+    toggle_context_key = u'auto-domid'
 
     attribute = H_ID
-    auto_tags = set(('input', 'button', 'select', 'textarea'))
+    auto_tags = set((u'input', u'button', u'select', u'textarea'))
 
     def apply_to(self, tag, attrs, context, el):
         attrs, proceed, forced = self.pop_toggle(attrs, context)
@@ -234,7 +234,7 @@ class DomIDAttribute(ToggledAttribute):
 
     @classmethod
     def id_for(cls, el, context):
-        fmt = context.get(CTX_FMT_DOMID, 'f_%s')
+        fmt = context.get(CTX_FMT_DOMID, u'f_%s')
         return fmt % el.flattened_name()
 
     @classmethod
@@ -242,18 +242,18 @@ class DomIDAttribute(ToggledAttribute):
         if tag in cls.auto_tags:
             name = attrs.get(H_NAME, None)
             if name is not None:
-                fmt = context.get(CTX_FMT_DOMID, 'f_%s')
+                fmt = context.get(CTX_FMT_DOMID, u'f_%s')
                 return fmt % name
         return None
 
 
 class ForAttribute(ToggledAttribute):
-    toggle_attribute = NAMESPACE['auto-for']
+    toggle_attribute = NAMESPACE[u'auto-for']
     # tied to ID generation
-    toggle_context_key = 'auto-domid'
+    toggle_context_key = u'auto-domid'
 
     attribute = H_FOR
-    auto_tags = set(('label',))
+    auto_tags = set((u'label',))
 
     def apply_to(self, tag, attrs, context, node):
         attrs, proceed, forced = self.pop_toggle(attrs, context)
@@ -267,11 +267,11 @@ class ForAttribute(ToggledAttribute):
 
 
 class TabIndexAttribute(ToggledAttribute):
-    toggle_attribute = NAMESPACE['auto-tabindex']
-    toggle_context_key = 'auto-tabindex'
+    toggle_attribute = NAMESPACE[u'auto-tabindex']
+    toggle_context_key = u'auto-tabindex'
 
     attribute = H_TABINDEX
-    auto_tags = set(('input', 'button', 'select', 'textarea'))
+    auto_tags = set((u'input', u'button', u'select', u'textarea'))
 
     def apply_to(self, tag, attrs, context):
         attrs, proceed, forced = self.pop_toggle(attrs, context)
@@ -291,8 +291,8 @@ class TabIndexAttribute(ToggledAttribute):
 
 class Filter(ToggledAttribute):
     toggle_default = True
-    toggle_attribute = NAMESPACE['auto-filter']
-    toggle_context_key = 'auto-filter'
+    toggle_attribute = NAMESPACE[u'auto-filter']
+    toggle_context_key = u'auto-filter'
 
     def apply_to(self, tag, attrs, stream, context, node):
         attrs, proceed, forced = self.pop_toggle(attrs, context)
@@ -311,7 +311,7 @@ class Filter(ToggledAttribute):
                     log.error("Failed to parse filter expression %r" %
                               filter_expr,)
                     raise
-            want = getattr(fn, 'tags', None)
+            want = getattr(fn, u'tags', None)
             if want is None or tag.localname not in want:
                 continue
 
@@ -323,9 +323,9 @@ class Filter(ToggledAttribute):
 
 
 class OptionToggler(TagListener):
-    __slots__ = ('value',)
+    __slots__ = (u'value',)
 
-    activated = ((H_SELECTED, 'selected'),)
+    activated = ((H_SELECTED, u'selected'),)
 
     def __init__(self, value):
         self.value = value
@@ -333,7 +333,7 @@ class OptionToggler(TagListener):
     def inspect(self, event, context):
         kind, data, pos = event
 
-        if kind is START and data[0].localname == 'option':
+        if kind is START and data[0].localname == u'option':
             return (default_start, self.end)
         else:
             return False
@@ -345,16 +345,16 @@ class OptionToggler(TagListener):
         value = attrs.get(H_VALUE, None)
         if value is not None:
             if value == self.value:
-                attrs |= ((H_SELECTED, 'selected'),)
+                attrs |= ((H_SELECTED, u'selected'),)
         else:
             children = list(stream)
-            value = ''
+            value = u''
             for ck, cd, cp in children:
                 if ck is TEXT: value += cd
             stream = Stream(children)
 
             if value.strip() == self.value.strip():
-                attrs |= ((H_SELECTED, 'selected'),)
+                attrs |= ((H_SELECTED, u'selected'),)
 
         start = kind, (tag, attrs), pos
 
@@ -385,7 +385,7 @@ class DecoratedElementDirective(object):
     def end(self, start, end, stream, context, history):
         kind, (tag, attrs), pos = start
 
-        node = history.get('binding', None)
+        node = history.get(u'binding', None)
         attrs -= F_BIND
 
         # Set <... name=""> for bound nodes.
@@ -423,9 +423,9 @@ class DecoratedElementDirective(object):
 
 
 class ImmediateVarDirective(object):
-    toggles = ('auto-tabindex', 'auto-domid', 'auto-for',
-               'auto-name', 'auto-value', 'auto-filter')
-    name = 'set'
+    toggles = (u'auto-tabindex', u'auto-domid', u'auto-for',
+               u'auto-name', u'auto-value', u'auto-filter')
+    name = u'set'
 
     def start(self, event, context):
         kind, (tag, attrs), pos = event
@@ -435,15 +435,15 @@ class ImmediateVarDirective(object):
             if val is not None:
                 context[toggle] = parse_trool(val)
 
-        val = parse_int(attrs.get('tabindex', None))
+        val = parse_int(attrs.get(u'tabindex', None))
         if val is not None:
             context[CTX_CUR_TABINDEX] = val
 
-        val = attrs.get('domid-format', None)
+        val = attrs.get(u'domid-format', None)
         if val is not None:
             context[CTX_FMT_DOMID] = val
 
-        val = parse_simple_csv(attrs.get('filters', None))
+        val = parse_simple_csv(attrs.get(u'filters', None))
         if val:
             context[CTX_FILTERS] = val
 
@@ -454,7 +454,7 @@ class ImmediateVarDirective(object):
 
 
 class ScopedVarDirective(ImmediateVarDirective):
-    name = 'with'
+    name = u'with'
 
     def start(self, event, context):
         context.push({})
@@ -516,7 +516,10 @@ def stream_is_empty(stream):
 def parse_bool(value, yes=YES, no=NO):
     if value is True or value is False or value is None:
         return value
-    value = str(value).lower()
+    if isinstance(value, unicode):
+        value = value.lower()
+    else:
+        value = unicode(value).lower()
     if value in yes:
         return True
     if value in no:
@@ -526,7 +529,10 @@ def parse_bool(value, yes=YES, no=NO):
 def parse_trool(value):
     if value is True or value is False or value is Maybe:
         return value
-    value = str(value).lower()
+    if isinstance(value, unicode):
+        value = value.lower()
+    else:
+        value = unicode(value).lower()
     if value in YES:
         return True
     if value in NO:
@@ -547,7 +553,7 @@ def parse_simple_csv(text):
     parts = []
     if text is None:
         return parts
-    for part in (p.strip() for p in text.split(',')):
+    for part in (p.strip() for p in text.split(u',')):
         if part:
             parts.append(part)
     return parts

@@ -85,7 +85,7 @@ def default_end(start, end, stream, context, history):
 class ChildRemover(TagListener):
     """Sample TagListener implementation that discards all children from
     matching nodes."""
-    NAMESPACE = Namespace('http://code.discorporate.us/child-remover')
+    NAMESPACE = Namespace(u'http://code.discorporate.us/child-remover')
 
     def inspect(self, event, context):
         if event[0] is not START:
