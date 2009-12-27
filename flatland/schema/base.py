@@ -502,7 +502,7 @@ class Element(_BaseElement):
         if message not in self.warnings:
             self.warnings.append(message)
 
-    def flattened_name(self, sep='_'):
+    def flattened_name(self, sep=u'_'):
         """Return the element's complete flattened name as a string.
 
         Joins this element's :attr:`path` with *sep* and returns the fully
@@ -617,7 +617,7 @@ class Element(_BaseElement):
         """
         raise NotImplementedError()
 
-    def set_flat(self, pairs, sep='_'):
+    def set_flat(self, pairs, sep=u'_'):
         """Set element values from pairs, expanding the element tree as needed.
 
         Given a sequence of name/value tuples or a dict, build out a
