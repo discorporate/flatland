@@ -71,7 +71,7 @@ def test_constrained_instance_contrived():
 
 
 def test_default_enum():
-    good_values = ('a', 'b', 'c')
+    good_values = (u'a', u'b', u'c')
     for good_val in good_values:
         for schema in (Enum.using(valid_values=good_values),
                        Enum.valued(*good_values)):
@@ -104,17 +104,17 @@ def test_typed_enum():
 
     for good_val in good_values:
         el = schema()
-        assert el.set(unicode(good_val))
+        assert el.set(unicode(str(good_val), 'ascii'))
         assert el.value == good_val
-        assert el.u == unicode(good_val)
+        assert el.u == unicode(str(good_val), 'ascii')
         assert not el.errors
 
     el = schema()
-    assert not el.set('x')
+    assert not el.set(u'x')
     assert el.value is None
     assert el.u == u'x'
 
     el = schema()
-    assert not el.set('5')
+    assert not el.set(u'5')
     assert el.value is None
     assert el.u == u'5'

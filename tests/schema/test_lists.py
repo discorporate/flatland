@@ -9,9 +9,9 @@ from tests._util import eq_, assert_raises
 
 
 def test_set_flat_linear():
-    pairs = [('l_0_i', 1), ('l_1_i', 2), ('l_2_i', 3)]
+    pairs = [(u'l_0_i', 1), (u'l_1_i', 2), (u'l_2_i', 3)]
 
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema.from_flat(pairs)
 
     eq_(len(el), len(pairs))
@@ -21,7 +21,7 @@ def test_set_flat_linear():
 def test_set_flat_miss():
     pairs = [(u'l_galump', u'3'), (u'l_snorgle', u'4')]
 
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema.from_flat(pairs)
 
     eq_(len(el), 0)
@@ -30,9 +30,9 @@ def test_set_flat_miss():
 
 def test_set_flat_pruned():
     # pruned won't insert empty elements for a skipped index or empty rhs
-    pairs = [('l_0_i', '0'), ('l_2_i', ''), ('l_3_i', '3')]
+    pairs = [(u'l_0_i', u'0'), (u'l_2_i', u''), (u'l_3_i', u'3')]
 
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema.from_flat(pairs)
 
     eq_(len(el), 2)
@@ -46,9 +46,9 @@ def test_set_flat_pruned():
 
 
 def test_set_flat_unpruned():
-    pairs = [('l_0_i', '0'), ('l_2_i', ''), ('l_3_i', '3')]
+    pairs = [(u'l_0_i', u'0'), (u'l_2_i', u''), (u'l_3_i', u'3')]
 
-    schema = List.named('l').of(Integer.named('i')).using(prune_empty=False)
+    schema = List.named(u'l').of(Integer.named(u'i')).using(prune_empty=False)
     el = schema.from_flat(pairs)
 
     eq_(len(el), 4)
@@ -66,7 +66,7 @@ def test_set_flat_linear_dict():
              (u'l_1_x', u'x1'), (u'l_1_y', u'y1'),
              (u'l_2_x', u'x2'), )
 
-    schema = List.named('l').of(String.named('x'), String.named('y'))
+    schema = List.named(u'l').of(String.named(u'x'), String.named(u'y'))
     el = schema.from_flat(pairs)
 
     eq_(len(el), 3)
@@ -78,8 +78,8 @@ def test_set_flat_linear_dict():
 def test_set_default_int():
 
     def factory(count, **kw):
-        return List.named('l').using(default=count, **kw).of(
-            String.named('s').using(default=u'val'))
+        return List.named(u'l').using(default=count, **kw).of(
+            String.named(u's').using(default=u'val'))
 
     schema = factory(3)
     el = schema()
@@ -115,8 +115,8 @@ def test_set_default_int():
         assert isinstance(element, List)
         return 2
 
-    schemaf = List.named('l').using(default_factory=calculated_default).of(
-        String.named('s').using(default=u'val'))
+    schemaf = List.named(u'l').using(default_factory=calculated_default).of(
+        String.named(u's').using(default=u'val'))
 
     el = schemaf()
     el.set_default()
@@ -150,6 +150,7 @@ def test_set_default_value():
     el.set_default()
     eq_(len(el), 0)
     eq_(el.value, [])
+
 
 def test_set_default_value():
 
@@ -240,10 +241,10 @@ def test_set():
 def test_access():
     pairs = ((u'l_0_i', u'10'), (u'l_1_i', u'11'), (u'l_2_i', u'12'),)
 
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema.from_flat(pairs)
 
-    elements = list(Integer.named('i')(val)
+    elements = list(Integer.named(u'i')(val)
                     for val in (u'10', u'11', u'12'))
 
     assert len(el) == 3
@@ -273,15 +274,15 @@ def test_access():
 
 
 def test_mutation():
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema()
 
-    new_element = Integer.named('i')
+    new_element = Integer.named(u'i')
 
     def order_ok():
         slot_names = list(_.name for _ in el._slots)
         for idx, name in enumerate(slot_names):
-            assert name == unicode(idx)
+            assert name == str(idx).decode('ascii')
 
     assert not el
     order_ok()
@@ -327,7 +328,7 @@ def test_mutation():
 
 
 def test_mutate_slices():
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema()
 
     canary = []
@@ -347,30 +348,30 @@ def test_mutate_slices():
 
 
 def test_reverse():
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema([2, 1])
-    assert el.flatten() == [('l_0_i', '2'), ('l_1_i', '1')]
+    assert el.flatten() == [(u'l_0_i', u'2'), (u'l_1_i', u'1')]
 
     el.reverse()
     assert el.value == [1, 2]
-    assert el.flatten() == [('l_0_i', '1'), ('l_1_i', '2')]
+    assert el.flatten() == [(u'l_0_i', u'1'), (u'l_1_i', u'2')]
 
 
 def test_sort():
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema([2, 1])
 
     el.sort(key=lambda el: el.value)
     assert el.value == [1, 2]
-    assert el.flatten() == [('l_0_i', '1'), ('l_1_i', '2')]
+    assert el.flatten() == [(u'l_0_i', u'1'), (u'l_1_i', u'2')]
 
     el.sort(key=lambda el: el.value, reverse=True)
     assert el.value == [2, 1]
-    assert el.flatten() == [('l_0_i', '2'), ('l_1_i', '1')]
+    assert el.flatten() == [(u'l_0_i', u'2'), (u'l_1_i', u'1')]
 
 
 def test_slots():
-    schema = List.named('l').of(Integer.named('i'))
+    schema = List.named(u'l').of(Integer.named(u'i'))
     el = schema([1, 2])
 
     assert len(list(el._slots)) == 2

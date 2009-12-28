@@ -21,6 +21,7 @@ type(sys.modules['flatland']).shadow(
             'luhn10',
             'named_int_factory',
             're_ucompile',
+            're_uescape',
             'symbol',
             'threading',
             'to_pairs',

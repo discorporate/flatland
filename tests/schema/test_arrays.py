@@ -9,7 +9,7 @@ from tests._util import eq_, assert_raises
 
 
 def test_set_flat_pruned():
-    sub = String.named('s')
+    sub = String.named(u's')
     pairs = [(u's', u'val0'), (u's', ''), (u's', u'val1'), (u's', u'')]
     wanted = [u'val0', u'val1']
 
@@ -23,7 +23,7 @@ def test_set_flat_pruned():
 def test_set_flat_unpruned():
     pairs = [(u's', u'val0'), (u's', ''), (u's', u'val1'), (u's', u'')]
 
-    schema = Array.of(String.named('s')).using(prune_empty=False)
+    schema = Array.of(String.named(u's')).using(prune_empty=False)
     el = schema.from_flat(pairs)
 
     eq_(len(el), len(pairs))
@@ -116,7 +116,7 @@ def test_mutation():
     el.pop()
     eq_(el.value, [u'f'])
     eq_(el[0].u, u'f')
-    eq_(el.u, repr([u'f']))
+    eq_(el.u.encode('ascii'), repr([u'f']))
 
     del el[:]
     eq_(list(el), [])
@@ -144,13 +144,13 @@ def test_mutation():
 
 
 def test_el():
-    schema = Array.of(String.named('s'))
+    schema = Array.of(String.named(u's'))
     element = schema(u'abc')
     eq_(list(element.value), [u'a', u'b', u'c'])
 
-    eq_(element.el('0').value, u'a')
-    eq_(element.el('2').value, u'c')
-    assert_raises(KeyError, element.el, 'a')
+    eq_(element.el(u'0').value, u'a')
+    eq_(element.el(u'2').value, u'c')
+    assert_raises(KeyError, element.el, u'a')
 
 
 def test_multivalue_set():

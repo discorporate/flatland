@@ -7,6 +7,7 @@ from flatland.util import (
     autodocument_from_superclasses,
     class_cloner,
     keyslice_pairs,
+    re_uescape,
     to_pairs,
     )
 from .base import Element, Unevaluated, Slot, validate_element
@@ -344,9 +345,9 @@ class Sequence(Container, list):
 
     @property
     def u(self):
-        return u'[%s]' % ', '.join(
+        return u'[%s]' % u', '.join(
             element.u if isinstance(element, Container)
-                      else repr(element.u)
+                      else repr(element.u).decode('raw_unicode_escape')
             for element in self.children)
 
 
@@ -377,7 +378,7 @@ class ListSlot(Container, Slot):
         return self.element.value
 
     def __repr__(self):
-        return u'<ListSlot[%s] for %r>' % (self.name, self.element)
+        return '<ListSlot[%r] for %r>' % (self.name, self.element)
 
 
 class List(Sequence):
@@ -417,7 +418,7 @@ class List(Sequence):
 
     def _new_slot(self, value=Unspecified):
         """Wrap *value* in a Slot named as the element's index in the list."""
-        return self.slot_type(name=unicode(len(self)),
+        return self.slot_type(name=str(len(self)).decode('ascii'),
                               parent=self,
                               element=self._as_element(value))
 
@@ -490,7 +491,7 @@ class List(Sequence):
 
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
-            slot.name = unicode(idx)
+            slot.name = str(idx).decode('ascii')
 
     @property
     def children(self):
@@ -502,8 +503,9 @@ class List(Sequence):
         if not pairs:
             return
 
-        regex = re.compile(u'^' + re.escape(self.name + sep) +
-                           ur'(\d+)' + re.escape(sep))
+        regex = re.compile(u'^' + re_uescape(self.name + sep) +
+                           ur'(\d+)' + re_uescape(sep),
+                           re.UNICODE)
 
         indexes = defaultdict(list)
         prune = self.prune_empty
@@ -668,8 +670,8 @@ class Mapping(Container, dict):
 
     def __setitem__(self, key, value):
         if not key in self:
-            raise TypeError(u'May not set unknown key "%s" on %s "%s"' %
-                           (key, type(self).__name__, self.name))
+            raise TypeError('May not set unknown key %r on %s %r' %
+                            (key, type(self).__name__, self.name))
         self[key].set(value)
 
     def __delitem__(self, key):
@@ -789,9 +791,11 @@ class Mapping(Container, dict):
     def u(self):
         """A string repr of the element."""
         pairs = ((key, value.u if isinstance(value, Container)
-                               else repr(value.u))
+                               else repr(value.u).decode('raw_unicode_escape'))
                   for key, value in self.iteritems())
-        return u'{%s}' % ', '.join("%r: %s" % (k, v) for k, v in pairs)
+        return u'{%s}' % u', '.join(
+            u"%s: %s" % (repr(k).decode('raw_unicode_escape'), v)
+            for k, v in pairs)
 
     @property
     def value(self):
@@ -881,7 +885,7 @@ class Dict(Mapping, dict):
             if key not in self:
                 if policy != 'duck':
                     raise KeyError(
-                        'Dict "%s" schema does not allow key "%r"' % (
+                        'Dict %r schema does not allow key %r' % (
                             self.name, key))
                 continue
             self[key].set(value)

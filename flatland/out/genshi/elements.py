@@ -60,9 +60,14 @@ class WrappedElement(unicode):
                 prefix = u'form'
             else:
                 prefix = u'forms.%s' % (root.name,)
-        return u"%s.el(%r)" % (prefix, path)
+        return u"%s.el(%s)" % (prefix, repr(path).decode('raw_unicode_escape'))
 
     def __getitem__(self, key):
+        if isinstance(key, str):
+            try:
+                key = key.decode('ascii')
+            except UnicodeError:
+                raise KeyError(key)
         item = self.element._index(key)
         if isinstance(item, base.Element):
             return WrappedElement(item)

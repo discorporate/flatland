@@ -4,7 +4,13 @@ from flatland import (
     String,
     )
 from flatland.util import Unspecified, keyslice_pairs
-from tests._util import eq_, assert_raises
+from tests._util import (
+    asciistr,
+    assert_raises,
+    eq_,
+    udict,
+    unicode_coercion_available,
+    )
 
 
 def test_dict():
@@ -58,26 +64,37 @@ def test_dict_update():
     def value_dict(element):
         return dict((k, v.value) for k, v in element.iteritems())
 
-    el.update(x=20, y=30)
-    assert dict(x=20, y=30) == el.value
+    try:
+        el.update(x=20, y=30)
+    except UnicodeError:
+        assert not unicode_coercion_available()
+        el.update(udict(x=20, y=30))
+    assert udict(x=20, y=30) == el.value
 
     el.update({u'y': 40})
-    assert dict(x=20, y=40) == el.value
+    assert udict(x=20, y=40) == el.value
 
     el.update()
-    assert dict(x=20, y=40) == el.value
+    assert udict(x=20, y=40) == el.value
 
     el.update((_, 100) for _ in u'xy')
-    assert dict(x=100, y=100) == el.value
+    assert udict(x=100, y=100) == el.value
 
-    el.update([(u'x', 1)], y=2)
-    assert dict(x=1, y=2) == el.value
+    try:
+        el.update([(u'x', 1)], y=2)
+        assert udict(x=1, y=2) == el.value
+    except UnicodeError:
+        assert not unicode_coercion_available()
 
-    el.update([(u'x', 10), (u'y', 10)], x=20, y=20)
-    assert dict(x=20, y=20) == el.value
+    try:
+        el.update([(u'x', 10), (u'y', 10)], x=20, y=20)
+        assert udict(x=20, y=20) == el.value
+    except UnicodeError:
+        assert not unicode_coercion_available()
 
-    assert_raises(TypeError, el.update, z=1)
-    assert_raises(TypeError, el.update, x=1, z=1)
+    if unicode_coercion_available():
+        assert_raises(TypeError, el.update, z=1)
+        assert_raises(TypeError, el.update, x=1, z=1)
     assert_raises(TypeError, el.update, {u'z': 1})
     assert_raises(TypeError, el.update, {u'x': 1, u'z': 1})
     assert_raises(TypeError, el.update, ((u'z', 1),))
@@ -131,10 +148,10 @@ class DictSetTest(object):
         eq_(el.value, {u'x': None, u'y': None})
 
     def test_half_set(self):
-        wanted = {u'x': 123, 'y': None}
+        wanted = {u'x': 123, u'y': None}
 
         el = self.new_element()
-        el.set(dict(x=123))
+        el.set({u'x': 123})
         eq_(el.value, wanted)
 
         el = self.new_element()
@@ -142,7 +159,7 @@ class DictSetTest(object):
         eq_(el.value, wanted)
 
     def test_half_set_flat(self):
-        wanted = {u'x': 123, 'y': None}
+        wanted = {u'x': 123, u'y': None}
 
         pairs = ((u's_x', u'123'),)
         el = self.new_element()
@@ -157,7 +174,7 @@ class DictSetTest(object):
         eq_(el.value, wanted)
 
         el = self.new_element()
-        el.set(dict(x=101, y=102))
+        el.set(udict(x=101, y=102))
         eq_(el.value, wanted)
 
         el = self.new_element()
@@ -183,7 +200,7 @@ class DictSetTest(object):
         assert_raises(KeyError, self.new_element, value=too_much)
 
     def test_over_set_flat(self):
-        wanted = {u'x': 123, 'y': None}
+        wanted = {u'x': 123, u'y': None}
 
         pairs = ((u's_x', u'123'), (u's_z', u'nope'))
         el = self.new_element()
@@ -198,7 +215,7 @@ class DictSetTest(object):
         assert_raises(KeyError, self.new_element, value=miss)
 
     def test_total_miss_flat(self):
-        pairs = (('miss', u'10'),)
+        pairs = ((u'miss', u'10'),)
 
         el = self.new_element()
         el.set_flat(pairs)
@@ -258,9 +275,9 @@ def test_dict_strict():
 
 def test_dict_as_unicode():
     schema = Dict.of(Integer.named(u'x'), Integer.named(u'y'))
-    el = schema(dict(x=1, y=2))
+    el = schema({u'x': 1, u'y': 2})
 
-    assert el.u in (u"{u'x': u'1', u'y': u'2'}", "{u'y': u'2', u'x': u'1'}")
+    assert el.u in (u"{u'x': u'1', u'y': u'2'}", u"{u'y': u'2', u'x': u'1'}")
 
 
 def test_nested_dict_as_unicode():
@@ -272,13 +289,21 @@ def test_nested_dict_as_unicode():
     eq_(el.u, u"{u'd': {u'x': u'10'}}")
 
 
+def test_nested_unicode_dict_as_unicode():
+    schema = Dict.of(Dict.named(u'd').of(
+        String.named(u'x').using(default=u'\u2308\u2309')))
+    el = schema.from_defaults()
+    eq_(el.value, {u'd': {u'x': u'\u2308\u2309'}})
+    eq_(el.u, ur"{u'd': {u'x': u'\u2308\u2309'}}")
+
+
 def test_dict_el():
     # stub
     schema = Dict.named(u's').of(Integer.named(u'x'), Integer.named(u'y'))
     element = schema()
 
-    assert element.el('x').name == u'x'
-    assert_raises(KeyError, element.el, 'not_x')
+    assert element.el(u'x').name == u'x'
+    assert_raises(KeyError, element.el, u'not_x')
 
 
 def test_update_object():
@@ -298,18 +323,22 @@ def test_update_object():
     def updated_(obj_factory, initial_value, wanted=None, **update_kw):
         el = schema(initial_value)
         obj = obj_factory()
+        update_kw.setdefault('key', asciistr)
         el.update_object(obj, **update_kw)
         if wanted is None:
-            wanted = initial_value
+            wanted = dict((asciistr(k), v) for k, v in initial_value.items())
         have = dict(obj.__dict__)
         assert have == wanted
 
-    updated_(Obj, {'x': 'X', 'y': 'Y'})
-    updated_(Obj, {'x': 'X'}, {'x': 'X', 'y': None})
-    updated_(lambda: Obj(y='Y'), {'x': 'X'}, {'x': 'X', 'y': None})
-    updated_(lambda: Obj(y='Y'), {'x': 'X'}, {'x': 'X', 'y': 'Y'}, omit=('y',))
-    updated_(lambda: Obj(y='Y'), {'x': 'X'}, {'y': 'Y'}, include=('z',))
-    updated_(Obj, {'x': 'X'}, {'y': None, 'z': 'X'}, rename=(('x', 'z'),))
+    updated_(Obj, {u'x': u'X', u'y': u'Y'})
+    updated_(Obj, {u'x': u'X'}, {'x': u'X', 'y': None})
+    updated_(lambda: Obj(y=u'Y'), {u'x': u'X'}, {'x': u'X', 'y': None})
+    updated_(lambda: Obj(y=u'Y'), {u'x': u'X'}, {'x': u'X', 'y': u'Y'},
+             omit=('y',))
+    updated_(lambda: Obj(y=u'Y'), {u'x': u'X'}, {'y': u'Y'},
+             include=(u'z',))
+    updated_(Obj, {u'x': u'X'}, {'y': None, 'z': u'X'},
+             rename=(('x', 'z'),))
 
 
 def test_slice():
@@ -325,8 +354,9 @@ def test_slice():
         eq_(set(type(_) for _ in sliced.keys()),
             set(type(_) for _ in wanted.keys()))
 
-    yield same_, {'x': 'X', 'y': 'Y'}, {}
-    yield same_, {'x': 'X', 'y': 'Y'}, dict(key=str)
-    yield same_, {'x': 'X', 'y': 'Y'}, dict(include=['x'])
-    yield same_, {'x': 'X', 'y': 'Y'}, dict(omit=['x'])
-    yield same_, {'x': 'X', 'y': 'Y'}, dict(omit=['x'], rename={'y': 'z'})
+    yield same_, {u'x': u'X', u'y': u'Y'}, {}
+    yield same_, {u'x': u'X', u'y': u'Y'}, dict(key=asciistr)
+    yield same_, {u'x': u'X', u'y': u'Y'}, dict(include=[u'x'])
+    yield same_, {u'x': u'X', u'y': u'Y'}, dict(omit=[u'x'])
+    yield same_, {u'x': u'X', u'y': u'Y'}, dict(omit=[u'x'],
+                                                rename={u'y': u'z'})

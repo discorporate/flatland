@@ -12,7 +12,7 @@ from flatland import (
     Time,
     )
 
-from tests._util import eq_, assert_raises
+from tests._util import eq_, assert_raises, requires_unicode_coercion
 
 
 def test_scalar_abstract():
@@ -37,27 +37,27 @@ def test_scalar_assignments_are_independent():
 
 
 def test_scalar_set_flat():
-    """Scalars take on the first value if duplicates are present."""
-
+    # Scalars take on the first value if duplicates are present.
     class SimpleScalar(Scalar):
 
         def adapt(self, value):
             return value
 
-    data = ((u'a', 1),
-            (u'b', 2),
-            (u'a', 3))
+    data = ((u'a', u'1'),
+            (u'b', u'2'),
+            (u'a', u'3'))
 
     def element_for(name):
         element = SimpleScalar(name=name)
         element.set_flat(data)
         return element
 
-    eq_(element_for(u'a').value, 1)
-    eq_(element_for(u'b').value, 2)
+    eq_(element_for(u'a').value, u'1')
+    eq_(element_for(u'b').value, u'2')
     eq_(element_for(u'c').value, None)
 
 
+@requires_unicode_coercion
 def test_string():
     for value, expected in ((u'abc', u'abc'), ('abc', u'abc'), (123, u'123'),
                             (u'abc ', u'abc'), (' abc ', u'abc')):
@@ -97,13 +97,21 @@ def validate_element_set(type_, raw, value, uni, schema_opts={}):
     eq_(element.__nonzero__(), bool(uni and value))
 
 
+coerced_validate_element_set = requires_unicode_coercion(validate_element_set)
+
+
 def test_scalar_set():
     # a variety of scalar set() failure cases, shoved through Integer
     for spec in (
+        (None,       None, u''),
+        ):
+        yield (validate_element_set, Integer) + spec
+
+    for spec in (
         ([],         None, u'[]'),
         ('\xef\xf0', None, ur'\ufffd\ufffd'),
-        (None,       None, u'')):
-        yield (validate_element_set, Integer) + spec
+        ):
+        yield (coerced_validate_element_set, Integer) + spec
 
 
 def test_integer():
@@ -111,17 +119,19 @@ def test_integer():
                  (u' 123 ',  123,  u'123'),
                  (u'xyz',    None, u'xyz'),
                  (u'xyz123', None, u'xyz123'),
-                 ('123xyz',  None, u'123xyz'),
-                 ('123.0',   None, u'123.0'),
+                 (u'123xyz', None, u'123xyz'),
+                 (u'123.0',  None, u'123.0'),
                  (u'+123',   123,  u'123'),
                  (u'-123',   -123, u'-123'),
                  (u' +123 ', 123,  u'123'),
                  (u' -123 ', -123, u'-123'),
                  (u'+123',   123,  u'123', dict(signed=False)),
                  (u'-123',   None, u'-123', dict(signed=False)),
-                 (123,       123,  u'123'),
-                 (-123,      None, u'-123', dict(signed=False))):
+                 (123,       123,  u'123')):
         yield (validate_element_set, Integer) + spec
+
+    for spec in ((-123,      None, u'-123', dict(signed=False)),):
+        yield (coerced_validate_element_set, Integer) + spec
 
 
 def test_long():
@@ -129,8 +139,8 @@ def test_long():
                  (u' 123 ',  123L,  u'123'),
                  (u'xyz',    None,  u'xyz'),
                  (u'xyz123', None,  u'xyz123'),
-                 ('123xyz',  None,  u'123xyz'),
-                 ('123.0',   None,  u'123.0'),
+                 (u'123xyz', None,  u'123xyz'),
+                 (u'123.0',  None,  u'123.0'),
                  (u'+123',   123L,  u'123'),
                  (u'-123',   -123L, u'-123'),
                  (u' +123 ', 123L,  u'123'),
@@ -143,29 +153,29 @@ def test_long():
 def test_float():
     for spec in ((u'123',    123.0,  u'123.000000'),
                  (u' 123 ',  123.0,  u'123.000000'),
-                 (u'xyz',    None,  u'xyz'),
-                 (u'xyz123', None,  u'xyz123'),
-                 ('123xyz',  None,  u'123xyz'),
-                 ('123.0',   123.0,  u'123.000000'),
+                 (u'xyz',    None,   u'xyz'),
+                 (u'xyz123', None,   u'xyz123'),
+                 (u'123xyz', None,   u'123xyz'),
+                 (u'123.0',  123.0,  u'123.000000'),
                  (u'+123',   123.0,  u'123.000000'),
                  (u'-123',   -123.0, u'-123.000000'),
                  (u' +123 ', 123.0,  u'123.000000'),
                  (u' -123 ', -123.0, u'-123.000000'),
                  (u'+123',   123.0,  u'123.000000', dict(signed=False)),
-                 (u'-123',   None,  u'-123', dict(signed=False))):
+                 (u'-123',   None,   u'-123', dict(signed=False))):
         yield (validate_element_set, Float) + spec
 
     class TwoDigitFloat(Float):
         format = u'%0.2f'
 
-    for spec in ((u'123',    123.0,  u'123.00'),
-                 (u' 123 ',  123.0,  u'123.00'),
-                 (u'xyz',    None,  u'xyz'),
-                 (u'xyz123', None,  u'xyz123'),
-                 ('123xyz',  None,  u'123xyz'),
-                 ('123.0',   123.0,  u'123.00'),
-                 ('123.00',   123.0,  u'123.00'),
-                 ('123.005',   123.005,  u'123.00')):
+    for spec in ((u'123',     123.0,   u'123.00'),
+                 (u' 123 ',   123.0,   u'123.00'),
+                 (u'xyz',     None,    u'xyz'),
+                 (u'xyz123',  None,    u'xyz123'),
+                 (u'123xyz',  None,    u'123xyz'),
+                 (u'123.0',   123.0,   u'123.00'),
+                 (u'123.00',  123.0,   u'123.00'),
+                 (u'123.005', 123.005, u'123.00')):
         yield (validate_element_set, TwoDigitFloat) + spec
 
 

@@ -8,9 +8,9 @@ from tests.genshi._util import (
 
 
 def simple_context():
-    schema = String.named('field1')
+    schema = String.named(u'field1')
     el = schema()
-    el.set_prefix('field1')
+    el.set_prefix(u'field1')
     return {'field1': el}
 
 

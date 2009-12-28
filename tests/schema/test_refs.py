@@ -8,76 +8,76 @@ from tests._util import assert_raises
 
 
 def test_binops():
-    schema = Dict.of(Integer.named('main'),
-                     Ref.named('aux').to('main'),
-                     Integer.named('other'))
-    el = schema({'main': 5})
+    schema = Dict.of(Integer.named(u'main'),
+                     Ref.named(u'aux').to(u'main'),
+                     Integer.named(u'other'))
+    el = schema({u'main': 5})
 
-    assert el['aux'] == Integer(5)
-    assert el['aux'].value == 5
-    assert el['aux'].u == u'5'
-    assert Integer(5) == el['aux']
-    assert 5 == el['aux'].value
-    assert u'5' == el['aux'].u
+    assert el[u'aux'] == Integer(5)
+    assert el[u'aux'].value == 5
+    assert el[u'aux'].u == u'5'
+    assert Integer(5) == el[u'aux']
+    assert 5 == el[u'aux'].value
+    assert u'5' == el[u'aux'].u
 
-    assert el['aux'] != Integer(6)
-    assert el['aux'].value != 6
-    assert el['aux'].u != u'6'
-    assert Integer(6) != el['aux']
-    assert 6 != el['aux']
-    assert u'6' != el['aux']
+    assert el[u'aux'] != Integer(6)
+    assert el[u'aux'].value != 6
+    assert el[u'aux'].u != u'6'
+    assert Integer(6) != el[u'aux']
+    assert 6 != el[u'aux']
+    assert u'6' != el[u'aux']
 
-    assert el['aux'] == el['main']
-    assert el['main'] == el['aux']
-    assert el['aux'] != el['other']
-    assert el['other'] != el['aux']
+    assert el[u'aux'] == el[u'main']
+    assert el[u'main'] == el[u'aux']
+    assert el[u'aux'] != el[u'other']
+    assert el[u'other'] != el[u'aux']
 
 
 def test_writable_ignore():
 
     def element(writable):
-        ref = Ref.named('aux').to('main')
+        ref = Ref.named(u'aux').to(u'main')
         if writable:
             ref = ref.using(writable=writable)
-        return Dict.of(Integer.named('main'), ref)()
+        return Dict.of(Integer.named(u'main'), ref)()
 
     # class default and explicit writable=ignore
     for el in element(None), element('ignore'):
-        el['aux'] = 6
-        assert el['main'].value is None
-        assert el['aux'].value is None
+        el[u'aux'] = 6
+        assert el[u'main'].value is None
+        assert el[u'aux'].value is None
 
 
 def test_writable():
-    schema = Dict.of(Integer.named('main'),
-                     Ref.named('aux').to('main').using(writable=True))
+    schema = Dict.of(Integer.named(u'main'),
+                     Ref.named(u'aux').to(u'main').using(writable=True))
 
     el = schema()
-    el['aux'] = 6
-    assert el['main'].value == 6
-    assert el['aux'].value == 6
+    el[u'aux'] = 6
+    assert el[u'main'].value == 6
+    assert el[u'aux'].value == 6
 
 
 def test_not_writable():
-    schema = Dict.of(Integer.named('main'),
-                     Ref.named('aux').to('main').using(writable=False))
+    schema = Dict.of(Integer.named(u'main'),
+                     Ref.named(u'aux').to(u'main').using(writable=False))
 
     el = schema()
-    assert_raises(TypeError, el['aux'].set, 6)
+    assert_raises(TypeError, el[u'aux'].set, 6)
 
 
 def test_dereference_twice():
-    schema = Dict.of(Integer.named('main'),
-                     Ref.named('aux').to('main').using(writable=True))
+    schema = Dict.of(Integer.named(u'main'),
+                     Ref.named(u'aux').to(u'main').using(writable=True))
 
     # Previous revisions would fail after two dereferences
     element = schema()
 
-    element['aux'] = 1
-    assert element['aux'].value == 1
+    element[u'aux'] = 1
+    assert element[u'aux'].value == 1
 
-    element['aux'].set(1)
-    assert element['aux'].value == 1
+    element[u'aux'].set(1)
+    assert element[u'aux'].value == 1
 
-    assert element.el(element['aux'].target_path) is element['main']
-    assert element.el(element['aux'].target_path) is element['main']
+    assert element.el(element[u'aux'].target_path) is element[u'main']
+    assert element.el(element[u'aux'].target_path) is element[u'main']

@@ -6,9 +6,10 @@ from flatland import (
     Unevaluated,
     )
 
-from tests._util import eq_, assert_raises
+from tests._util import assert_raises, eq_, requires_unicode_coercion
 
 
+@requires_unicode_coercion
 def test_naming():
     for arg in (u'unicode', 'sysencoding', None):
         schema = Element.named(arg)
@@ -86,7 +87,7 @@ def test_abstract():
 
     assert_raises(NotImplementedError, element.set, None)
     assert_raises(NotImplementedError, element.set_flat, ())
-    assert_raises(NotImplementedError, element.el, 'foo')
+    assert_raises(NotImplementedError, element.el, u'foo')
 
 
 def test_message_buckets():
