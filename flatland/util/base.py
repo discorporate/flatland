@@ -1,5 +1,6 @@
 # -*- coding: utf-8; fill-column: 78 -*-
 import re
+import string
 
 try:
     import threading
@@ -161,11 +162,18 @@ class as_mapping(object):
 
     def __getitem__(self, item):
         try:
+            if isinstance(item, unicode):
+                return getattr(self.target, item.encode('ascii'))
             return getattr(self.target, item)
-        except AttributeError:
+        except (AttributeError, UnicodeError):
             raise KeyError(item)
 
     def __contains__(self, item):
+        if isinstance(item, unicode):
+            try:
+                return hasattr(self.target, item.encode('ascii'))
+            except UnicodeError:
+                return False
         return hasattr(self.target, item)
 
     def __iter__(self):
@@ -185,6 +193,21 @@ class adict(dict):
 def re_ucompile(pattern, flags=0):
     """Compile a regex with re.UNICODE on by default."""
     return re.compile(pattern, flags | re.UNICODE)
+
+
+_alphanum = set((string.digits + string.letters).decode('ascii'))
+
+
+def re_uescape(pattern):
+    """A unicode-friendly version of re.escape."""
+    mutable = list(pattern)
+    for idx, char in enumerate(pattern):
+        if char not in _alphanum:
+            if char == u"\000":
+                mutable[idx] = u"\\000"
+            else:
+                mutable[idx] = u"\\" + char
+    return u''.join(mutable)
 
 
 def luhn10(number):

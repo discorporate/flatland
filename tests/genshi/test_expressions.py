@@ -9,19 +9,19 @@ from tests.genshi._util import FilteredRenderTest, from_docstring
 
 class TestExpressions(FilteredRenderTest):
     def form():
-        schema = Dict.named('field0').of(
-            String.named('field1'),
-            String.named('field2'),
-            List.named('field3').of(String.named('field4')),
-            List.named('field5').of(
-                List.named('field6').of(String.named('field7'))))
+        schema = Dict.named(u'field0').of(
+            String.named(u'field1'),
+            String.named(u'field2'),
+            List.named(u'field3').of(String.named(u'field4')),
+            List.named(u'field5').of(
+                List.named(u'field6').of(String.named(u'field7'))))
 
         element = schema(
-            {'field1': u'val1',
-             'field2': u'val2',
-             'field3': [u'val3'],
-             'field5': [['val4']]})
-        element.set_prefix('form')
+            {u'field1': u'val1',
+             u'field2': u'val2',
+             u'field3': [u'val3'],
+             u'field5': [[u'val4']]})
+        element.set_prefix(u'form')
         return {'form': element, 'bound': element.bind}
 
     @from_docstring(context_factory=form)
@@ -202,15 +202,16 @@ val4
 
     del form
 
+
 class TestShadowed(FilteredRenderTest):
     def shadow():
-        schema = Dict.named('dict_name').of(
-            String.named('name'),
-            String.named('u'))
+        schema = Dict.named(u'dict_name').of(
+            String.named(u'name'),
+            String.named(u'u'))
 
-        element = schema({'name': u'string name',
-                          'u': u'string u'})
-        element.set_prefix('top')
+        element = schema({u'name': u'string name',
+                          u'u': u'string u'})
+        element.set_prefix(u'top')
         return {'top': element, 'bound': element.bind}
 
     @from_docstring(context_factory=shadow)
@@ -283,10 +284,10 @@ name
 class TestPrefixes(FilteredRenderTest):
     def elements():
         from flatland import Dict, String
-        anon = Dict.of(String.named('anon_field'))()
-        named = Dict.named('named').of(String.named('named_field'))()
-        prefixed = Dict.named('prefixed').of(String.named('prefixed_field'))()
-        prefixed.set_prefix('three.levels.down')
+        anon = Dict.of(String.named(u'anon_field'))()
+        named = Dict.named(u'named').of(String.named(u'named_field'))()
+        prefixed = Dict.named(u'prefixed').of(String.named(u'prefixed_field'))()
+        prefixed.set_prefix(u'three.levels.down')
 
         return {'form': anon,
                 'forms': {'named': named },

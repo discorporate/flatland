@@ -4,9 +4,10 @@ from flatland import (
     String,
     )
 
-from tests._util import eq_
+from tests._util import eq_, requires_unicode_coercion
 
 
+@requires_unicode_coercion
 def test_from_object():
 
     class Obj(object):
@@ -49,6 +50,7 @@ def test_from_object():
         dict(x=None, y=None))
 
 
+@requires_unicode_coercion
 def test_composition():
 
     class Inner(Form):
@@ -71,6 +73,7 @@ def test_composition():
     eq_(el.value, wanted)
 
 
+@requires_unicode_coercion
 def test_inheritance_straight():
 
     class Base(Form):
@@ -89,6 +92,7 @@ def test_inheritance_straight():
     assert set(Sub().keys()) == set(['base_member', 'added_member'])
 
 
+@requires_unicode_coercion
 def test_inheritance_diamond():
 
     class A(Form):

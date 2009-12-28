@@ -200,14 +200,14 @@ class DateYYYYMMDD(Compound, Date):
         optional = cls.optional
 
         if len(fields) == 0:
-            fields.append(Integer.named('year').using(format=u'%04i',
-                                                      optional=optional))
-        if len(fields) == 1:
-            fields.append(Integer.named('month').using(format=u'%02i',
+            fields.append(Integer.named(u'year').using(format=u'%04i',
                                                        optional=optional))
+        if len(fields) == 1:
+            fields.append(Integer.named(u'month').using(format=u'%02i',
+                                                        optional=optional))
         if len(fields) == 2:
-            fields.append(Integer.named('day').using(format=u'%02i',
-                                                     optional=optional))
+            fields.append(Integer.named(u'day').using(format=u'%02i',
+                                                      optional=optional))
 
         cls.field_schema = fields
 
@@ -215,12 +215,11 @@ class DateYYYYMMDD(Compound, Date):
     #    raise TypeError("Child fields of %s %r must be named." %
     #                    type(self).__name__, name)
 
-
     def compose(self):
         try:
-            data = dict( [(label, self[child_schema.name].value)
-                          for label, child_schema
-                          in zip(self.used, self.field_schema)] )
+            data = dict([(label, self[child_schema.name].value)
+                         for label, child_schema
+                         in zip(self.used, self.field_schema)])
             as_str = self.format % data
             value = Date.adapt(self, as_str)
 
@@ -233,7 +232,8 @@ class DateYYYYMMDD(Compound, Date):
             value = Date.adapt(self, value)
 
             for attrib, child_schema in zip(self.used, self.field_schema):
-                self[child_schema.name].set(getattr(value, attrib))
+                self[child_schema.name].set(
+                    getattr(value, attrib.encode('ascii')))
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:
                 self[child_schema.name].set(None)

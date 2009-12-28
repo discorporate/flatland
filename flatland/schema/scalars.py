@@ -464,7 +464,7 @@ class Temporal(Scalar):
             try:
                 args = [int(match.group(f)) for f in self.used]
                 return self.type_(*args)
-            except (TypeError, ValueError), ex:
+            except (TypeError, ValueError):
                 raise AdaptationError()
         else:
             raise AdaptationError()
@@ -495,7 +495,7 @@ class DateTime(Temporal):
         ur'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
     format = (u'%(year)04i-%(month)02i-%(day)02i '
               u'%(hour)02i:%(minute)02i:%(second)02i')
-    used = ('year', 'month', 'day', 'hour', 'minute', 'second')
+    used = (u'year', u'month', u'day', u'hour', u'minute', u'second')
 
 
 class Date(Temporal):
@@ -509,7 +509,7 @@ class Date(Temporal):
     regex = re.compile(
         ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$')
     format = u'%(year)04i-%(month)02i-%(day)02i'
-    used = ('year', 'month', 'day')
+    used = (u'year', u'month', u'day')
 
 
 class Time(Temporal):
@@ -523,7 +523,7 @@ class Time(Temporal):
     regex = re.compile(
         ur'^(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
     format = u'%(hour)02i:%(minute)02i:%(second)02i'
-    used = ('hour', 'minute', 'second')
+    used = (u'hour', u'minute', u'second')
 
 
 class Ref(Scalar):
@@ -532,7 +532,7 @@ class Ref(Scalar):
     #######################################################################
     writable = 'ignore'
 
-    sep = '.'
+    sep = u'.'
 
     target_path = None
 

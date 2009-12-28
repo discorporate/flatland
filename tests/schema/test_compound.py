@@ -3,7 +3,7 @@ import datetime
 from flatland import (
     Compound,
     DateYYYYMMDD,
-    Form,
+    Dict,
     Integer,
     String,
     )
@@ -36,7 +36,7 @@ def test_compound_init_sequencing2():
     canary = []
 
     class MyCompound(Compound):
-        field_schema = [String.named('x')]
+        field_schema = [String.named(u'x')]
 
         def __compound_init__(cls):
             assert isinstance(cls, type)
@@ -52,18 +52,18 @@ def test_compound_init_sequencing2():
     assert canary == [MyCompound]
 
     # manual configuration doesn't trigger it
-    MyCompound.name = 'set by hand'
+    MyCompound.name = u'set by hand'
     element = MyCompound()
     assert canary == [MyCompound]
 
     # a clone of the class will trigger it
-    MyCompound2 = MyCompound.named('something')
+    MyCompound2 = MyCompound.named(u'something')
     element = MyCompound2()
     assert canary == [MyCompound, MyCompound2]
     assert MyCompound2.__dict__['_compound_prepared']
 
     # instance-level configuration will also
-    element = MyCompound2(name='instance')
+    element = MyCompound2(name=u'instance')
     assert type(element) is not MyCompound2
     assert isinstance(element, MyCompound2)
     assert canary == [MyCompound, MyCompound2, type(element)]
@@ -72,7 +72,7 @@ def test_compound_init_sequencing2():
     del canary[:]
 
     # it can be run by hand
-    MyCompound4 = MyCompound.named('somethingelse')
+    MyCompound4 = MyCompound.named(u'somethingelse')
     assert not MyCompound4.__dict__.get('_compound_prepared')
 
     MyCompound4.__compound_init__()
@@ -85,7 +85,7 @@ def test_compound_init_sequencing2():
     assert canary == [MyCompound4]
 
     class MyCompound5(Compound):
-        field_schema = [String.named('x')]
+        field_schema = [String.named(u'x')]
 
         @classmethod
         def __compound_init__(cls):
@@ -100,7 +100,7 @@ def test_compound_init_sequencing2():
 def test_compound_snarfs_override_init_keywords():
 
     class MyCompound(Compound):
-        field_schema = [String.named('x')]
+        field_schema = [String.named(u'x')]
         attr = 'value'
 
         def __init__(self, value='sentinel', abc=1):
@@ -125,7 +125,7 @@ def test_compound_metaclass_calls_new():
 
     class MyCompound(Compound):
         name = u'abc'
-        field_schema = [String.named('x')]
+        field_schema = [String.named(u'x')]
 
         def __new__(cls, *args, **kw):
             canary.append('new')
@@ -141,7 +141,7 @@ def test_compound_metaclass_calls_new():
 
     class AltNewReturn(Compound):
         name = u'abc'
-        field_schema = [String.named('x')]
+        field_schema = [String.named(u'x')]
 
         def __new__(cls, *args, **kw):
             canary.append('new')
@@ -161,15 +161,15 @@ class TestDoubleField(object):
 
         class Double(Compound):
 
-            field_schema = [Integer.named('x'), Integer.named('y')]
+            field_schema = [Integer.named(u'x'), Integer.named(u'y')]
 
             def compose(self):
-                ex, ey = self.get('x'), self.get('y')
+                ex, ey = self.get(u'x'), self.get(u'y')
                 ux, uy = ex.u, ey.u
                 if ex.u and ey.u:
-                    string = "%sx%s" % (ex.u, ey.u)
+                    string = u"%sx%s" % (ex.u, ey.u)
                 else:
-                    string = ''
+                    string = u''
 
                 if ex.value is not None and ey.value is not None:
                     value = (ex.value, ey.value)
@@ -179,22 +179,22 @@ class TestDoubleField(object):
                 return string, value
 
             def explode(self, value):
-                if value == 'boom':
+                if value == u'boom':
                     raise AttributeError('boom')
-                if value == 'return-none':
+                if value == u'return-none':
                     return
                 try:
                     x, y = value
                 except (TypeError, ValueError):
                     return False
-                self['x'].set(x)
-                self['y'].set(y)
+                self[u'x'].set(x)
+                self[u'y'].set(y)
                 return True
 
         self.Double = Double
 
     def test_from_flat(self):
-        s = self.Double.named('s')
+        s = self.Double.named(u's')
 
         e = s.from_flat({})
         assert_values_(e, None, None, None)
@@ -217,13 +217,13 @@ class TestDoubleField(object):
         assert_us_(e, u'1x2', u'1', u'2')
 
     def test_flatten(self):
-        s = self.Double.named('s')
-        e = s('1x2')
+        s = self.Double.named(u's')
+        e = s(u'1x2')
         eq_(set(e.flatten()),
             set([(u's', u''), (u's_y', u''), (u's_x', u'')]))
 
     def test_set(self):
-        schema = self.Double.named('s')
+        schema = self.Double.named(u's')
 
         e = schema()
         assert not e.set({})
@@ -232,12 +232,12 @@ class TestDoubleField(object):
 
         # return-none and boom should get moved to their own test
         e = schema()
-        assert e.set('return-none')
+        assert e.set(u'return-none')
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
         e = schema()
-        assert not e.set('boom')
+        assert not e.set(u'boom')
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
@@ -252,7 +252,7 @@ class TestDoubleField(object):
         assert_us_(e, u'4x5', u'4', u'5')
 
     def test_set_default(self):
-        s = self.Double.named('s').using(default=(4, 5))
+        s = self.Double.named(u's').using(default=(4, 5))
         el = s()
         assert_values_(el, None, None, None)
         assert_us_(el, u'', u'', u'')
@@ -262,11 +262,11 @@ class TestDoubleField(object):
         assert_us_(el, u'4x5', u'4', u'5')
 
     def test_set_default_from_children(self):
-        schema = self.Double.named('s')
+        schema = self.Double.named(u's')
 
         fields = dict((field.name, field) for field in schema.field_schema)
-        fields['x'].default = 4
-        fields['y'].default = 5
+        fields[u'x'].default = 4
+        fields[u'y'].default = 5
 
         el = schema()
         assert_values_(el, None, None, None)
@@ -277,13 +277,13 @@ class TestDoubleField(object):
         assert_us_(el, u'4x5', u'4', u'5')
 
     def test_update(self):
-        s = self.Double.named('s')
+        s = self.Double.named(u's')
 
         e = s((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
 
-        e['x'].set(6)
+        e[u'x'].set(6)
         assert_values_(e, (6, 5), 6, 5)
         assert_us_(e, u'6x5', u'6', u'5')
 
@@ -292,18 +292,18 @@ class TestDoubleField(object):
         assert_us_(e, u'7x8', u'7', u'8')
 
     def test_explode_does_not_require_typechecks(self):
-        s = self.Double.named('s')
+        s = self.Double.named(u's')
 
         e = s((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
 
-        e.set((7, 'blagga'))
+        e.set((7, u'blagga'))
         assert_values_(e, None, 7, None)
         assert_us_(e, u'7xblagga', u'7', u'blagga')
 
     def test_value_assignement(self):
-        s = self.Double.named('s')
+        s = self.Double.named(u's')
 
         e = s()
         e.value = (1, 2)
@@ -311,12 +311,12 @@ class TestDoubleField(object):
         assert_us_(e, u'1x2', u'1', u'2')
 
         e = s()
-        e.u = "1x2"
+        e.u = u"1x2"
         assert_values_(e, None, None, None)
         assert_us_(e, u'', u'', u'')
 
     def test_repr(self):
-        s = self.Double.named('s')
+        s = self.Double.named(u's')
         e = s()
         assert repr(e)
 
@@ -329,21 +329,21 @@ class TestDoubleField(object):
 
 def test_repr_always_safe():
     # use the abstract class to emulate a subclass with broken compose.
-    broken_impl = Compound.using(field_schema=[String.named('y')])
+    broken_impl = Compound.using(field_schema=[String.named(u'y')])
     e = broken_impl()
     assert repr(e)
 
 
 @raises(NotImplementedError)
 def test_explode_abstract():
-    schema = Compound.using(field_schema=[String.named('y')])
+    schema = Compound.using(field_schema=[String.named(u'y')])
     el = schema()
-    el.set('x')
+    el.set(u'x')
 
 
 @raises(NotImplementedError)
 def test_compose_abstract():
-    schema = Compound.using(field_schema=[String.named('y')])
+    schema = Compound.using(field_schema=[String.named(u'y')])
     el = schema()
     el.value
 
@@ -352,80 +352,79 @@ def test_compose_abstract():
 def test_compose_abstract_fixme():
     # really it'd be nice if serialize simply wasn't inherited. would
     # have to rejigger the hierarchy, not sure its worth it.
-    schema = Compound.using(field_schema=[String.named('y')])
+    schema = Compound.using(field_schema=[String.named(u'y')])
     el = schema()
-    schema.serialize(el, 'abc')
+    schema.serialize(el, u'abc')
 
 
 def assert_values_(el, top, x, y):
     eq_(el.value, top)
-    eq_(el['x'].value, x)
-    eq_(el['y'].value, y)
+    eq_(el[u'x'].value, x)
+    eq_(el[u'y'].value, y)
 
 
 def assert_us_(el, top, x, y):
     eq_(el.u, top)
-    eq_(el['x'].u, x)
-    eq_(el['y'].u, y)
+    eq_(el[u'x'].u, x)
+    eq_(el[u'y'].u, y)
 
 
 def test_sample_compound():
-    s = DateYYYYMMDD.named('s')
+    s = DateYYYYMMDD.named(u's')
     s.__compound_init__()
 
-    assert [field.name for field in s.field_schema] == ['year', 'month', 'day']
+    assert ([field.name for field in s.field_schema] ==
+            [u'year', u'month', u'day'])
 
     e = s()
     assert e.value is None
-    assert e['year'].value is None
-    assert e.el('year').value is None
+    assert e[u'year'].value is None
+    assert e.el(u'year').value is None
 
     when = datetime.date(2000, 10, 1)
     e.set(when)
     assert e.value == when
-    assert e.el('year').value == 2000
-    assert e.el('day').value == 1
+    assert e.el(u'year').value == 2000
+    assert e.el(u'day').value == 1
     assert e.u == u'2000-10-01'
-    assert e.el('day').u == u'01'
+    assert e.el(u'day').u == u'01'
 
-    e.el('day').set(5)
+    e.el(u'day').set(5)
     assert e.value == datetime.date(2000, 10, 5)
-    assert e.el('day').value == 5
+    assert e.el(u'day').value == 5
     assert e.u == u'2000-10-05'
 
     e = s()
     e.set(None)
     assert e.value is None
     assert e.u == u''
-    assert e['year'].value is None
-    assert e.el('year').value is None
+    assert e[u'year'].value is None
+    assert e.el(u'year').value is None
 
     e = s()
-    e.set('snaggle')
+    e.set(u'snaggle')
     assert e.value is None
     assert e.u == u''
-    assert e['year'].value is None
-    assert e.el('year').value is None
+    assert e[u'year'].value is None
+    assert e.el(u'year').value is None
 
 
 def test_compound_optional():
 
-    class RequiredForm(Form):
-        s = DateYYYYMMDD.using(optional=False)
+    required = Dict.of(DateYYYYMMDD.named(u's').using(optional=False))
 
-    f = RequiredForm.from_defaults()
-    assert not f.el('s.year').optional
-    assert not f.el('s.month').optional
-    assert not f.el('s.day').optional
+    f = required.from_defaults()
+    assert not f.el(u's.year').optional
+    assert not f.el(u's.month').optional
+    assert not f.el(u's.day').optional
     assert not f.validate()
 
-    class OptionalForm(Form):
-        s = DateYYYYMMDD.using(optional=True)
+    optional = Dict.of(DateYYYYMMDD.named(u's').using(optional=True))
 
-    f = OptionalForm.from_defaults()
-    assert f.el('s.year').optional
-    assert f.el('s.month').optional
-    assert f.el('s.day').optional
+    f = optional.from_defaults()
+    assert f.el(u's.year').optional
+    assert f.el(u's.month').optional
+    assert f.el(u's.day').optional
     assert f.validate()
 
 
@@ -433,5 +432,5 @@ def test_compound_is_empty():
     element = DateYYYYMMDD()
     assert element.is_empty
 
-    element.el('year').set(1979)
+    element.el(u'year').set(1979)
     assert not element.is_empty

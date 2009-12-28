@@ -5,7 +5,6 @@ from flatland import (
     Boolean,
     DateYYYYMMDD,
     Dict,
-    Form,
     String,
     )
 
@@ -18,21 +17,20 @@ from tests.genshi._util import (
 
 def small_form(values=None):
 
-    class SmallForm(Form):
-        field1 = String
-        field2 = String
-        toggle1 = Boolean
-        toggle2 = Boolean
-        multi = Array.of(String)
-        date1 = DateYYYYMMDD
-
+    SmallForm = Dict.of(
+        String.named(u'field1'),
+        String.named(u'field2'),
+        Boolean.named(u'toggle1'),
+        Boolean.named(u'toggle2'),
+        Array.named(u'multi').of(String),
+        DateYYYYMMDD.named(u'date1'))
 
     if values is None:
         values = {
-            'field1': 'val',
-            'toggle2': True,
-            'multi': ['a', 'b'],
-            'date1': datetime.date(1999, 12, 31),
+            u'field1': u'val',
+            u'toggle2': True,
+            u'multi': [u'a', u'b'],
+            u'date1': datetime.date(1999, 12, 31),
             }
     el = SmallForm(values)
     return {'form': el}
@@ -82,7 +80,7 @@ form.el(u'.field1')
 
 class TestTags(FilteredRenderTest):
     def setup(self):
-        self.schema = Dict.of(String.named('field'))
+        self.schema = Dict.of(String.named(u'field'))
 
     @from_docstring(context_factory=small_form)
     def test_empty(self):
@@ -823,14 +821,14 @@ class TestTags(FilteredRenderTest):
 
 def user_filter_form(values=None):
     schema = Dict.of(
-        String.named('field1').using(optional=True),
-        String.named('field2'))
+        String.named(u'field1').using(optional=True),
+        String.named(u'field2'))
     if values is None:
         values = {
-            'field1': 'val',
+            u'field1': u'val',
             }
     el = schema(values)
-    el['field2'].errors.append('Missing')
+    el[u'field2'].errors.append(u'Missing')
 
     def label_filter(tag, attrs, stream, context, el):
         from genshi import QName
@@ -843,10 +841,10 @@ def user_filter_form(values=None):
                 label += ' *'
             stream = label
         if not el.optional:
-            css = (attrs.get('class', '') + ' required').strip()
-            attrs |= [(QName('class'), css)]
+            css = (attrs.get(u'class', u'') + u' required').strip()
+            attrs |= [(QName(u'class'), css)]
         return tag, attrs, stream
-    label_filter.tags = ('label',)
+    label_filter.tags = (u'label',)
 
     return dict(form=el, label_filter=label_filter)
 
@@ -887,4 +885,3 @@ class TestUserFilters(FilteredRenderTest):
 :: endtest
 
         """
-

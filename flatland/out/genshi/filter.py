@@ -311,7 +311,7 @@ class Filter(ToggledAttribute):
                     log.error("Failed to parse filter expression %r" %
                               filter_expr,)
                     raise
-            want = getattr(fn, u'tags', None)
+            want = getattr(fn, 'tags', None)
             if want is None or tag.localname not in want:
                 continue
 
@@ -385,7 +385,7 @@ class DecoratedElementDirective(object):
     def end(self, start, end, stream, context, history):
         kind, (tag, attrs), pos = start
 
-        node = history.get(u'binding', None)
+        node = history.get('binding', None)
         attrs -= F_BIND
 
         # Set <... name=""> for bound nodes.
