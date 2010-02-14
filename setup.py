@@ -52,8 +52,7 @@ try:
     from setuptools import setup, find_packages
     extra_setup = dict(
         zip_safe = True,
-        extras_require = {'multiserver' : ['Paste>=1.1', 'setuptools'] },
-        tests_require=['nose', 'Genshi >= 0.5'],
+        tests_require=['nose'],
         # for tests, prefer just 'nosetests tests'
         test_suite='nose.collector',
         )
