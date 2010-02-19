@@ -49,6 +49,49 @@ class Container(Element):
     descent_validators = ()
     """TODO: doc descent_validators"""
 
+    @class_cloner
+    def descent_validated_by(cls, *validators):
+        """Return a class with descent validators set to *\*validators*.
+
+        :param \*validators: one or more validator functions, replacing any
+          descent validators present on the class.
+
+        :returns: a new class
+        """
+        for validator in validators:
+            # metaclass gymnastics can fool this assertion. don't do that.
+            if isinstance(validator, type):
+                raise TypeError(
+                    "Validator %r is a type, not a callable or instance of a"
+                    "validator class.  Did you mean %r()?" % (
+                        validator, validator))
+        cls.descent_validators = list(validators)
+        return cls
+
+    @class_cloner
+    def including_descent_validators(cls, *validators, **kw):
+        """Return a class with additional descent *\*validators*.
+
+        :param \*validators: one or more validator functions
+
+        :param position: defaults to -1.  By default, additional validators
+          are placed after existing descent validators.  Use 0 for before, or
+          any other list index to splice in *validators* at that point.
+
+        :returns: a new class
+        """
+        position = kw.pop('position', -1)
+        if kw:
+            raise TypeError('including_validators() got an '
+                            'unexpected keyword argument %r' % (
+                                kw.popitem()[0]))
+        mutable = list(cls.descent_validators)
+        if position < 0:
+            position = len(mutable) + 1 + position
+        mutable[position:position] = list(validators)
+        cls.descent_validators = mutable
+        return cls
+
     def validate_element(self, element, state, descending):
         """Validates on the first (downward) and second (upward) pass.
 

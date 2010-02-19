@@ -38,6 +38,39 @@ def test_validators():
     eq_(schema.validators, list(xrange(3)))
 
 
+def test_dsl_validated_by():
+    s = Element.using(validators=(123, 456))
+    eq_(s.validators, [123, 456])
+
+    s = Element.validated_by(123, 456)
+    eq_(s.validators, [123, 456])
+
+    s = Element.using(validators=(123, 456)).validated_by(789)
+    eq_(s.validators, [789])
+
+    assert_raises(TypeError, Element.validated_by, int)
+
+
+def test_dsl_including_validators():
+    base = Element.validated_by(1, 2, 3)
+    eq_(base.validators, [1, 2, 3])
+
+    s = base.including_validators(4, 5, 6)
+    eq_(s.validators, [1, 2, 3, 4, 5, 6])
+
+    s = base.including_validators(4, 5, 6, position=0)
+    eq_(s.validators, [4, 5, 6, 1, 2, 3])
+
+    s = base.including_validators(4, 5, 6, position=1)
+    eq_(s.validators, [1, 4, 5, 6, 2, 3])
+
+    s = base.including_validators(4, 5, 6, position=-2)
+    eq_(s.validators, [1, 2, 4, 5, 6, 3])
+
+    s = Element.including_validators(1)
+    eq_(s.validators, [1])
+
+
 def test_optional():
     # Required is the default.
     el = Element()

@@ -23,6 +23,39 @@ def test_dsl_of():
     assert sorted(t2.member_schema().keys()) == [u'x', u'y']
 
 
+def test_dsl_descent_validated_by():
+    s = Sequence.using(descent_validators=(123, 456))
+    eq_(s.descent_validators, (123, 456))
+
+    s = Sequence.descent_validated_by(123, 456)
+    eq_(s.descent_validators, [123, 456])
+
+    s = Sequence.using(descent_validators=(123, 456)).descent_validated_by(789)
+    eq_(s.descent_validators, [789])
+
+    assert_raises(TypeError, Sequence.descent_validated_by, int)
+
+
+def test_dsl_including_descent_validators():
+    base = Sequence.descent_validated_by(1, 2, 3)
+    eq_(base.descent_validators, [1, 2, 3])
+
+    s = base.including_descent_validators(4, 5, 6)
+    eq_(s.descent_validators, [1, 2, 3, 4, 5, 6])
+
+    s = base.including_descent_validators(4, 5, 6, position=0)
+    eq_(s.descent_validators, [4, 5, 6, 1, 2, 3])
+
+    s = base.including_descent_validators(4, 5, 6, position=1)
+    eq_(s.descent_validators, [1, 4, 5, 6, 2, 3])
+
+    s = base.including_descent_validators(4, 5, 6, position=-2)
+    eq_(s.descent_validators, [1, 2, 4, 5, 6, 3])
+
+    s = Sequence.including_descent_validators(1)
+    eq_(s.descent_validators, [1])
+
+
 def test_simple_validation_shortcircuit():
     Regular = Dict.of(Integer.using(optional=False))
     el = Regular()
