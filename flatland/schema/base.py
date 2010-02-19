@@ -6,7 +6,6 @@ from flatland.signals import validator_validated
 from flatland.util import (
     Unspecified,
     assignable_class_property,
-    assignable_property,
     class_cloner,
     named_int_factory,
     symbol,
@@ -179,6 +178,50 @@ class Element(_BaseElement):
                 "%r is an invalid keyword argument: not a known "
                 "argument or an overridable class property of %s" % (
                     attribute, cls.__name__))
+        return cls
+
+    @class_cloner
+    def validated_by(cls, *validators):
+        """Return a class with validators set to *\*validators*.
+
+        :param \*validators: one or more validator functions, replacing any
+          validators present on the class.
+
+        :returns: a new class
+        """
+        # TODO: See TODO in __init__
+        for validator in validators:
+            # metaclass gymnastics can fool this assertion. don't do that.
+            if isinstance(validator, type):
+                raise TypeError(
+                    "Validator %r is a type, not a callable or instance of a"
+                    "validator class.  Did you mean %r()?" % (
+                        validator, validator))
+        cls.validators = list(validators)
+        return cls
+
+    @class_cloner
+    def including_validators(cls, *validators, **kw):
+        """Return a class with additional *\*validators*.
+
+        :param \*validators: one or more validator functions
+
+        :param position: defaults to -1.  By default, additional validators
+          are placed after existing validators.  Use 0 for before, or any
+          other list index to splice in *validators* at that point.
+
+        :returns: a new class
+        """
+        position = kw.pop('position', -1)
+        if kw:
+            raise TypeError('including_validators() got an '
+                            'unexpected keyword argument %r' % (
+                                kw.popitem()[0]))
+        mutable = list(cls.validators)
+        if position < 0:
+            position = len(mutable) + 1 + position
+        mutable[position:position] = list(validators)
+        cls.validators = mutable
         return cls
 
     def validate_element(self, element, state, descending):
