@@ -1,6 +1,7 @@
 # -*- coding: utf-8; fill-column: 78 -*-
 # TODO: Temporal stripping
 import datetime
+import decimal
 import re
 
 from flatland.exc import AdaptationError
@@ -226,9 +227,11 @@ class Number(Scalar):
         """
         if value is None:
             return None
+        if isinstance(value, basestring):
+            value = value.strip()  # decimal.Decimal doesn't like whitespace
         try:
             native = self.type_(value)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, ArithmeticError):
             raise AdaptationError()
         else:
             if not self.signed:
@@ -281,7 +284,15 @@ class Float(Number):
     """``u'%f'``"""
 
 
-# TODO: Decimal
+class Decimal(Number):
+    """Element type for Python's Decimal."""
+
+    type_ = decimal.Decimal
+    """``decimal.Decimal``"""
+
+    format = u'%f'
+    """``u'%f'``"""
+
 
 class Boolean(Scalar):
     """Element type for Python's ``bool``."""

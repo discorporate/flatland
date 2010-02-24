@@ -1,9 +1,11 @@
 import datetime
+import decimal
 
 from flatland import (
     Boolean,
     Date,
     DateTime,
+    Decimal,
     Float,
     Integer,
     Long,
@@ -177,6 +179,36 @@ def test_float():
                  (u'123.00',  123.0,   u'123.00'),
                  (u'123.005', 123.005, u'123.00')):
         yield (validate_element_set, TwoDigitFloat) + spec
+
+
+def test_decimal():
+    d = decimal.Decimal
+    for spec in ((u'123',    d('123'),   u'123.000000'),
+                 (u' 123 ',  d('123'),   u'123.000000'),
+                 (u'xyz',    None,       u'xyz'),
+                 (u'xyz123', None,       u'xyz123'),
+                 (u'123xyz', None,       u'123xyz'),
+                 (u'123.0',  d('123.0'), u'123.000000'),
+                 (u'+123',   d('123'),   u'123.000000'),
+                 (u'-123',   d('-123'), u'-123.000000'),
+                 (u' +123 ', d('123'),   u'123.000000'),
+                 (u' -123 ', d('-123'),  u'-123.000000'),
+                 (123,       d('123'),   u'123.000000'),
+                 (-123,      d('-123'),  u'-123.000000'),
+                 (d(123),    d('123'),   u'123.000000'),
+                 (d(-123),   d('-123'),  u'-123.000000'),
+                 (123.456,   None,       u'123.456'),
+                 (u'+123',   d('123'),   u'123.000000', dict(signed=False)),
+                 (u'-123',   None,       u'-123', dict(signed=False))):
+        yield (validate_element_set, Decimal) + spec
+
+    TwoDigitDecimal = Decimal.using(format=u'%0.2f')
+
+    for spec in ((u'123',     d('123.0'),   u'123.00'),
+                 (u' 123 ',   d('123.0'),   u'123.00'),
+                 (u'12.34',   d('12.34'),   u'12.34'),
+                 (u'12.3456', d('12.3456'), u'12.35')):
+        yield (validate_element_set, TwoDigitDecimal) + spec
 
 
 def test_boolean():
