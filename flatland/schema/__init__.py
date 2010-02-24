@@ -12,6 +12,7 @@ from .scalars import (
     Constrained,
     Date,
     DateTime,
+    Decimal,
     Enum,
     Float,
     Integer,

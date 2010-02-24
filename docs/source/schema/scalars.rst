@@ -45,6 +45,10 @@ Numbers
    :show-inheritance:
    :members:
 
+.. autoclass:: Decimal
+   :show-inheritance:
+   :members:
+
 
 Booleans
 --------
