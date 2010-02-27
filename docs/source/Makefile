@@ -4,9 +4,10 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
+VERSION      ?= tip
 
 # Internal variables.
-ALLSPHINXOPTS   = -d ../doctrees $(SPHINXOPTS) .
+ALLSPHINXOPTS = -d ../doctrees $(SPHINXOPTS) .
 
 all: html text
 
@@ -17,7 +18,7 @@ help:
 	@echo "  doctest   to run doctests"
 
 clean:
-	for i in doctrees html text doctest pickles; do \
+	for i in doctrees html text doctest pickles website; do \
 	    rm -rf ../$$i; \
         done
 
@@ -32,6 +33,13 @@ text:
 	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) ../text
 	@echo
 	@echo "Build finished. The text pages are in ../text."
+
+website:
+	mkdir -p ../website ../doctrees
+	$(SPHINXBUILD) -b discorporate \
+           -D html_theme=discorporate \
+           -D version=$(VERSION) \
+           $(ALLSPHINXOPTS) ../website
 
 doctest:
 	mkdir -p ../doctrees ../doctest

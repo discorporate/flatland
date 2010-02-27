@@ -2,21 +2,10 @@
 #
 # flatland documentation build configuration file, created by
 # sphinx-quickstart on Wed Sep 17 08:55:12 2008.
-#
-# This file is execfile()d with the current directory set to its containing dir.
-#
-# The contents of this file are pickled, so don't put values in the namespace
-# that aren't pickleable (module imports are okay, they're removed automatically).
-#
-# All configuration values have a default value; values that are commented out
-# serve to show the default value.
 
-import sys, os
+import os
 from os import path
-
-# If your extensions are in another directory, add it here. If the directory
-# is relative to the documentation root, use os.path.abspath to make it
-# absolute, like shown here.
+import sys
 
 sys.path.append(path.abspath(path.dirname(__file__) + "../../../"))
 
@@ -27,6 +16,16 @@ sys.path.append(path.abspath(path.dirname(__file__) + "../../../"))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
               'sphinx.ext.inheritance_diagram']
+
+html_theme_path = ['.']
+
+try:
+   import dbuilder
+except ImportError:
+   pass
+else:
+   extensions.append('dbuilder')
+   html_theme_path.append(path.join(dbuilder.__path__[0], 'theme'))
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
