@@ -9,13 +9,14 @@ dist
 html
 junk
 *.swp
-docs/text
 docs/html
 docs/doctrees
 docs/doctest
 docs/pickles
 docs/source/_static
 docs/source/_template
+docs/text
+docs/website
 bench
 *~
 bin
