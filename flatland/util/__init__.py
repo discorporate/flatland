@@ -1,8 +1,8 @@
 """Utilities."""
-import sys
+from .deferred import deferred_module
 
 
-type(sys.modules['flatland']).shadow(
+deferred_module.shadow(
     'flatland.util',
     {
         'base': (
@@ -25,6 +25,9 @@ type(sys.modules['flatland']).shadow(
             'symbol',
             'threading',
             'to_pairs',
+            ),
+        'deferred': (
+            'deferred_module',
             ),
         'signals': (
             'Signal',

@@ -4,8 +4,6 @@
 Overview
 ========
 
-flatland is a form and JSON input processing and validation library.
-
 Philosphy
 ---------
 
