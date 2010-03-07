@@ -226,6 +226,14 @@ def test_find_single():
         assert found == expected
 
 
+def test_find_single_loose():
+    el = Schema.from_defaults()
+
+    element = el.find('l3[:][:]', single=True, strict=False)
+    found = element.value
+    assert found == 6
+
+
 def test_find_single_messaging():
     el = Schema.from_defaults()
 

@@ -508,7 +508,7 @@ class Element(_BaseElement):
             return results
         elif not results:
             return None
-        elif len(results) > 1:
+        elif len(results) > 1 and strict:
             raise LookupError("Path %r matched multiple elements; single "
                               "result expected." % (path,))
         else:
