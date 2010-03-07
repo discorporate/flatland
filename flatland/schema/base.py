@@ -463,7 +463,7 @@ class Element(_BaseElement):
         :param path: a /-separated string specifying elements to select,
           such as 'child/grandchild/greatgrandchild'.  Relative & absolute
           paths are supported, as well as container expansion.  See
-          :ref:`path_syntax`.
+          :ref:`path_lookups`.
 
         :param single: if true, return a scalar result rather than a list of
           elements.  If no elements match *path*, ``None`` is returned.  If
