@@ -2,6 +2,7 @@
 import collections
 import itertools
 import operator
+from flatland.schema.paths import pathexpr
 from flatland.signals import validator_validated
 from flatland.util import (
     Unspecified,
@@ -455,6 +456,63 @@ class Element(_BaseElement):
                 continue
             parts.append(element.name)
         return sep + sep.join(parts)
+
+    def find(self, path, single=False, strict=True):
+        """Find child elements by string path.
+
+        :param path: a /-separated string specifying elements to select,
+          such as 'child/grandchild/greatgrandchild'.  Relative & absolute
+          paths are supported, as well as container expansion.  See
+          :ref:`path_syntax`.
+
+        :param single: if true, return a scalar result rather than a list of
+          elements.  If no elements match *path*, ``None`` is returned.  If
+          multiple elements match, a :exc:`LookupError` is raised.  If
+          multiple elements are found and *strict* is false, an unspecified
+          element from the result set is returned.
+
+        :param strict: defaults to True.  If *path* specifies children or
+          sequence indexes that do not exist, a `:ref:`LookupError` is raised.
+
+        :returns: a list of :class:`Element` instances, an :class:`Element` if
+          *single* is true, or raises :exc:`LookupError`.
+
+        .. testsetup:: find
+
+          from flatland import Form, Dict, List, String
+          class Profile(Form):
+              contact = Dict.of(String.named('name'),
+                                List.named('addresses').
+                                  of(Dict.of(String.named('street1'),
+                                             String.named('city'))).
+                                  using(default=1))
+          form = Profile(
+              {'contact': {'name': 'Obed Marsh',
+                           'addresses': [{'street1': 'Main',
+                                          'city': 'Kingsport'},
+                                         {'street1': 'Broadway',
+                                          'city': 'Dunwich'}]}})
+
+        .. doctest:: find
+
+          >>> cities = form.find('/contact/addresses[:]/city')
+          >>> [el.value for el in cities]
+          [u'Kingsport', u'Dunwich']
+          >>> form.find('/contact/name', single=True)
+          <String u'name'; value=u'Obed Marsh'>
+
+        """
+        expr = pathexpr(path)
+        results = expr(self, strict)
+        if not single:
+            return results
+        elif not results:
+            return None
+        elif len(results) > 1:
+            raise LookupError("Path %r matched multiple elements; single "
+                              "result expected." % (path,))
+        else:
+            return results[0]
 
     def el(self, path, sep=u'.'):
         """Find a child element by string path.
