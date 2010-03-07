@@ -618,6 +618,10 @@ class List(Sequence):
         else:
             self.set(default)
 
+    def __repr__(self):
+        # shield the slots from repr
+        return repr(list(self))
+
 
 class Array(Sequence):
     """A transparent homogeneous Container, for multivalued form elements.
