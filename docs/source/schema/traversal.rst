@@ -48,7 +48,7 @@ application.  An element's :attr:`~base.Element.value` is a full & recursive
 Python Syntax
 -------------
 
-Containers elements such as :class:`~forms.Form`, :class:`~containers.Dict`,
+Containers elements such as :class:`~flatland.Form`, :class:`~containers.Dict`,
 and :class:`~containers.List` implement the Python methods you'd expect for
 their type.  In most cases you may use them as if they were ``dict`` and
 ``list`` instances- the difference being that they always contain
@@ -146,11 +146,15 @@ Referencing parents is possible with ``..``:
 
 Absolute paths begin with a ``/``.
 
+.. doctest::
+
    >>> ann1['location']['x'].find('/title')
    [<String u'title'; value=u'Interesting Spot'>]
 
 Members of sequences can be selected like any other child (their index number
 is their name), or you can use Python-like slicing:
+
+.. doctest::
 
    >>> ann1.find('/flags/0')
    [<Integer None; value=1>]
@@ -160,6 +164,8 @@ is their name), or you can use Python-like slicing:
 Full Python slice notation is supported as well.  With slices, paths can
 select more than one element.
 
+.. doctest::
+
    >>> ann1.find('/flags[:]')
    [<Integer None; value=1>, <Integer None; value=3>, <Integer None; value=5>]
    >>> ann1.find('/flags[1:]')
@@ -167,6 +173,8 @@ select more than one element.
 
 Further path operations are permissible after slices.  A richer schema is
 needed to illustrate this:
+
+.. doctest::
 
   >>> Points = List.of(List.of(Dict.of(Integer.named('x'),
   ...                                  Integer.named('y'))))
