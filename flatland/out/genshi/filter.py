@@ -284,7 +284,7 @@ class TabIndexAttribute(ToggledAttribute):
 
         current = attrs.get(self.attribute, None)
         if forced or current is None and tag.localname in self.auto_tags:
-            attrs |= ((self.attribute, tabindex),)
+            attrs |= ((self.attribute, unicode(tabindex)),)
             context[CTX_CUR_TABINDEX] = tabindex + 1
         return attrs
 
