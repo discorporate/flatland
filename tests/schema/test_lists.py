@@ -5,7 +5,7 @@ from flatland import (
 )
 from flatland.schema.base import Unspecified
 
-from tests._util import eq_, assert_raises
+from tests._util import eq_
 
 
 def test_set_flat_linear():
@@ -26,6 +26,23 @@ def test_set_flat_miss():
 
     eq_(len(el), 0)
     eq_(el.value, [])
+
+
+def test_set_flat_scalar():
+    pairs = [(u'l', u'1')]
+
+    schema = List.named(u'l').of(Integer.named(u'i'))
+    el = schema()
+    canary = []
+    def setter(self, value):
+        canary.append(value)
+        return type(el).set(self, value)
+    el.set = setter.__get__(el, type(el))
+
+    el.set_flat(pairs)
+    eq_(len(el), 0)
+    eq_(el.value, [])
+    eq_(canary, [])
 
 
 def test_set_flat_pruned():
