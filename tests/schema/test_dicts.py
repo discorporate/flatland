@@ -192,6 +192,22 @@ class DictSetTest(object):
         el.set_flat(pairs)
         eq_(el.value, wanted)
 
+    def test_scalar_set_flat(self):
+        wanted = {u'x': None, u'y': None}
+        pairs = ((u's', u'xxx'),)
+
+        el = self.new_element()
+
+        canary = []
+        def setter(self, value):
+            canary.append(value)
+            return type(el).set(self, value)
+
+        el.set = setter.__get__(el, type(el))
+        el.set_flat(pairs)
+        eq_(el.value, wanted)
+        assert canary == []
+
     def test_over_set(self):
         too_much = {u'x': 1, u'y': 2, u'z': 3}
 
