@@ -1,5 +1,6 @@
 from flatland import (
     Array,
+    Dict,
     Integer,
     MultiValue,
     String,
@@ -20,14 +21,55 @@ def test_set_flat_pruned():
         eq_(el.value, wanted)
 
 
-def test_set_flat_unpruned():
-    pairs = [(u's', u'val0'), (u's', ''), (u's', u'val1'), (u's', u'')]
-
-    schema = Array.of(String.named(u's')).using(prune_empty=False)
-    el = schema.from_flat(pairs)
-
+def _assert_array_set_flat(schema, pairs, bogus=[]):
+    el = schema.from_flat(pairs + bogus)
     eq_(len(el), len(pairs))
     eq_(el.value, list(pair[1] for pair in pairs))
+    eq_(el.flatten(), pairs)
+
+
+def test_set_flat_unpruned():
+    pairs = [(u's', u'val0'), (u's', ''), (u's', u'val1'), (u's', u'')]
+    schema = Array.of(String).named(u's').using(prune_empty=False)
+
+    _assert_array_set_flat(schema, pairs)
+
+
+def test_set_flat_like_named():
+    pairs = [(u's_s', u'abc'), (u's_s', u'def')]
+    bogus = [(u's', u'xxx')]
+    schema = Array.named(u's').of(String.named(u's'))
+
+    _assert_array_set_flat(schema, pairs, bogus)
+
+
+def test_set_flat_unnamed_child():
+    pairs = [(u's', u'abc'), (u's', u'def')]
+    bogus = [(u'', 'xxx')]
+    schema = Array.named(u's').of(String)
+
+    _assert_array_set_flat(schema, pairs, bogus)
+
+
+def test_set_flat_anonymous_array():
+    schema = Array.of(String.named(u's'))
+    pairs = [(u's', u'abc'), (u's', u'def')]
+    bogus = [(u'', 'xxx')]
+
+    _assert_array_set_flat(schema, pairs, bogus)
+
+
+def test_set_flat_fully_anonymous_array():
+    schema = Array.of(String)
+    pairs = [(u'', u'abc'), (u'', u'def')]
+
+    _assert_array_set_flat(schema, pairs)
+
+
+def test_set_flat_anonymous_dict():
+    schema = Array.of(Dict.of(String.named('x')))
+    pairs = [(u'x', u'abc'), (u'x', u'def')]
+    assert_raises(AssertionError, schema.from_flat, pairs)
 
 
 def test_set():
@@ -208,3 +250,62 @@ def test_multivalue_mutation():
     eq_(el.u, u'9')
     eq_([child.value for child in el], [9, 1, 2])
     eq_(len(el), 3)
+
+
+def _assert_multivalue_set_flat(schema, pairs, bogus=[]):
+    el = schema.from_flat(pairs + bogus)
+    eq_(len(el), len(pairs))
+    eq_(el.value, pairs[0][1])
+    eq_(list(e.value for e in el), list(pair[1] for pair in pairs))
+    eq_(el.flatten(), pairs)
+
+
+def test_multivalue_set_flat_unpruned():
+    pairs = [(u's', u'val0'), (u's', ''), (u's', u'val1'), (u's', u'')]
+    schema = MultiValue.of(String).named(u's').using(prune_empty=False)
+
+    _assert_multivalue_set_flat(schema, pairs)
+
+
+def test_multivalue_set_flat_like_named():
+    pairs = [(u's_s', u'abc'), (u's_s', u'def')]
+    bogus = [(u's', u'xxx')]
+    schema = MultiValue.named(u's').of(String.named(u's'))
+
+    _assert_multivalue_set_flat(schema, pairs, bogus)
+
+
+def test_multivalue_set_flat_unnamed_child():
+    pairs = [(u's', u'abc'), (u's', u'def')]
+    bogus = [(u'', 'xxx')]
+    schema = MultiValue.named(u's').of(String)
+
+    _assert_multivalue_set_flat(schema, pairs, bogus)
+
+
+def test_multivalue_set_flat_anonymous_array():
+    schema = MultiValue.of(String.named(u's'))
+    pairs = [(u's', u'abc'), (u's', u'def')]
+    bogus = [(u'', 'xxx')]
+
+    _assert_multivalue_set_flat(schema, pairs, bogus)
+
+
+def test_multivalue_set_flat_fully_anonymous_array():
+    schema = MultiValue.of(String)
+    pairs = [(u'', u'abc'), (u'', u'def')]
+
+    _assert_multivalue_set_flat(schema, pairs)
+
+
+def test_multivalue_roundtrip():
+    schema = MultiValue.of(String.named(u's'))
+    data = [u'abc', u'def']
+    el = schema(data)
+    eq_([e.value for e in el], data)
+
+    flat = el.flatten()
+    eq_(flat, [(u's', u'abc'), (u's', u'def')])
+    restored = schema.from_flat(flat)
+    eq_(restored.value, u'abc')
+    eq_([e.value for e in restored], data)
