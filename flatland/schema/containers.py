@@ -546,9 +546,8 @@ class List(Sequence):
         if not pairs:
             return
 
-        regex = re.compile(u'^' + re_uescape(self.name + sep) +
-                           ur'(\d+)' + re_uescape(sep),
-                           re.UNICODE)
+        regex = re.compile(ur'^%s(\d+)(?:%s|$)' % (
+            re_uescape(self.name + sep), re_uescape(sep)), re.UNICODE)
 
         indexes = defaultdict(list)
         prune = self.prune_empty
@@ -632,21 +631,44 @@ class Array(Sequence):
 
     """
 
-    #######################################################################
     prune_empty = True
-
-    def __init__(self, value=Unspecified, **kw):
-        Sequence.__init__(self, value=value, **kw)
-        # FIXME: is this true?
-        if self.name is None:
-            self.name = self.member_schema.name
-
-    #######################################################################
+    flattenable = False
 
     def _set_flat(self, pairs, sep):
+        del self[:]
         prune = self.prune_empty
-        self.set(value for key, value in pairs
-                 if key == self.name and not prune or value != u'')
+        child_name = self.member_schema.name
+
+        # TODO: some complexity snuck in below with the thought of supporting
+        # arrays of containers.  they're *not* working yet.
+        assert not issubclass(self.member_schema, Container), \
+               "Flattened Arrays are only supported for scalar child types."
+
+        if not self.name:
+            child_prefix = child_name or u''
+            for key, value in pairs:
+                if prune and value == u'' and key == child_prefix:
+                    continue
+                if key == u'':
+                    key = None
+                if child_name and key != child_name:
+                    continue
+                member = self.member_schema.from_flat([(key, value)])
+                self.append(member)
+        else:
+            regex = re.compile(ur'^(%s(?:%s|$))' % (
+                re_uescape(self.name), re_uescape(sep)), re.UNICODE)
+            for key, value in pairs:
+                m = regex.match(key)
+                if not m:
+                    continue
+                remainder = key[m.end():] or None
+                if child_name and not remainder:
+                    continue
+                elif prune and value == u'' and remainder == child_name:
+                    continue
+                member = self.member_schema.from_flat([(remainder, value)])
+                self.append(member)
 
 
 class MultiValue(Array, Scalar):
