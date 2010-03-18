@@ -78,12 +78,57 @@ def test_set_flat_unpruned():
     eq_(el.value, [0, None])
 
 
-def test_set_flat_linear_dict():
+def _assert_set_flat(schema, pairs, bogus=[]):
+    el = schema.from_flat(pairs + bogus)
+    eq_(len(el), len(pairs))
+    eq_(el.value, list(pair[1] for pair in pairs))
+    eq_(el.flatten(), pairs)
+
+
+def test_set_flat_unnamed_child():
+    schema = List.named(u's').of(String)
+    pairs = [(u's_0', u'abc'), (u's_1', u'def')]
+    bogus = [(u's', u'xxx')]
+
+    _assert_set_flat(schema, pairs, bogus)
+
+
+def test_set_flat_anon_list_named_child():
+    schema = List.of(String.named(u's'))
+    pairs = [(u'0_s', u'abc'), (u'1_s', u'def')]
+    bogus = [(u's', u'xxx'), (u'0', u'yyy')]
+
+    _assert_set_flat(schema, pairs, bogus)
+
+
+def test_set_flat_fully_anonymous():
+    schema = List.of(String)
+    pairs = [(u'0', u'abc'), (u'1', u'def')]
+    bogus = [(u'x', u'xxx')]
+
+    _assert_set_flat(schema, pairs, bogus)
+
+
+def test_set_flat_anonymous_dict():
     pairs = ((u'l_0_x', u'x0'), (u'l_0_y', u'y0'),
              (u'l_1_x', u'x1'), (u'l_1_y', u'y1'),
              (u'l_2_x', u'x2'), )
 
     schema = List.named(u'l').of(String.named(u'x'), String.named(u'y'))
+    el = schema.from_flat(pairs)
+
+    eq_(len(el), 3)
+    eq_(el[0].value, dict((k[-1], v) for k, v in pairs[0:2]))
+    eq_(el[1].value, dict((k[-1], v) for k, v in pairs[2:4]))
+    eq_(el[2].value, {u'x': u'x2', u'y': None})
+
+
+def test_set_flat_doubly_anonymous_dict():
+    pairs = ((u'0_x', u'x0'), (u'0_y', u'y0'),
+             (u'1_x', u'x1'), (u'1_y', u'y1'),
+             (u'2_x', u'x2'), )
+
+    schema = List.of(String.named(u'x'), String.named(u'y'))
     el = schema.from_flat(pairs)
 
     eq_(len(el), 3)
@@ -139,34 +184,6 @@ def test_set_default_int():
     el.set_default()
     eq_(len(el), 2)
     eq_(el.value, [u'val'] * 2)
-
-
-def test_set_default_value():
-
-    def factory(default, **kw):
-        return List.using(default=default, **kw).of(
-            String.using(default=u'val'))
-
-    schema = factory([u'a', u'b'])
-    el = schema()
-    eq_(len(el), 0)
-    eq_(el.value, [])
-
-    el = schema()
-    el.set_default()
-    eq_(len(el), 2)
-    eq_(el.value, [u'a', u'b'])
-
-    el = schema([u'c', u'd'])
-    eq_(el.value, [u'c', u'd'])
-    el.set_default()
-    eq_(el.value, [u'a', u'b'])
-
-    schema0 = factory([])
-    el = schema0()
-    el.set_default()
-    eq_(len(el), 0)
-    eq_(el.value, [])
 
 
 def test_set_default_value():
