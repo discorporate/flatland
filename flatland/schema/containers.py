@@ -546,8 +546,12 @@ class List(Sequence):
         if not pairs:
             return
 
-        regex = re.compile(ur'^%s(\d+)(?:%s|$)' % (
-            re_uescape(self.name + sep), re_uescape(sep)), re.UNICODE)
+        if self.name:
+            regex = re.compile(ur'^%s(\d+)(?:%s|$)' % (
+                re_uescape(self.name + sep), re_uescape(sep)), re.UNICODE)
+        else:
+            regex = re.compile(ur'^(\d+)(?:%s|$)' % (
+                re_uescape(sep)), re.UNICODE)
 
         indexes = defaultdict(list)
         prune = self.prune_empty
@@ -565,7 +569,8 @@ class List(Sequence):
                 # aren't valid data for us.
                 pass
             else:
-                indexes[index].append((key[len(m.group(0)):], value))
+                child_key = key[len(m.group(0)):] or None
+                indexes[index].append((child_key, value))
 
         if not indexes:
             return
