@@ -114,6 +114,7 @@ class Element(_BaseElement):
     """
 
     flattenable = False
+    children_flattenable = True
     validates_down = None
     validates_up = None
 
@@ -671,9 +672,10 @@ class Element(_BaseElement):
             pairs = [(self.flattened_name(sep), value(self))]
         else:
             pairs = []
-        pairs.extend((e.flattened_name(sep), value(e))
-                     for e in self.all_children
-                     if e.flattenable)
+        if self.children_flattenable:
+            pairs.extend((e.flattened_name(sep), value(e))
+                         for e in self.all_children
+                         if e.flattenable)
         return pairs
 
     def set(self, value):

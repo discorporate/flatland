@@ -1,10 +1,12 @@
 import datetime
+import re
 
 from flatland import (
     Compound,
     DateYYYYMMDD,
     Dict,
     Integer,
+    JoinedString,
     String,
     )
 
@@ -434,3 +436,64 @@ def test_compound_is_empty():
 
     element.el(u'year').set(1979)
     assert not element.is_empty
+
+
+def test_joined_string():
+    el = JoinedString(u'abc')
+    assert el.value == u'abc'
+    assert [child.value for child in el] == [u'abc']
+
+    el = JoinedString(u'abc,def')
+    assert el.value == u'abc,def'
+    assert [child.value for child in el] == [u'abc', u'def']
+
+    el = JoinedString([u'abc', u'def'])
+    assert el.value == u'abc,def'
+    assert [child.value for child in el] == [u'abc', u'def']
+
+    el = JoinedString(u' abc,,ghi ')
+    assert el.value == u'abc,ghi'
+    assert [child.value for child in el] == [u'abc', u'ghi']
+
+    el = JoinedString(u'abc,,ghi', prune_empty=False)
+    assert el.value == u'abc,,ghi'
+    assert [child.value for child in el] == [u'abc', u'', u'ghi']
+
+    # The child (String) strips by default
+    el = JoinedString(u' abc ,, ghi ', strip=False)
+    assert el.value == 'abc,ghi'
+    assert [child.value for child in el] == [u'abc', u'ghi']
+
+    # Try with a non-stripping String
+    el = JoinedString(u' abc ,, ghi ',
+                      strip=False,
+                      member_schema=String.using(strip=False))
+    assert el.value == ' abc , ghi '
+    assert [child.value for child in el] == [u' abc ', u' ghi ']
+
+
+def test_joined_string_regex():
+    schema = JoinedString.using(separator=u', ',
+                                separator_regex=re.compile('X*,X*'))
+    el = schema(u'abc')
+    assert el.value == u'abc'
+    assert [child.value for child in el] == [u'abc']
+
+    el = schema(u'abcX,Xdef')
+    assert el.value == u'abc, def'
+    assert [child.value for child in el] == [u'abc', u'def']
+
+
+def test_joined_non_string():
+    schema = JoinedString.using(member_schema=Integer)
+    el = schema(u'1')
+    assert el.value == u'1'
+    assert [child.value for child in el] == [1]
+
+    el = schema(u'1, 2, 3')
+    assert el.value == u'1,2,3'
+    assert [child.value for child in el] == [1, 2, 3]
+
+    el = schema([1, 2, 3])
+    assert el.value == u'1,2,3'
+    assert [child.value for child in el] == [1, 2, 3]

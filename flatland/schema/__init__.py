@@ -34,7 +34,8 @@ from .containers import (
     )
 from .compound import (
     Compound,
-    DateYYYYMMDD
+    DateYYYYMMDD,
+    JoinedString,
     )
 from .forms import (
     Form,
