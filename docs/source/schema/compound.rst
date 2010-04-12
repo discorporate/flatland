@@ -11,3 +11,7 @@ Compound Fields
 .. autoclass:: DateYYYYMMDD
    :show-inheritance:
    :members:
+
+.. autoclass:: JoinedString
+   :show-inheritance:
+   :members:

@@ -20,6 +20,7 @@ deferred_module.shadow(
                 'Float',
                 'Form',
                 'Integer',
+                'JoinedString',
                 'List',
                 'Long',
                 'Mapping',

@@ -3,8 +3,8 @@ import operator
 
 from flatland.exc import AdaptationError
 from flatland.util import Unspecified, threading
-from .containers import Mapping
-from .scalars import Date, Integer, Scalar
+from .containers import Array, Mapping
+from .scalars import Date, Integer, Scalar, String
 
 
 class _MetaCompound(type):
@@ -237,3 +237,86 @@ class DateYYYYMMDD(Compound, Date):
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:
                 self[child_schema.name].set(None)
+
+
+class JoinedString(Array, String):
+    """A sequence container that acts like a compounded string such as CSV.
+
+    Marshals child element values to and from a single string:
+
+    .. doctest::
+
+      >>> from flatland import JoinedString
+      >>> el = JoinedString(['x', 'y', 'z'])
+      >>> el.value
+      u'x,y,z'
+      >>> el2 = JoinedString('foo,bar')
+      >>> el2[1].value
+      u'bar'
+      >>> el2.value
+      u'foo,bar'
+
+    Only the joined representation is considered when flattening or restoring
+    with :meth:`set_flat`.  JoinedStrings run validation after their children.
+
+    """
+    #: The string used to join children's :attr:`u` representations.  Will
+    #: also be used to split incoming strings, unless :attr:`separator_regex`
+    #: is also defined.
+    separator = u','
+
+    #: Optional, a regular expression, used preferentially to split an
+    #: incoming separated value into components.  Used in combination with
+    #: :attr:`separator`, a permissive parsing policy can be combined with
+    #: a normalized representation, e.g.:
+    #:
+    #: .. doctest::
+    #:
+    #:   >>> import re
+    #:   >>> schema = JoinedString.using(separator=', ',
+    #:   ...                             separator_regex=re.compile('\s*,\s*'))
+    #:   ...
+    #:   >>> schema('a  ,  b,c,d').value
+    #:   u'a, b, c, d'
+    separator_regex = None
+
+    #: The default child type is :class:`~flatland.schema.scalars.String`,
+    #: but can be customized with
+    #: :class:`~flatland.schema.scalars.Integer` or any other type.
+    member_schema = String
+
+    flattenable = True
+    children_flattenable = False
+
+    def set(self, value):
+        if isinstance(value, (list, tuple)):
+            values = value
+        elif not isinstance(value, basestring):
+            values = list(value)
+        elif self.separator_regex:
+            # a basestring, regexp separator
+            values = self.separator_regex.split(value)
+        else:
+            # a basestring, static separator
+            values = value.split(self.separator)
+
+        del self[:]
+        prune = self.prune_empty
+        success = []
+        for value in values:
+            if prune and not value:
+                continue
+            child = self.member_schema()
+            success.append(child.set(value))
+            self.append(child)
+        return all(success)
+
+    @property
+    def value(self):
+        """A read-only :attr:`separator`-joined string of child values."""
+        return self.separator.join(child.u for child in self)
+
+    @property
+    def u(self):
+        """A read-only :attr:`separator`-joined string of child values."""
+        return self.value
