@@ -472,6 +472,22 @@ def test_joined_string():
     assert [child.value for child in el] == [u' abc ', u' ghi ']
 
 
+def test_joined_string_flat():
+    schema = JoinedString.named('js').of(Integer)
+
+    for set_value, flat_value in [
+        ([1], (u'js', u'1')),
+        (u'1', (u'js', u'1')),
+        ([1, 2, 3], (u'js', u'1,2,3')),
+        (u'1,2,3', (u'js', u'1,2,3'))]:
+        from_set = schema(set_value)
+        assert from_set.flatten() == [flat_value]
+        from_flat = schema.from_flat([flat_value])
+        assert len(from_flat) == len(from_set)
+        assert from_flat.flatten() == [flat_value]
+        assert from_flat.value == from_set.value
+
+
 def test_joined_string_regex():
     schema = JoinedString.using(separator=u', ',
                                 separator_regex=re.compile('X*,X*'))
