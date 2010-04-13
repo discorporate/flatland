@@ -311,6 +311,9 @@ class JoinedString(Array, String):
             self.append(child)
         return all(success)
 
+    def _set_flat(self, pairs, sep):
+        return Scalar._set_flat(self, pairs, sep)
+
     @property
     def value(self):
         """A read-only :attr:`separator`-joined string of child values."""
