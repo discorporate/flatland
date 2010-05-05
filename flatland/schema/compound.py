@@ -10,7 +10,7 @@ from .scalars import Date, Integer, Scalar, String
 class _MetaCompound(type):
     """Adds a class-level initialization hook """
 
-    _lock = threading.Lock()
+    _lock = threading.RLock()
 
     def __new__(self, name, bases, members):
         members['_compound_prepared'] = False
