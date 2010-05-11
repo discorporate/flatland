@@ -18,7 +18,7 @@ help:
 	@echo "  doctest   to run doctests"
 
 clean:
-	for i in doctrees html text doctest pickles website; do \
+	for i in doctrees html text doctest pickles website coverage; do \
 	    rm -rf ../$$i; \
         done
 
@@ -44,6 +44,10 @@ website:
 doctest:
 	mkdir -p ../doctrees ../doctest
 	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) ../doctest
+
+coverage:
+	mkdir -p ../coverage ../doctrees
+	$(SPHINXBUILD) -b coverage $(ALLSPHINXOPTS) ../coverage
 
 pickles:
 	mkdir -p ../pickles ../doctest

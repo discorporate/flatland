@@ -9,9 +9,10 @@ dist
 html
 junk
 *.swp
-docs/html
+docs/coverage
 docs/doctrees
 docs/doctest
+docs/html
 docs/pickles
 docs/source/_static
 docs/source/_template
