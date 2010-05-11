@@ -15,6 +15,7 @@ sys.path.append(path.abspath(path.dirname(__file__) + "../../../"))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.doctest',
+              'sphinx.ext.coverage',
               'sphinx.ext.inheritance_diagram']
 
 html_theme_path = ['.']
