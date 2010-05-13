@@ -806,12 +806,13 @@ class Mapping(Container, dict):
         self._reset()
 
         seen = set()
+        converted = True
         for key, value in pairs:
             if key not in self:
                 raise KeyError(
                     '%s %r schema does not allow key %r' % (
                         type(self).__name__, self.name, key))
-            self[key].set(value)
+            converted &= self[key].set(value)
             seen.add(key)
         required = set(self.iterkeys())
         if seen != required:
@@ -819,7 +820,7 @@ class Mapping(Container, dict):
             raise TypeError(
                 'all keys required for a set() operation, missing %s.' % (
                     ','.join(repr(key) for key in missing)))
-        return True
+        return converted
 
     def _set_flat(self, pairs, sep):
         if self.name is None:
@@ -955,6 +956,7 @@ class Dict(Mapping, dict):
             policy = self.policy
 
         seen = set()
+        converted = True
         for key, value in pairs:
             if key not in self:
                 if policy != 'duck':
@@ -962,7 +964,7 @@ class Dict(Mapping, dict):
                         'Dict %r schema does not allow key %r' % (
                             self.name, key))
                 continue
-            self[key].set(value)
+            converted &= self[key].set(value)
             seen.add(key)
 
         if policy == 'strict':
@@ -973,7 +975,7 @@ class Dict(Mapping, dict):
                     'strict-mode Dict requires all keys for '
                     'a set() operation, missing %s.' % (
                         ','.join(repr(key) for key in missing)))
-        return True
+        return converted
 
     def set_by_object(self, obj, include=None, omit=None, rename=None):
         """Set fields with an object's attributes.

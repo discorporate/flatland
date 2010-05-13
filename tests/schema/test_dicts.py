@@ -237,6 +237,13 @@ class DictSetTest(object):
         el.set_flat(pairs)
         eq_(el.value, {u'x': None, u'y': None})
 
+    def test_set_return(self):
+        el = self.new_element()
+        assert el.set({u'x': 1, u'y': 2})
+
+        el = self.new_element()
+        assert not el.set({u'x': u'i am the new', u'y': u'number two'})
+
     def test_set_default(self):
         wanted = {u'x': 11, u'y': 12}
         schema = self.new_schema()
