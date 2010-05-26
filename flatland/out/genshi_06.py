@@ -360,6 +360,10 @@ def _simplify_stream(stream, ctxt, vars):
             parts.append(data)
         elif kind is EXPR:
             value = _eval_expr(data, ctxt, vars)
+            if hasattr(value, '__html__'):
+                value = value.__html__()
+            elif not isinstance(value, unicode):
+                value = unicode(value)
             parts.append(value)
         else:
             return stream
