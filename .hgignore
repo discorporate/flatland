@@ -4,6 +4,8 @@ syntax: glob
 *.egg-info
 MANIFEST
 .coverage
+htmlcov
+tests/cover
 build
 dist
 html
