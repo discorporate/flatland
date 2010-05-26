@@ -1,19 +1,36 @@
 """Test suite helpers."""
 import codecs
-from inspect import stack
 from functools import wraps
+from inspect import stack
 import sys
 
 from nose.tools import eq_, assert_raises, raises
 
 
-__all__ = ['asciistr', 'assert_raises', 'eq_', 'raises',
+__all__ = ['asciistr', 'assert_raises', 'eq_', 'raises', 'fails',
            'requires_unicode_coercion', 'udict', 'unicode_coercion_available']
 
 # acts like 'str', but safe to use when tests are running with
 # sys.getdefaultencoding() == 'nocoercion'.
 _ascii_codec = codecs.getencoder('ascii')
 asciistr = lambda s: _ascii_codec(s)[0]
+
+
+def fails(reason):
+    """Mark a test case as expected to fail for *reason*."""
+    def decorator(fn):
+        @wraps(fn)
+        def decorated(*args, **kw):
+            try:
+                fn(*args, **kw)
+            except (SystemExit, KeyboardInterrupt):
+                raise
+            except:
+                pass  # ok
+            else:
+                raise AssertionError("Unexpected success.")
+        return decorated
+    return decorator
 
 
 def udict(*dictionary, **kwargs):
