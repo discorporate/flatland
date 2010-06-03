@@ -104,6 +104,22 @@ def test_attribute_removal():
     assert rendered == expected
 
 
+def test_stream_preserved():
+    markup = """\
+<py:def function="fn()"><b>yowza!</b></py:def>
+<button form:bind="form">
+  <em>wow!</em> ${fn()} ${1 + 1}
+</button>
+"""
+    expected = """\
+<button name="element" value="">
+  <em>wow!</em> <b>yowza!</b> 2
+</button>"""
+
+    rendered = render(markup, 'xhtml', schema)
+    assert rendered == expected
+
+
 def test_tortured_select():
     markup = """\
 <select form:bind="form">
