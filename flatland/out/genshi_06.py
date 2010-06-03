@@ -207,9 +207,9 @@ class With(RenderContextManipulator):
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt['flatland-render-context']
+            render_context = ctxt['flatland_render_context']
         except KeyError:
-            ctxt['flatland-render-context'] = render_context = Context()
+            ctxt['flatland_render_context'] = render_context = Context()
 
         if 'filters' not in self.attributes:
             attrs = self.attributes
@@ -232,9 +232,9 @@ class Set(RenderContextManipulator):
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt['flatland-render-context']
+            render_context = ctxt['flatland_render_context']
         except KeyError:
-            ctxt['flatland-render-context'] = render_context = Context()
+            ctxt['flatland_render_context'] = render_context = Context()
         render_context.update(self.attributes)
         assert not directives
         return stream
@@ -277,9 +277,9 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
             mutable_attrs[qname.localname] = value
 
     try:
-        render_context = ctxt['flatland-render-context']
+        render_context = ctxt['flatland_render_context']
     except KeyError:
-        ctxt['flatland-render-context'] = render_context = Context()
+        ctxt['flatland_render_context'] = render_context = Context()
 
     new_contents = transform(tagname.localname, mutable_attrs, contents,
                              render_context, bind)
