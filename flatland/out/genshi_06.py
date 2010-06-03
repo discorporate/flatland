@@ -283,6 +283,7 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
 
     new_contents = transform(tagname.localname, mutable_attrs, contents,
                              render_context, bind)
+
     if new_contents is None:
         new_contents = ()
     elif isinstance(new_contents, unicode):
@@ -362,6 +363,8 @@ def _simplify_stream(stream, ctxt, vars):
             value = _eval_expr(data, ctxt, vars)
             if hasattr(value, '__html__'):
                 value = value.__html__()
+            elif hasattr(value, '__next__') or hasattr(value, 'next'):
+                value = _simplify_stream(value, ctxt, vars)
             elif not isinstance(value, unicode):
                 value = unicode(value)
             parts.append(value)
