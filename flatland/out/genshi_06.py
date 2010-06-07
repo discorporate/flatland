@@ -359,18 +359,18 @@ def _bind_unbound_tags(stream, qname, bind):
 def _simplify_stream(stream, ctxt, vars):
     # consumes stream, send a list
     parts = []
-    for kind, data, pos in stream:
+    for idx, (kind, data, pos) in enumerate(stream):
         if kind is TEXT:
             parts.append(data)
         elif kind is EXPR:
             value = _eval_expr(data, ctxt, vars)
             if hasattr(value, '__html__'):
                 value = value.__html__()
-            # TODO: cover this, and then cover the case where concatenation
-            # aborts and returns the original stream- the generator needs to
-            # be converted to a list and restored in the stream.
-            elif hasattr(value, '__next__') or hasattr(value, 'next'):
-                value = _simplify_stream(value, ctxt, vars)
+            if hasattr(value, '__next__') or hasattr(value, 'next'):
+                # TODO: cover this in flatland tests
+                while hasattr(value, '__next__') or hasattr(value, 'next'):
+                    value = _simplify_stream(value, ctxt, vars)
+                stream[idx] = (TEXT, value, pos)
             elif not isinstance(value, unicode):
                 value = unicode(value)
             parts.append(value)
