@@ -273,6 +273,9 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
     existing_attributes = {}
     for qname, value in attrs:
         if qname.namespace is None:
+            if not isinstance(value, unicode):
+                value = _simplify_stream(value, ctxt, vars)
+                attrs |= ((qname, value),)
             existing_attributes[qname.localname] = qname
             mutable_attrs[qname.localname] = value
 
@@ -363,6 +366,9 @@ def _simplify_stream(stream, ctxt, vars):
             value = _eval_expr(data, ctxt, vars)
             if hasattr(value, '__html__'):
                 value = value.__html__()
+            # TODO: cover this, and then cover the case where concatenation
+            # aborts and returns the original stream- the generator needs to
+            # be converted to a list and restored in the stream.
             elif hasattr(value, '__next__') or hasattr(value, 'next'):
                 value = _simplify_stream(value, ctxt, vars)
             elif not isinstance(value, unicode):

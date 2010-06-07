@@ -6,7 +6,7 @@ from tests._util import assert_raises
 from tests.markup._util import render_genshi_06 as render, need
 
 
-schema = String.named('element')
+schema = String.named('element').using(default=u'val')
 
 
 @need('genshi_06')
@@ -57,14 +57,27 @@ def test_directive_ordering():
 
 def test_attribute_interpolation():
     markup = """\
-<input py:with="flag='on'" form:bind="form" form:auto-domid="${flag}" />
-<input py:with="var='n'" form:bind="form" form:auto-domid="o${var}" />
+<input form:bind="form" form:auto-domid="${ON}" />
+<input form:bind="form" form:auto-domid="o${N}" />
+<input type="checkbox" value="${VAL}" form:bind="form" />
+<input type="checkbox" value="v${A}l" form:bind="form" />
+<input type="checkbox" value="${V}a${L}" form:bind="form" />
 """
     expected = """\
-<input name="element" value="" id="f_element" />
-<input name="element" value="" id="f_element" />"""
+<input name="element" value="val" id="f_element" />
+<input name="element" value="val" id="f_element" />
+<input type="checkbox" value="val" name="element" checked="checked" />
+<input type="checkbox" value="val" name="element" checked="checked" />
+<input type="checkbox" value="val" name="element" checked="checked" />"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, 'xhtml', schema.from_defaults,
+                      ON=u'on',
+                      N=u'n',
+                      VAL=u'val',
+                      V=u'v',
+                      A=u'a',
+                      L=u'l',
+                      )
     assert rendered == expected
 
 

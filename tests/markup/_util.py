@@ -167,11 +167,10 @@ def markup_test(markup='xml', schema=None):
     return decorator
 
 
-
-def render_genshi_06(markup, language, schema, wrap=True):
+def render_genshi_06(markup, language, schema, wrap=True, **context):
     if wrap:
         markup = _wrap_with_xmlns(markup, language)
-    return _render_genshi_06(markup, language, schema)
+    return _render_genshi_06(markup, language, schema, **context)
 
 
 def _render_markup_fn(fn, language, schema, **kw):
