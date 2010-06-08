@@ -367,10 +367,13 @@ def _simplify_stream(stream, ctxt, vars):
             if hasattr(value, '__html__'):
                 value = value.__html__()
             if hasattr(value, '__next__') or hasattr(value, 'next'):
-                # TODO: cover this in flatland tests
                 while hasattr(value, '__next__') or hasattr(value, 'next'):
+                    value = list(value)
                     value = _simplify_stream(value, ctxt, vars)
-                stream[idx] = (TEXT, value, pos)
+                if not isinstance(value, unicode):
+                    stream[idx:idx + 1] = value
+                else:
+                    stream[idx] = (TEXT, value, pos)
             elif not isinstance(value, unicode):
                 value = unicode(value)
             parts.append(value)
