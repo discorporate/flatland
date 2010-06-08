@@ -1,4 +1,5 @@
 from flatland import String
+from flatland.out.generic import Markup
 
 from genshi.template.base import TemplateSyntaxError
 
@@ -73,7 +74,7 @@ def test_attribute_interpolation():
     rendered = render(markup, 'xhtml', schema.from_defaults,
                       ON=u'on',
                       N=u'n',
-                      VAL=u'val',
+                      VAL=Markup(u'val'),
                       V=u'v',
                       A=u'a',
                       L=u'l',
@@ -119,15 +120,20 @@ def test_attribute_removal():
 
 def test_stream_preserved():
     markup = """\
-<py:def function="fn()"><b>yowza!</b></py:def>
+<py:def function="stream_fn()"><b py:if="1">lumpy.</b></py:def>
+<py:def function="flattenable_fn()"><py:if test="1">flat.</py:if></py:def>
 <button form:bind="form">
-  <em>wow!</em> ${fn()} ${1 + 1}
+  <em>wow!</em> ${1 + 1}
 </button>
+<button form:bind="form">${stream_fn()}</button>
+<button form:bind="form">${flattenable_fn()}</button>
 """
     expected = """\
 <button name="element" value="">
-  <em>wow!</em> <b>yowza!</b> 2
-</button>"""
+  <em>wow!</em> 2
+</button>
+<button name="element" value=""><b>lumpy.</b></button>
+<button name="element" value="">flat.</button>"""
 
     rendered = render(markup, 'xhtml', schema)
     assert rendered == expected
