@@ -9,6 +9,13 @@ from flatland import (
 from tests._util import assert_raises, eq_, requires_unicode_coercion
 
 
+def test_cloning():
+    new_element = Element.named(u'x')
+    assert isinstance(new_element, type)
+    assert new_element.__module__ != Element.__module__
+    assert 'test_base' in new_element.__module__
+
+
 @requires_unicode_coercion
 def test_naming():
     for arg in (u'unicode', 'sysencoding', None):
