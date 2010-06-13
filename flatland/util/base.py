@@ -1,6 +1,7 @@
 # -*- coding: utf-8; fill-column: 78 -*-
 import re
 import string
+import sys
 
 try:
     import threading
@@ -127,12 +128,12 @@ class class_cloner(object):
                 return instance.__dict__[self.name]
             except KeyError:
                 raise AttributeError(self.name)
-        members = {}
+        members = {'__doc__': getattr(cls, '__doc__', '')}
         try:
-            members['__doc__'] = getattr(cls, '__doc__', '')
+            members['__module__'] = \
+              sys._getframe(1).f_globals['__name__']
+        except (AttributeError, KeyError, TypeError):  # pragma: nocover
             members['__module__'] = cls.__module__
-        except KeyError:
-            pass
         clone = type(cls.__name__, (cls,), members)
         return self.cloner.__get__(None, clone)
 
