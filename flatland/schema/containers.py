@@ -4,6 +4,7 @@ import re
 
 from flatland.util import (
     Unspecified,
+    assignable_class_property,
     autodocument_from_superclasses,
     class_cloner,
     keyslice_pairs,
@@ -754,6 +755,10 @@ class Mapping(Container, dict):
             raise KeyError(key)
         raise TypeError('%s keys are immutable.' % type(self).__name__)
 
+    def may_contain(self, key):
+        """Return True if the element schema allows a field named **key**."""
+        return key in self
+
     def clear(self):
         raise TypeError('%s keys are immutable.' % type(self).__name__)
 
@@ -808,7 +813,7 @@ class Mapping(Container, dict):
         seen = set()
         converted = True
         for key, value in pairs:
-            if key not in self:
+            if not self.may_contain(key):
                 raise KeyError(
                     '%s %r schema does not allow key %r' % (
                         type(self).__name__, self.name, key))
@@ -831,7 +836,7 @@ class Mapping(Container, dict):
             plen = len(prefix)
             for key, value in pairs:
                 if key == prefix:
-                    # No flat representation of dicts, ignore.
+                    # No flat representation of mappings, ignore.
                     pass
                 if key.startswith(prefix):
                     # accept child element
@@ -840,16 +845,18 @@ class Mapping(Container, dict):
         if not possibles:
             return
 
-        # FIXME: pivot on length of pairs: top loop either fields or pairs
-        # FIXME2: wtf does that mean
-
-        for field in self:
+        for schema in self.field_schema:
+            field = schema.name
             accum = []
             for key, value in possibles:
                 if key.startswith(field):
                     accum.append((key, value))
             if accum:
-                self[field].set_flat(accum, sep)
+                if dict.__contains__(self, field):
+                    self[field].set_flat(accum, sep)
+                else:
+                    self[field] = schema()
+                    self[field].set_flat(accum, sep=sep)
 
     def set_default(self):
         default = self.default_value
@@ -882,12 +889,28 @@ class Mapping(Container, dict):
         """Mappings are never empty."""
         return False
 
+    @assignable_class_property
+    def field_schema_mapping(instance, cls):
+        """A name -> schema mapping generated from :attr:`field_schema`."""
+        if instance is not None:
+            field_schema = instance.field_schema
+        else:
+            field_schema = cls.field_schema
+        return dict((schema.name, schema) for schema in field_schema)
+
+    def _field_schema_for(self, key):
+        """Return the schema for field ``*key* or None."""
+        for schema in self.field_schema:
+            if schema.name == key:
+                return schema
+        return None
+
 
 class Dict(Mapping, dict):
     """A mapping Container with named members."""
 
     policy = 'subset'
-    """TODO: doc policy = subset
+    """One of 'strict', 'subset' or 'duck'.  Default 'subset'.
 
     See :ref:`set_policy`
     """
@@ -955,20 +978,25 @@ class Dict(Mapping, dict):
         else:
             policy = self.policy
 
+        fields = self.field_schema_mapping
         seen = set()
         converted = True
         for key, value in pairs:
-            if key not in self:
+            if key not in fields:
                 if policy != 'duck':
                     raise KeyError(
                         'Dict %r schema does not allow key %r' % (
                             self.name, key))
                 continue
-            converted &= self[key].set(value)
+            if dict.__contains__(self, key):
+                converted &= self[key].set(value)
+            else:
+                self[key] = el = fields[key]()
+                converted &= el.set(value)
             seen.add(key)
 
         if policy == 'strict':
-            required = set(self.iterkeys())
+            required = set(fields.iterkeys())
             if seen != required:
                 missing = required - seen
                 raise TypeError(
@@ -1076,6 +1104,131 @@ class Dict(Mapping, dict):
             keyslice_pairs(
                 ((key, element.value) for key, element in self.iteritems()),
                 include=include, omit=omit, rename=rename, key=key))
+
+
+class SparseDict(Dict):
+    """A Mapping which may contain a subset of the schema's allowed keys.
+
+    This differs from :class:`Dict` in that new instances are not created with
+    empty values for all possible keys.  In addition, mutating operations are
+    allowed so long as the operations operate within the schema.  For example,
+    you may :meth:`pop` and ``del`` members of the mapping.
+
+    """
+
+    #: The subset of fields to autovivify on instantiation.
+    #:
+
+    #: May be ``None`` or ``'required'``.  If ``None``, mappings will be
+    #: created empty and mutation operations are unrestricted within the
+    #: bounds of the :attr:`field_schema`.  If ``required``, fields with
+    #: :attr:`optional` of ``False`` will always be present after
+    #: instantiation, and attempts to remove them from the mapping with ``del``
+    #: and friends will raise ``TypeError``.
+    minimum_fields = None  # 'required'
+
+    def may_contain(self, key):
+        return key in self or self._field_schema_for(key) is not None
+
+    def _reset(self):
+        dict.clear(self)
+        for member_schema in self.field_schema:
+            key = member_schema.name
+            if self.minimum_fields is None or member_schema.optional:
+                continue
+            dict.__setitem__(
+                self, key, member_schema(parent=self))
+
+    def __setitem__(self, key, value):
+        schema = self._field_schema_for(key)
+        if not dict.__contains__(self, key):
+            if schema is None:
+                raise TypeError('May not set unknown key %r on %s %r' %
+                                (key, type(self).__name__, self.name))
+            elif isinstance(value, schema):
+                dict.__setitem__(self, key, value)
+                return
+            dict.__setitem__(self, key, schema(value))
+        elif isinstance(value, schema):
+            value.parent = self
+            dict.__setitem__(self, key, value)
+        else:
+            self[key].set(value)
+
+    def __delitem__(self, key):
+        if self.minimum_fields is None:
+            try:
+                dict.__delitem__(self, key)
+                return
+            except KeyError:
+                if not self.may_contain(key):
+                    raise TypeError(
+                        'May not request del for unknown key %r on %s %r' %
+                        (key, type(self).__name__, self.name))
+                raise
+        if key in self:
+            optional = self[key].optional
+        else:
+            schema = self._field_schema_for(key)
+            if schema is None:
+                raise TypeError(
+                    'May not request del for unknown key %r on %s %r' %
+                    (key, type(self).__name__, self.name))
+            optional = schema.optional
+        if not optional:
+            raise TypeError('May not delete required key %r on %s %r' %
+                            (key, type(self).__name__, self.name))
+        dict.__delitem__(self, key)
+
+    def clear(self):
+        self._reset()
+
+    def popitem(self):
+        raise NotImplementedError
+
+    def pop(self, key):
+        if key not in self:
+            raise KeyError(key)
+        if self.minimum_fields == 'required' and not self[key].optional:
+            raise TypeError('May not pop required key %r on %s %r' %
+                            (key, type(self).__name__, self.name))
+        return dict.pop(self, key)
+
+    def setdefault(self, key, default=None):
+        if not self.may_contain(key):
+            raise TypeError('Key %r not allowed in %s %r' %
+                            (key, type(self).__name__, self.name))
+
+        if key in self:
+            child = self[key]
+            if not child.is_empty:
+                return child.value
+        else:
+            self[key] = child = self.field_schema_mapping[key]()
+        child.set(default)
+        return default
+
+    @property
+    def is_empty(self):
+        for _ in self.iterkeys():
+            return False
+        return True
+
+    def set_default(self):
+        default = self.default_value
+        if default is not None and default is not Unspecified:
+            self.set(default)
+        elif self.minimum_fields is None:
+            self._reset()
+        elif self.minimum_fields == 'required':
+            self._reset()
+            for schema in self.field_schema:
+                if schema.optional:
+                    continue
+                self[schema.name] = schema.from_defaults()
+        else:
+            raise RuntimeError("Unknown minimum_fields setting %r" %
+                               (self.minimum_fields,))
 
 
 for cls_name in __all__:

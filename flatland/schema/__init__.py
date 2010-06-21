@@ -31,6 +31,7 @@ from .containers import (
     Mapping,
     MultiValue,
     Sequence,
+    SparseDict,
     )
 from .compound import (
     Compound,

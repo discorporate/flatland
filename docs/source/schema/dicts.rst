@@ -54,3 +54,15 @@ Configurable Attributes
      named, of, using,
      from_defaults, from_flat
 
+``SparseDict``
+--------
+
+.. autoclass:: SparseDict
+  :show-inheritance:
+
+Configurable Attributes
+-----------------------
+
+.. autoattribute:: SparseDict.minimum_fields
+
+

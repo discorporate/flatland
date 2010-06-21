@@ -32,6 +32,7 @@ deferred_module.shadow(
                 'Skip',
                 'SkipAll',
                 'SkipAllFalse',
+                'SparseDict',
                 'String',
                 'Time',
                 'Unevaluated',
