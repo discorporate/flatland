@@ -2,6 +2,7 @@ from flatland import (
     Dict,
     Integer,
     String,
+    SparseDict,
     )
 from flatland.util import Unspecified, keyslice_pairs
 from tests._util import (
@@ -102,6 +103,7 @@ def test_dict_update():
 
 
 class DictSetTest(object):
+    schema = Dict
     policy = Unspecified
     x_default = Unspecified
     y_default = Unspecified
@@ -115,7 +117,7 @@ class DictSetTest(object):
         if self.y_default is not Unspecified:
             y_kw['default'] = self.y_default
 
-        return Dict.named(u's').using(**dictkw).of(
+        return self.schema.named(u's').using(**dictkw).of(
             Integer.named(u'x').using(**x_kw),
             Integer.named(u'y').using(**y_kw))
 
@@ -275,6 +277,10 @@ class TestDefaultDictSet(DictSetTest):
     y_default = 20
 
 
+class TestEmptySparseDictRequiredSet(DictSetTest):
+    schema = SparseDict.using(minimum_fields='required')
+
+
 def test_dict_valid_policies():
     schema = Dict.of(Integer)
     el = schema()
@@ -383,3 +389,182 @@ def test_slice():
     yield same_, {u'x': u'X', u'y': u'Y'}, dict(omit=[u'x'])
     yield same_, {u'x': u'X', u'y': u'Y'}, dict(omit=[u'x'],
                                                 rename={u'y': u'z'})
+
+
+def test_sparsedict_key_mutability():
+    schema = SparseDict.of(Integer.named(u'x'), Integer.named(u'y'))
+    el = schema()
+
+    ok, bogus = u'x', u'z'
+
+    el[ok] = 123
+    assert el[ok].value == 123
+    assert_raises(TypeError, el.__setitem__, bogus, 123)
+
+    del el[ok]
+    assert ok not in el
+    assert_raises(TypeError, el.__delitem__, bogus)
+
+    assert el.setdefault(ok, 456)
+    assert_raises(TypeError, el.setdefault, bogus, 456)
+
+    el[ok] = 123
+    assert el.pop(ok)
+    assert_raises(KeyError, el.pop, bogus)
+
+    assert_raises(NotImplementedError, el.popitem)
+    el.clear()
+    assert not el
+
+
+def test_sparsedict_operations():
+    schema = SparseDict.of(Integer.named(u'x'), Integer.named(u'y'))
+    el = schema()
+
+    el[u'x'] = 123
+    del el[u'x']
+    assert_raises(KeyError, el.__delitem__, u'x')
+
+    assert el.setdefault(u'x', 123) == 123
+    assert el.setdefault(u'x', 456) == 123
+
+    assert el.setdefault(u'y', 123) == 123
+    assert el.setdefault(u'y', 456) == 123
+
+    assert schema().is_empty
+    assert not schema().validate()
+
+    opt_schema = schema.using(optional=True)
+    assert opt_schema().validate()
+
+
+def test_sparsedict_required_operations():
+    schema = SparseDict.using(minimum_fields='required').\
+                        of(Integer.named(u'opt').using(optional=True),
+                           Integer.named(u'req'))
+
+    el = schema({u'opt': 123, u'req': 456})
+
+    del el[u'opt']
+    assert_raises(KeyError, el.__delitem__, u'opt')
+    assert_raises(TypeError, el.__delitem__, u'req')
+
+    el = schema()
+    assert el.setdefault(u'opt', 123) == 123
+    assert el.setdefault(u'opt', 456) == 123
+
+    assert el.setdefault(u'req', 123) == 123
+    assert el.setdefault(u'req', 456) == 123
+
+    assert not schema().is_empty
+    assert not schema().validate()
+
+
+def test_sparsedict_set_default():
+    schema = SparseDict.of(Integer.named(u'x').using(default=123),
+                           Integer.named(u'y'))
+    el = schema()
+
+    el.set_default()
+    assert el.value == {}
+
+
+def test_sparsedict_required_set_default():
+    schema = SparseDict.using(minimum_fields='required').\
+                        of(Integer.named(u'x').using(default=123),
+                           Integer.named(u'y').using(default=456,
+                                                     optional=True),
+                           Integer.named(u'z').using(optional=True))
+    el = schema()
+
+    el.set_default()
+    assert el.value == {u'x': 123}
+
+
+def test_sparsedict_bogus_set_default():
+    schema = SparseDict.using(minimum_fields='bogus').\
+                        of(Integer.named(u'x'))
+    el = schema()
+    assert_raises(RuntimeError, el.set_default)
+
+
+def test_sparsedict_required_key_mutability():
+    schema = SparseDict.of(Integer.named(u'x').using(optional=True),
+                           Integer.named(u'y')).\
+                        using(minimum_fields='required')
+    el = schema()
+    ok, required, bogus = u'x', u'y', u'z'
+
+    assert ok not in el
+    assert required in el
+    assert bogus not in el
+
+    el[ok] = 123
+    assert el[ok].value == 123
+    el[required] = 456
+    assert el[required].value == 456
+    assert_raises(TypeError, el.__setitem__, bogus, 123)
+
+    del el[ok]
+    assert ok not in el
+    assert_raises(TypeError, el.__delitem__, required)
+    assert_raises(TypeError, el.__delitem__, bogus)
+
+    assert el.setdefault(ok, 456)
+    assert el.setdefault(required, 789)
+    assert_raises(TypeError, el.setdefault, bogus, 456)
+
+    el[ok] = 123
+    assert el.pop(ok)
+    el[required] = 456
+    assert_raises(TypeError, el.pop, required)
+    assert_raises(KeyError, el.pop, bogus)
+
+    assert_raises(NotImplementedError, el.popitem)
+
+    el.clear()
+    assert el.keys() == [required]
+
+
+def test_sparsedict_from_flat():
+    schema = SparseDict.of(Integer.named(u'x'),
+                           Integer.named(u'y'))
+
+    el = schema.from_flat([])
+    assert el.items() == []
+
+    el = schema.from_flat([(u'x', u'123')])
+    assert el.value == {u'x': 123}
+
+    el = schema.from_flat([(u'x', u'123'), (u'z', u'456')])
+    assert el.value == {u'x': 123}
+
+
+def test_sparsedict_required_from_flat():
+    schema = SparseDict.of(Integer.named(u'x'),
+                           Integer.named(u'y').using(optional=True)).\
+                        using(minimum_fields='required')
+
+    el = schema.from_flat([])
+    assert el.value == {u'x': None}
+
+    el = schema.from_flat([(u'x', u'123')])
+    assert el.value == {u'x': 123}
+
+    el = schema.from_flat([(u'y', u'456'), (u'z', u'789')])
+    assert el.value == {u'x': None, u'y': 456}
+
+
+def test_sparsedict_required_validation():
+    schema = SparseDict.of(Integer.named(u'x'),
+                           Integer.named(u'y').using(optional=True)).\
+                        using(minimum_fields='required')
+
+    el = schema()
+    assert not el.validate()
+
+    el = schema({u'y': 456})
+    assert not el.validate()
+
+    el = schema({u'x': 123, u'y': 456})
+    assert el.validate()
