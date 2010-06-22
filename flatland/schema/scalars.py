@@ -329,11 +329,11 @@ class Boolean(Scalar):
         """
         if not isinstance(value, basestring):
             return bool(value)
-        if value == self.true or value in self.true_synonyms:
+        elif value == self.true or value in self.true_synonyms:
             return True
-        if value == self.false or value in self.false_synonyms:
+        elif value == self.false or value in self.false_synonyms:
             return False
-        return None
+        raise AdaptationError()
 
     def serialize(self, value):
         """Convert ``bool(value)`` to a canonical string representation.
@@ -464,7 +464,9 @@ class Temporal(Scalar):
         described in the attribute documentation.
 
         """
-        if isinstance(value, self.type_):
+        if value is None:
+            return value
+        elif isinstance(value, self.type_):
             return value
         elif isinstance(value, basestring):
             if self.strip:
