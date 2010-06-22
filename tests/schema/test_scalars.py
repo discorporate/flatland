@@ -91,8 +91,12 @@ def test_string_is_empty():
     assert not element.is_empty
 
 
-def validate_element_set(type_, raw, value, uni, schema_opts={}):
-    element = type_(raw, **schema_opts)
+def validate_element_set(type_, raw, value, uni, schema_opts={},
+                         set_return=None):
+    if set_return is None:
+        set_return = value is not None
+    element = type_(**schema_opts)
+    eq_(element.set(raw), set_return)
     eq_(element.value, value)
     eq_(element.u, uni)
     eq_(unicode(element), uni)
@@ -105,7 +109,7 @@ coerced_validate_element_set = requires_unicode_coercion(validate_element_set)
 def test_scalar_set():
     # a variety of scalar set() failure cases, shoved through Integer
     for spec in (
-        (None,       None, u''),
+        (None,       None, u'', {}, True),
         ):
         yield (validate_element_set, Integer) + spec
 
@@ -129,7 +133,8 @@ def test_integer():
                  (u' -123 ', -123, u'-123'),
                  (u'+123',   123,  u'123', dict(signed=False)),
                  (u'-123',   None, u'-123', dict(signed=False)),
-                 (123,       123,  u'123')):
+                 (123,       123,  u'123'),
+                 (None,      None, u'', {}, True)):
         yield (validate_element_set, Integer) + spec
 
     for spec in ((-123,      None, u'-123', dict(signed=False)),):
@@ -148,7 +153,8 @@ def test_long():
                  (u' +123 ', 123L,  u'123'),
                  (u' -123 ', -123L, u'-123'),
                  (u'+123',   123L,  u'123', dict(signed=False)),
-                 (u'-123',   None,  u'-123', dict(signed=False))):
+                 (u'-123',   None,  u'-123', dict(signed=False)),
+                 (None,      None,  u'', {}, True)):
         yield (validate_element_set, Long) + spec
 
 
@@ -164,7 +170,8 @@ def test_float():
                  (u' +123 ', 123.0,  u'123.000000'),
                  (u' -123 ', -123.0, u'-123.000000'),
                  (u'+123',   123.0,  u'123.000000', dict(signed=False)),
-                 (u'-123',   None,   u'-123', dict(signed=False))):
+                 (u'-123',   None,   u'-123', dict(signed=False)),
+                 (None,      None,   u'', {}, True)):
         yield (validate_element_set, Float) + spec
 
     class TwoDigitFloat(Float):
@@ -177,7 +184,8 @@ def test_float():
                  (u'123xyz',  None,    u'123xyz'),
                  (u'123.0',   123.0,   u'123.00'),
                  (u'123.00',  123.0,   u'123.00'),
-                 (u'123.005', 123.005, u'123.00')):
+                 (u'123.005', 123.005, u'123.00'),
+                 (None,       None,    u'', {}, True)):
         yield (validate_element_set, TwoDigitFloat) + spec
 
 
@@ -199,7 +207,8 @@ def test_decimal():
                  (d(-123),   d('-123'),  u'-123.000000'),
                  (123.456,   None,       u'123.456'),
                  (u'+123',   d('123'),   u'123.000000', dict(signed=False)),
-                 (u'-123',   None,       u'-123', dict(signed=False))):
+                 (u'-123',   None,       u'-123', dict(signed=False)),
+                 (None,      None,       u'', {}, True)):
         yield (validate_element_set, Decimal) + spec
 
     TwoDigitDecimal = Decimal.using(format=u'%0.2f')
@@ -223,7 +232,10 @@ def test_boolean():
                dict(false=u'quux'))
 
     for bogus in u'abc', u'1.0', u'0.0', u'None':
-        yield validate_element_set, Boolean, bogus, None, u''
+        yield validate_element_set, Boolean, bogus, None, bogus
+
+    for coercable in {}, 0:
+        yield validate_element_set, Boolean, coercable, False, u''
 
 
 def test_scalar_set_default():
@@ -248,17 +260,19 @@ def test_date():
         (u' 2010-08-02 ', t(2010, 8, 2), u'2010-08-02'),
         (u' 2010-08-02 ', None, u' 2010-08-02 ', dict(strip=False)),
         (u'2011-8-2',     None, u'2011-8-2'),
-        (u'blagga',       None, u'blagga')):
+        (u'blagga',       None, u'blagga'),
+        (None,            None, u'', {}, True)):
         yield (validate_element_set, Date) + spec
 
 
 def test_time():
     t = datetime.time
     for spec in (
-        (u'08:09:10', t(8, 9, 10), u'08:09:10'),
+        (u'08:09:10', t(8, 9, 10),  u'08:09:10'),
         (u'23:24:25', t(23, 24, 25), u'23:24:25'),
-        (u'24:25:26', None, u'24:25:26'),
-        (u'bogus', None, u'bogus')):
+        (u'24:25:26', None,          u'24:25:26'),
+        (u'bogus',    None,          u'bogus'),
+        (None,        None,          u'',         {}, True)):
         yield (validate_element_set, Time) + spec
 
 
@@ -268,5 +282,6 @@ def test_datetime():
         (u'2009-10-10 08:09:10', t(2009, 10, 10, 8, 9, 10),
          u'2009-10-10 08:09:10'),
         (u'2010-08-02 25:26:27', None, u'2010-08-02 25:26:27'),
-        (u'2010-13-22 09:09:09', None, u'2010-13-22 09:09:09')):
+        (u'2010-13-22 09:09:09', None, u'2010-13-22 09:09:09'),
+        (None,                   None, u'', {}, True)):
         yield (validate_element_set, DateTime) + spec
