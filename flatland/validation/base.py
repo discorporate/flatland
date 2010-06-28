@@ -5,6 +5,7 @@ from flatland.schema.util import find_i18n_function
 
 
 N_ = lambda translatable: translatable
+P_ = lambda *translatable: translatable
 _ugettext_finder = attrgetter('ugettext')
 _ungettext_finder = attrgetter('ungettext')
 
