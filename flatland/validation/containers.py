@@ -1,7 +1,7 @@
 # -*- coding: utf-8; fill-column: 78 -*-
 import operator
 from ..schema import Slot
-from . base import N_, Validator
+from . base import N_, P_, Validator
 
 
 class NotDuplicated(Validator):
@@ -138,12 +138,11 @@ class HasAtLeast(Validator):
 
     minimum = 1
 
-    # TRANSLATORS: HasAtLeast.failure singular
-    failure = (N_("%(label)s must contain at least one %(child_label)s"),
-               # TRANSLATORS: HasAtLeast.failure plural
-               N_("%(label)s must contain at least %(minimum)s "
-                  "%(child_label)ss"),
-               'minimum')
+    # TRANSLATORS: HasAtLeast.failure
+    failure = P_("%(label)s must contain at least one %(child_label)s",
+                 "%(label)s must contain at least %(minimum)s "
+                 "%(child_label)ss",
+                 'minimum')
 
     def validate(self, element, state):
         assert hasattr(element, 'member_schema'), (
@@ -192,12 +191,11 @@ class HasAtMost(Validator):
 
     maximum = 1
 
-    # TRANSLATORS: HasAtMost.failure singular
-    failure = (N_("%(label)s must contain at most one %(child_label)s"),
-               # TRANSLATORS: HasAtMost.failure plural
-               N_("%(label)s must contain at most %(maximum)s "
-                  "%(child_label)ss"),
-               'maximum')
+    # TRANSLATORS: HasAtMost.failure
+    failure = P_("%(label)s must contain at most one %(child_label)s",
+                 "%(label)s must contain at most %(maximum)s "
+                 "%(child_label)ss",
+                 'maximum')
 
     def validate(self, element, state):
         assert hasattr(element, 'member_schema'), (
@@ -259,19 +257,17 @@ class HasBetween(Validator):
     minimum = 1
     maximum = 1
 
-    # TRANSLATORS: HasBetween.range singular
-    range = (N_("%(label)s must contain at least %(minimum)s and at most "
-                "%(maximum)s %(child_label)s"),
-             # TRANSLATORS: HasBetween.range plural
-             N_("%(label)s must contain at least %(minimum)s and at most "
-                "%(maximum)s %(child_label)ss"),
-             'maximum')
+    # TRANSLATORS: HasBetween.range
+    range = P_("%(label)s must contain at least %(minimum)s and at most "
+               "%(maximum)s %(child_label)s",
+               "%(label)s must contain at least %(minimum)s and at most "
+               "%(maximum)s %(child_label)ss",
+               'maximum')
 
-    # TRANSLATORS: HasBetween.exact singular
-    exact = (N_("%(label)s must contain exactly one %(child_label)s"),
-             # TRANSLATORS: HasBetween.exact plural
-             N_("%(label)s must contain exactly %(minimum)s %(child_label)ss"),
-             'minimum')
+    # TRANSLATORS: HasBetween.exact
+    exact = P_("%(label)s must contain exactly one %(child_label)s",
+               "%(label)s must contain exactly %(minimum)s %(child_label)ss",
+               'minimum')
 
     def __init__(self, **kw):
         Validator.__init__(self, **kw)

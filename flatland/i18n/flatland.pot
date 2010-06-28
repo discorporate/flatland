@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: flatland dev\n"
 "Report-Msgid-Bugs-To: flatland-users@googlegroups.com\n"
-"POT-Creation-Date: 2010-06-25 16:31-0700\n"
+"POT-Creation-Date: 2010-06-28 10:47-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,57 +22,41 @@ msgstr ""
 msgid "%(label)s may not be repeated within %(container_label)s."
 msgstr ""
 
-#. TRANSLATORS: HasAtLeast.failure singular
+#. TRANSLATORS: HasAtLeast.failure
 #: flatland/validation/containers.py:142
 #, python-format
 msgid "%(label)s must contain at least one %(child_label)s"
-msgstr ""
+msgid_plural "%(label)s must contain at least %(minimum)s %(child_label)ss"
+msgstr[0] ""
+msgstr[1] ""
 
-#. TRANSLATORS: HasAtLeast.failure plural
-#: flatland/validation/containers.py:144
-#, python-format
-msgid "%(label)s must contain at least %(minimum)s %(child_label)ss"
-msgstr ""
-
-#. TRANSLATORS: HasAtMost.failure singular
-#: flatland/validation/containers.py:196
+#. TRANSLATORS: HasAtMost.failure
+#: flatland/validation/containers.py:195
 #, python-format
 msgid "%(label)s must contain at most one %(child_label)s"
-msgstr ""
+msgid_plural "%(label)s must contain at most %(maximum)s %(child_label)ss"
+msgstr[0] ""
+msgstr[1] ""
 
-#. TRANSLATORS: HasAtMost.failure plural
-#: flatland/validation/containers.py:198
-#, python-format
-msgid "%(label)s must contain at most %(maximum)s %(child_label)ss"
-msgstr ""
-
-#. TRANSLATORS: HasBetween.range singular
-#: flatland/validation/containers.py:263
+#. TRANSLATORS: HasBetween.range
+#: flatland/validation/containers.py:261
 #, python-format
 msgid ""
 "%(label)s must contain at least %(minimum)s and at most %(maximum)s "
 "%(child_label)s"
-msgstr ""
-
-#. TRANSLATORS: HasBetween.range plural
-#: flatland/validation/containers.py:266
-#, python-format
-msgid ""
+msgid_plural ""
 "%(label)s must contain at least %(minimum)s and at most %(maximum)s "
 "%(child_label)ss"
-msgstr ""
+msgstr[0] ""
+msgstr[1] ""
 
-#. TRANSLATORS: HasBetween.exact singular
-#: flatland/validation/containers.py:271
+#. TRANSLATORS: HasBetween.exact
+#: flatland/validation/containers.py:268
 #, python-format
 msgid "%(label)s must contain exactly one %(child_label)s"
-msgstr ""
-
-#. TRANSLATORS: HasBetween.exact plural
-#: flatland/validation/containers.py:273
-#, python-format
-msgid "%(label)s must contain exactly %(minimum)s %(child_label)ss"
-msgstr ""
+msgid_plural "%(label)s must contain exactly %(minimum)s %(child_label)ss"
+msgstr[0] ""
+msgstr[1] ""
 
 #: flatland/validation/network.py:58
 #, python-format
