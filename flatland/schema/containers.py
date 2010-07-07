@@ -1146,9 +1146,10 @@ class SparseDict(Dict):
                 raise TypeError('May not set unknown key %r on %s %r' %
                                 (key, type(self).__name__, self.name))
             elif isinstance(value, schema):
+                value.parent = self
                 dict.__setitem__(self, key, value)
                 return
-            dict.__setitem__(self, key, schema(value))
+            dict.__setitem__(self, key, schema(value, parent=self))
         elif isinstance(value, schema):
             value.parent = self
             dict.__setitem__(self, key, value)

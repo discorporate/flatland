@@ -568,3 +568,25 @@ def test_sparsedict_required_validation():
 
     el = schema({u'x': 123, u'y': 456})
     assert el.validate()
+
+
+def test_sparsedict_flattening():
+    schema = SparseDict.named(u'top').\
+                        of(Integer.named(u'x'), Integer.named(u'y'))
+
+    els = [
+        schema({'x': 123, 'y': 456}),
+        schema(),
+        schema(),
+        schema(),
+        ]
+    els[1].set({'x': 123, 'y': 456})
+    els[2]['x'] = 123
+    els[2]['y'] = 456
+    els[3]['x'] = Integer(123)
+    els[3]['y'] = Integer(456)
+
+    wanted = [(u'top_x', u'123'), (u'top_y', u'456')]
+    for el in els:
+        got = sorted(el.flatten())
+        assert wanted == got
