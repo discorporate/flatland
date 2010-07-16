@@ -2,8 +2,7 @@
 # Copyright (C) 2010 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
-#
-#, fuzzy
+# 
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
@@ -12,10 +11,10 @@ msgstr ""
 "PO-Revision-Date: 2010-07-16 14:20+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: es <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "Generated-By: Babel 0.9.5\n"
 
 #. TRANSLATORS: NotDuplicated.failure
@@ -43,12 +42,8 @@ msgstr[1] ""
 #. TRANSLATORS: HasBetween.range
 #: flatland/validation/containers.py:261
 #, python-format
-msgid ""
-"%(label)s must contain at least %(minimum)s and at most %(maximum)s "
-"%(child_label)s"
-msgid_plural ""
-"%(label)s must contain at least %(minimum)s and at most %(maximum)s "
-"%(child_label)ss"
+msgid "%(label)s must contain at least %(minimum)s and at most %(maximum)s %(child_label)s"
+msgid_plural "%(label)s must contain at least %(minimum)s and at most %(maximum)s %(child_label)ss"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -71,7 +66,7 @@ msgstr ""
 #: flatland/validation/network.py:312
 #, python-format
 msgid "%(label)s is not a valid URL."
-msgstr ""
+msgstr "%(label)s no es una URL válida."
 
 #: flatland/validation/number.py:30
 #, python-format
@@ -167,4 +162,3 @@ msgstr ""
 #, python-format
 msgid "%(label)s must be a ten-digit phone number without extension."
 msgstr ""
-
