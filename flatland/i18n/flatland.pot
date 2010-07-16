@@ -1,13 +1,14 @@
-# Translations template for flatland.
-# Copyright (C) 2010 the flatland authors and contributors
-# This file is distributed under the same license as the flatland project.
+# Translations template for PROJECT.
+# Copyright (C) 2010 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: flatland dev\n"
+"Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: flatland-users@googlegroups.com\n"
-"POT-Creation-Date: 2010-06-28 10:47-0700\n"
+"POT-Creation-Date: 2010-07-16 14:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

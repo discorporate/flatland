@@ -1,13 +1,15 @@
-# Spanish translations for flatland.
-# Copyright (C) 2010 the flatland authors and contributors
-# This file is distributed under the same license as the flatland project.
+# Spanish translations for PROJECT.
+# Copyright (C) 2010 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: flatland dev\n"
+"Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: flatland-users@googlegroups.com\n"
-"POT-Creation-Date: 2010-06-25 16:31+0700\n"
-"PO-Revision-Date: 2010-06-28 10:47-0700\n"
+"POT-Creation-Date: 2010-07-16 14:19+0100\n"
+"PO-Revision-Date: 2010-07-16 14:20+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: es <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
@@ -24,7 +26,7 @@ msgstr ""
 
 #. TRANSLATORS: HasAtLeast.failure
 #: flatland/validation/containers.py:142
-#, fuzzy, python-format
+#, python-format
 msgid "%(label)s must contain at least one %(child_label)s"
 msgid_plural "%(label)s must contain at least %(minimum)s %(child_label)ss"
 msgstr[0] ""
@@ -32,7 +34,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: HasAtMost.failure
 #: flatland/validation/containers.py:195
-#, fuzzy, python-format
+#, python-format
 msgid "%(label)s must contain at most one %(child_label)s"
 msgid_plural "%(label)s must contain at most %(maximum)s %(child_label)ss"
 msgstr[0] ""
@@ -40,7 +42,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: HasBetween.range
 #: flatland/validation/containers.py:261
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "%(label)s must contain at least %(minimum)s and at most %(maximum)s "
 "%(child_label)s"
@@ -52,7 +54,7 @@ msgstr[1] ""
 
 #. TRANSLATORS: HasBetween.exact
 #: flatland/validation/containers.py:268
-#, fuzzy, python-format
+#, python-format
 msgid "%(label)s must contain exactly one %(child_label)s"
 msgid_plural "%(label)s must contain exactly %(minimum)s %(child_label)ss"
 msgstr[0] ""
@@ -112,9 +114,7 @@ msgid "%(label)s may not exceed %(maxlength)s characters."
 msgstr ""
 
 #: flatland/validation/scalars.py:220
-#, fuzzy, python-format
-#| msgid "%(label)s must contain at least one %(child_label)s"
-#| msgid_plural "%(label)s must contain at least %(minimum)s %(child_label)ss"
+#, python-format
 msgid "%(label)s must be at least %(minlength)s characters."
 msgstr ""
 
@@ -144,20 +144,12 @@ msgid "%(label)s must be greater than or equal to %(minimum)s."
 msgstr ""
 
 #: flatland/validation/scalars.py:491
-#, fuzzy, python-format
-#| msgid "" "%(label)s must contain at least %(minimum)s and at most
-#| %(maximum)s " "%(child_label)s"
-#| msgid_plural "" "%(label)s must contain at least %(minimum)s and at most
-#| %(maximum)s " "%(child_label)ss"
+#, python-format
 msgid "%(label)s must be in the range %(minimum)s to %(maximum)s."
 msgstr ""
 
 #: flatland/validation/scalars.py:493
-#, fuzzy, python-format
-#| msgid "" "%(label)s must contain at least %(minimum)s and at most
-#| %(maximum)s " "%(child_label)s"
-#| msgid_plural "" "%(label)s must contain at least %(minimum)s and at most
-#| %(maximum)s " "%(child_label)ss"
+#, python-format
 msgid "%(label)s must be greater than %(minimum)s and less than %(maximum)s."
 msgstr ""
 
