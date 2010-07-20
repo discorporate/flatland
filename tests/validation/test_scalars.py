@@ -177,11 +177,11 @@ def test_values_equal_three():
 
 
 def test_values_equal_resolution():
-    v = ValuesEqual('x', '.sub.xx')
+    v = ValuesEqual('x', '/sub/xx')
     el = form(dict(x='a', sub=dict(xx='a')))
     assert v.validate(el, None)
 
-    v = ValuesEqual('.x', 'xx')
+    v = ValuesEqual('/x', 'xx')
     el = form(dict(x='a', sub=dict(xx='a')))
     assert v.validate(el['sub'], None)
 

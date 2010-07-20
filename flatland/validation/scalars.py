@@ -562,7 +562,7 @@ class MapEqual(Validator):
         Validator.__init__(self, **kw)
 
     def validate(self, element, state):
-        elements = [element.el(name) for name in self.field_paths]
+        elements = [element.find(name, single=True) for name in self.field_paths]
         fn = self.transform
         sample = fn(elements[0])
         if all(fn(el) == sample for el in elements[1:]):
@@ -586,8 +586,9 @@ class ValuesEqual(MapEqual):
       from flatland.validation import ValuesEqual
 
       class MyForm(flatland.Form):
-          schema = [ String('password'), String('password_again') ]
-          validators = ValuesEqual('password', 'password_again')
+          password = String
+          password_again = String
+          validators = [ValuesEqual('password', 'password_again')]
 
     .. attribute:: transform()
 

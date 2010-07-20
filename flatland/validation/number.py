@@ -43,11 +43,11 @@ class NANPnpa_nxx(Validator):
         self.method = method
 
     def validate(self, element, state):
-        npa = element.el(self.npa).value
-        nxx = element.el(self.nxx).value
+        npa = element.find(self.npa, single=True).value
+        nxx = element.find(self.nxx, single=True).value
 
         if self.errors_to:
-            err = element.el(self.errors_to)
+            err = element.find(self.errors_to)
         else:
             err = element
 
