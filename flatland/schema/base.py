@@ -3,6 +3,7 @@ import collections
 import itertools
 import operator
 from flatland.schema.paths import pathexpr
+from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
 from flatland.util import (
     Unspecified,
@@ -112,6 +113,9 @@ class Element(_BaseElement):
     As in :attr:`value`, writing directly to this attribute should be
     restricted to validation routines.
     """
+
+    properties = Properties()
+    """A mapping of arbitrary data associated with the element."""
 
     flattenable = False
     children_flattenable = True
@@ -224,6 +228,12 @@ class Element(_BaseElement):
             position = len(mutable) + 1 + position
         mutable[position:position] = list(validators)
         cls.validators = mutable
+        return cls
+
+    @class_cloner
+    def with_properties(cls, **properties):
+        """TODO: doc"""
+        cls.properties.update(properties)
         return cls
 
     def validate_element(self, element, state, descending):
