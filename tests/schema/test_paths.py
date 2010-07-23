@@ -12,6 +12,7 @@ from flatland.schema.paths import (
     SLICE,
     TOP,
     UP,
+    HERE,
     pathexpr,
     tokenize,
     )
@@ -25,12 +26,14 @@ def _tokenizes_as(path, expected):
 
 top = (TOP, None)
 up = (UP, None)
+here = (HERE, None)
 name = lambda x: (NAME, x)
 sl = lambda x: (SLICE, x)
 
 
 def test_tokenize():
     _tokencases = [
+        ('.', [here]),
         ('/', [top]),
         ('..', [up]),
         ('/..', [top]),
@@ -41,10 +44,14 @@ def test_tokenize():
         ('foo/', [name('foo')]),
         ('foo/bar', [name('foo'), name('bar')]),
         ('foo/../bar', [name('bar')]),
+        ('foo/./bar', [name('foo'), name('bar')]),
+        ('foo/./bar/.', [name('foo'), name('bar')]),
         ('foo/bar[bogus]', [name('foo'), name('bar[bogus]')]),
         ('a[b][c:d][0]', [name('a[b][c:d]'), name('0')]),
+        ('.[1]', [name('1')]),
         ('foo[1]', [name('foo'), name('1')]),
         ('foo[1]/', [name('foo'), name('1')]),
+        ('./foo[1]/', [name('foo'), name('1')]),
         ('foo[1][2][3]', [name('foo'), name('1'), name('2'), name('3')]),
         ('[1][2][3]', [name('1'), name('2'), name('3')]),
         ('[1]/foo/[2]', [name('1'), name('foo'), name('2')]),
@@ -61,6 +68,7 @@ def test_tokenize():
 
 def test_tokenize_escapes():
     _tokencases = [
+        (r'\.', [name('.')]),
         (r'\/', [name('/')]),
         (r'\.\.', [name('..')]),
         (r'/\.\.', [top, name('..')]),
@@ -109,9 +117,11 @@ def test_evaluation():
     today = date.today()
 
     _finders = [
+        (el['i1'], '.', [0]),
         (el, 'i1', [0]),
         (el, '/i1', [0]),
         (el, '../i1', [0]),
+        (el, '../i1/.', [0]),
         (el['i1'], '../i1', [0]),
         (el, 'd1/d1i1', [1]),
         (el, '/d1/d1i2', [2]),
@@ -120,6 +130,8 @@ def test_evaluation():
         (el, '/l1[:]', [3, 3]),
         (el, '/l1[2:]', []),
         (el, '/l1[0]', [3]),
+        (el, './l1[0]', [3]),
+        (el, 'l1/.[0]', [3]),
         (el, '/l2[:]/l2i1', [4, 4, 4]),
         (el, '/l3[:]', [[6, 6], [6, 6]]),
         (el, '/l3[:][:]', [6, 6, 6, 6]),
@@ -145,6 +157,7 @@ def test_evaluation():
         (el, 'a1[::-2]', [15, 13, 11]),
         (el, 'dt1', [today]),
         (el, 'dt1/year', [today.year]),
+        (el, 'dt1/./year', [today.year]),
         ]
     for element, path, expected in _finders:
         yield _finds, element, path, expected

@@ -9,6 +9,7 @@ max_cache_size = 1024
 
 TOP = symbol('TOP')
 UP = symbol('UP')
+HERE = symbol('HERE')
 SLICE = symbol('SLICE')
 NAME = symbol('NAME')
 
@@ -22,10 +23,10 @@ _tokenize_re = re.compile(r"""
       (?<!\\)\[(-?\d*:?-?\d*\:?-?\d*)(?<!\\)\](?=$|/|\[)
     | # [bogus]
       (?<!\\)\[[^\]]*(?<!\\)\](?=$|/|\[)
-    | # .. at start
-      ^\.\.
-    | # .. in expression
-      (?<=[^\\]/)\.\.
+    | # . or .. at start
+      ^\.\.?
+    | # . or .. in expression
+      (?<=[^\\]/)\.\.?
     |
       \[
     )
@@ -64,6 +65,8 @@ class PathExpression(object):
                 elif op is UP:
                     if el.parent:
                         el = el.parent
+                elif op is HERE:
+                    pass
                 elif op is NAME:
                     try:
                         el = el._index(data)
@@ -101,7 +104,7 @@ def tokenize(path):
     """Parse *path* and return a list of (OP, data) pairs."""
     tokens = []
     last, last_type = None, None
-    upped = False
+    canonical = True
 
     for token, slice_spec in _tokenize_re.findall(path):
         if token == '/':
@@ -112,9 +115,14 @@ def tokenize(path):
             elif last == '/':
                 tokens.append((NAME, None))
 
+        # . -> here
+        elif token == '.':
+            canonical = False
+            tokens.append((HERE, None))
+
         # foo/../bar -> 'foo', up, 'bar'
         elif token == '..':
-            upped = True
+            canonical = False
             tokens.append((UP, None))
 
         # [:] or [123] or [1:] or [5] etc.
@@ -135,16 +143,18 @@ def tokenize(path):
         last = token
         last_type = tokens[-1][0]
 
-    if not upped:
+    if canonical:
         return tokens
     # foo/../bar -> bar
     return _canonicalize(tokens)
 
 
 def _canonicalize(tokens):
-    """Collapse redundant steps from token lists containing UP ops."""
+    """Collapse redundant steps from token lists containing UP or HERE ops."""
     canonical = []
     for token in tokens:
+        if token[0] is HERE and len(tokens) > 1:
+            continue
         if token[0] is not UP or not canonical:
             canonical.append(token)
             continue
