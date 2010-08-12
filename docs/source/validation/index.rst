@@ -54,7 +54,7 @@ Validating Entire Forms At Once
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :meth:`~flatland.Element.validate` is recursive by default.  Called on a
-parent node, it will decend through all of its children, validating each.  If
+parent node, it will descend through all of its children, validating each.  If
 the parent or any one of its children are invalid, ``validate`` returns false.
 Note that recursion does **not** stop if it finds an invalid child: all
 children are evaluated, and each will have its :attr:`~flatland.Element.valid`
@@ -216,8 +216,8 @@ validated or have their :attr:`~flatland.Element.valid` attribute assigned.
 This capability comes in handy in a web environment when designing rich UIs.
 
 Containers will run any validators in their
-:attr:`~flatland.Container.descent_validators` list during the decent phase.
-Decent validation is the only phase that may be short-circuited.
+:attr:`~flatland.Container.descent_validators` list during the descent phase.
+Descent validation is the only phase that may be short-circuited.
 
 .. doctest::
 
@@ -387,7 +387,7 @@ To use it, subclass ``Validator`` and implement
 
       def validate(self, element, state):
           if element.value.isupper():
-              self.note_error('has_shouting', element, state)
+              self.note_error(element, state, 'has_shouting')
               return False
           return True
 
