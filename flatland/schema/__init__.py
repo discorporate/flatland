@@ -41,3 +41,6 @@ from .compound import (
 from .forms import (
     Form,
     )
+from .properties import (
+    Properties,
+    )

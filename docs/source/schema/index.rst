@@ -8,6 +8,7 @@ Defining and Using Forms
    forms
    schema
    traversal
+   properties
    scalars
    datetimes
    dicts
