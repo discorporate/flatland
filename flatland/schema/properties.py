@@ -1,3 +1,5 @@
+from weakref import WeakKeyDictionary
+
 from flatland.util import symbol
 
 
@@ -209,7 +211,7 @@ class Properties(object):
     def __init__(self, *iterable, **initial_set):
         simplified = dict(*iterable, **initial_set)
         self.initial_set = simplified
-        self.map = {}
+        self.map = WeakKeyDictionary()
 
     def __get__(self, instance, cls):
         class_lookup = _TypeLookup(cls, self)

@@ -26,6 +26,7 @@ deferred_module.shadow(
                 'Mapping',
                 'MultiValue',
                 'Number',
+                'Properties',
                 'Ref',
                 'Scalar',
                 'Sequence',

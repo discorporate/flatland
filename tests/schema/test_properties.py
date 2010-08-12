@@ -1,4 +1,6 @@
+from flatland import String
 from flatland.schema.properties import Properties
+
 from nose.tools import assert_raises
 
 
@@ -279,3 +281,23 @@ def test_perverse_slots():
 
     b = Base()
     assert_raises(AttributeError, lambda: b.properties['abc'])
+
+
+def test_dsl():
+    Sub = String.with_properties(abc=123)
+
+    assert 'abc' not in String.properties
+    assert Sub.properties['abc'] == 123
+
+    Disconnected = Sub.using(properties={'def': 456})
+    assert Disconnected.properties['def'] == 456
+    assert 'abc' not in Disconnected.properties
+
+    assert 'def' not in Sub.properties
+    assert 'def' not in String.properties
+
+    Sub.properties['ghi'] = 789
+    assert Disconnected.properties == {'def': 456}
+
+    Disconnected2 = Sub.using(properties=Properties(jkl=123))
+    assert Disconnected2.properties == {'jkl': 123}

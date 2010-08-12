@@ -173,6 +173,10 @@ class Element(_BaseElement):
         if 'validators' in overrides:
             overrides['validators'] = list(overrides['validators'])
 
+        if 'properties' in overrides:
+            if not isinstance(overrides['properties'], Properties):
+                overrides['properties'] = Properties(overrides['properties'])
+
         for attribute, value in overrides.iteritems():
             # TODO: must make better
             if callable(value):
@@ -231,9 +235,10 @@ class Element(_BaseElement):
         return cls
 
     @class_cloner
-    def with_properties(cls, **properties):
+    def with_properties(cls, *iterable, **properties):
         """TODO: doc"""
-        cls.properties.update(properties)
+        simplified = dict(*iterable, **properties)
+        cls.properties.update(simplified)
         return cls
 
     def validate_element(self, element, state, descending):
