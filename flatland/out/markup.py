@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from flatland.out.generic import Context, transform
+from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
 
@@ -120,7 +120,7 @@ class Tag(object):
         if not new_contents:
             new_contents = u''
         elif hasattr(new_contents, '__html__'):
-            new_contents = new_contents.__html__()
+            new_contents = _unpack(new_contents)
         self.contents = self._markup(new_contents)
 
         if self._context['ordered_attributes']:
@@ -142,13 +142,16 @@ class Tag(object):
 
     def __call__(self, bind=None, **attributes):
         header = self._open(bind, attributes)
-        if not self.contents:
+        contents = self.contents
+        if not contents:
             if not self._always_paired:
                 if self._context.xml:
                     return self._markup(header + u' />')
                 elif self._html_dangle:
                     return self._markup(header + u'>')
-        return self._markup(header + u'>' + self.contents + self._close())
+        if hasattr(contents, '__html__'):
+            contents = _unpack(contents)
+        return self._markup(header + u'>' + contents + self._close())
 
     def __html__(self):
         return self()
@@ -158,7 +161,7 @@ def _attribute_escape(string):
     if not string:
         return u''
     elif hasattr(string, '__html__'):
-        return string.__html__()
+        return _unpack(string)
     else:
         return string. \
                replace(u'&', u'&amp;'). \

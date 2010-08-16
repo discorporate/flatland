@@ -299,11 +299,19 @@ def _sanitize_domid_suffix(string):
     return _id_invalid_re.sub(u'', string)
 
 
+def _unpack(html_string):
+    """Extract HTML unicode from a __html__() interface."""
+    unpacked = html_string.__html__()
+    if unpacked.__class__ is unicode:
+        return unpacked
+    return unicode(unpacked)
+
+
 def _markup_escape(string):
     if not string:
         return u''
     elif hasattr(string, '__html__'):
-        return string.__html__()
+        return _unpack(string)
     else:
         return string. \
                replace(u'&', u'&amp;'). \
