@@ -82,3 +82,31 @@ def test_textarea_explicit_contents(gen, el):
     """xyzzy"""
     gen.textarea.open(el, contents=u'xyzzy')
     return gen.textarea.contents
+
+
+def test_Markup_concatenation():
+    from flatland.out.generic import Markup as Markup
+    implementations = [Markup]
+    try:
+        from jinja2 import Markup
+        implementations.append(Markup)
+    except ImportError:
+        pass
+    try:
+        from markupsafe import Markup
+        implementations.append(Markup)
+    except ImportError:
+        pass
+
+    for impl in implementations:
+        yield _generate_markup_test(impl), impl.__module__ + '.Markup'
+
+
+def _generate_markup_test(impl):
+    def test(gen, el):
+        """<label><x></label>"""
+        gen['markup_wrapper'] = impl
+        return gen.label(contents=impl(u'<x>'))
+
+    wrapper = lambda label: markup_test('xml', schema)(test)()
+    return wrapper

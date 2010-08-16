@@ -14,7 +14,7 @@ from genshi.template.directives import Directive
 from genshi.template.interpolation import interpolate
 
 
-from flatland.out.generic import transform, Context
+from flatland.out.generic import _unpack, transform, Context
 
 
 __all__ = ('setup',)
@@ -365,7 +365,7 @@ def _simplify_stream(stream, ctxt, vars):
         elif kind is EXPR:
             value = _eval_expr(data, ctxt, vars)
             if hasattr(value, '__html__'):
-                value = value.__html__()
+                value = _unpack(value)
             if hasattr(value, '__next__') or hasattr(value, 'next'):
                 while hasattr(value, '__next__') or hasattr(value, 'next'):
                     value = list(value)
