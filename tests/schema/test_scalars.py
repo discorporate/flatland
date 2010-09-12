@@ -55,8 +55,11 @@ def test_scalar_set_flat():
         return element
 
     eq_(element_for(u'a').value, u'1')
+    eq_(element_for(u'a').raw, u'1')
     eq_(element_for(u'b').value, u'2')
+    eq_(element_for(u'b').raw, u'2')
     eq_(element_for(u'c').value, None)
+    eq_(element_for(u'c').raw, None)
 
 
 @requires_unicode_coercion

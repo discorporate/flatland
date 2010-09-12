@@ -107,6 +107,9 @@ class Element(_BaseElement):
     :meth:`set` to update the element's value.
     """
 
+    raw = None
+    """The element's raw, unadapted value from input."""
+
     u = u''
     """A Unicode representation of the element's value.
 
