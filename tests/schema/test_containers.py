@@ -72,6 +72,37 @@ def test_simple_validation_shortcircuit():
     assert el.validate()
 
 
+def test_raw_value():
+    schema = Dict.of(Integer.named('x').using(optional=False))
+    el = schema()
+    assert el.raw is None
+
+    el = schema('foo')
+    assert el.raw == 'foo'
+
+    el = schema({'x': 'bar'})
+    assert el.raw == {'x': 'bar'}
+
+    el = schema([('x', 'bar')])
+    assert el.raw == [('x', 'bar')]
+
+    schema = List.of(Integer)
+    el = schema()
+    assert el.raw is None
+
+    el = schema('foo')
+    assert el.raw == 'foo'
+
+    el = schema([1, 2, 3])
+    assert el.raw == [1, 2, 3]
+
+    el = schema((1, 2, 3))
+    assert el.raw == (1, 2, 3)
+
+    el = schema({'x': 'bar'})
+    assert el.raw == {'x': 'bar'}
+
+
 class TestContainerValidation(object):
 
     def setup(self):

@@ -247,6 +247,7 @@ class Sequence(Container, list):
         """
 
         del self[:]
+        self.raw = iterable
         values, converted = [], True
         try:
             for v in iterable:
@@ -807,6 +808,7 @@ class Mapping(Container, dict):
 
     def set(self, value):
         """TODO: doc set()"""
+        self.raw = value
         pairs = to_pairs(value)
         self._reset()
 
@@ -970,6 +972,7 @@ class Dict(Mapping, dict):
 
     def set(self, value, policy=None):
         """TODO: doc set()"""
+        self.raw = value
         pairs = to_pairs(value)
         self._reset()
 

@@ -67,6 +67,7 @@ class Scalar(Element):
         contain ``unicode(value)`` or ``u''`` for none.
 
         """
+        self.raw = value
         try:
             # adapt and normalize the value, if possible
             value = self.value = self.adapt(value)
