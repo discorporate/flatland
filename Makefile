@@ -14,7 +14,10 @@ update-messages: $(I18N)/flatland.pot
 	pybabel update -i $(I18N)/flatland.pot -d $(I18N) \
 	  -D flatland --previous
 
-tip-sdist:
+compile-messages:
+	pybabel compile -d $(I18N) -D flatland
+
+tip-sdist: compile-messages
 	@echo "Preparing sdist of flatland @ hg.$(TIP)"
 	perl -pi -e \
           "s~version = flatland.__version__~version = 'hg.$(TIP)'~" \
