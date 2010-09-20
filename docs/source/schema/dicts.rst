@@ -55,7 +55,7 @@ Configurable Attributes
      from_defaults, from_flat
 
 ``SparseDict``
---------
+--------------
 
 .. autoclass:: SparseDict
   :show-inheritance:
