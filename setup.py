@@ -10,8 +10,9 @@ if sys.version_info < (2, 5):
 try:
     from setuptools import setup, find_packages
     extra_setup = dict(
+        include_package_data=True,
         zip_safe=True,
-        tests_require=['nose', 'Genshi'],
+        tests_require=['nose'],
         # for tests, prefer just 'nosetests tests'
         test_suite='nose.collector',
         )
