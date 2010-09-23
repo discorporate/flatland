@@ -562,7 +562,7 @@ def test_domid_checkable_scalar():
         expected = {
             u'type': u'radio',
             u'value': u'xxx',
-            u'id': u'f_number',
+            u'id': u'f_number_xxx',
             }
         assert_bound_transform(generic.transform_domid,
                                u'input', given, expected, context=context)
