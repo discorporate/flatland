@@ -276,11 +276,9 @@ def _generate_raw_domid(tagname, attributes, bind):
     if not basis:
         return
 
-    # add value="" to CHECKBOX and RADIO to produce a unique ID for Array
-    # elements.
+    # add the value="" to CHECKBOX and RADIO to produce a unique ID
     if (tagname == u'input' and
-        attributes.get(u'type') in (u'checkbox', u'radio') and
-        isinstance(bind, Array)):
+        attributes.get(u'type') in (u'checkbox', u'radio')):
         suffix = _sanitize_domid_suffix(attributes.get(u'value', u''))
         if suffix:
             basis += u'_' + suffix
