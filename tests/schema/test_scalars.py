@@ -12,6 +12,7 @@ from flatland import (
     Scalar,
     String,
     Time,
+    Unset,
     )
 
 from tests._util import eq_, assert_raises, requires_unicode_coercion
@@ -59,7 +60,7 @@ def test_scalar_set_flat():
     eq_(element_for(u'b').value, u'2')
     eq_(element_for(u'b').raw, u'2')
     eq_(element_for(u'c').value, None)
-    eq_(element_for(u'c').raw, None)
+    eq_(element_for(u'c').raw, Unset)
 
 
 @requires_unicode_coercion

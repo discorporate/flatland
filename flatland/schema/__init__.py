@@ -6,6 +6,7 @@ from .base import (
     SkipAllFalse,
     Slot,
     Unevaluated,
+    Unset,
     )
 from .scalars import (
     Boolean,

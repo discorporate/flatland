@@ -19,6 +19,7 @@ __all__ = 'Element'
 NoneType = type(None)
 Root = symbol('Root')
 NotEmpty = symbol('NotEmpty')
+Unset = symbol('Unset')
 
 Skip = named_int_factory('Skip', True, doc="""\
 Abort validation of the element & mark as valid.
@@ -107,7 +108,7 @@ class Element(_BaseElement):
     :meth:`set` to update the element's value.
     """
 
-    raw = None
+    raw = Unset
     """The element's raw, unadapted value from input."""
 
     u = u''
@@ -745,6 +746,7 @@ class Element(_BaseElement):
         structured tree of value elements.
 
         """
+        self.raw = Unset
         if hasattr(pairs, 'items'):
             pairs = pairs.items()
 
