@@ -3,6 +3,7 @@ from flatland import (
     Integer,
     String,
     SparseDict,
+    Unset,
     )
 from flatland.util import Unspecified, keyslice_pairs
 from tests._util import (
@@ -300,6 +301,24 @@ def test_dict_strict():
 
     el = schema()
     assert_raises(KeyError, el.set, {u'x': 123, u'y': 456, u'z': 7})
+
+
+def test_dict_raw():
+    schema = Dict.of(Integer.named('x').using(optional=False))
+    el = schema()
+    assert el.raw is Unset
+
+    el = schema({u'x': u'bar'})
+    assert el.raw == {u'x': u'bar'}
+
+    el = schema([(u'x', u'bar')])
+    assert el.raw == [(u'x', u'bar')]
+    el.set_flat([(u'x', u'123')])
+    assert el.raw is Unset
+
+    el = schema.from_flat([(u'x', u'123')])
+    assert el.raw is Unset
+    assert el[u'x'].raw == u'123'
 
 
 def test_dict_as_unicode():

@@ -2,6 +2,7 @@ from flatland import (
     Integer,
     List,
     String,
+    Unset,
 )
 from flatland.schema.base import Unspecified
 
@@ -270,6 +271,24 @@ def test_set():
     assert el.value == [4, 5, 6]
     assert el.set([])
     assert el.value == []
+
+
+def test_raw():
+    schema = List.of(Integer)
+    el = schema()
+    assert el.raw is Unset
+
+    el = schema(u'foo')
+    assert el.raw == u'foo'
+
+    el = schema([1, 2, 3])
+    assert el.raw == [1, 2, 3]
+
+    el = schema((1, 2, 3))
+    assert el.raw == (1, 2, 3)
+
+    el = schema({u'x': u'bar'})
+    assert el.raw == {u'x': u'bar'}
 
 
 def test_access():

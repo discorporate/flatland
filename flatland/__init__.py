@@ -37,6 +37,7 @@ deferred_module.shadow(
                 'String',
                 'Time',
                 'Unevaluated',
+                'Unset',
                 ),
      'signals': (),
      'util': ('Unspecified', 'class_cloner',),
