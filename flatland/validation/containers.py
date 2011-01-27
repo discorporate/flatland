@@ -131,7 +131,7 @@ class HasAtLeast(Validator):
 
     .. attribute:: failure
 
-      Emitted if the sequence contains more than :attr:`minimum` members.
+      Emitted if the sequence contains less than :attr:`minimum` members.
       ``child_label`` will substitute the label of the child schema.
 
     """
@@ -184,7 +184,7 @@ class HasAtMost(Validator):
 
     .. attribute:: failure
 
-      Emitted if the sequence contains fewer than :attr:`minimum` members.
+      Emitted if the sequence contains more than :attr:`maximum` members.
       ``child_label`` will substitute the label of the child schema.
 
     """
