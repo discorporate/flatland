@@ -42,7 +42,7 @@ will have the attribute as well.
 .. testcode:: pyann
 
   el = Password()
-  assert el.tooltip = 'Enter your password'
+  assert el.tooltip == 'Enter your password'
 
 And because the :meth:`Element` constructor allows overriding any
 schema attribute by keyword argument, individual element instances can
