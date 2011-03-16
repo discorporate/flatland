@@ -22,6 +22,9 @@ def transform(tagname, attributes, contents, context, bind):
 class Context(object):
     """A stacked key/value mapping."""
 
+    # These methods are public but undocumented.  For friendly, user-facing
+    # versions, see the Generator subclass.
+
     def __init__(self):
         self._frames = [dict(_default_context)]
 
