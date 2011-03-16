@@ -12,9 +12,6 @@ try:
     extra_setup = dict(
         include_package_data=True,
         zip_safe=True,
-        tests_require=['nose'],
-        # for tests, prefer just 'nosetests tests'
-        test_suite='nose.collector',
         )
 except ImportError:
     from distutils.core import setup
