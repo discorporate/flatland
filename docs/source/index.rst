@@ -39,6 +39,7 @@ Contents
 
    schema/index
    validation/index
+   markup
    signals
    templating/index
 
