@@ -41,5 +41,4 @@ Contents
    validation/index
    markup
    signals
-   templating/index
 
