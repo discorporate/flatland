@@ -18,14 +18,9 @@ def input_value_html():
     """<input name="valued" value="val">"""
 
 
-@input_value_html.genshi_06
-def test_input_value_html_genshi_06():
+@input_value_html.genshi
+def test_input_value_html_genshi():
     """<input form:bind="form.valued"/>"""
-
-
-@input_value_html.genshi_05
-def test_input_value_html_genshi_05():
-    """<input form:bind="${form.valued.bind}"/>"""
 
 
 @input_value_html.markup
@@ -40,14 +35,9 @@ def input_value_xhtml():
     """<input name="valued" value="val" />"""
 
 
-@input_value_xhtml.genshi_06
-def test_input_value_xhtml_genshi_06():
+@input_value_xhtml.genshi
+def test_input_value_xhtml_genshi():
     """<input form:bind="form.valued"/>"""
-
-
-@input_value_xhtml.genshi_05
-def test_input_value_xhtml_genshi_05():
-    """<input form:bind="${form.valued.bind}"/>"""
 
 
 @input_value_xhtml.markup
@@ -62,14 +52,9 @@ def textarea_value():
     """<textarea name="valued">val</textarea>"""
 
 
-@textarea_value.genshi_06
-def test_textarea_value_genshi_06():
+@textarea_value.genshi
+def test_textarea_value_genshi():
     """<textarea form:bind="form.valued"/>"""
-
-
-@textarea_value.genshi_05
-def test_textarea_value_genshi_05():
-    """<textarea form:bind="${form.valued.bind}"/>"""
 
 
 @textarea_value.markup
@@ -84,14 +69,9 @@ def textarea_empty_value():
     """<textarea name="empty"></textarea>"""
 
 
-@textarea_empty_value.genshi_06
-def test_textarea_empty_value_genshi_06():
+@textarea_empty_value.genshi
+def test_textarea_empty_value_genshi():
     """<textarea form:bind="form.empty"/>"""
-
-
-@textarea_empty_value.genshi_05
-def test_textarea_empty_value_genshi_05():
-    """<textarea form:bind="${form.empty.bind}"/>"""
 
 
 @textarea_empty_value.markup
@@ -106,14 +86,9 @@ def textarea_explicit_value():
     """<textarea name="valued">override</textarea>"""
 
 
-@textarea_explicit_value.genshi_06
-def test_textarea_explicit_value_genshi_06():
+@textarea_explicit_value.genshi
+def test_textarea_explicit_value_genshi():
     """<textarea form:bind="form.valued">override</textarea>"""
-
-
-@textarea_explicit_value.genshi_05
-def test_textarea_explicit_value_genshi_05():
-    """<textarea form:bind="${form.valued.bind}">override</textarea>"""
 
 
 @textarea_explicit_value.markup
@@ -128,14 +103,9 @@ def label_empty_html():
     """<label></label>"""
 
 
-@label_empty_html.genshi_06
-def test_label_empty_html_genshi_06():
+@label_empty_html.genshi
+def test_label_empty_html_genshi():
     """<label form:bind="form.valued"/>"""
-
-
-@label_empty_html.genshi_05
-def test_label_empty_html_genshi_05():
-    """<label form:bind="${form.valued.bind}"/>"""
 
 
 @label_empty_html.markup
