@@ -29,8 +29,4 @@ deferred_module.shadow(
         'deferred': (
             'deferred_module',
             ),
-        'signals': (
-            'Signal',
-            'signal',
-            ),
       })

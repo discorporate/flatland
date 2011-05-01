@@ -45,4 +45,7 @@ setup(name="flatland",
                    'Programming Language :: Python :: 2.7',
                    'Topic :: Internet :: WWW/HTTP :: WSGI',
                    'Topic :: Software Development :: Libraries'],
+      install_requires=[
+          'blinker',
+          ]
       **extra_setup)

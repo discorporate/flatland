@@ -1,4 +1,4 @@
-from flatland.util import signal
+from blinker import signal
 
 
 validator_validated = signal('validator_validated', doc="""\
