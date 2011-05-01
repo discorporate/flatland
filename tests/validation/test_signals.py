@@ -12,7 +12,8 @@ from tests._util import eq_
 def test_validator_validated():
     sentinel = []
 
-    def listener(**kw):
+    def listener(sender, **kw):
+        kw['sender'] = sender
         sentinel.append(kw)
 
     signals.validator_validated.connect(listener)
@@ -51,11 +52,5 @@ def test_validator_validated():
     assert el.validate()
     eq_(sentinel, [dict(sender=NotEmpty, element=el,
                         state=None, result=True)])
-
-    del listener
-    del sentinel[:]
-    el = schema('squiznart')
-    assert not el.validate()
-    assert not sentinel
 
     signals.validator_validated._clear_state()
