@@ -1,6 +1,5 @@
 from flatland import String
 
-from tests._util import fails
 from tests.markup._util import desired_output
 
 
@@ -14,13 +13,8 @@ def value_bound():
     """<div value="val"></div>"""
 
 
-@value_bound.genshi_06
-def test_value_bound_genshi_06():
-    """<div form:bind="form" form:auto-value="on" />"""
-
-
-@value_bound.genshi_05
-def test_value_bound_genshi_05():
+@value_bound.genshi
+def test_value_bound_genshi():
     """<div form:bind="form" form:auto-value="on" />"""
 
 
@@ -34,13 +28,8 @@ def value_unbound():
     """<div></div>"""
 
 
-@value_unbound.genshi_06
-def test_value_unbound_genshi_06():
-    """<div form:auto-value="on" />"""
-
-
-@value_unbound.genshi_05
-def test_value_unbound_genshi_05():
+@value_unbound.genshi
+def test_value_unbound_genshi():
     """<div form:auto-value="on" />"""
 
 
@@ -57,13 +46,8 @@ def name_bound():
     """<div name="element"></div>"""
 
 
-@name_bound.genshi_06
-def test_name_bound_genshi_06():
-    """<div form:bind="form" form:auto-name="on" />"""
-
-
-@name_bound.genshi_05
-def test_name_bound_genshi_05():
+@name_bound.genshi
+def test_name_bound_genshi():
     """<div form:bind="form" form:auto-name="on" />"""
 
 
@@ -77,13 +61,8 @@ def name_unbound():
     """<div></div>"""
 
 
-@name_unbound.genshi_06
-def test_name_unbound_genshi_06():
-    """<div form:auto-name="on" />"""
-
-
-@name_unbound.genshi_05
-def test_name_unbound_genshi_05():
+@name_unbound.genshi
+def test_name_unbound_genshi():
     """<div form:auto-name="on" />"""
 
 
@@ -100,13 +79,8 @@ def domid_bound():
     """<div id="f_element"></div>"""
 
 
-@domid_bound.genshi_06
-def test_domid_bound_genshi_06():
-    """<div form:bind="form" form:auto-domid="on" />"""
-
-
-@domid_bound.genshi_05
-def test_domid_bound_genshi_05():
+@domid_bound.genshi
+def test_domid_bound_genshi():
     """<div form:bind="form" form:auto-domid="on" />"""
 
 
@@ -120,14 +94,8 @@ def domid_unbound():
     """<div></div>"""
 
 
-@domid_unbound.genshi_06
-def test_domid_unbound_genshi_06():
-    """<div form:auto-domid="on" />"""
-
-
-@fails('<div id="None"></div>')
-@domid_unbound.genshi_05
-def test_domid_unbound_genshi_05():
+@domid_unbound.genshi
+def test_domid_unbound_genshi():
     """<div form:auto-domid="on" />"""
 
 
@@ -144,13 +112,8 @@ def for_bound():
     """<div for="f_element"></div>"""
 
 
-@for_bound.genshi_06
-def test_for_bound_genshi_06():
-    """<div form:bind="form" form:auto-for="on" />"""
-
-
-@for_bound.genshi_05
-def test_for_bound_genshi_05():
+@for_bound.genshi
+def test_for_bound_genshi():
     """<div form:bind="form" form:auto-for="on" />"""
 
 
@@ -164,13 +127,8 @@ def for_unbound():
     """<div></div>"""
 
 
-@for_unbound.genshi_06
-def test_for_unbound_genshi_06():
-    """<div form:auto-for="on" />"""
-
-
-@for_unbound.genshi_05
-def test_for_unbound_genshi_05():
+@for_unbound.genshi
+def test_for_unbound_genshi():
     """<div form:auto-for="on" />"""
 
 
@@ -187,16 +145,8 @@ def tabindex_bound():
     """<div tabindex="1"></div>"""
 
 
-@tabindex_bound.genshi_06
-def test_tabindex_bound_genshi_06():
-    """
-    <form:set tabindex="1"/>
-    <div form:bind="form" form:auto-tabindex="on" />
-    """
-
-
-@tabindex_bound.genshi_05
-def test_tabindex_bound_genshi_05():
+@tabindex_bound.genshi
+def test_tabindex_bound_genshi():
     """
     <form:set tabindex="1"/>
     <div form:bind="form" form:auto-tabindex="on" />
@@ -214,16 +164,8 @@ def tabindex_unbound():
     """<div tabindex="1"></div>"""
 
 
-@tabindex_unbound.genshi_06
-def test_tabindex_unbound_genshi_06():
-    """
-    <form:set tabindex="1"/>
-    <div form:auto-tabindex="on" />
-    """
-
-
-@tabindex_unbound.genshi_05
-def test_tabindex_unbound_genshi_05():
+@tabindex_unbound.genshi
+def test_tabindex_unbound_genshi():
     """
     <form:set tabindex="1"/>
     <div form:auto-tabindex="on" />
@@ -243,17 +185,8 @@ def combo_unbound():
     """<div tabindex="1"></div>"""
 
 
-@combo_unbound.genshi_06
-def test_combo_unbound_genshi_06():
-    """
-    <form:set tabindex="1"/>
-    <div form:auto-tabindex="on" form:auto-domid="on" />
-    """
-
-
-@fails('<div tabindex="1" id="None"></div>')
-@combo_unbound.genshi_05
-def test_combo_unbound_genshi_05():
+@combo_unbound.genshi
+def test_combo_unbound_genshi():
     """
     <form:set tabindex="1"/>
     <div form:auto-tabindex="on" form:auto-domid="on" />

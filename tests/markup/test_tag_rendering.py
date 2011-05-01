@@ -1,6 +1,5 @@
 from flatland import Array, String
 
-from tests._util import fails
 from tests.markup._util import desired_output
 
 
@@ -26,23 +25,11 @@ def select():
 """
 
 
-@select.genshi_06
-def test_select_genshi_06():
+@select.genshi
+def test_select_genshi():
     """
 <select form:bind="form">
 <option value="abc" form:bind="form"></option>
-<option value="def">DEF</option>
-<option>abc</option>
-<option value="abc">abc</option>
-</select>
-    """
-
-
-@select.genshi_05
-def test_select_genshi_05():
-    """
-<select form:bind="form">
-<option value="abc"></option>
 <option value="def">DEF</option>
 <option>abc</option>
 <option value="abc">abc</option>
@@ -72,8 +59,9 @@ def multiselect():
 </select>
 """
 
-@multiselect.genshi_06
-def test_multiselect_genshi_06():
+
+@multiselect.genshi
+def test_multiselect_genshi():
     """
 <select name="multi" form:bind="form" multiple="multiple">
 <option value="abc"></option>
@@ -82,16 +70,6 @@ def test_multiselect_genshi_06():
 </select>
     """
 
-@fails("No multiselect on genshi 05")
-@multiselect.genshi_05
-def test_multiselect_genshi_05():
-    """
-<select form:bind="${form.bind}" multiple="multiple">
-<option value="abc"></option>
-<option value="def">DEF</option>
-<option>xyz</option>
-</select>
-    """
 
 @multiselect.markup
 def test_multiselect_markup(gen, el):

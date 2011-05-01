@@ -10,17 +10,11 @@ class Capabilities(dict):
         self[capability] = have = probe()
         return have
 
-    def _genshi_06(self):
+    def _genshi(self):
         try:
             from genshi.template import MarkupTemplate
+            # present only in >= 0.6
             return hasattr(MarkupTemplate, 'add_directives')
-        except ImportError:
-            return False
-
-    def _genshi_05(self):
-        try:
-            from genshi.template import MarkupTemplate
-            return not hasattr(MarkupTemplate, 'add_directives')
         except ImportError:
             return False
 
@@ -78,37 +72,17 @@ class desired_output(object):
             return self.expected
 
     @property
-    def genshi_06(self):
+    def genshi(self):
         def decorator(fn):
             markup = _wrap_with_xmlns(fn.__doc__, self.language)
             fn.__doc__ = None
             @wraps(fn)
             def runner():
-                if not have['genshi_06']:
+                if not have['genshi']:
                     raise SkipTest
-                got = _render_genshi_06(markup, self.language, self.schema,
-                                        **self.render_context)
-                expected = self.expectation_for('genshi_06')
-                if expected != got:
-                    print "\n" + fn.__name__
-                    print "Expected:\n" + expected
-                    print "Got:\n" + got
-                assert expected == got
-            return runner
-        return decorator
-
-    @property
-    def genshi_05(self):
-        def decorator(fn):
-            markup = _wrap_with_xmlns(fn.__doc__, self.language)
-            fn.__doc__ = None
-            @wraps(fn)
-            def runner():
-                if not have['genshi_05']:
-                    raise SkipTest
-                got = _render_genshi_05(markup, self.language, self.schema,
-                                        **self.render_context)
-                expected = self.expectation_for('genshi_05')
+                got = _render_genshi(markup, self.language, self.schema,
+                                     **self.render_context)
+                expected = self.expectation_for('genshi')
                 if expected != got:
                     print "\n" + fn.__name__
                     print "Expected:\n" + expected
@@ -167,10 +141,10 @@ def markup_test(markup='xml', schema=None):
     return decorator
 
 
-def render_genshi_06(markup, language, schema, wrap=True, **context):
+def render_genshi(markup, language, schema, wrap=True, **context):
     if wrap:
         markup = _wrap_with_xmlns(markup, language)
-    return _render_genshi_06(markup, language, schema, **context)
+    return _render_genshi(markup, language, schema, **context)
 
 
 def _render_markup_fn(fn, language, schema, **kw):
@@ -185,9 +159,9 @@ def _render_markup_fn(fn, language, schema, **kw):
     return output.strip()
 
 
-def _render_genshi_06(markup, language, schema, **kw):
+def _render_genshi(markup, language, schema, **kw):
     from genshi.template import MarkupTemplate
-    from flatland.out.genshi_06 import setup
+    from flatland.out.genshi import setup
 
     template = MarkupTemplate(markup)
     setup(template)
@@ -197,30 +171,6 @@ def _render_genshi_06(markup, language, schema, **kw):
     else:
         kw['form'] = None
     output = template.generate(**kw).render(language)
-
-    # strip div wrapper off
-    got = output[output.index('\n') + 1:output.rindex('\n')]
-    got = got.strip()
-
-    return got
-
-
-def _render_genshi_05(markup, language, schema):
-    from genshi.template import MarkupTemplate
-    from flatland.out.genshi import install_element_mixin
-    from flatland.out.genshi.filter import flatland_filter
-
-    template = MarkupTemplate(markup)
-    template.filters.append(flatland_filter)
-
-    install_element_mixin()
-    if schema is not None:
-        form = schema()
-        forms = {form.name: form}
-    else:
-        form = None
-        forms = {}
-    output = template.generate(form=form, forms=forms).render(language)
 
     # strip div wrapper off
     got = output[output.index('\n') + 1:output.rindex('\n')]

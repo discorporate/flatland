@@ -20,14 +20,9 @@ def value_default():
     """<input name="test_valued" value="val" />"""
 
 
-@value_default.genshi_06
-def test_value_default_genshi_06():
+@value_default.genshi
+def test_value_default_genshi():
     """<input form:bind="form.valued"/>"""
-
-
-@value_default.genshi_05
-def test_value_default_genshi_05():
-    """<input form:bind="${form.valued.bind}"/>"""
 
 
 @value_default.markup
@@ -40,20 +35,11 @@ def value_disabled():
     """<input name="test_valued" />"""
 
 
-@value_disabled.genshi_06
-def test_with_value_disabled_genshi_06():
+@value_disabled.genshi
+def test_with_value_disabled_genshi():
     """
     <form:with auto-value="off">
       <input form:bind="form.valued"/>
-    </form:with>
-    """
-
-
-@value_disabled.genshi_05
-def test_with_value_disabled_genshi_05():
-    """
-    <form:with auto-value="off">
-      <input form:bind="${form.valued.bind}"/>
     </form:with>
     """
 
@@ -66,19 +52,11 @@ def test_with_value_disabled_markup(gen, el):
     return output
 
 
-@value_disabled.genshi_06
-def test_set_value_disabled_genshi_06():
+@value_disabled.genshi
+def test_set_value_disabled_genshi():
     """
     <form:set auto-value="off"/>
     <input form:bind="form.valued"/>
-    """
-
-
-@value_disabled.genshi_05
-def test_set_value_disabled_genshi_05():
-    """
-    <form:set auto-value="off" />
-    <input form:bind="${form.valued.bind}"/>
     """
 
 
@@ -89,14 +67,9 @@ def test_set_value_disabled_markup(gen, el):
     return output
 
 
-@value_disabled.genshi_06
-def test_element_value_disabled_genshi_06():
+@value_disabled.genshi
+def test_element_value_disabled_genshi():
     """<input form:bind="form.valued" form:auto-value="off"/>"""
-
-
-@value_disabled.genshi_05
-def test_element_value_disabled_genshi_05():
-    """<input form:bind="${form.valued.bind}" form:auto-value="off"/>"""
 
 
 @value_disabled.markup
@@ -104,20 +77,11 @@ def test_element_value_disabled_markup(gen, el):
     return gen.input(el['valued'], auto_value=False)
 
 
-@value_disabled.genshi_06
-def test_element_value_auto_genshi_06():
+@value_disabled.genshi
+def test_element_value_auto_genshi():
     """
     <form:with auto-value="no">
       <input form:bind="form.valued" form:auto-value="auto"/>
-    </form:with>
-    """
-
-
-@value_disabled.genshi_05
-def test_element_value_auto_genshi_05():
-    """
-    <form:with auto-value="no">
-      <input form:bind="${form.valued.bind}" form:auto-value="off"/>
     </form:with>
     """
 
@@ -136,14 +100,9 @@ def name_default():
     """<form name="test"></form>"""
 
 
-@name_default.genshi_06
-def test_name_default_genshi_06():
+@name_default.genshi
+def test_name_default_genshi():
     """<form form:bind="form"/>"""
-
-
-@name_default.genshi_05
-def test_name_default_genshi_05():
-    """<form form:bind="${form.bind}"/>"""
 
 
 @name_default.markup
@@ -156,20 +115,11 @@ def name_disabled():
     """<form></form>"""
 
 
-@name_disabled.genshi_06
-def test_with_name_disabled_genshi_06():
+@name_disabled.genshi
+def test_with_name_disabled_genshi():
     """
     <form:with auto-name="off">
       <form form:bind="form"/>
-    </form:with>
-    """
-
-
-@name_disabled.genshi_05
-def test_with_name_disabled_genshi_05():
-    """
-    <form:with auto-name="off">
-      <form form:bind="${form.bind}"/>
     </form:with>
     """
 
@@ -182,19 +132,11 @@ def test_with_name_disabled_markup(gen, el):
     return output
 
 
-@name_disabled.genshi_06
-def test_set_name_disabled_genshi_06():
+@name_disabled.genshi
+def test_set_name_disabled_genshi():
     """
     <form:set auto-name="off"/>
     <form form:bind="form"/>
-    """
-
-
-@name_disabled.genshi_05
-def test_set_name_disabled_genshi_05():
-    """
-    <form:set auto-name="off" />
-    <form form:bind="${form.bind}"/>
     """
 
 
@@ -205,14 +147,9 @@ def test_set_name_disabled_markup(gen, el):
     return output
 
 
-@name_disabled.genshi_06
-def test_element_name_disabled_genshi_06():
+@name_disabled.genshi
+def test_element_name_disabled_genshi():
     """<form form:bind="form" form:auto-name="off"/>"""
-
-
-@name_disabled.genshi_05
-def test_element_name_disabled_genshi_05():
-    """<form form:bind="${form.bind}" form:auto-name="off"/>"""
 
 
 @name_disabled.markup
@@ -220,20 +157,11 @@ def test_element_name_disabled_markup(gen, el):
     return gen.form(el, auto_name=False)
 
 
-@name_disabled.genshi_06
-def test_element_name_auto_genshi_06():
+@name_disabled.genshi
+def test_element_name_auto_genshi():
     """
     <form:with auto-name="no">
       <form form:bind="form" form:auto-name="auto"/>
-    </form:with>
-    """
-
-
-@name_disabled.genshi_05
-def test_element_name_auto_genshi_05():
-    """
-    <form:with auto-name="no">
-      <form form:bind="${form.bind}" form:auto-name="off"/>
     </form:with>
     """
 
@@ -253,14 +181,9 @@ def domid_default():
     """<select name="test_valued"></select>"""
 
 
-@domid_default.genshi_06
-def test_domid_default_genshi_06():
+@domid_default.genshi
+def test_domid_default_genshi():
     """<select form:bind="form.valued"/>"""
-
-
-@domid_default.genshi_05
-def test_domid_default_genshi_05():
-    """<select form:bind="${form.valued.bind}"/>"""
 
 
 @domid_default.markup
@@ -269,27 +192,15 @@ def test_domid_default_markup(gen, el):
 
 
 @desired_output('xhtml', simple_schema)
-@alternate_expectation(
-    'genshi_05',
-    '<select id="-test_valued-" name="test_valued"></select>')
 def domid_enabled():
     """<select name="test_valued" id="-test_valued-"></select>"""
 
 
-@domid_enabled.genshi_06
-def test_with_domid_enabled_genshi_06():
+@domid_enabled.genshi
+def test_with_domid_enabled_genshi():
     """
     <form:with auto-domid="on" domid-format="-%s-">
       <select form:bind="form.valued"/>
-    </form:with>
-    """
-
-
-@domid_enabled.genshi_05
-def test_with_domid_enabled_genshi_05():
-    """
-    <form:with auto-domid="on" domid-format="-%s-">
-      <select form:bind="${form.valued.bind}"/>
     </form:with>
     """
 
@@ -302,19 +213,11 @@ def test_with_domid_enabled_markup(gen, el):
     return output
 
 
-@domid_enabled.genshi_06
-def test_set_domid_enabled_genshi_06():
+@domid_enabled.genshi
+def test_set_domid_enabled_genshi():
     """
     <form:set auto-domid="on" domid-format="-%s-" />
     <select form:bind="form.valued"/>
-    """
-
-
-@domid_enabled.genshi_05
-def test_set_domid_enabled_genshi_05():
-    """
-    <form:set auto-domid="on" domid-format="-%s-" />
-    <select form:bind="${form.valued.bind}"/>
     """
 
 
@@ -324,19 +227,11 @@ def test_set_domid_enabled_markup(gen, el):
     return gen.select(el['valued'])
 
 
-@domid_enabled.genshi_06
-def test_element_domid_enabled_genshi_06():
+@domid_enabled.genshi
+def test_element_domid_enabled_genshi():
     """
     <form:set domid-format="-%s-" />
     <select form:bind="form.valued" form:auto-domid="on"/>
-    """
-
-
-@domid_enabled.genshi_05
-def test_element_domid_enabled_genshi_05():
-    """
-    <form:set domid-format="-%s-" />
-    <select form:bind="${form.valued.bind}" form:auto-domid="on"/>
     """
 
 
@@ -346,20 +241,11 @@ def test_element_domid_enabled_markup(gen, el):
     return gen.select(el['valued'], auto_domid=True)
 
 
-@domid_enabled.genshi_06
-def test_element_domid_auto_genshi_06():
+@domid_enabled.genshi
+def test_element_domid_auto_genshi():
     """
     <form:with auto-domid="on" domid-format="-%s-">
       <select form:bind="form.valued" form:auto-domid="auto"/>
-    </form:with>
-    """
-
-
-@domid_enabled.genshi_05
-def test_element_domid_auto_genshi_05():
-    """
-    <form:with auto-domid="on" domid-format="-%s-">
-      <select form:bind="${form.valued.bind}" form:auto-domid="auto"/>
     </form:with>
     """
 
@@ -393,8 +279,8 @@ def filter_enabled():
     """
 
 
-@filter_enabled.genshi_06
-def test_with_filter_enabled_genshi_06():
+@filter_enabled.genshi
+def test_with_filter_enabled_genshi():
     """
     <form:with auto-filter="on" filters="[funky_filter]">
       <label form:bind="form.valued">field2</label>

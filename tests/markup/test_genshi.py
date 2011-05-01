@@ -1,24 +1,24 @@
 from flatland import String
 from flatland.out.generic import Markup
 
-from genshi.template.base import TemplateSyntaxError
-
 from tests._util import assert_raises
-from tests.markup._util import render_genshi_06 as render, need
+from tests.markup._util import render_genshi as render, need
 
 
+TemplateSyntaxError = None
 schema = String.named('element').using(default=u'val')
 
 
-@need('genshi_06')
+@need('genshi')
 def setup():
-    pass
+    global TemplateSyntaxError
+    from genshi.template.base import TemplateSyntaxError
 
 
 def test_version_sensor():
-    from flatland.out import genshi_06
-    template = 'not a Genshi 0.6 template'
-    assert_raises(RuntimeError, genshi_06.setup, template)
+    from flatland.out import genshi
+    template = 'not a Genshi 0.6+ template'
+    assert_raises(RuntimeError, genshi.setup, template)
 
 
 def test_bogus_tags():
