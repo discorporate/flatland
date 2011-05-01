@@ -1,8 +1,6 @@
-
 import os
 import sys
 
-# Restrict to Python 2.5, for now.  Provide compatibilty for 2.4 later.
 if sys.version_info < (2, 5):
     print "Python 2.5 or higher is required."
     sys.exit(1)
