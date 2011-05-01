@@ -507,3 +507,6 @@ Generator
 Genshi Directives
 -----------------
 
+::
+
+  http://ns.discorporate.us/flatland/genshi
