@@ -47,5 +47,5 @@ setup(name="flatland",
                    'Topic :: Software Development :: Libraries'],
       install_requires=[
           'blinker',
-          ]
+          ],
       **extra_setup)
