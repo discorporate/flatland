@@ -503,6 +503,16 @@ forced by setting ``form:auto-tabindex="on"``.
 Generator
 ---------
 
+.. currentmodule:: flatland.out.markup
+
+
+.. autoclass:: Generator
+   :members:
+
+
+.. autoclass:: Tag
+   :members:
+
 
 Genshi Directives
 -----------------
