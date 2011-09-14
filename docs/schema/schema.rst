@@ -64,7 +64,7 @@ FIXME UPDATE:
 
 .. autoclass:: Element
 
-   ..rubric:: Instance Attributes
+   .. rubric:: Instance Attributes
 
    .. attribute:: parent
 
@@ -81,4 +81,4 @@ FIXME UPDATE:
 
       A list of validation warning messages.
 
-   ..rubric:: Members
+   .. rubric:: Members
