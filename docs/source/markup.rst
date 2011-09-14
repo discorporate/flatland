@@ -70,13 +70,13 @@ Likewise with Genshi.
 
 .. code-block:: html+genshi
 
-   <input form:bind="form.username" />
+   <input form:bind="form.username"/>
 
 and Genshi generates:
 
 .. code-block:: html+genshi
 
-   <input name="username" value="jek" />
+   <input name="username" value="jek"/>
 
 
 Attributes Too
@@ -100,13 +100,13 @@ These features are very similar in Genshi, too.
 
 .. code-block:: html+genshi
 
-   <input form:bind="form.username" name="other" class="custom" />
+   <input form:bind="form.username" name="other" class="custom"/>
 
 Which generates the same output:
 
 .. code-block:: html+genshi
 
-   <input name="other" value="jek" class="custom" />
+   <input name="other" value="jek" class="custom"/>
 
 Many Python templating systems allow you to replace the indexing operator
 (``form['username']``) with the attribute operator (``form.username``) to
@@ -372,7 +372,7 @@ value.  The semantics of "value" vary by tag.
   .. code-block:: html+genshi
 
     <!-- these: -->
-    <textarea form:bind="form.username" />
+    <textarea form:bind="form.username"/>
     <textarea form:bind="form.username"></textarea>
 
     <!-- will both render as -->
@@ -407,7 +407,7 @@ value.  The semantics of "value" vary by tag.
 
 ``<button/>`` and ``<button value=""/>``:
 
-  Regular ``<button />`` tags will insert the :attr:`Element.u` inside
+  Regular ``<button/>`` tags will insert the :attr:`Element.u` inside
   the ``<button></button>`` tag pair.  The output will **not** be
   XML-escaped, allowing any markup in the :attr:`.u <Element.u>` to
   render properly.
@@ -463,7 +463,7 @@ by setting ``form:auto-for="on"``.
   <form:with auto-domid="on">
     <fieldset py:with="field=form.field">
       <label form:bind="${field}">${field.label.x}</label>
-      <input type="text" form:bind="${field}" />
+      <input type="text" form:bind="${field}"/>
     </fieldset>
   </form:with>
 
@@ -496,7 +496,7 @@ forced by setting ``form:auto-tabindex="on"``.
     <input type="text" tabindex="-1" form:bind="${form.field}"/>
 
     <!-- assigns tabindex="2" -->
-    <a href="#" form:auto-tabindex="on" />
+    <a href="#" form:auto-tabindex="on"/>
   </form:with>
 
 
