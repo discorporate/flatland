@@ -32,7 +32,7 @@ like to receive::
 
 That's it.  Now each time flatland runs a validator, the ``receiver``
 function will be called and passed some information about the
-validation that just occured.  There is no limit to the number of
+validation that just occurred.  There is no limit to the number of
 receivers connected to a signal.
 
 Built-In Signals

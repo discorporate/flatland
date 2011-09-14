@@ -494,7 +494,7 @@ provide.  You may place these functions in the ``state``, place them on the
 ``element`` or its schema, or place them in Python's builtins.
 
 An element's ancestry will be searched for these functions.  If you like, you
-may assign them soley to the top-most element or its schema and they will be
+may assign them solely to the top-most element or its schema and they will be
 used to translate all of its child elements.
 
 If you opt to supply ``ugettext`` but not ``ungettext``, Flatland's built-in
