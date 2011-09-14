@@ -405,7 +405,7 @@ value.  The semantics of "value" vary by tag.
        </option>
     </select>
 
-<button/> and <button value=""/>:
+``<button/>`` and ``<button value=""/>``:
 
   Regular ``<button />`` tags will insert the :attr:`Element.u` inside
   the ``<button></button>`` tag pair.  The output will **not** be
