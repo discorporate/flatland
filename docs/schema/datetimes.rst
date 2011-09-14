@@ -3,8 +3,6 @@ Dates and Times
 ===============
 
 .. autoclass:: flatland.schema.scalars.Temporal
-   :show-inheritance:
-   :members:
 
    .. attribute:: type_
 
@@ -32,10 +30,7 @@ Dates and Times
 .. currentmodule:: flatland
 
 .. autoclass:: DateTime
-   :show-inheritance:
 
 .. autoclass:: Date
-   :show-inheritance:
 
 .. autoclass:: Time
-   :show-inheritance:
