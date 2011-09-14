@@ -39,25 +39,3 @@ Built-In Signals
 ----------------
 
 .. autoattribute:: flatland.signals.validator_validated
-
-
-Signal API
-----------
-
-.. currentmodule:: flatland.util.signals
-
-.. autofunction:: signal
-
-.. autoclass:: Signal
-   :members:
-
-   .. attribute:: ANY
-
-     A symbol for "receive a signal sent by any sender".
-
-   .. attribute:: receivers
-
-     A mapping from internal Signal receiver ids to signal receivers
-     or their weak references if the receiver connected with
-     ``weak=True``.
-
