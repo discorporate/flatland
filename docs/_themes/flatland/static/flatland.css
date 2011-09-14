@@ -1,0 +1,48 @@
+@import url(http://fonts.googleapis.com/css?family=Ubuntu);
+@import url(http://fonts.googleapis.com/css?family=Inconsolata);
+@import url(http://fonts.googleapis.com/css?family=EB+Garamond);
+@import url(basic.css);
+
+
+body {
+  font-family: 'Ubuntu', sans-serif;
+  line-height: 160%;
+  margin: 2em auto;
+  max-width: 750px;
+}
+
+
+pre, code, tt {
+  font-family: 'Inconsolata', monospace;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'EB Garamond', serif;
+  margin-top: 3em;
+}
+
+
+a {
+  color: #3A5BB5;
+  text-decoration: none;
+  border-bottom-style: dotted;
+  border-bottom-width: 1px;
+}
+
+
+div.highlight {
+  background: #E7E6E6;
+  margin: auto -3em;
+  padding: .2em 3em;
+}
+
+
+div.document {
+  margin-bottom: 3em;
+}
+
+
+div.sphinxsidebar {
+  display: none;
+}

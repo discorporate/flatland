@@ -21,3 +21,7 @@ intersphinx_mapping = {
     'http://docs.python.org/': None,
     'http://discorporate.us/projects/Blinker/docs/tip/': None,
 }
+
+
+html_theme_path = ['_themes']
+html_theme = 'flatland'
