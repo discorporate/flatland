@@ -63,41 +63,8 @@ will be run first, before member elements are validated.
 If :attr:`~flatland.schema.base.Element.validators` is defined, these
 validators will be run after member elements are validated.
 
-Schema Constructors
--------------------
-
-.. automethod:: List.named
-
-.. automethod:: List.of
-
-.. automethod:: List.using
-
-Factory Methods
----------------
-
-.. automethod:: List.from_defaults
-
-.. automethod:: List.from_flat
-
-Configurable Attributes
------------------------
-
-.. autoattribute:: Sequence.member_schema
-  :noindex:
-
-.. autoattribute:: Sequence.prune_empty
-  :noindex:
-
-.. autoattribute:: List.maximum_set_flat_members
 
 ``List``
 --------
 
 .. autoclass:: List
-  :show-inheritance:
-  :members:
-  :inherited-members:
-  :exclude-members: member_schema, prune_empty,
-     slot_type, maximum_set_flat_members,
-     from_defaults, from_flat
-

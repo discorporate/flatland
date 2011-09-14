@@ -11,8 +11,6 @@ Containers
 ----------
 
 .. autoclass:: Container
-   :show-inheritance:
-   :members:
 
 
 Sequences

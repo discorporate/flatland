@@ -59,28 +59,12 @@ FIXME UPDATE:
     preserve your sanity when used in markup.
 
 
-Schema Constructors
--------------------
-
-.. automethod:: Element.named
-
-.. automethod:: Element.using
-
-Factory Methods
----------------
-
-.. automethod:: Element.from_defaults
-
-.. automethod:: Element.from_flat
-
 ``Element``
 -----------
 
 .. autoclass:: Element
-   :members:
-   :undoc-members:
 
-   **Instance Attributes**
+   ..rubric:: Instance Attributes
 
    .. attribute:: parent
 
@@ -97,4 +81,4 @@ Factory Methods
 
       A list of validation warning messages.
 
-   **Members**
+   ..rubric:: Members

@@ -17,6 +17,9 @@ extensions = [
 ]
 
 
+autodoc_default_flags = ['members', 'show-inheritance']
+
+
 intersphinx_mapping = {
     'http://docs.python.org/': None,
     'http://discorporate.us/projects/Blinker/docs/tip/': None,
