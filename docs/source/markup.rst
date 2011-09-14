@@ -68,13 +68,13 @@ Basic "Do What I Mean" form binding:
 
 Likewise with Genshi.
 
-.. code-block:: html
+.. code-block:: html+genshi
 
    <input form:bind="form.username" />
 
 and Genshi generates:
 
-.. code-block:: html
+.. code-block:: html+genshi
 
    <input name="username" value="jek" />
 
@@ -98,13 +98,13 @@ This time, the Generator is used in a Jinja2 template.
 
 These features are very similar in Genshi, too.
 
-.. code-block:: html
+.. code-block:: html+genshi
 
    <input form:bind="form.username" name="other" class="custom" />
 
 Which generates the same output:
 
-.. code-block:: html
+.. code-block:: html+genshi
 
    <input name="other" value="jek" class="custom" />
 
@@ -369,7 +369,7 @@ value.  The semantics of "value" vary by tag.
 
   Note that in Genshi, these two forms are equivalent.
 
-  .. code-block:: html
+  .. code-block:: html+genshi
 
     <!-- these: -->
     <textarea form:bind="form.username" />
@@ -394,7 +394,7 @@ value.  The semantics of "value" vary by tag.
   The below will emit ``selected="selected"`` if form.field is equal
   to any of "a", "b", "c", and "d".
 
-  .. code-block:: html
+  .. code-block:: html+genshi
 
     <select form:bind="${form.field}">
        <option>a</option>
@@ -417,7 +417,7 @@ value.  The semantics of "value" vary by tag.
   :attr:`.u <Element.u>` will be placed in the ``value=`` attribute,
   replacing the existing content.  The value is escaped in this case.
 
-  .. code-block:: html
+  .. code-block:: html+genshi
 
     <!-- set or replace the inner *markup* -->
     <button form:bind="${form.field}"/>
@@ -458,7 +458,7 @@ Defaults to "on", and will only apply if auto-domid_ is also "on".
 Takes no action if the markup already contains a ``id=`` unless forced
 by setting ``form:auto-for="on"``.
 
-.. code-block:: html
+.. code-block:: html+genshi
 
   <form:with auto-domid="on">
     <fieldset py:with="field=form.field">
@@ -486,7 +486,7 @@ will not be incremented.
 Takes no action if the markup already contains a ``tabindex=`` unless
 forced by setting ``form:auto-tabindex="on"``.
 
-.. code-block:: html
+.. code-block:: html+genshi
 
   <form:with auto-tabindex="on" tabindex="1">
     <!-- assigns tabindex="1" -->
