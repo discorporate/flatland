@@ -16,7 +16,7 @@ and also a solid base for constructing higher-level widgeting systems.
 Markup Generation
 -----------------
 
-The generation forumla is simple: a desired tag (such as ``input``) plus a
+The generation formula is simple: a desired tag (such as ``input``) plus a
 flatland Element equals a complete HTML tag with attributes like ``name`` and
 ``value`` filled in using the element's state.
 

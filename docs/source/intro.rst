@@ -96,5 +96,5 @@ History
 flatland is a Python implementation of techniques I've been using for form and
 web data processing for ages, in many different languages.  It is an immediate
 conceptual descendant and re-write of "springy", a closed-source library used
-interally at Virtuous, Inc.  The Genshi filter support was donated to the
+internally at Virtuous, Inc.  The Genshi filter support was donated to the
 flatland project by Virtuous.
