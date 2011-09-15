@@ -23,7 +23,7 @@ class IsEmail(Validator):
       representation before length assertions are applied.  No top level
       domain validations are applied.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: nonlocal
 
@@ -47,7 +47,7 @@ class IsEmail(Validator):
       The default pattern rejects the valid but obscure quoted IP-address form
       (``[1.2.3.4]``).
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: invalid
 
@@ -109,7 +109,7 @@ class URLValidator(Validator):
     Validates that a URL is well-formed and may optionally restrict
     the set of valid schemes and other URL components.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: allowed_schemes
 
@@ -133,7 +133,7 @@ class URLValidator(Validator):
       any object that implements :func:`urlparse.urlparse` and
       :func:`urlparse.urlunparse`.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: bad_format
 
@@ -189,7 +189,7 @@ class HTTPURLValidator(Validator):
     optionally require and restrict the permissible values of its
     components.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: all_parts
 
@@ -220,7 +220,7 @@ class HTTPURLValidator(Validator):
       any object that implements :func:`urlparse.urlparse` and
       :func:`urlparse.urlunparse`.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: bad_format
 
@@ -285,7 +285,7 @@ class URLCanonicalizer(Validator):
     default implementation drops the ``#fragment`` from the URL, if
     present.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: discard_parts
 
@@ -300,7 +300,7 @@ class URLCanonicalizer(Validator):
       any object that implements :func:`urlparse.urlparse` and
       :func:`urlparse.urlunparse`.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: bad_format
 

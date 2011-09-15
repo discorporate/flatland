@@ -72,8 +72,8 @@ class Compound(Mapping, Scalar):
     """A mapping container that acts like a scalar value.
 
     Compound fields are dictionary-like fields that can assemble a
-    :attr:`.u` and :attr:`.value` from their children, and can
-    decompose a structured value passed to a :meth:`.set` into values
+    :attr:`u` and :attr:`value` from their children, and can
+    decompose a structured value passed to a :meth:`set` into values
     for its children.
 
     A simple example is a logical calendar date field composed of 3
@@ -109,9 +109,10 @@ class Compound(Mapping, Scalar):
         """Return a unicode, native tuple built from children's state.
 
         :returns: a 2-tuple of unicode representation, native value.
-           These correspond to the :meth:`Scalar.serialize_element`
-           and :meth:`Scalar.adapt_element` methods of :class:`Scalar`
-           objects.
+           These correspond to the
+           :meth:`~flatland.schema.scalars.Scalar.serialize_element` and
+           :meth:`~flatland.schema.scalars.Scalar.adapt_element` methods of
+           `~flatland.schema.scalars.Scalar` objects.
 
         For example, a compound date field may return a '-' delimited
         string of year, month and day digits and a
@@ -126,7 +127,7 @@ class Compound(Mapping, Scalar):
         :param value: a value to be adapted and exploded
 
         For example, a compound date field may read attributes from a
-        :class:`datetime.date` value and :meth:`.set()` them on child
+        :class:`datetime.date` value and :meth:`set` them on child
         fields.
 
         The decision to perform type checking on *value* is completely

@@ -37,7 +37,7 @@ application.  An element's :attr:`~base.Element.value` is a full & recursive
 
 .. doctest::
 
-  >>> ann1['title']  # ann1 is a flatland structure
+  >>> ann1['title']     # ann1 is a flatland structure
   <String u'title'; value=u'Interesting Spot'>
   >>> type(ann1.value)  # but its .value is not
   <type 'dict'>
@@ -48,7 +48,7 @@ application.  An element's :attr:`~base.Element.value` is a full & recursive
 Python Syntax
 -------------
 
-Containers elements such as :class:`~flatland.Form`, :class:`~containers.Dict`,
+Containers elements such as :class:`~forms.Form`, :class:`~containers.Dict`,
 and :class:`~containers.List` implement the Python methods you'd expect for
 their type.  In most cases you may use them as if they were ``dict`` and
 ``list`` instances- the difference being that they always contain

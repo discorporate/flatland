@@ -182,7 +182,7 @@ class Sequence(Container, list):
     def of(cls, *schema):
         """Declare the class to hold a sequence of *\*schema*.
 
-        :params \*schema: one or more :class:`flatland.Element` classes
+        :params \*schema: one or more `~flatland.schema.base.Element` classes
         :returns: *cls*
 
         Configures the :attr:`member_schema` of *cls* to hold instances of
@@ -198,7 +198,7 @@ class Sequence(Container, list):
           >>> el
           [<String u'name'; value=u'Bob'>, <String u'name'; value=u'Biff'>]
 
-        If more than one :class:`~flatland.Element` is specified in
+        If more than one `~flatland.schema.base.Element` is specified in
         *\*schema*, an anonymous :class:`Dict` is created to hold them.
 
         .. doctest::
@@ -681,7 +681,7 @@ class Array(Sequence):
 class MultiValue(Array, Scalar):
     """A transparent homogeneous Container, for multivalued form elements.
 
-    MultiValues combine aspects of :class:`Scalar` and
+    MultiValues combine aspects of `~flatland.schema.scalars.Scalar` and
     :class:`Sequence` fields, allowing all values of a repeated `(key,
     value)` pair to be captured and used.
 

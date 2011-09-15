@@ -2,7 +2,9 @@
 Dates and Times
 ===============
 
-.. autoclass:: flatland.schema.scalars.Temporal
+.. currentmodule:: flatland.schema.scalars
+
+.. autoclass:: Temporal
 
    .. attribute:: type_
 
@@ -26,8 +28,6 @@ Dates and Times
      value.  The format will be supplied a dict containing all
      attributes of the native type.
 
-
-.. currentmodule:: flatland
 
 .. autoclass:: DateTime
 
