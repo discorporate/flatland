@@ -81,8 +81,10 @@ class _ElementCollection(object):
 class Form(Dict):
     """A declarative collection of named fields.
 
-    Forms behave like :class:`flatland.Dict`, but are defined with Python
-    class syntax:
+    .. |Dict| replace:: `~flatland.schema.containers.Dict`
+
+    Forms behave like |Dict|, but are defined
+    with Python class syntax:
 
     .. doctest::
 
@@ -125,10 +127,10 @@ class Form(Dict):
 
     The special behavior of ``Form`` is limited to class construction time
     only.  After construction, the ``Form`` acts exactly like a
-    :class:`~flatland.Dict`.  In particular, fields declared in class
+    |Dict|.  In particular, fields declared in class
     attribute style do **not** remain class attributes.  They are removed from
     the class dictionary and placed in the
-    :attr:`~flatland.Dict.field_schema`:
+    `~flatland.schema.containers.Mapping.field_schema`:
 
     .. doctest::
 

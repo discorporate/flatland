@@ -219,9 +219,9 @@ class Validator(object):
 
         :returns: the formatted string
 
-        See :ref:`Message Templating`, :ref:`Message Pluralization` and
-        :ref:`Message Internationalization` for full information on how
-        messages are expanded.
+        See `Message Templating`_, `Message Pluralization`_ and `Message
+        Internationalization`_ for full information on how messages are
+        expanded.
 
         """
         if callable(message):

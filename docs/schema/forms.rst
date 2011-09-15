@@ -2,4 +2,4 @@
 Basic Forms
 ===========
 
-.. autoclass:: flatland.Form
+.. autoclass:: flatland.schema.forms.Form

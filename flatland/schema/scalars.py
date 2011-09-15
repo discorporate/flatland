@@ -182,7 +182,7 @@ class String(Scalar):
     def serialize(self, value):
         """Return a Unicode representation.
 
-        :returns: a ``unicode`` value or ``u'' if *value* is ``None``
+        :returns: a ``unicode`` value or ``u''`` if *value* is ``None``
 
         If :attr:`strip` is true, leading and trailing whitespace will be
         removed.

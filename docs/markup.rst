@@ -154,6 +154,8 @@ Boolean options may be True, or False, "on" or "off", or set to "auto" to
 revert to the transformation's built-in default setting.
 
 
+.. _markupsettings:
+
 Transformations
 ---------------
 

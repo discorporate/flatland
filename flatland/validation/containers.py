@@ -22,7 +22,7 @@ class NotDuplicated(Validator):
       schema = List.of(String.named('favorite_color')).\
                     using(validators=[validator])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: comparator
 
@@ -65,7 +65,7 @@ class NotDuplicated(Validator):
         el.set([data, dict(data, deleted=True)])
         assert el.validate()
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure
 
@@ -121,13 +121,13 @@ class HasAtLeast(Validator):
       schema = List.of(String.named('wish')).\
                     using(validators=[HasAtLeast(minimum=3)])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: minimum
 
       Any positive integer.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure
 
@@ -174,13 +174,13 @@ class HasAtMost(Validator):
       schema = List.of(String.named('wish')).\
                     using(validators=[HasAtMost(maximum=3)])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: maximum
 
       Any positive integer.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure
 
@@ -224,7 +224,7 @@ class HasBetween(Validator):
                     using(validators=[HasBetween(minimum=1, maximum=3)])
 
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: minimum
 
@@ -234,7 +234,7 @@ class HasBetween(Validator):
 
       Any positive integer.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: range
 

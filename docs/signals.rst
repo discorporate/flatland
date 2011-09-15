@@ -38,4 +38,4 @@ receivers connected to a signal.
 Built-In Signals
 ----------------
 
-.. autoattribute:: flatland.signals.validator_validated
+.. autodata:: flatland.signals.validator_validated

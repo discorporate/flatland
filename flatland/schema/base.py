@@ -77,7 +77,7 @@ class Element(_BaseElement):
     validators = ()
     """A sequence of validators, invoked by :meth:`validate`.
 
-    See `Validation`_
+    See :ref:`Validation`.
     """
 
     default = None
@@ -92,13 +92,13 @@ class Element(_BaseElement):
     ugettext = None
     """If set, provides translation support to validation messages.
 
-    See `Message Internationalization`_.
+    See :ref:`msg-i18n`.
     """
 
     ungettext = None
     """If set, provides translation support to validation messages.
 
-    See `Message Internationalization`_.
+    See :ref:`msg-i18n`.
     """
 
     value = None
@@ -492,7 +492,7 @@ class Element(_BaseElement):
           element from the result set is returned.
 
         :param strict: defaults to True.  If *path* specifies children or
-          sequence indexes that do not exist, a `:ref:`LookupError` is raised.
+          sequence indexes that do not exist, a :exc:`LookupError` is raised.
 
         :returns: a list of :class:`Element` instances, an :class:`Element` if
           *single* is true, or raises :exc:`LookupError`.
@@ -667,7 +667,7 @@ class Element(_BaseElement):
           >>> from flatland import Dict, String
           >>> class Nested(Form):
           ...     contact = Dict.of(String.named(u'name'),
-          ...                       Dict.named(u'address').\
+          ...                       Dict.named(u'address').
           ...                            of(String.named(u'email')))
           ...
           >>> element = Nested()
@@ -770,8 +770,9 @@ class Element(_BaseElement):
         :param state: optional, will be passed unchanged to all validator
             callables.
 
-        :param recurse: if False, do not validate children.  :returns: True or
-          False
+        :param recurse: if False, do not validate children.
+
+        :returns: True or False.
 
         Iterates through this element and all of its children, invoking each
         element's :meth:`schema.validate_element`.  Each element will be

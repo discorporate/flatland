@@ -54,15 +54,16 @@ FIXME UPDATE:
     to display or redisplay a HTML form field, including errors
     specific to a field.
 
-    The :attr:`.u`, :attr:`.x`, :attr:`.xa` and :meth:`el` members are
-    especially useful in templates and have shortened names to help
-    preserve your sanity when used in markup.
+    The :attr:`~Element.u`, :attr:`~Element.x`, :attr:`~Element.xa` and
+    :meth:`~Element.el` members are especially useful in templates and have
+    shortened names to help preserve your sanity when used in markup.
 
 
 ``Element``
 -----------
 
 .. autoclass:: Element
+   :no-show-inheritance:
 
    .. rubric:: Instance Attributes
 
@@ -73,11 +74,11 @@ FIXME UPDATE:
 
    .. attribute:: valid
 
-   .. attribute:: errors = []
+   .. attribute:: errors
 
       A list of validation error messages.
 
-   .. attribute:: warnings = []
+   .. attribute:: warnings
 
       A list of validation warning messages.
 

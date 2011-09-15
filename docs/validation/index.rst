@@ -395,11 +395,11 @@ To use it, subclass ``Validator`` and implement
 
   schema = String.using(validators=[NoShouting()])
 
-Above is a ``Validator`` version of the basic :ref:`custom validator
-<no_shouting>` example.  In this version, the
-:meth:`flatland.validation.Validator.note_error` method allows the messaging
-to be separated from the validation logic.  ``note_error`` has some useful
-features, including templating and automatic I18N translation.
+Above is a ``Validator`` version of the basic `Customizing Validators
+<no_shouting>`_ example.  In this version, the
+:meth:`flatland.validation.Validator.note_error` method allows the
+messaging to be separated from the validation logic.  ``note_error`` has
+some useful features, including templating and automatic I18N translation.
 
 
 Customizing Validators
@@ -452,12 +452,12 @@ Possible keys are taken from multiple sources.  In order of priority:
 Message Pluralization
 ~~~~~~~~~~~~~~~~~~~~~
 
-Flatland supports ``ngettext``-style message pluralization.  For this style,
-messages are specified as a 3-tuple of (``singular message``, ``plural
-message``, ``n-key``).  ``n_key`` is any :ref:`valid templating keyword
-<Message Templating>`, and its value ``n`` will be looked up using the same
-resolution rules.  If the value ``n`` equals 1, the singular form will be
-used.  Otherwise the plural.
+Flatland supports ``ngettext``-style message pluralization.  For this
+style, messages are specified as a 3-tuple of (``singular message``,
+``plural message``, ``n-key``).  ``n_key`` is any `valid templating keyword
+<Message Templating>`_, and its value ``n`` will be looked up using the
+same resolution rules.  If the value ``n`` equals 1, the singular form will
+be used.  Otherwise the plural.
 
 .. testcode::
 
@@ -480,6 +480,7 @@ used.  Otherwise the plural.
 
 Conditional pluralizaton functions with or without I18N configured.
 
+.. _msg-i18n:
 
 Message Internationalization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -515,15 +516,16 @@ through :meth:`Validator.note_error` and :meth:`Validator.note_warning`:
 
  2.  Messages looked up by key may also be callables.  The callable will
      be invoked with ``element`` and ``state``, and should return either
-     a message string or a 3-tuple as described in :ref:`pluralization
-     <Message Pluralization>`.
+     a message string or a 3-tuple as described in `pluralization
+     <Message Pluralization>`_.
 
 
 The Validator Class
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: flatland.validation.Validator
-   :members:
+.. autoclass:: flatland.validation.base.Validator
+   :no-show-inheritance:
+
 
 Included Validators
 -------------------
@@ -533,53 +535,44 @@ Scalars
 ~~~~~~~
 
 .. automodule:: flatland.validation.scalars
-   :members:
+
 
 Containers
 ~~~~~~~~~~
 
 .. automodule:: flatland.validation.containers
-   :members:
+
 
 Strings
 ~~~~~~~
 
 .. automodule:: flatland.validation.string
-   :members:
+
 
 Numbers
 ~~~~~~~
 
 .. automodule:: flatland.validation.number
-   :members:
+
 
 Email Addresses
 ~~~~~~~~~~~~~~~
 
 
 .. autoclass:: flatland.validation.IsEmail
-   :show-inheritance:
+   :no-members:
+
 
 URLs
 ~~~~
 
 .. autoclass:: flatland.validation.URLValidator
-   :members: __init__
-   :show-inheritance:
-
-   **Methods**
+   :no-members:
 
 
 .. autoclass:: flatland.validation.HTTPURLValidator
-   :members: __init__, all_parts
-   :show-inheritance:
-
-   **Methods**
+   :no-members:
 
 
 .. autoclass:: flatland.validation.URLCanonicalizer
-   :members: __init__
-   :show-inheritance:
-
-   **Methods**
-
+   :no-members:

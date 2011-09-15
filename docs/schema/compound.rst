@@ -2,7 +2,7 @@
 Compound Fields
 ===============
 
-.. currentmodule:: flatland
+.. currentmodule:: flatland.schema.compound
 
 
 .. autoclass:: Compound
