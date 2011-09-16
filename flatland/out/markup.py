@@ -149,7 +149,7 @@ class Generator(Context):
 
     @property
     def option(self):
-        """Generate a <option/> tag.
+        """Generate an <option/> tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
