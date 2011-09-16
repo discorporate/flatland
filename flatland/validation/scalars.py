@@ -582,10 +582,10 @@ class ValuesEqual(MapEqual):
 
     .. testcode::
 
-      import flatland
+      from flatland import Form, String
       from flatland.validation import ValuesEqual
 
-      class MyForm(flatland.Form):
+      class MyForm(Form):
           password = String
           password_again = String
           validators = [ValuesEqual('password', 'password_again')]
