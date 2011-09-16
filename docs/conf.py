@@ -14,6 +14,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
+    'sphinxcontrib.spelling',
 ]
 
 
@@ -24,6 +25,9 @@ intersphinx_mapping = {
     'http://docs.python.org/': None,
     'http://discorporate.us/projects/Blinker/docs/tip/': None,
 }
+
+
+spelling_ignore_pypi_package_names = True
 
 
 html_theme_path = ['_themes']
