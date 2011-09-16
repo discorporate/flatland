@@ -110,7 +110,7 @@ be used.  Otherwise the plural.
               return False
           return True
 
-Conditional pluralizaton functions with or without I18N configured.
+Conditional pluralization functions with or without I18N configured.
 
 .. _msg-i18n:
 

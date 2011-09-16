@@ -20,7 +20,7 @@ Flatland is great for:
   - Associating arbitrary Python types with JSON, .ini, or sys.argv
     members that would otherwise deserialize as simple strings.
 
-  - Reusing a single data schema for HTML, JSON apis, RPC, ...
+  - Reusing a single data schema for HTML, JSON APIs, RPC, ...
 
 The core of the flatland toolkit is a flexible and extensible
 declarative schema system representing many data types and structures.

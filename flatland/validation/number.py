@@ -23,7 +23,7 @@ class NANPnxx(Validator):
         return True
 
 class NANPnpa_nxx(Validator):
-    "Validates npa and nxx compound elements."
+    "Validates NPA and NXX compound elements."
 
     incomplete = None
 
