@@ -481,7 +481,7 @@ class Element(_BaseElement):
         """Find child elements by string path.
 
         :param path: a /-separated string specifying elements to select,
-          such as 'child/grandchild/greatgrandchild'.  Relative & absolute
+          such as 'child/grandchild/great grandchild'.  Relative & absolute
           paths are supported, as well as container expansion.  See
           :ref:`path_lookups`.
 
@@ -865,7 +865,7 @@ class Element(_BaseElement):
 
     @property
     def x(self):
-        """Sugar, the xml-escaped value of :attr:`.u`."""
+        """Sugar, the XML-escaped value of :attr:`.u`."""
         global xml
         if xml is None:
             import xml.sax.saxutils
@@ -873,7 +873,7 @@ class Element(_BaseElement):
 
     @property
     def xa(self):
-        """Sugar, the xml-attribute-escaped value of :attr:`.u`."""
+        """Sugar, the XML-attribute-escaped value of :attr:`.u`."""
         global xml
         if xml is None:
             import xml.sax.saxutils

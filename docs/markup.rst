@@ -82,7 +82,7 @@ and Genshi generates:
 Attributes Too
 ~~~~~~~~~~~~~~
 
-Any HTML attribute can be included.  Generated attributes can be overriden,
+Any HTML attribute can be included.  Generated attributes can be overridden,
 too.
 
 This time, the Generator is used in a Jinja2 template.
@@ -145,7 +145,7 @@ Block:
    previous value at the end of the block.
 
 Tag:
-   Options can overriden on a per-tag basis.
+   Options can overridden on a per-tag basis.
 
 Default:
    Finally, each tag has a set of sane default behaviors.
@@ -207,299 +207,294 @@ uses XML-friendly "-"-separated attribute names in markup.
    form = Login({'username': 'jek', 'password': 'secret'})
 
 
-auto_name
-~~~~~~~~~
+.. describe:: auto-name
 
-:Default: on
-:Tags: button, form, input, select, textarea
+   :Default: on
+   :Tags: button, form, input, select, textarea
 
-Sets the tag ``name=`` to the bound element's :attr:`.name <Element.name>`.
-Takes no action if the tag already contains a ``name=`` attribute, unless
-forced.
+   Sets the tag ``name=`` to the bound element's :attr:`.name <Element.name>`.
+   Takes no action if the tag already contains a ``name=`` attribute, unless
+   forced.
 
-Receives a ``name=`` attribute:
+   Receives a ``name=`` attribute:
 
-.. doctest:: transforms2
+   .. doctest:: transforms2
 
-  >>> print html.input(form['username'], type="text")
-  <input type="text" name="username" value="jek" />
+     >>> print html.input(form['username'], type="text")
+     <input type="text" name="username" value="jek" />
 
-Uses the explicitly provided ``name="foo"``:
+   Uses the explicitly provided ``name="foo"``:
 
-.. doctest:: transforms2
+   .. doctest:: transforms2
 
-  >>> print html.input(form['username'], type="text", name='foo')
-  <input type="text" name="foo" value="jek" />
+     >>> print html.input(form['username'], type="text", name='foo')
+     <input type="text" name="foo" value="jek" />
 
-Replaces ``name="foo"`` with the element's name:
+   Replaces ``name="foo"`` with the element's name:
 
-.. doctest:: transforms2
+   .. doctest:: transforms2
 
-  >>> print html.input(form['username'], type="text", name='foo', auto_name=True)
-  <input type="text" name="username" value="jek" />
+     >>> print html.input(form['username'], type="text", name='foo', auto_name=True)
+     <input type="text" name="username" value="jek" />
 
 
+.. describe:: auto-value
 
-auto_value
-~~~~~~~~~~
+   :Default: on
+   :Tags: button, input, select, textarea
 
-:Default: on
-:Tags: button, input, select, textarea
+   Uses the bound element's :attr:`.u <Element.u>` Unicode value for the tag's
+   value.  The semantics of "value" vary by tag.
 
-Uses the bound element's :attr:`.u <Element.u>` Unicode value for the tag's
-value.  The semantics of "value" vary by tag.
+   ``<input>`` types **text**, **hidden**, **button**, **submit** and **reset**:
 
-``<input>`` types **text**, **hidden**, **button**, **submit** and **reset**:
+     Sets the ``value=""`` attribute of the tag, or omits the attribute if
+     :attr:`.u <Element.u>` is the empty string.
 
-  Sets the ``value=""`` attribute of the tag, or omits the attribute if
-  :attr:`.u <Element.u>` is the empty string.
+     Receives a ``value=`` attribute:
 
-  Receives a ``value=`` attribute:
+     .. doctest:: transforms2
 
-  .. doctest:: transforms2
+       >>> print html.input(form['username'], type="text")
+       <input type="text" name="username" value="jek" />
 
-    >>> print html.input(form['username'], type="text")
-    <input type="text" name="username" value="jek" />
+     Uses the explicitly provided ``value="quux"``:
 
-  Uses the explicitly provided ``value="quux"``:
+     .. doctest:: transforms2
 
-  .. doctest:: transforms2
+       >>> print html.input(form['username'], type="text", value='quux')
+       <input type="text" name="username" value="quux" />
 
-    >>> print html.input(form['username'], type="text", value='quux')
-    <input type="text" name="username" value="quux" />
+   ``<input>`` types **password**, **image** and **file**:
 
-``<input>`` types **password**, **image** and **file**:
+     No value is added unless forced by setting auto_value on the tag.
 
-  No value is added unless forced by setting auto_value on the tag.
+     .. doctest:: transforms2
 
-  .. doctest:: transforms2
+       >>> print html.input(form['password'], type="password")
+       <input type="password" name="password" />
 
-    >>> print html.input(form['password'], type="password")
-    <input type="password" name="password" />
+     But this behavior can be forced:
 
-  But this behavior can be forced:
+     .. doctest:: transforms2
 
-  .. doctest:: transforms2
+       >>> print html.input(form['password'], type="password", auto_value=True)
+       <input type="password" name="password" value="secret" />
 
-    >>> print html.input(form['password'], type="password", auto_value=True)
-    <input type="password" name="password" value="secret" />
+   ``<input>`` type **radio**:
 
-``<input>`` type **radio**:
+     Radio buttons will add a ``checked="checked"`` attribute if the literal
+     ``value=`` matches the element's value.  Or, if the bind is a
+     :class:`~flatland.Container`, ``value=`` will be compared against the
+     :attr:`.u <Element.u>` of each of the container's children until a match is
+     found.
 
-  Radio buttons will add a ``checked="checked"`` attribute if the literal
-  ``value=`` matches the element's value.  Or, if the bind is a
-  :class:`~flatland.Container`, ``value=`` will be compared against the
-  :attr:`.u <Element.u>` of each of the container's children until a match is
-  found.
+     If the tag lacks a ``value=`` attribute, no action is taken.
 
-  If the tag lacks a ``value=`` attribute, no action is taken.
+     .. doctest:: transforms2
 
-  .. doctest:: transforms2
+       >>> print form['username'].u
+       jek
+       >>> print html.input(form['username'], type="radio", value="quux")
+       <input type="radio" name="username" value="quux" />
+       >>> print html.input(form['username'], type="radio", value="jek")
+       <input type="radio" name="username" value="jek" checked="checked" />
 
-    >>> print form['username'].u
-    jek
-    >>> print html.input(form['username'], type="radio", value="quux")
-    <input type="radio" name="username" value="quux" />
-    >>> print html.input(form['username'], type="radio", value="jek")
-    <input type="radio" name="username" value="jek" checked="checked" />
+   ``<input>`` type **checkbox**:
 
-``<input>`` type **checkbox**:
+     Check boxes will add a ``checked="checked"`` attribute if the literal
+     ``value=`` matches the element's value.
 
-  Check boxes will add a ``checked="checked"`` attribute if the literal
-  ``value=`` matches the element's value.
+     .. doctest:: transforms2
 
-  .. doctest:: transforms2
+       >>> print form['username'].u
+       jek
+       >>> print html.input(form['username'], type="checkbox", value="quux")
+       <input type="checkbox" name="username" value="quux" />
+       >>> print html.input(form['username'], type="checkbox", value="jek")
+       <input type="checkbox" name="username" value="jek" checked="checked" />
+
+     Or, if the bind is a :class:`~flatland.Container`, ``value=`` will be
+     compared against the :attr:`.u <Element.u>` of each of the container's
+     children until a match is found.
+
+     .. doctest:: transforms2
+
+       >>> from flatland import Array
+       >>> Bag = Array.named('bag').of(String)
+       >>> bag = Bag(['a', 'c'])
+       >>> for value in 'a', 'b', 'c':
+       ...     print html.input(bag, type="checkbox", value=value)
+       ...
+       <input type="checkbox" name="bag" value="a" checked="checked" />
+       <input type="checkbox" name="bag" value="b" />
+       <input type="checkbox" name="bag" value="c" checked="checked" />
 
-    >>> print form['username'].u
-    jek
-    >>> print html.input(form['username'], type="checkbox", value="quux")
-    <input type="checkbox" name="username" value="quux" />
-    >>> print html.input(form['username'], type="checkbox", value="jek")
-    <input type="checkbox" name="username" value="jek" checked="checked" />
-
-  Or, if the bind is a :class:`~flatland.Container`, ``value=`` will be
-  compared against the :attr:`.u <Element.u>` of each of the container's
-  children until a match is found.
-
-  .. doctest:: transforms2
+     If the tag lacks a ``value=`` attribute, no action is taken, unless the bind
+     is a Boolean.  The missing ``value=`` will be added using the schema's
+     :attr:`Boolean.true` value.
 
-    >>> from flatland import Array
-    >>> Bag = Array.named('bag').of(String)
-    >>> bag = Bag(['a', 'c'])
-    >>> for value in 'a', 'b', 'c':
-    ...     print html.input(bag, type="checkbox", value=value)
-    ...
-    <input type="checkbox" name="bag" value="a" checked="checked" />
-    <input type="checkbox" name="bag" value="b" />
-    <input type="checkbox" name="bag" value="c" checked="checked" />
+     .. doctest:: transforms2
 
-  If the tag lacks a ``value=`` attribute, no action is taken, unless the bind
-  is a Boolean.  The missing ``value=`` will be added using the schema's
-  :attr:`Boolean.true` value.
+       >>> print html.input(form['username'], type="checkbox")
+       <input type="checkbox" name="username" />
+       >>> from flatland import Boolean
+       >>> toggle = Boolean.named('toggle')()
+       >>> print html.input(toggle, type="checkbox")
+       <input type="checkbox" name="toggle" value="1" />
+       >>> toggle.set(True)
+       True
+       >>> print html.input(toggle, type="checkbox")
+       <input type="checkbox" name="toggle" value="1" checked="checked" />
+       >>> toggle.true = "yes"
 
-  .. doctest:: transforms2
+   ``<input>`` types unknown:
 
-    >>> print html.input(form['username'], type="checkbox")
-    <input type="checkbox" name="username" />
-    >>> from flatland import Boolean
-    >>> toggle = Boolean.named('toggle')()
-    >>> print html.input(toggle, type="checkbox")
-    <input type="checkbox" name="toggle" value="1" />
-    >>> toggle.set(True)
-    True
-    >>> print html.input(toggle, type="checkbox")
-    <input type="checkbox" name="toggle" value="1" checked="checked" />
-    >>> toggle.true = "yes"
+     For types unknown to flatland, no value is set unless forced by setting
+     ``form:auto-value="on"`` on the tag.
 
-``<input>`` types unknown:
+   ``<textarea>``:
 
-  For types unknown to flatland, no value is set unless forced by setting
-  ``form:auto-value="on"`` on the tag.
+     Textareas will insert the :attr:`Element.u` inside the tag pair.  Content
+     supplied with ``contents=`` for Generators or between Genshi tags will be
+     preferred unless forced.
 
-``<textarea>``:
+     .. doctest:: transforms2
 
-  Textareas will insert the :attr:`Element.u` inside the tag pair.  Content
-  supplied with ``contents=`` for Generators or between Genshi tags will be
-  preferred unless forced.
+       >>> print html.textarea(form['username'])
+       <textarea name="username">jek</textarea>
+       >>> print html.textarea(form['username'], contents="quux")
+       <textarea name="username">quux</textarea>
 
-  .. doctest:: transforms2
+     Note that in Genshi, these two forms are equivalent.
 
-    >>> print html.textarea(form['username'])
-    <textarea name="username">jek</textarea>
-    >>> print html.textarea(form['username'], contents="quux")
-    <textarea name="username">quux</textarea>
+     .. code-block:: html+genshi
 
-  Note that in Genshi, these two forms are equivalent.
+       <!-- these: -->
+       <textarea form:bind="form.username"/>
+       <textarea form:bind="form.username"></textarea>
 
-  .. code-block:: html+genshi
+       <!-- will both render as -->
+       <textarea name="username">jek</textarea>
 
-    <!-- these: -->
-    <textarea form:bind="form.username"/>
-    <textarea form:bind="form.username"></textarea>
+   ``<select>``:
 
-    <!-- will both render as -->
-    <textarea name="username">jek</textarea>
+     Select tags apply a ``selected="selected"`` attribute to their
+     `<option>` tags that match the :attr:`Element.u` or, if the bind is
+     a :class:`Container`, the :attr:`.u <Element.u>` of one of its
+     children.
 
-``<select>``:
+     For this matching to work, the ``<option>`` tags must have a literal
+     value set in the markup.  The value may an explicit ``value=``
+     attribute, or it may be the text of the tag.  Leading and trailing
+     whitespace will be stripped when considering the text of the tag as
+     the value.
 
-  Select tags apply a ``selected="selected"`` attribute to their
-  `<option>` tags that match the :attr:`Element.u` or, if the bind is
-  a :class:`Container`, the :attr:`.u <Element.u>` of one of its
-  children.
+     The below will emit ``selected="selected"`` if form.field is equal
+     to any of "a", "b", "c", and "d".
 
-  For this matching to work, the ``<option>`` tags must have a literal
-  value set in the markup.  The value may an explicit ``value=``
-  attribute, or it may be the text of the tag.  Leading and trailing
-  whitespace will be stripped when considering the text of the tag as
-  the value.
+     .. code-block:: html+genshi
 
-  The below will emit ``selected="selected"`` if form.field is equal
-  to any of "a", "b", "c", and "d".
+       <select form:bind="${form.field}">
+          <option>a</option>
+          <option value="b"/>
+          <option value="c">label</option>
+          <option>
+            d
+          </option>
+       </select>
 
-  .. code-block:: html+genshi
+   ``<button/>`` and ``<button value=""/>``:
 
-    <select form:bind="${form.field}">
-       <option>a</option>
-       <option value="b"/>
-       <option value="c">label</option>
-       <option>
-         d
-       </option>
-    </select>
+     Regular ``<button/>`` tags will insert the :attr:`Element.u` inside
+     the ``<button></button>`` tag pair.  The output will **not** be
+     XML-escaped, allowing any markup in the :attr:`.u <Element.u>` to
+     render properly.
 
-``<button/>`` and ``<button value=""/>``:
+     If the tag contains a literal ``value=`` attribute and a value
+     override is forced by setting ``form:auto-value="on"``, the
+     :attr:`.u <Element.u>` will be placed in the ``value=`` attribute,
+     replacing the existing content.  The value is escaped in this case.
 
-  Regular ``<button/>`` tags will insert the :attr:`Element.u` inside
-  the ``<button></button>`` tag pair.  The output will **not** be
-  XML-escaped, allowing any markup in the :attr:`.u <Element.u>` to
-  render properly.
+     .. code-block:: html+genshi
 
-  If the tag contains a literal ``value=`` attribute and a value
-  override is forced by setting ``form:auto-value="on"``, the
-  :attr:`.u <Element.u>` will be placed in the ``value=`` attribute,
-  replacing the existing content.  The value is escaped in this case.
+       <!-- set or replace the inner *markup* -->
+       <button form:bind="${form.field}"/>
+       <button form:bind="${form.field}" form:auto-value="on">xyz</button>
 
-  .. code-block:: html+genshi
+       <!-- set the value, retaining the value= style used in the original -->
+       <button form:bind="${form.field}" value="xyz" form:auto-value="on"/>
 
-    <!-- set or replace the inner *markup* -->
-    <button form:bind="${form.field}"/>
-    <button form:bind="${form.field}" form:auto-value="on">xyz</button>
 
-    <!-- set the value, retaining the value= style used in the original -->
-    <button form:bind="${form.field}" value="xyz" form:auto-value="on"/>
+.. _auto-domid:
 
+.. describe:: auto-domid
 
+   :Default: off
+   :Tags: button, input, select, textarea
 
-auto-domid
-~~~~~~~~~~
+   Sets the ``id=`` attribute of the tag.  Takes no action if the markup
+   already contains a ``id=`` unless forced by setting
+   ``form:auto-domid="on"``.
 
-:Default: off
-:Tags: button, input, select, textarea
+   The id is generated by combining the bound element's
+   :meth:`flattened_name <Element.flattened_name>` with the
+   ``domid-format`` in the current scope.  The default format is
+   **f_%s**.
 
-Sets the ``id=`` attribute of the tag.  Takes no action if the markup
-already contains a ``id=`` unless forced by setting
-``form:auto-domid="on"``.
 
-The id is generated by combining the bound element's
-:meth:`flattened_name <Element.flattened_name>` with the
-``domid-format`` in the current scope.  The default format is
-**f_%s**.
+.. describe:: auto-for
 
+   :Default: on
+   :Tags: label
 
-auto-for
-~~~~~~~~
+   Sets the ``for=`` attribute of the tag to the id of the bound element.
+   The id is generated using the same process as auto-domid_.  No
+   consistency checks are performed on the generated id value.
 
-:Default: on
-:Tags: label
+   Defaults to "on", and will only apply if auto-domid_ is also "on".
+   Takes no action if the markup already contains a ``id=`` unless forced
+   by setting ``form:auto-for="on"``.
 
-Sets the ``for=`` attribute of the tag to the id of the bound element.
-The id is generated using the same process as auto-domid_.  No
-consistency checks are performed on the generated id value.
+   .. code-block:: html+genshi
 
-Defaults to "on", and will only apply if auto-domid_ is also "on".
-Takes no action if the markup already contains a ``id=`` unless forced
-by setting ``form:auto-for="on"``.
+     <form:with auto-domid="on">
+       <fieldset py:with="field=form.field">
+         <label form:bind="${field}">${field.label.x}</label>
+         <input type="text" form:bind="${field}"/>
+       </fieldset>
+     </form:with>
 
-.. code-block:: html+genshi
 
-  <form:with auto-domid="on">
-    <fieldset py:with="field=form.field">
-      <label form:bind="${field}">${field.label.x}</label>
-      <input type="text" form:bind="${field}"/>
-    </fieldset>
-  </form:with>
+.. describe:: auto-tabindex
 
+   :Default: off
+   :Tags: button, input, select, textarea
 
-auto-tabindex
-~~~~~~~~~~~~~
+   Sets the ``tabindex`` attribute of tags with an incrementing integer.
 
-:Default: off
-:Tags: button, input, select, textarea
+   Numbering starts at the scope's ``tabindex``, which has no default.
+   Assigning a value for ``tabindex`` will set the value for the next
+   tabindex assignment, and subsequent assignments will increment by one.
 
-Sets the ``tabindex`` attribute of tags with an incrementing integer.
+   A ``tabindex`` value of 0 will block the assignment of a tabindex and
+   will not be incremented.
 
-Numbering starts at the scope's ``tabindex``, which has no default.
-Assigning a value for ``tabindex`` will set the value for the next
-tabindex assignment, and subsequent assignments will increment by one.
+   Takes no action if the markup already contains a ``tabindex=`` unless
+   forced by setting ``form:auto-tabindex="on"``.
 
-A ``tabindex`` value of 0 will block the assignment of a tabindex and
-will not be incremented.
+   .. code-block:: html+genshi
 
-Takes no action if the markup already contains a ``tabindex=`` unless
-forced by setting ``form:auto-tabindex="on"``.
+     <form:with auto-tabindex="on" tabindex="1">
+       <!-- assigns tabindex="1" -->
+       <input type="text" form:bind="${form.field}"/>
 
-.. code-block:: html+genshi
+       <!-- leaves existing tabindex in place -->
+       <input type="text" tabindex="-1" form:bind="${form.field}"/>
 
-  <form:with auto-tabindex="on" tabindex="1">
-    <!-- assigns tabindex="1" -->
-    <input type="text" form:bind="${form.field}"/>
-
-    <!-- leaves existing tabindex in place -->
-    <input type="text" tabindex="-1" form:bind="${form.field}"/>
-
-    <!-- assigns tabindex="2" -->
-    <a href="#" form:auto-tabindex="on"/>
-  </form:with>
+       <!-- assigns tabindex="2" -->
+       <a href="#" form:auto-tabindex="on"/>
+     </form:with>
 
 
 Generator

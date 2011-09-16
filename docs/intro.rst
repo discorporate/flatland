@@ -4,8 +4,8 @@
 Overview
 ========
 
-Philosphy
----------
+Philosophy
+----------
 
 flatland's design stems from a few basic tenets:
 

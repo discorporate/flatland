@@ -16,7 +16,7 @@ class Generator(Context):
 
         Accepts any :ref:`markupsettings`, as well as the following:
 
-        :param markup: tag output style: 'xml', 'xhtml' or 'html'
+        :param markup: tag output style: ``'xml'``, ``'xhtml'`` or ``'html'``
 
         :param ordered_attributes: if True (default), output markup attributes
           in a predictable order.  Useful for tests and generally a little
@@ -80,7 +80,7 @@ class Generator(Context):
         """Generate a <form/> tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, form tags can generate the *name* attribute.
@@ -93,7 +93,7 @@ class Generator(Context):
         """Generate an <input/> tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, input tags can generate the *name*, *value*
@@ -107,7 +107,7 @@ class Generator(Context):
         """Generate a <textarea/> tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, textarea tags can generate the *name* and
@@ -124,7 +124,7 @@ class Generator(Context):
         """Generate a <button/> tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, button tags can generate the *name*, *value*,
@@ -138,7 +138,7 @@ class Generator(Context):
         """Generate a <select/> tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, select tags can generate the *name* and *id*
@@ -152,7 +152,7 @@ class Generator(Context):
         """Generate a <option/> tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, option tags can generate the *value*
@@ -171,7 +171,7 @@ class Generator(Context):
         """Generate a <label/> tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, label tags can generate the *for* attribute
@@ -186,7 +186,7 @@ class Generator(Context):
 
         :param tagname: the name of the tag.
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         The attribute rules appropriate for *tagname* will be applied.  For

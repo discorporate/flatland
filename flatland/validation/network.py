@@ -194,7 +194,7 @@ class HTTPURLValidator(Validator):
     .. attribute:: all_parts
 
       A sequence of known URL parts.  Defaults to the full 10-tuple of
-      names in :mod:`urlparse`'s vocabulary for http-like URls.
+      names in :mod:`urlparse`'s vocabulary for HTTP-like URLs.
 
     .. attribute:: required_parts
 
@@ -203,7 +203,7 @@ class HTTPURLValidator(Validator):
       value of the part must be present in this collection to
       validate.
 
-      The default requires a ``scheme`` of 'http' or 'https'.
+      The default requires a ``scheme`` of ``'http'`` or ``'https'``.
 
     .. attribute:: forbidden_parts
 
