@@ -1,4 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Ubuntu:400,400italic,700);
+@import url(http://fonts.googleapis.com/css?family=Ubuntu:400,400italic,500);
 @import url(http://fonts.googleapis.com/css?family=Anonymous+Pro:400,400italic,700);
 @import url(basic.css);
 
@@ -6,8 +6,6 @@
 body {
   font-family: 'Ubuntu', sans-serif;
   line-height: 160%;
-  margin: 2em auto;
-  max-width: 750px;
   color: #333;
 }
 
@@ -19,6 +17,12 @@ pre, code, tt {
 
 h1, h2, h3, h4, h5, h6 {
   margin-top: 2em;
+  font-weight: 500;
+}
+
+
+strong, th, p.rubric, p.admonition-title {
+  font-weight: 500;
 }
 
 
@@ -36,10 +40,25 @@ div.highlight pre {
 
 
 div.document {
+  margin: 0 auto;
   margin-bottom: 3em;
+  width: 950px;
+}
+
+
+div.documentwrapper {
+  width: 650px;
+  float: right;
 }
 
 
 div.sphinxsidebar {
-  display: none;
+  margin: 1em 0;
+  max-width: 250px;
+}
+
+
+div.sphinxsidebar ul {
+  margin: 0;
+  padding: 0;
 }
