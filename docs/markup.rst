@@ -504,11 +504,11 @@ Generator
 
 
 .. autoclass:: Generator
-   :members:
+   :no-show-inheritance:
 
 
 .. autoclass:: Tag
-   :members:
+   :no-show-inheritance:
 
 
 Genshi Directives
