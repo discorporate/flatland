@@ -395,7 +395,7 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      .. code-block:: html+genshi
 
-       <select form:bind="${form.field}">
+       <select form:bind="form.field">
           <option>a</option>
           <option value="b"/>
           <option value="c">label</option>
@@ -419,11 +419,11 @@ uses XML-friendly "-"-separated attribute names in markup.
      .. code-block:: html+genshi
 
        <!-- set or replace the inner *markup* -->
-       <button form:bind="${form.field}"/>
-       <button form:bind="${form.field}" form:auto-value="on">xyz</button>
+       <button form:bind="form.field"/>
+       <button form:bind="form.field" form:auto-value="on">xyz</button>
 
        <!-- set the value, retaining the value= style used in the original -->
-       <button form:bind="${form.field}" value="xyz" form:auto-value="on"/>
+       <button form:bind="form.field" value="xyz" form:auto-value="on"/>
 
 
 .. _auto-domid:
@@ -460,8 +460,8 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      <form:with auto-domid="on">
        <fieldset py:with="field=form.field">
-         <label form:bind="${field}">${field.label.x}</label>
-         <input type="text" form:bind="${field}"/>
+         <label form:bind="field">${field.label.x}</label>
+         <input type="text" form:bind="field"/>
        </fieldset>
      </form:with>
 
@@ -487,10 +487,10 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      <form:with auto-tabindex="on" tabindex="1">
        <!-- assigns tabindex="1" -->
-       <input type="text" form:bind="${form.field}"/>
+       <input type="text" form:bind="form.field"/>
 
        <!-- leaves existing tabindex in place -->
-       <input type="text" tabindex="-1" form:bind="${form.field}"/>
+       <input type="text" tabindex="-1" form:bind="form.field"/>
 
        <!-- assigns tabindex="2" -->
        <a href="#" form:auto-tabindex="on"/>
