@@ -77,7 +77,7 @@ class Generator(Context):
 
     @property
     def form(self):
-        """Generate a <form/> tag.
+        """Generate a ``<form/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -90,7 +90,7 @@ class Generator(Context):
 
     @property
     def input(self):
-        """Generate an <input/> tag.
+        """Generate an ``<input/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -104,7 +104,7 @@ class Generator(Context):
 
     @property
     def textarea(self):
-        """Generate a <textarea/> tag.
+        """Generate a ``<textarea/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -121,7 +121,7 @@ class Generator(Context):
 
     @property
     def button(self):
-        """Generate a <button/> tag.
+        """Generate a ``<button/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -135,7 +135,7 @@ class Generator(Context):
 
     @property
     def select(self):
-        """Generate a <select/> tag.
+        """Generate a ``<select/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -149,7 +149,7 @@ class Generator(Context):
 
     @property
     def option(self):
-        """Generate an <option/> tag.
+        """Generate an ``<option/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -168,7 +168,7 @@ class Generator(Context):
 
     @property
     def label(self):
-        """Generate a <label/> tag.
+        """Generate a ``<label/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -235,7 +235,7 @@ class Tag(object):
         self.contents = None
 
     def open(self, bind=None, **attributes):
-        """Return the opening half of the tag, e.g. <p>.
+        """Return the opening half of the tag, e.g. ``<p>``.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired tag attributes.
@@ -246,7 +246,7 @@ class Tag(object):
         return self._markup(self._open(bind, attributes) + u'>')
 
     def close(self):
-        """Return the closing half of the tag, e.g. </p>."""
+        """Return the closing half of the tag, e.g. ``</p>``."""
         try:
             self._context._tags[self.tagname].remove(self)
         except ValueError:
@@ -254,7 +254,7 @@ class Tag(object):
         return self._markup(self._close())
 
     def _open(self, bind, kwargs):
-        """Return a '<partial' opener tag with no terminator."""
+        """Return a ``'<partial'`` opener tag with no terminator."""
         contents = kwargs.pop('contents', None)
         attributes = _unicode_keyed(kwargs)
         tagname = self.tagname
