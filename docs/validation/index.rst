@@ -546,7 +546,8 @@ Containers
 Strings
 ~~~~~~~
 
-.. automodule:: flatland.validation.string
+.. autoclass:: flatland.validation.string.NANPphone
+   :no-members:
 
 
 Numbers

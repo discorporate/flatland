@@ -19,7 +19,7 @@ class NotDuplicated(Validator):
       from flatland.validation import NotDuplicated
 
       validator = NotDuplicated(failure="Please enter each color only once.")
-      schema = List.of(String.named('favorite_color')).\
+      schema = List.of(String.named('favorite_color')).\\
                     using(validators=[validator])
 
     .. rubric:: Attributes
@@ -118,7 +118,7 @@ class HasAtLeast(Validator):
       from flatland import List, String
       from flatland.validation import HasAtLeast
 
-      schema = List.of(String.named('wish')).\
+      schema = List.of(String.named('wish')).\\
                     using(validators=[HasAtLeast(minimum=3)])
 
     .. rubric:: Attributes
@@ -171,7 +171,7 @@ class HasAtMost(Validator):
       from flatland import List, String
       from flatland.validation import HasAtMost
 
-      schema = List.of(String.named('wish')).\
+      schema = List.of(String.named('wish')).\\
                     using(validators=[HasAtMost(maximum=3)])
 
     .. rubric:: Attributes
@@ -220,7 +220,7 @@ class HasBetween(Validator):
       from flatland import List, String
       from flatland.validation import HasBetween
 
-      schema = List.of(String.named('wish')).\
+      schema = List.of(String.named('wish')).\\
                     using(validators=[HasBetween(minimum=1, maximum=3)])
 
 
@@ -249,7 +249,7 @@ class HasBetween(Validator):
 
       .. testcode::
 
-        schema = List.of(String.named('wish')).\
+        schema = List.of(String.named('wish')).\\
                       using(validators=[HasBetween(minimum=3, maximum=3)])
 
     """
