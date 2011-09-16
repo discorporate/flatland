@@ -32,3 +32,7 @@ spelling_ignore_pypi_package_names = True
 
 html_theme_path = ['_themes']
 html_theme = 'flatland'
+html_show_sourcelink = False
+html_sidebars = {
+    'index': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'],
+}
