@@ -7,6 +7,7 @@ body {
   font-family: 'Ubuntu', sans-serif;
   line-height: 160%;
   color: #333;
+  background: #fff;
 }
 
 
@@ -40,8 +41,7 @@ div.highlight pre {
 
 
 div.document {
-  margin: 0 auto;
-  margin-bottom: 3em;
+  margin: -3em auto 3em auto;
   width: 950px;
 }
 
@@ -61,4 +61,34 @@ div.sphinxsidebar {
 div.sphinxsidebar ul {
   margin: 0;
   padding: 0;
+}
+
+
+div#searchbox input {
+   border: 1px solid #333 !important;
+}
+
+
+div#searchbox input[type=text] {
+   background: #fff !important;
+   color: #333 !important;
+   width: 150px;
+}
+
+
+div#searchbox input[type=submit] {
+   background: #333 !important;
+   color: #fff !important;
+}
+
+
+p.searchtip {
+   font-style: italic;
+}
+
+
+div.footer {
+   width: 950px;
+   margin: auto;
+   text-align: center;
 }
