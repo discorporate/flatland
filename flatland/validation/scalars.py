@@ -592,7 +592,7 @@ class ValuesEqual(MapEqual):
 
     .. attribute:: transform()
 
-      attrgettr('value')
+      attrgetter('value')
 
     """
 
