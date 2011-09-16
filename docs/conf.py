@@ -14,8 +14,15 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
-    'sphinxcontrib.spelling',
 ]
+
+
+try:
+    from sphinxcontrib import spelling
+    del spelling
+    extensions.append('sphinxcontrib.spelling')
+except ImportError:
+    pass
 
 
 autodoc_default_flags = ['members', 'show-inheritance']
