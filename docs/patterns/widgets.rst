@@ -19,6 +19,9 @@ control over the rendering.
       password = Password.using(label='Password')
 
 
+Rendering Widgets with Genshi
+-----------------------------
+
 To render a field, we simply inspect its properties to locate a template
 that we include, passing it the field instance.  With Genshi, it might look
 something like this:
@@ -63,3 +66,37 @@ The widget template in turn might look something like this:
       />
 
   </fieldset>
+
+
+Rendering with Jinja
+--------------------
+
+If you prefer to use Jinja you can use Flatland's markup generator
+directly.  Our form template might look something like this:
+
+.. sourcecode:: html+jinja
+
+  <form>
+    {% for field in form.children %}
+      {% include 'widgets/' + field.properties.template %}
+    {% endfor %}
+  </form>
+
+
+And the widget template:
+
+.. sourcecode:: html+jinja
+
+  {% do forms.begin(auto_domid=True) %}
+    <fieldset>
+      {{ forms.label(field, contents=field.label) }}
+      {{ forms.input(field, type=field.properties.type) }}
+    </fieldset>
+  {% do forms.end() %}
+
+
+Make sure to add a markup generator to the globals of your Jinja
+environment::
+
+  from flatland.out.markup import Generator
+  jinja_env.globals['forms'] = Generator('html')
