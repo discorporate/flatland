@@ -41,4 +41,4 @@ Contents
    validation/index
    markup
    signals
-
+   patterns/index
