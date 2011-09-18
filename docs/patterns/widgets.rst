@@ -11,7 +11,18 @@ control over the rendering.
 
   from flatland import Form, String
 
-  Input = String.with_properties(template='input.html', type='text')
+  Input = String.with_properties(widget='input', type='text')
+  Password = Input.with_properties(type='password')
+
+  class SignInForm(Form):
+      username = Input.using(label='Username')
+      password = Password.using(label='Password')
+
+.. testsetup:: *
+
+  from flatland import Form, String
+
+  Input = String.with_properties(widget='input', type='text')
   Password = Input.with_properties(type='password')
 
   class SignInForm(Form):
@@ -22,50 +33,48 @@ control over the rendering.
 Rendering Widgets with Genshi
 -----------------------------
 
-To render a field, we simply inspect its properties to locate a template
-that we include, passing it the field instance.  With Genshi, it might look
-something like this:
+Macros via Genshi's ``py:def`` directive would be a good way to implement
+the actual widgets.  For example:
 
-.. sourcecode:: html+genshi
+.. literalinclude:: /_fixtures/genshi/widgets.html
+  :language: html+genshi
 
-  <html
-      xmlns:py="http://genshi.edgewall.org/"
-      xmlns:xi="http://www.w3.org/2001/XInclude"
-    >
+
+Typically we would call the ``widget`` macro manually for each field we
+want rendered, and in the desired order, but for demonstrative purposes
+we stub out widgets for each field in arbitrary order:
+
+.. literalinclude:: /_fixtures/genshi/form.html
+  :language: html+genshi
+
+
+.. testcode:: genshi
+  :hide:
+
+  from genshi.template import TemplateLoader
+  from flatland.out.genshi import setup
+  loader = TemplateLoader(['docs/_fixtures/genshi'], callback=setup)
+  template = loader.load('form.html')
+  form = SignInForm({'username': 'admin', 'password': 'secret'})
+  print template.generate(form=form).render()
+
+
+.. testoutput:: genshi
+  :hide:
+
+  <html>
     <body>
       <form>
-
-        <xi:include
-            py:for="field in form.children"
-            href="widgets/${field.properties.template}"
-          />
-
+        <fieldset>
+        <label for="f_username">Username</label>
+        <input type="text" name="username" value="admin" id="f_username"/>
+    </fieldset><fieldset>
+        <label for="f_password">Password</label>
+        <input type="password" name="password" id="f_password"/>
+    </fieldset>
       </form>
     </body>
   </html>
-
-
-The widget template in turn might look something like this:
-
-.. sourcecode:: html+genshi
-
-  <fieldset
-      xmlns:form="http://ns.discorporate.us/flatland/genshi"
-      xmlns:py="http://genshi.edgewall.org/"
-      form:auto-domid="on"
-    >
-
-    <label
-        form:bind="field"
-        py:content="field.label"
-      />
-
-    <input
-        form:bind="field"
-        type="${field.properties.type}"
-      />
-
-  </fieldset>
 
 
 Rendering with Jinja
