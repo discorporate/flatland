@@ -1,0 +1,10 @@
+{% from 'widgets.html' import widget -%}
+<html>
+  <body>
+    <form>
+      {%- for field in form.children %}
+        {{- widget(field) }}
+      {%- endfor %}
+    </form>
+  </body>
+</html>
