@@ -33,6 +33,11 @@ a {
 }
 
 
+ul ul {
+  margin-bottom: 1em;
+}
+
+
 div.highlight pre {
   background: #eee;
   margin: 1em -3em;
