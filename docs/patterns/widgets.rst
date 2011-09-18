@@ -29,6 +29,8 @@ control over the rendering.
       username = Input.using(label='Username')
       password = Password.using(label='Password')
 
+  form = SignInForm({'username': 'admin', 'password': 'secret'})
+
 
 Rendering Widgets with Genshi
 -----------------------------
@@ -55,7 +57,6 @@ we stub out widgets for each field in arbitrary order:
   from flatland.out.genshi import setup
   loader = TemplateLoader(['docs/_fixtures/genshi'], callback=setup)
   template = loader.load('form.html')
-  form = SignInForm({'username': 'admin', 'password': 'secret'})
   print template.generate(form=form).render()
 
 
@@ -80,32 +81,55 @@ we stub out widgets for each field in arbitrary order:
 Rendering with Jinja
 --------------------
 
-If you prefer to use Jinja you can use Flatland's markup generator
-directly.  Our form template might look something like this:
+If you're not using Genshi you can still benefit from Flatland's
+schema-aware markup generating support.  With Jinja we might implement the
+macros as something resembling this:
 
-.. sourcecode:: html+jinja
-
-  <form>
-    {% for field in form.children %}
-      {% include 'widgets/' + field.properties.template %}
-    {% endfor %}
-  </form>
+.. literalinclude:: /_fixtures/jinja/widgets.html
+  :language: html+jinja
 
 
-And the widget template:
+Then we can simply import the ``widget`` macro to form templates:
 
-.. sourcecode:: html+jinja
-
-  {% do forms.begin(auto_domid=True) %}
-    <fieldset>
-      {{ forms.label(field, contents=field.label) }}
-      {{ forms.input(field, type=field.properties.type) }}
-    </fieldset>
-  {% do forms.end() %}
+.. literalinclude:: /_fixtures/jinja/form.html
+  :language: html+jinja
 
 
 Make sure to add a markup generator to the globals of your Jinja
 environment::
 
   from flatland.out.markup import Generator
-  jinja_env.globals['forms'] = Generator('html')
+  jinja_env.globals['form_generator'] = Generator('html')
+
+
+.. testcode:: jinja
+  :hide:
+
+  from jinja2 import Environment, FileSystemLoader
+  from flatland.out.markup import Generator
+  loader = FileSystemLoader('docs/_fixtures/jinja')
+  env = Environment(loader=loader, extensions=['jinja2.ext.do'])
+  env.globals['form_generator'] = Generator('html')
+  template = env.get_template('form.html')
+  print template.render(form=form)
+
+
+.. testoutput:: jinja
+  :hide:
+
+  <html>
+    <body>
+      <form>
+  <fieldset>
+    <label for="f_username">Username</label>
+    <input type="text" name="username" value="admin" id="f_username">
+  </fieldset>
+
+  <fieldset>
+    <label for="f_password">Password</label>
+    <input type="password" name="password" id="f_password">
+  </fieldset>
+
+      </form>
+    </body>
+  </html>
