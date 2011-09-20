@@ -84,17 +84,3 @@ as-is in output templates for form layout, redisplay and error reporting.
   u'jek'
   >>> form2 = SignInForm(as_regular_python_data)
   >>> assert form['username'].value == form2['username'].value
-
-License
--------
-
-flatland is free software distributed under the MIT License.
-
-History
--------
-
-flatland is a Python implementation of techniques I've been using for form and
-web data processing for ages, in many different languages.  It is an immediate
-conceptual descendant and re-write of "springy", a closed-source library used
-internally at Virtuous, Inc.  The Genshi filter support was donated to the
-flatland project by Virtuous.
