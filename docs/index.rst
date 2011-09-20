@@ -1,5 +1,5 @@
 ========
-flatland
+Flatland
 ========
 
 Flatland maps between rich, structured Python application data and the
@@ -22,7 +22,7 @@ Flatland is great for:
 
   - Reusing a single data schema for HTML, JSON APIs, RPC, ...
 
-The core of the flatland toolkit is a flexible and extensible
+The core of the Flatland toolkit is a flexible and extensible
 declarative schema system representing many data types and structures.
 
 A validation system and library of schema-aware validators is also
