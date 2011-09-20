@@ -94,7 +94,7 @@ class Compound(Mapping, Scalar):
     __metaclass__ = _MetaCompound
 
     def __compound_init__(cls):
-        """TODO: doc
+        """.. TODO:: doc
 
         Gist: runs *once* per class, at the time the first element is
         constructed.  You can run it by hand if you want to finalize

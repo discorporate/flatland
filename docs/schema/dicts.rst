@@ -4,14 +4,14 @@ Dicts
 
 .. currentmodule:: flatland.schema.containers
 
-TODO intro
+.. TODO:: intro
 
 .. _set_policy:
 
 ``set()`` Policy
 ----------------
 
-TODO strict, duck, etc.
+.. TODO:: strict, duck, etc.
 
 Validation
 ----------

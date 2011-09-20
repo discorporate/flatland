@@ -240,7 +240,7 @@ class Element(_BaseElement):
 
     @class_cloner
     def with_properties(cls, *iterable, **properties):
-        """TODO: doc"""
+        """.. TODO:: doc"""
         simplified = dict(*iterable, **properties)
         cls.properties.update(simplified)
         return cls
@@ -248,8 +248,8 @@ class Element(_BaseElement):
     def validate_element(self, element, state, descending):
         """Assess the validity of an element.
 
-        TODO: this method is dead.  Evaluate docstring for good bits that
-        should be elsewhere.
+        .. TODO:: this method is dead.  Evaluate docstring for good bits
+            that should be elsewhere.
 
         :param element: an :class:`Element`
         :param state: may be None, an optional value of supplied to

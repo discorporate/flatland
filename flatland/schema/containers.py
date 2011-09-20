@@ -48,7 +48,7 @@ class Container(Element):
     validates_up = 'validators'
 
     descent_validators = ()
-    """TODO: doc descent_validators"""
+    """.. TODO:: doc descent_validators"""
 
     @class_cloner
     def descent_validated_by(cls, *validators):
@@ -453,7 +453,7 @@ class List(Sequence):
     """
 
     def _as_element(self, value):
-        """TODO"""
+        """.. TODO::"""
         if value is Unspecified:
             return self.member_schema()
         if isinstance(value, Element):
@@ -733,7 +733,7 @@ class Mapping(Container, dict):
     """Base of mapping-like Containers."""
 
     field_schema = ()
-    """TODO: doc field_schema"""
+    """.. TODO:: doc field_schema"""
 
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, **kw)
@@ -807,7 +807,7 @@ class Mapping(Container, dict):
         return self.itervalues()
 
     def set(self, value):
-        """TODO: doc set()"""
+        """.. TODO:: doc set()"""
         self.raw = value
         pairs = to_pairs(value)
         self._reset()
@@ -919,7 +919,7 @@ class Dict(Mapping, dict):
 
     @class_cloner
     def of(cls, *fields):
-        """TODO: doc of()"""
+        """.. TODO:: doc of()"""
         # TODO: doc
         # TODO: maybe accept **kw?
         for field in fields:
@@ -971,7 +971,7 @@ class Dict(Mapping, dict):
         return self
 
     def set(self, value, policy=None):
-        """TODO: doc set()"""
+        """.. TODO:: doc set()"""
         self.raw = value
         pairs = to_pairs(value)
         self._reset()
