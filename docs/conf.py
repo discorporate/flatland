@@ -14,6 +14,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
 ]
 
 
@@ -32,6 +33,9 @@ intersphinx_mapping = {
     'http://docs.python.org/': None,
     'http://discorporate.us/projects/Blinker/docs/tip/': None,
 }
+
+
+todo_include_todos = True
 
 
 spelling_ignore_pypi_package_names = True

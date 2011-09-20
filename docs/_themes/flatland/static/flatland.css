@@ -97,3 +97,21 @@ div.footer {
    margin: auto;
    text-align: center;
 }
+
+
+div.admonition {
+  background: #efefef;
+  border-left: .3em solid #333;
+  margin: 1em -3em;
+  padding: 1em 3em;
+}
+
+
+div.admonition-todo {
+  border-left: .3em solid #A2C875;
+}
+
+
+div.admonition.note {
+  border-left: .3em solid #F2DD8F;
+}

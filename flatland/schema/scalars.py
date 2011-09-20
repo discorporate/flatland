@@ -382,7 +382,7 @@ class Constrained(Scalar):
     """
 
     child_type = String
-    """TODO: doc"""
+    """.. TODO:: doc"""
 
     def __init__(self, value=Unspecified, **kw):
         Scalar.__init__(self, **kw)
