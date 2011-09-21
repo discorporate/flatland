@@ -26,7 +26,9 @@ except ImportError:
     pass
 
 
+autoclass_content = 'both'
 autodoc_default_flags = ['members', 'show-inheritance']
+autodoc_member_order = 'bysource'
 
 
 intersphinx_mapping = {
