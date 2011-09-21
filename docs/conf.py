@@ -43,11 +43,15 @@ todo_include_todos = True
 spelling_ignore_pypi_package_names = True
 
 
+templates_path = ['_templates']
+
+
 html_static_path = ['_static']
 html_theme_path = ['_themes']
 html_theme = 'flatland'
 html_logo = 'flatland.png'
 html_show_sourcelink = False
 html_sidebars = {
-    'index': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'],
+    'index': ['globaltoc.html', 'relations.html', 'links.html', 'sourcelink.html', 'searchbox.html'],
+    'genindex': ['links.html', 'sourcelink.html', 'searchbox.html'],
 }

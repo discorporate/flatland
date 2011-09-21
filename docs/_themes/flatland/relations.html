@@ -1,7 +1,6 @@
-{# Stolen from Flask #}
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="{{ pathto(master_doc) }}">Documentation overview</a><ul>
+{# Adapted from Flask #}
+<h3>Topics</h3>
+<ul><ul>
   {%- for parent in parents %}
   <li><a href="{{ parent.link|e }}">{{ parent.title }}</a><ul>
   {%- endfor %}
