@@ -120,3 +120,8 @@ div.admonition-todo {
 div.admonition.note {
   border-left: .3em solid #F2DD8F;
 }
+
+
+dt:target, .highlighted {
+  background: #F2DD8F;
+}
