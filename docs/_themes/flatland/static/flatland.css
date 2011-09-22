@@ -18,11 +18,16 @@ pre, code, tt {
 
 h1, h2, h3, h4, h5, h6 {
   margin-top: 2em;
-  font-weight: 500;
 }
 
 
-strong, th, p.rubric, p.admonition-title {
+/* Use medium weight for proportional boldfaces */
+h1, h2, h3, h4, h5, h6,
+strong, th,
+ul.search li a, ul.keywordmatches li.goodmatch a,
+p.rubric, p.sidebar-title, p.topic-title,
+div.admonition dt, p.admonition-title,
+dl.glossary dt {
   font-weight: 500;
 }
 
