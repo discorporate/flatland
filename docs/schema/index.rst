@@ -13,6 +13,7 @@ Introduction
    schema
    traversal
    properties
+   exceptions
 
 
 Element Types
