@@ -240,55 +240,6 @@ class Element(object):
         cls.properties.update(simplified)
         return cls
 
-    def validate_element(self, element, state, descending):
-        """Assess the validity of an element.
-
-        .. TODO:: this method is dead.  Evaluate docstring for good bits
-            that should be elsewhere.
-
-        :param element: an :class:`Element`
-        :param state: may be None, an optional value of supplied to
-            ``element.validate``
-        :param descending: a boolean, True the first time the element
-            has been seen in this run, False the next
-
-        :returns: boolean; a truth value or None
-
-        The :meth:`Element.validate` process visits each element in
-        the tree twice: once heading down the tree, breadth-first, and
-        again heading back up in the reverse direction.  Scalar fields
-        will typically validate on the first pass, and containers on
-        the second.
-
-        Return no value or None to ``pass``, accepting the element as
-        presumptively valid.
-
-        Exceptions raised by :meth:`validate_element` will not be
-        caught by :meth:`Element.validate`.
-
-        Directly modifying and normalizing :attr:`Element.value` and
-        :attr:`Element.u` within a validation routine is acceptable.
-
-        The standard implementation of validate_element is:
-
-         - If :attr:`element.is_empty` and :attr:`self.optional`,
-           return True.
-
-         - If :attr:`self.validators` is empty and
-           :attr:`element.is_empty`, return False.
-
-         - If :attr:`self.validators` is empty and not
-           :attr:`element.is_empty`, return True.
-
-         - Iterate through :attr:`self.validators`, calling each
-           member with (*element*, *state*).  If one returns a false
-           value, stop iterating and return False immediately.
-
-         - Otherwise return True.
-
-        """
-        return validate_element(element, state, self.validators)
-
     @classmethod
     def from_flat(cls, pairs, **kw):
         """Return a new element with its value initialized from *pairs*.
