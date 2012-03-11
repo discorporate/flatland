@@ -18,14 +18,6 @@ extensions = [
 ]
 
 
-try:
-    from sphinxcontrib import spelling
-    del spelling
-    extensions.append('sphinxcontrib.spelling')
-except ImportError:
-    pass
-
-
 autoclass_content = 'both'
 autodoc_default_flags = ['members', 'show-inheritance']
 autodoc_member_order = 'bysource'
@@ -38,9 +30,6 @@ intersphinx_mapping = {
 
 
 todo_include_todos = True
-
-
-spelling_ignore_pypi_package_names = True
 
 
 templates_path = ['_templates']

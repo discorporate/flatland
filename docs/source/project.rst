@@ -5,10 +5,6 @@ The Flatland Project
 License
 -------
 
-.. spelling::
-
-  sublicense
-
 Copyright © The Flatland authors and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a
@@ -33,13 +29,6 @@ DEALINGS IN THE SOFTWARE.
 Authors & Contributors
 ----------------------
 
-.. spelling::
-
-  Kirtland
-  Colish
-  Lowry
-  Pelletier
-
 .. include:: ../AUTHORS
 
 
@@ -55,9 +44,5 @@ donated to the Flatland project by Virtuous.
 
 Documentation Todo List
 -----------------------
-
-.. spelling::
-
-  rst
 
 .. todolist::
