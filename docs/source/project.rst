@@ -29,7 +29,7 @@ DEALINGS IN THE SOFTWARE.
 Authors & Contributors
 ----------------------
 
-.. include:: ../AUTHORS
+.. include:: ../../AUTHORS
 
 
 History
