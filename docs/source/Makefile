@@ -8,6 +8,7 @@ VERSION      ?= tip
 
 # Internal variables.
 ALLSPHINXOPTS = -d ../doctrees $(SPHINXOPTS) .
+export PYTHONPATH=../..
 
 all: html text
 
