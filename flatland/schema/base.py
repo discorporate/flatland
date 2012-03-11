@@ -54,12 +54,7 @@ Assigned to newly created elements that have never been evaluated by
 xml = None
 
 
-class _BaseElement(object):
-    # Required by the genshi support's __bases__ manipulation, unfortunately.
-    pass
-
-
-class Element(_BaseElement):
+class Element(object):
     """Base class for form fields.
 
     A data node that stores a Python and a text value plus added state.
