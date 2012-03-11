@@ -13,7 +13,7 @@ Custom Validation Basics
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 To use custom validation, assign a list of one or more validators to a field's
-:attr:`~flatland.FieldSchema.validators` attribute.  Each validator will be
+:attr:`~flatland.Element.validators` attribute.  Each validator will be
 evaluated in sequence until a validator returns false or the list of
 validators is exhausted.  If the list is exhausted and all have returned true,
 the element is considered valid.
@@ -54,9 +54,9 @@ breadth-first.  Then each is visited again ascending back up the container.
 
 The simple, scalar types such as :class:`~flatland.String` and
 :class:`~flatland.Integer` process their
-:attr:`~flatland.FieldSchema.validators` on the **descent** phase.  The
+:attr:`~flatland.Element.validators` on the **descent** phase.  The
 containers, such as :class:`~flatland.Form` and :class:`~flatland.List` process
-:attr:`~flatland.FieldSchema.validators` on the **ascent** phase.
+:attr:`~flatland.Element.validators` on the **ascent** phase.
 
 The upshot of the phased evaluation is that container validators fire after
 their children, allowing container validation logic that considers the
@@ -217,7 +217,7 @@ Short-Circuiting Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To stop validation of an element & skip any remaining members of
-:attr:`flatland.FieldSchema.validators`, return :obj:`flatland.Skip` from the
+:attr:`flatland.Element.validators`, return :obj:`flatland.Skip` from the
 validator:
 
 .. testcode::
