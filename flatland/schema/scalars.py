@@ -141,22 +141,6 @@ class Scalar(Element):
             type(self).__name__, self.name, self.value)
 
 
-    #######################################################################
-
-    def validate_element(self, state, descending):
-        """Validates on the first, downward pass.
-
-        See :meth:`Element.validate_element`.
-
-        """
-        # FIXME: now unused
-        if descending:
-            return FieldSchema.validate_element(
-                self, element, state, descending)
-        else:
-            return None
-
-
 class String(Scalar):
     """A regular old Unicode string."""
 

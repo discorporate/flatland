@@ -93,30 +93,6 @@ class Container(Element):
         cls.descent_validators = mutable
         return cls
 
-    def validate_element(self, element, state, descending):
-        """Validates on the first (downward) and second (upward) pass.
-
-        If :attr:`descent_validators` are defined on the schema, they
-        will be evaluated before children are validated.  If a
-        validation function returns :obj:`flatland.SkipAll` or
-        :obj:`flatland.SkipFalse`, downward validation will halt on
-        this container and children will not be validated.
-
-        If :attr:`validators` are defined, they will be evaluated
-        after children are validated.
-
-        See :meth:`Element.validate_element`.
-
-        """
-        if descending:
-            if self.descent_validators:
-                return validate_element(
-                    element, state, self.descent_validators)
-            else:
-                return None
-        else:
-            return validate_element(element, state, self.validators)
-
     def _validate(self, state, descending):
         """Run validation, transforming None into success. Internal."""
         # FIXME: refactor this to allow for this logic ("Don't apply default
