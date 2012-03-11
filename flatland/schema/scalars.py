@@ -146,7 +146,7 @@ class Scalar(Element):
     def validate_element(self, state, descending):
         """Validates on the first, downward pass.
 
-        See :meth:`FieldSchema.validate_element`.
+        See :meth:`Element.validate_element`.
 
         """
         # FIXME: now unused
