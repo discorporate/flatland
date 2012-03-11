@@ -39,7 +39,7 @@ class Container(Element):
       run after contained elements are validated.
 
     :param \*\*kw: other arguments common to
-      :class:`~flatland.schema.base.FieldSchema`.
+      :class:`~flatland.schema.base.Element`.
 
     """
 
