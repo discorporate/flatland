@@ -105,7 +105,7 @@ class Container(Element):
         If :attr:`validators` are defined, they will be evaluated
         after children are validated.
 
-        See :meth:`FieldSchema.validate_element`.
+        See :meth:`Element.validate_element`.
 
         """
         if descending:

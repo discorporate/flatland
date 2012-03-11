@@ -52,13 +52,13 @@ Note that recursion does **not** stop if it finds an invalid child: all
 children are evaluated, and each will have its :attr:`~flatland.Element.valid`
 attribute updated.
 
-Optional Fields
-~~~~~~~~~~~~~~~
+Optional Elements
+~~~~~~~~~~~~~~~~~
 
-If a field is marked as :attr:`~flatland.FieldSchema.optional`, its elements
-are exempt from validation when empty.  With the default validation strategy,
-this effectively means that element can never be invalid.  With custom
-validation, optional fields become more useful.
+If an element is marked as :attr:`~flatland.Element.optional`, it is
+exempt from validation when empty.  With the default validation
+strategy, this effectively means that element can never be invalid.
+With custom validation, optional fields become more useful.
 
 .. doctest::
 
