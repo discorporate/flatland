@@ -721,9 +721,9 @@ class Element(object):
         :returns: True or False.
 
         Iterates through this element and all of its children, invoking each
-        element's :meth:`schema.validate_element`.  Each element will be
-        visited twice: once heading down the tree, breadth-first, and again
-        heading back up in reverse order.
+        validation on each.  Each element will be visited twice: once heading
+        down the tree, breadth-first, and again heading back up in reverse
+        order.
 
         Returns True if all validations pass, False if one or more fail.
 
