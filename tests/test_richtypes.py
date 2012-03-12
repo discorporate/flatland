@@ -9,8 +9,8 @@ def test_simple():
 
     data = Schema({})
     assert not data.validate()
-    assert data.el('num').errors
-    e1 = list(data.el('num').errors)
+    assert data['num'].errors
+    e1 = list(data['num'].errors)
 
     data = Schema({'num': 'asdf'})
     assert not data.validate()

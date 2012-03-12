@@ -12,6 +12,7 @@ from flatland.util import (
     class_cloner,
     lazy_property,
     )
+from flatland.schema.paths import pathexpr
 from .base import Element
 
 
@@ -527,20 +528,15 @@ class Time(Temporal):
 class Ref(Scalar):
     flattenable = False
 
-    #######################################################################
     writable = 'ignore'
-
-    sep = u'.'
 
     target_path = None
 
     @class_cloner
-    def to(cls, name, sep=Unspecified):
-        if sep is Unspecified:
-            sep = cls.sep
-        cls.target_path = list(cls._parse_element_path(name, sep))
-        if cls.target_path is None:
-            raise TypeError("Could not parse path %r" % name)
+    def to(cls, path):
+        # ensure *path* parses
+        pathexpr(path)
+        cls.target_path = path
         return cls
 
     def adapt(self, value):
@@ -549,11 +545,9 @@ class Ref(Scalar):
     def serialize(self, value):
         return self.target.serialize(value)
 
-    #######################################################################
-
     @lazy_property
     def target(self):
-        return self.root.el(self.target_path)
+        return self.find_child(self.target_path)
 
     def _get_u(self):
         """The Unicode representation of the reference target."""

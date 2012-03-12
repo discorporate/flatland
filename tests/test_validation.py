@@ -96,5 +96,5 @@ def test_nested_validation():
     assert not form.validate()
     assert form.validate(recurse=False)
 
-    form.el('d2.x2').set(2)
+    form['d2']['x2'].set(2)
     assert form.validate()

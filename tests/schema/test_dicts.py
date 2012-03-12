@@ -354,6 +354,16 @@ def test_dict_el():
     assert_raises(KeyError, element.el, u'not_x')
 
 
+def test_dict_find():
+    # stub
+    schema = Dict.named(u's').of(Integer.named(u'x'), Integer.named(u'y'))
+    element = schema()
+
+    assert element.find_child(u'x').name == u'x'
+    assert element.find_child(u'/x').name == u'x'
+    assert_raises(KeyError, element.el, u'not_x')
+
+
 def test_update_object():
 
     class Obj(object):

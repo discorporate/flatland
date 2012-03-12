@@ -362,12 +362,11 @@ class Element(object):
             yield element
             queue.extend(element.children)
 
-    def fq_name(self, sep=u'.'):
+    def fq_name(self):
         """Return the fully qualified path name of the element.
 
-        Returns a *sep*-separated string of :meth:`.el` compatible element
-        indexes starting from the :attr:`Element.root` (``.``) down to the
-        element.
+        Returns :meth:`find` compatible element path string from the
+        :attr:`Element.root` (``/``) down to the element.
 
           >>> from flatland import Dict, Integer
           >>> Point = Dict.named(u'point').of(Integer.named(u'x'),
@@ -376,11 +375,11 @@ class Element(object):
           >>> p.name
           u'point'
           >>> p.fq_name()
-          u'.'
+          u'/'
           >>> p['x'].name
           u'x'
           >>> p['x'].fq_name()
-          u'.x'
+          u'/x'
 
         The index used in a path may not be the :attr:`.name` of the
         element.  For example, sequence members are referenced by their
@@ -392,15 +391,15 @@ class Element(object):
           >>> form.name
           u'addresses'
           >>> form.fq_name()
-          u'.'
+          u'/'
           >>> form[0].name
           u'address'
           >>> form[0].fq_name()
-          u'.0'
+          u'/0'
 
         """
         if self.parent is None:
-            return sep
+            return u'/'
 
         children_of_root = reversed(list(self.parents)[:-1])
 
@@ -409,10 +408,10 @@ class Element(object):
             # allow Slot elements to mask the names of their child
             # e.g.
             #     <List name='l'> <Slot name='0'> <String name='s'>
-            # has an .el()/Python path of just
-            #   l.0
+            # has an .fq_name()/Python path of just
+            #   l/0
             # not
-            #   l.0.s
+            #   l/0/s
             if isinstance(element, Slot):
                 mask = element.name
                 continue
@@ -421,7 +420,7 @@ class Element(object):
                 mask = None
                 continue
             parts.append(element.name)
-        return sep + sep.join(parts)
+        return u'/' + u'/'.join(parts)
 
     def find(self, path, single=False, strict=True):
         """Find child elements by string path.
@@ -480,7 +479,19 @@ class Element(object):
         else:
             return results[0]
 
+    def find_child(self, path):
+        """Find a single child at *path*.
+
+        An alias for :meth:`find`.  Equivalent to
+        ``find(path, single=True, strict=True)``.
+        """
+        return self.find(path, single=True, strict=True)
+
     def el(self, path, sep=u'.'):
+        ""
+        # TODO: el() is deprecated. Make an autodoc-skip-member handler to
+        # drop this from the docs but retain the docstring for pydoc.  Until
+        # then, suppress the entry with an empty docstring.
         """Find a child element by string path.
 
         :param path: a *sep*-separated string of element names, or an
@@ -583,9 +594,9 @@ class Element(object):
           ...                      flatland.String('address'))
           >>> element = form()
           >>> element.set([u'uptown', u'downtown'])
-          >>> element.el('0').value
+          >>> element[0].value
           u'uptown'
-          >>> element.el('0').flattened_name()
+          >>> element['0'].flattened_name()
           u'addresses_0_address'
 
         """
