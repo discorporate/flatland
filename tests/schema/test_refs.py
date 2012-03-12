@@ -9,7 +9,7 @@ from tests._util import assert_raises
 
 def test_binops():
     schema = Dict.of(Integer.named(u'main'),
-                     Ref.named(u'aux').to(u'main'),
+                     Ref.named(u'aux').to(u'../main'),
                      Integer.named(u'other'))
     el = schema({u'main': 5})
 
@@ -36,7 +36,7 @@ def test_binops():
 def test_writable_ignore():
 
     def element(writable):
-        ref = Ref.named(u'aux').to(u'main')
+        ref = Ref.named(u'aux').to(u'/main')
         if writable:
             ref = ref.using(writable=writable)
         return Dict.of(Integer.named(u'main'), ref)()
@@ -50,7 +50,7 @@ def test_writable_ignore():
 
 def test_writable():
     schema = Dict.of(Integer.named(u'main'),
-                     Ref.named(u'aux').to(u'main').using(writable=True))
+                     Ref.named(u'aux').to(u'../main').using(writable=True))
 
     el = schema()
     el[u'aux'] = 6
@@ -60,7 +60,7 @@ def test_writable():
 
 def test_not_writable():
     schema = Dict.of(Integer.named(u'main'),
-                     Ref.named(u'aux').to(u'main').using(writable=False))
+                     Ref.named(u'aux').to(u'../main').using(writable=False))
 
     el = schema()
     assert_raises(TypeError, el[u'aux'].set, 6)
@@ -68,7 +68,7 @@ def test_not_writable():
 
 def test_dereference_twice():
     schema = Dict.of(Integer.named(u'main'),
-                     Ref.named(u'aux').to(u'main').using(writable=True))
+                     Ref.named(u'aux').to(u'../main').using(writable=True))
 
     # Previous revisions would fail after two dereferences
     element = schema()
@@ -79,5 +79,5 @@ def test_dereference_twice():
     element[u'aux'].set(1)
     assert element[u'aux'].value == 1
 
-    assert element.el(element[u'aux'].target_path) is element[u'main']
-    assert element.el(element[u'aux'].target_path) is element[u'main']
+    assert element.find_child(element[u'aux'].target_path) is element[u'main']
+    assert element.find_child(element[u'aux'].target_path) is element[u'main']

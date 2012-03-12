@@ -195,6 +195,16 @@ def test_el():
     assert_raises(KeyError, element.el, u'a')
 
 
+def test_find():
+    schema = Array.of(String.named(u's'))
+    element = schema(u'abc')
+    eq_(list(element.value), [u'a', u'b', u'c'])
+
+    eq_(element.find_child(u'0').value, u'a')
+    eq_(element.find_child(u'2').value, u'c')
+    assert_raises(LookupError, element.find_child, u'a')
+
+
 def test_multivalue_set():
     schema = MultiValue.of(Integer)
     el = schema()

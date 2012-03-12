@@ -237,7 +237,7 @@ def test_corrupt_all_children():
 def test_naming_bogus():
     e = String(name=u's')
 
-    assert e.el(u'.') is e
+    assert e.find_child(u'.') is e
     assert_raises(LookupError, e.el, u'')
     assert_raises(TypeError, e.el, None)
     assert_raises(LookupError, e.el, ())
@@ -247,16 +247,16 @@ def test_naming_bogus():
 
 def test_naming_shallow():
     root = String(name=u's')
-    assert root.fq_name() == u'.'
+    assert root.fq_name() == u'/'
     assert root.flattened_name() == u's'
-    assert root.el(u'.') is root
+    assert root.find_child(u'.') is root
 
     root = String(name=None)
-    assert root.fq_name() == u'.'
+    assert root.fq_name() == u'/'
     assert root.flattened_name() == u''
-    assert root.el(u'.') is root
+    assert root.find_child(u'.') is root
     assert_raises(LookupError, root.el, ())
-    assert root.el([Root]) is root
+    assert root.find_child([u'/']) is root
 
 
 def test_naming_dict():
@@ -266,23 +266,20 @@ def test_naming_dict():
         root = schema()
         leaf = root[u's']
 
-        assert root.fq_name() == u'.'
+        assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.el(u'.') is root
+        assert root.find_child(u'.') is root
 
-        assert leaf.fq_name() == u'.s'
+        assert leaf.fq_name() == u'/s'
         assert leaf.flattened_name() == leaf_flat
-        assert root.el(u'.s') is leaf
-        assert root.el(u's') is leaf
-        assert leaf.el(u'.s') is leaf
+        assert root.find_child(u'/s') is leaf
+        assert root.find_child(u's') is leaf
+        assert leaf.find_child(u'/s') is leaf
         assert_raises(LookupError, leaf.el, u's')
-        assert leaf.el(u'.') is root
+        assert leaf.find_child(u'/') is root
 
-        assert root.el([Root]) is root
-        assert root.el([u's']) is leaf
-        assert root.el([Root, u's']) is leaf
-        assert root.el(iter([u's'])) is leaf
-        assert root.el(iter([Root, u's'])) is leaf
+        assert root.find_child([u's']) is leaf
+        assert root.find_child(iter([u's'])) is leaf
 
 
 def test_naming_dict_dict():
@@ -293,19 +290,19 @@ def test_naming_dict_dict():
         root = schema()
         leaf = root[u'd2'][u's']
 
-        assert root.fq_name() == u'.'
+        assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.el(u'.') is root
+        assert root.find_child(u'/') is root
 
-        assert leaf.fq_name() == u'.d2.s'
+        assert leaf.fq_name() == u'/d2/s'
         assert leaf.flattened_name() == leaf_flat
-        assert root.el(u'.d2.s') is leaf
-        assert root.el(u'd2.s') is leaf
-        assert leaf.el(u'.d2.s') is leaf
-        assert_raises(LookupError, leaf.el, u'd2.s')
-        assert leaf.el(u'.') is root
+        assert root.find_child(u'/d2/s') is leaf
+        assert root.find_child(u'd2/s') is leaf
+        assert leaf.find_child(u'/d2/s') is leaf
+        assert_raises(LookupError, leaf.el, u'd2/s')
+        assert leaf.find_child(u'/') is root
 
-        assert root.el([u'd2', u's']) is leaf
+        assert root.find_child([u'd2', u's']) is leaf
 
 
 def test_naming_list():
@@ -315,20 +312,20 @@ def test_naming_list():
         root = schema([u'x'])
         leaf = root[0]
 
-        assert root.fq_name() == u'.'
+        assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.el(u'.') is root
+        assert root.find_child(u'.') is root
 
-        assert leaf.fq_name() == u'.0'
+        assert leaf.fq_name() == u'/0'
         assert leaf.flattened_name() == leaf_flat
-        assert root.el(u'.0') is leaf
-        assert root.el(u'0') is leaf
-        assert leaf.el(u'.0') is leaf
+        assert root.find_child(u'/0') is leaf
+        assert root.find_child(u'0') is leaf
+        assert leaf.find_child(u'.') is leaf
         assert_raises(LookupError, leaf.el, u'0')
         assert_raises(LookupError, leaf.el, u's')
-        assert leaf.el(u'.') is root
+        assert leaf.find_child(u'/') is root
 
-        assert root.el([u'0']) is leaf
+        assert root.find_child([u'0']) is leaf
 
 
 def test_naming_list_list():
@@ -340,17 +337,17 @@ def test_naming_list_list():
         root = schema([u'x'])
         leaf = root[0][0]
 
-        assert root.fq_name() == u'.'
+        assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.el(u'.') is root
+        assert root.find_child(u'.') is root
 
-        assert leaf.fq_name() == u'.0.0'
+        assert leaf.fq_name() == u'/0/0'
         assert leaf.flattened_name() == leaf_flat
-        assert root.el(u'.0.0') is leaf
-        assert root.el(u'0.0') is leaf
-        assert leaf.el(u'.0.0') is leaf
+        assert root.find_child(u'/0/0') is leaf
+        assert root.find_child(u'0/0') is leaf
+        assert leaf.find_child(u'/0/0') is leaf
         assert_raises(LookupError, leaf.el, u'0')
         assert_raises(LookupError, leaf.el, u's')
-        assert leaf.el(u'.') is root
+        assert leaf.find_child(u'/') is root
 
-        assert root.el([u'0', u'0']) is leaf
+        assert root.find_child([u'0', u'0']) is leaf

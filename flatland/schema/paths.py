@@ -35,8 +35,12 @@ _unescape_re = re.compile(r"\\(/|\[|\]|\.)")
 
 
 def pathexpr(expr):
-    if not isinstance(expr, unicode):
+    if isinstance(expr, str):
         expr = unicode(expr)
+    elif isinstance(expr, basestring):
+        pass
+    elif hasattr(expr, '__iter__'):
+        expr = u'/'.join(expr)
     try:
         return expression_cache[expr]
     except KeyError:
