@@ -9,6 +9,8 @@ from flatland.validation import (
     HasAtMost,
     HasBetween,
     NotDuplicated,
+    SetWithAllFields,
+    SetWithKnownFields,
     )
 
 from tests._util import assert_raises
@@ -259,3 +261,47 @@ def test_has_between_one_and_two():
     el = schema(['a', 'b', 'c'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at least 1 and at most 2 inners']
+
+
+def test_set_with_known():
+    Int = Integer.using(optional=True)
+    schema = (Dict.named('point').of(Int.named('x'), Int.named('y')).
+              using(policy=None).
+              validated_by(SetWithKnownFields()))
+
+    # no coverage of set_flat
+    el = schema.from_flat([(u'point_x', u'1'), (u'point_Z', u'3')])
+    assert el.value == {'x': 1, 'y': None}
+    assert el.validate()
+
+    el = schema({'x': 1, 'Z': 3})
+    assert el.value == {'x': 1, 'y': None}
+    assert not el.validate()
+    assert el.errors == [u'point may not contain Z']
+
+
+def test_set_with_all():
+    Int = Integer.using(optional=True)
+    schema = (Dict.named('point').of(Int.named('x'), Int.named('y')).
+              using(policy=None).
+              validated_by(SetWithAllFields()))
+
+    # no coverage of set_flat
+    el = schema.from_flat([(u'point_x', u'1'), (u'point_Z', u'3')])
+    assert el.value == {'x': 1, 'y': None}
+    assert el.validate()
+
+    el = schema({'x': 1, 'Z': 3})
+    assert el.value == {'x': 1, 'y': None}
+    assert not el.validate()
+    assert el.errors == [u'point must contain y and not contain Z']
+
+    el = schema({'x': 1, 'y': 2, 'Z': 3, 'A': 4})
+    assert el.value == {'x': 1, 'y': 2}
+    assert not el.validate()
+    assert el.errors == [u'point may not contain A, Z']
+
+    el = schema({'x': 1})
+    assert el.value == {'x': 1, 'y': None}
+    assert not el.validate()
+    assert el.errors == [u'point must contain y']

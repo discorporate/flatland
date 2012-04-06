@@ -1,6 +1,12 @@
 # -*- coding: utf-8; fill-column: 78 -*-
 import operator
-from ..schema import Slot
+
+from flatland.schema.base import Slot, Unset
+from flatland.schema.containers import (
+    _evaluate_dict_strict_policy,
+    _evaluate_dict_subset_policy,
+    )
+from flatland.util import to_pairs
 from . base import N_, P_, Validator
 
 
@@ -287,3 +293,181 @@ class HasBetween(Validator):
         child_label = element.member_schema.label
         return self.note_error(element, state, message,
                                child_label=child_label)
+
+
+class SetWithKnownFields(Validator):
+    """A mapping validator that ensures no unexpected fields were set().
+
+    May be applied to a mapping type such as a :class:`~flatland.Dict`.
+
+    Example:
+
+    .. testcode::
+
+      from flatland import Dict, Integer
+      from flatland.validation import SetWithKnownFields
+
+      schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
+                    validated_by(SetWithKnownFields())
+      element = schema()
+
+      element.set({'x': 123})
+      assert element.validate()
+
+      element.set({'x': 123, 'z': 789})
+      assert not element.validate()
+
+    This validator collects the keys from :attr:`~flatland.Element.raw` and
+    compares them to the allowed keys for the element.  Only elements in which
+    :attr:`~flatland.Element.raw` is available and iterable will be considered
+    for validation; all others are deemed valid.
+
+    .. warning::
+
+      This validator will not enforce policy on mappings initialized with
+      :meth:`~flatland.Element.set_flat` because raw is unset.
+
+    .. note::
+
+      This validator obsoletes and deprecates the ``Dict.policy = 'subset'``
+      feature.  During the deprecation period, policy is still enforced by
+      ``set()`` by default.  To allow this validator to run, disable the
+      default by setting ``policy = None`` on the element or its schema.
+
+    .. rubric:: Messages
+
+    .. attribute:: unexpected
+
+      Emitted if the initializing value contains unexpected keys.
+      ``unexpected`` will substitute a comma-separated list of unexpected
+      keys, and ``n_unexpected`` a count of those keys.
+
+    """
+
+    # TRANSLATORS: SetWithKnownFields.unexpected
+    unexpected = N_(u"%(label)s may not contain %(unexpected)s")
+
+    def validate(self, element, state):
+        if (element.raw is Unset or
+            element.raw is None or  # perverse case
+            hasattr(element.raw, 'next')):
+            return True
+
+        try:
+            set_with = list(to_pairs(element.raw))
+        except TypeError:
+            # wasn't iterable
+            return True
+
+        unexpected = _evaluate_dict_subset_policy(element, set_with)
+        if not unexpected:
+            return True
+        n_unex, unex = len(unexpected), u', '.join(sorted(unexpected))
+        return self.note_error(element, state, 'unexpected',
+                               unexpected=unex,
+                               n_unexpected=n_unex)
+
+
+class SetWithAllFields(Validator):
+    """A mapping validator that ensures all fields were set().
+
+    May be applied to a mapping type such as a :class:`~flatland.Dict`.
+
+    Example:
+
+    .. testcode::
+
+      from flatland import Dict, Integer
+      from flatland.validation import SetWithAllFields
+
+      schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
+                    validated_by(SetWithAllFields())
+      element = schema()
+
+      element.set({'x': 123, 'y': 456})
+      assert element.validate()
+
+      element.set({'x': 123})
+      assert not element.validate()
+
+      element.set({'x': 123, 'y': 456, 'z': 789})
+      assert not element.validate()
+
+    This validator collects the keys from :attr:`~flatland.Element.raw` and
+    compares them to the allowed keys for the element.  Only elements in which
+    :attr:`~flatland.Element.raw` is available and iterable will be considered
+    for validation; all others are deemed valid.
+
+    .. warning::
+
+      This validator will not enforce policy on mappings initialized with
+      :meth:`~flatland.Element.set_flat` because raw is unset.
+
+    .. note::
+
+      This validator obsoletes and deprecates the ``Dict.policy = 'strict'``
+      feature.  During the deprecation period, policy is still enforced by
+      ``set()`` by default.  To allow this validator to run, disable the
+      default by setting ``policy = None`` on the element or its schema.
+
+    .. rubric:: Messages
+
+    .. attribute:: unexpected
+
+      Emitted if the initializing value contains unexpected keys.
+      ``unexpected`` will substitute a comma-separated list of unexpected
+      keys, and ``n_unexpected`` a count of those keys.
+
+    .. attribute:: missing
+
+      Emitted if the initializing value did not contain all expected keys.
+      ``missing`` will substitute a comma-separated list of missing
+      keys, and ``n_missing`` a count of those keys.
+
+    .. attribute:: both
+
+      Emitted if both of the previous conditions hold, and both sets
+      of substitution keys are available.
+
+    """
+
+    # TRANSLATORS: SetWithAllFields.unexpected
+    unexpected = N_(u"%(label)s may not contain %(unexpected)s")
+
+    # TRANSLATORS: SetWithAllFields.missing
+    missing = N_(u"%(label)s must contain %(missing)s")
+
+    # TRANSLATORS: SetWithAllFields.both
+    both = N_('%(label)s must contain %(missing)s '
+              'and not contain %(unexpected)s')
+
+    def validate(self, element, state):
+        if (element.raw is Unset or
+            element.raw is None or  # perverse case
+            hasattr(element.raw, 'next')):
+            return True
+
+        try:
+            set_with = list(to_pairs(element.raw))
+        except TypeError:
+            # wasn't iterable
+            return True
+
+        missing, unexpected = _evaluate_dict_strict_policy(element, set_with)
+        if not missing and not unexpected:
+            return True
+        elif missing and unexpected:
+            message = 'both'
+        elif missing:
+            message = 'missing'
+        else:
+            message = 'unexpected'
+
+        n_miss, miss = len(missing), u', '.join(sorted(missing))
+        n_unex, unex = len(unexpected), u', '.join(sorted(unexpected))
+
+        return self.note_error(element, state, message,
+                               n_missing=n_miss,
+                               missing=miss,
+                               n_unexpected=n_unex,
+                               unexpected=unex)

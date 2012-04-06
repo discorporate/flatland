@@ -286,7 +286,7 @@ def test_dict_valid_policies():
     schema = Dict.of(Integer)
     el = schema()
 
-    assert_raises(AssertionError, el.set, {}, policy='bogus')
+    assert_raises(RuntimeError, el.set, {}, policy='bogus')
 
 
 def test_dict_strict():
