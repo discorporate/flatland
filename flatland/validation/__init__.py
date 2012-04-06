@@ -24,6 +24,8 @@ from containers import (
     HasAtMost,
     HasBetween,
     NotDuplicated,
+    SetWithKnownFields,
+    SetWithAllFields,
     )
 from network import (
     HTTPURLValidator,

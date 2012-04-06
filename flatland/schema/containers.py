@@ -888,9 +888,14 @@ class Dict(Mapping, dict):
     """A mapping Container with named members."""
 
     policy = 'subset'
-    """One of 'strict', 'subset' or 'duck'.  Default 'subset'.
+    """Deprecated.  One of 'strict', 'subset' or 'duck'.  Default 'subset'.
 
-    See :ref:`set_policy`
+    Operates as :class:`~flatland.validation.containers.SetWithAllFields`
+    and :class:`~flatland.validation.containers.SetWithKnownFields`, except
+    raises an exception immediately upon :meth:`set`.
+
+    To migrate to the new validators, set :attr:`policy` to ``None`` to
+    disable the policy behavior.
     """
 
     @class_cloner
@@ -947,41 +952,53 @@ class Dict(Mapping, dict):
         return self
 
     def set(self, value, policy=None):
-        """.. TODO:: doc set()"""
         self.raw = value
-        pairs = to_pairs(value)
+        pairs = list(to_pairs(value))
         self._reset()
 
-        if policy is not None:
-            assert policy in ('strict', 'subset', 'duck')
-        else:
+        if policy is None:
             policy = self.policy
+        if policy not in ('strict', 'subset', 'duck', None):
+            raise RuntimeError("Unknown %s policy %r" % (
+                self.__class__.__name__, policy))
+
+        if policy == 'strict':
+            missing, extra = _evaluate_dict_strict_policy(self, pairs)
+            if missing and extra:
+                raise KeyError(
+                    'Strict %s %r schema does not allow keys %r and '
+                    'requires keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(extra), list(missing)))
+            elif missing:
+                # match previous logic's exception type here
+                raise TypeError(
+                    'Strict %s %r schema requires keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(missing)))
+            elif extra:
+                raise KeyError(
+                    'Strict %s %r schema does not allow keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(extra)))
+        elif policy == 'subset':
+            mismatch = _evaluate_dict_subset_policy(self, pairs)
+            if mismatch:
+                raise KeyError(
+                    'Subset %s %r schema does not allow keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(mismatch)))
 
         fields = self.field_schema_mapping
-        seen = set()
         converted = True
         for key, value in pairs:
             if key not in fields:
-                if policy != 'duck':
-                    raise KeyError(
-                        'Dict %r schema does not allow key %r' % (
-                            self.name, key))
                 continue
             if dict.__contains__(self, key):
                 converted &= self[key].set(value)
             else:
                 self[key] = el = fields[key]()
                 converted &= el.set(value)
-            seen.add(key)
-
-        if policy == 'strict':
-            required = set(fields.iterkeys())
-            if seen != required:
-                missing = required - seen
-                raise TypeError(
-                    'strict-mode Dict requires all keys for '
-                    'a set() operation, missing %s.' % (
-                        ','.join(repr(key) for key in missing)))
         return converted
 
     def set_by_object(self, obj, include=None, omit=None, rename=None):
@@ -1209,6 +1226,23 @@ class SparseDict(Dict):
         else:
             raise RuntimeError("Unknown minimum_fields setting %r" %
                                (self.minimum_fields,))
+
+
+# temporary home for this logic until deprecated Dict.policy is removed
+def _evaluate_dict_subset_policy(element, pairs):
+    allowed = set(element.field_schema_mapping.keys())
+    given = set(key for key, _ in pairs)
+    if not given.issubset(allowed):
+        return given - allowed
+    return ()
+
+
+def _evaluate_dict_strict_policy(element, pairs):
+    required = set(element.field_schema_mapping.keys())
+    given = set(key for key, _ in pairs)
+    if given != required:
+        return required - given, given - required
+    return (), ()
 
 
 for cls_name in __all__:
