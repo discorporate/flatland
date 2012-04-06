@@ -232,8 +232,17 @@ class Element(object):
 
     @class_cloner
     def with_properties(cls, *iterable, **properties):
-        """.. TODO:: doc"""
-        simplified = dict(*iterable, **properties)
+        """Return a class with *\*\*properties* set.
+
+        :param: optional positional parameter, an iterable of property name /
+          value pairs
+
+        :param \*\*properties: property names and values as keyword arguments
+
+        :returns: a new class
+
+        """
+        simplified = dict(iterable, **properties)
         cls.properties.update(simplified)
         return cls
 
