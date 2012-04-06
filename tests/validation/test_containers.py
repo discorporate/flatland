@@ -1,5 +1,4 @@
 from flatland import (
-    Array,
     Dict,
     Integer,
     List,
@@ -22,6 +21,7 @@ def valid_of_children(element):
 def validated_string(*validators):
     return List.named('test').of(String.using(name=u'foo',
                                              validators=validators))
+
 
 def test_no_duplicates_message():
     schema = validated_string(NotDuplicated())
