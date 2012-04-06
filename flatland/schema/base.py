@@ -50,9 +50,6 @@ Assigned to newly created elements that have never been evaluated by
 :meth:`Element.validate`.  Evaluates to true.
 """)
 
-# TODO: implement a lighter version of the xml quoters
-xml = None
-
 
 class Element(object):
     """Base class for form fields.
@@ -823,18 +820,20 @@ class Element(object):
     @property
     def x(self):
         """Sugar, the XML-escaped value of :attr:`.u`."""
-        global xml
-        if xml is None:
-            import xml.sax.saxutils
-        return xml.sax.saxutils.escape(self.u)
+        return (self.u.replace(u'&', u'&amp;').
+                       replace(u'>', u'&gt;').
+                       replace(u'<', u'&lt;'))
 
     @property
     def xa(self):
-        """Sugar, the XML-attribute-escaped value of :attr:`.u`."""
-        global xml
-        if xml is None:
-            import xml.sax.saxutils
-        return xml.sax.saxutils.quoteattr(self.u)[1:-1]
+        """Sugar, the XML-attribute-escaped quoted value of :attr:`.u`."""
+        return (self.u.replace(u'&', u'&amp;').
+                       replace(u'>', u'&gt;').
+                       replace(u'<', u'&lt;').
+                       replace(u'"', u'&quot;').
+                       replace(u'\n', u'&#10;').
+                       replace(u'\r', u'&#13;').
+                       replace(u'\t', u'&#9;'))
 
     def __hash__(self):
         raise TypeError('%s object is unhashable', self.__class__.__name__)
