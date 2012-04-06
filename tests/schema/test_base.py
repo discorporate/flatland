@@ -239,3 +239,12 @@ def test_default_value():
     # a default_factory may reference el.default
     el = Element(default='mno', default_factory=lambda x: x.default)
     assert el.default_value == 'mno'
+
+
+def test_xml_helpers():
+    el = Element()
+
+    el.u = u'<foo\t&\r\n"bar">'
+
+    assert el.x == u'&lt;foo\t&amp;\r\n"bar"&gt;'
+    assert el.xa == u'&lt;foo&#9;&amp;&#13;&#10;&quot;bar&quot;&gt;'
