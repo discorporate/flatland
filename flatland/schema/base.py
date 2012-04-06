@@ -569,7 +569,6 @@ class Element(object):
             return iter(parts)
         else:
             return iter(path)
-        # fixme: nuke?
         if isinstance(path, (list, tuple)) or hasattr(path, 'next'):
             return path
         else:
