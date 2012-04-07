@@ -41,6 +41,5 @@ Contents
    validation/index
    markup
    signals
-   utils
    patterns/index
    project
