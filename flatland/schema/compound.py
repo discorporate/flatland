@@ -1,10 +1,21 @@
-from functools import update_wrapper
+from functools import wraps
 import operator
 
 from flatland.exc import AdaptationError
-from flatland.util import Unspecified, threading
+from flatland.util import (
+    Unspecified,
+    autodocument_from_superclasses,
+    threading,
+    )
 from .containers import Array, Mapping
 from .scalars import Date, Integer, Scalar, String
+
+
+__all__ = [
+    'Compound',
+    'DateYYYYMMDD',
+    'JoinedString',
+    ]
 
 
 class _MetaCompound(type):
@@ -60,11 +71,13 @@ def _wrap_compound_init(fn):
     """Decorate __compound_init__ with a status setter & classmethod."""
     if isinstance(fn, classmethod):
         fn = fn.__get__(str).im_func  # type doesn't matter here
+
+    @wraps(fn)
     def __compound_init__(cls):
         res = fn(cls)
         cls._compound_prepared = True
         return res
-    update_wrapper(__compound_init__, fn)
+
     return classmethod(__compound_init__)
 
 
@@ -138,6 +151,7 @@ class Compound(Mapping, Scalar):
         raise NotImplementedError()
 
     def serialize(self, value):
+        """Not implemented for Compound types."""
         raise TypeError("Not implemented for Compound types.")
 
     def u(self):
@@ -211,10 +225,6 @@ class DateYYYYMMDD(Compound, Date):
                                                       optional=optional))
 
         cls.field_schema = fields
-
-    #if any(not field.name for field in fields):
-    #    raise TypeError("Child fields of %s %r must be named." %
-    #                    type(self).__name__, name)
 
     def compose(self):
         try:
@@ -324,3 +334,8 @@ class JoinedString(Array, String):
     def u(self):
         """A read-only :attr:`separator`-joined string of child values."""
         return self.value
+
+
+for cls_name in __all__:
+    autodocument_from_superclasses(globals()[cls_name])
+del cls_name
