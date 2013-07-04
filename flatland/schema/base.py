@@ -491,65 +491,17 @@ class Element(object):
         An alias for :meth:`find`.  Equivalent to
         ``find(path, single=True, strict=True)``.
         """
+        # TODO:jek this name isn't great in practice, remove and
+        # prefer find_one
         return self.find(path, single=True, strict=True)
 
-    def el(self, path, sep=u'.'):
-        ""
-        # TODO: el() is deprecated. Make an autodoc-skip-member handler to
-        # drop this from the docs but retain the docstring for pydoc.  Until
-        # then, suppress the entry with an empty docstring.
-        """Find a child element by string path.
+    def find_one(self, path):
+        """Find a single element at *path*.
 
-        :param path: a *sep*-separated string of element names, or an
-            iterable of names
-        :param sep: optional, a string separator used to parse *path*
-
-        :returns: an :class:`Element` or raises :exc:`KeyError`.
-
-        .. testsetup:: el
-
-          from flatland import Form, Dict, List, String
-          class Profile(Form):
-              contact = Dict.of(List.named('addresses').
-                                of(Dict.of(String.named('street1'),
-                                           String.named('city'))).
-                                using(default=1))
-          form = Profile.from_defaults()
-
-        .. doctest:: el
-
-          >>> first_address = form.el('contact.addresses.0')
-          >>> first_address.el('street1')
-          <String u'street1'; value=None>
-
-        Given a relative path as above, :meth:`el` searches for a matching
-        path among the element's children.
-
-        If *path* begins with *sep*, the path is considered fully qualified
-        and the search is resolved from the :attr:`Element.root`.  The
-        leading *sep* will always match the root node, regardless of its
-        :attr:`.name`.
-
-        .. doctest:: el
-
-          >>> form.el('.contact.addresses.0.city')
-          <String u'city'; value=None>
-          >>> first_address.el('.contact.addresses.0.city')
-          <String u'city'; value=None>
-
+        An alias for :meth:`find`.  Equivalent to
+        ``find(path, single=True, strict=True)``.
         """
-        try:
-            names = list(self._parse_element_path(path, sep)) or ()
-            if names[0] is Root:
-                element = self.root
-                names.pop(0)
-            else:
-                element = self
-            while names:
-                element = element._index(names.pop(0))
-            return element
-        except LookupError:
-            raise KeyError('No element at %r' % (path,))
+        return self.find(path, single=True, strict=True)
 
     def _index(self, name):
         """Return a named child or raise LookupError."""

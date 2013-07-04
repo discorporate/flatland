@@ -345,15 +345,6 @@ def test_nested_unicode_dict_as_unicode():
     eq_(el.u, ur"{u'd': {u'x': u'\u2308\u2309'}}")
 
 
-def test_dict_el():
-    # stub
-    schema = Dict.named(u's').of(Integer.named(u'x'), Integer.named(u'y'))
-    element = schema()
-
-    assert element.el(u'x').name == u'x'
-    assert_raises(KeyError, element.el, u'not_x')
-
-
 def test_dict_find():
     # stub
     schema = Dict.named(u's').of(Integer.named(u'x'), Integer.named(u'y'))
@@ -361,7 +352,7 @@ def test_dict_find():
 
     assert element.find_child(u'x').name == u'x'
     assert element.find_child(u'/x').name == u'x'
-    assert_raises(KeyError, element.el, u'not_x')
+    assert_raises(LookupError, element.find_one, u'not_x')
 
 
 def test_update_object():

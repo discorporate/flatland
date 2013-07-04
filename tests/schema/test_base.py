@@ -127,7 +127,7 @@ def test_abstract():
 
     assert_raises(NotImplementedError, element.set, None)
     assert_raises(NotImplementedError, element.set_flat, ())
-    assert_raises(NotImplementedError, element.el, u'foo')
+    assert_raises(NotImplementedError, element.find_one, u'foo')
 
 
 def test_message_buckets():

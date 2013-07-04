@@ -196,7 +196,7 @@ harder.
 
   def passwords_must_match(element, state):
       """Both password fields must match for a password change to succeed."""
-      if element.value == element.parent.el('password2').value:
+      if element.value == element.find('../password2', single=True).value:
           return True
       element.errors.append("Passwords must match.")
       return False
