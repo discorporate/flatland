@@ -211,20 +211,6 @@ def re_uescape(pattern):
     return u''.join(mutable)
 
 
-def luhn10(number):
-    """Return True if the number passes the Luhn checksum algorithm."""
-
-    sum = 0
-    while number:
-        r = number % 100
-        number //= 100
-        z = r % 10
-        r = r // 10 * 2
-        sum += r // 10 + r % 10 + z
-
-    return 0 == sum % 10
-
-
 def to_pairs(dictlike):
     """Yield (key, value) pairs from any dict-like object.
 
