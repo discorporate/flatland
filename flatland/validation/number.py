@@ -1,12 +1,10 @@
 from __future__ import division
 import types
 from base import N_, Validator
-import flatland.util as util
-
 
 
 class NANPnxx(Validator):
-    """Integer"""
+    """Validates NPA validity."""
 
     def validate(self, element, state):
         if element.value is None:
@@ -21,6 +19,7 @@ class NANPnxx(Validator):
 
         element.u = unicode(nxx)
         return True
+
 
 class NANPnpa_nxx(Validator):
     "Validates NPA and NXX compound elements."
@@ -80,7 +79,21 @@ class Luhn10(Validator):
         if num is None:
             return self.note_error(element, state, 'invalid')
 
-        if util.luhn10(num):
+        if luhn10_check(num):
             return True
 
         return self.note_error(element, state, 'invalid')
+
+
+def luhn10_check(number):
+    """Return True if the number passes the Luhn checksum algorithm."""
+
+    sum = 0
+    while number:
+        r = number % 100
+        number //= 100
+        z = r % 10
+        r = r // 10 * 2
+        sum += r // 10 + r % 10 + z
+
+    return 0 == sum % 10
