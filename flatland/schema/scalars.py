@@ -259,6 +259,7 @@ class Long(Number):
     format = u'%i'
     """``u'%i'``"""
 
+
 class Float(Number):
     """Element type for Python's float."""
 
