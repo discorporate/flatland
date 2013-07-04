@@ -79,5 +79,5 @@ def test_dereference_twice():
     element[u'aux'].set(1)
     assert element[u'aux'].value == 1
 
-    assert element.find_child(element[u'aux'].target_path) is element[u'main']
-    assert element.find_child(element[u'aux'].target_path) is element[u'main']
+    assert element.find_one(element[u'aux'].target_path) is element[u'main']
+    assert element.find_one(element[u'aux'].target_path) is element[u'main']

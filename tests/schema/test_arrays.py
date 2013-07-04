@@ -190,9 +190,9 @@ def test_find():
     element = schema(u'abc')
     eq_(list(element.value), [u'a', u'b', u'c'])
 
-    eq_(element.find_child(u'0').value, u'a')
-    eq_(element.find_child(u'2').value, u'c')
-    assert_raises(LookupError, element.find_child, u'a')
+    eq_(element.find_one(u'0').value, u'a')
+    eq_(element.find_one(u'2').value, u'c')
+    assert_raises(LookupError, element.find_one, u'a')
 
 
 def test_multivalue_set():

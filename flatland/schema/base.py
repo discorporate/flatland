@@ -485,16 +485,6 @@ class Element(object):
         else:
             return results[0]
 
-    def find_child(self, path):
-        """Find a single child at *path*.
-
-        An alias for :meth:`find`.  Equivalent to
-        ``find(path, single=True, strict=True)``.
-        """
-        # TODO:jek this name isn't great in practice, remove and
-        # prefer find_one
-        return self.find(path, single=True, strict=True)
-
     def find_one(self, path):
         """Find a single element at *path*.
 

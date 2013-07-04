@@ -92,9 +92,9 @@ def test_default_behavior():
                        String.named('surname'))
 
     form = DictForm()
-    eq_(form.find_child('dict/fname').value, None)
-    eq_(form.find_child('dict/surname').value, None)
+    eq_(form.find_one('dict/fname').value, None)
+    eq_(form.find_one('dict/surname').value, None)
 
     form = DictForm.from_defaults()
-    eq_(form.find_child('dict/fname').value, u'FN')
-    eq_(form.find_child('dict/surname').value, None)
+    eq_(form.find_one('dict/fname').value, u'FN')
+    eq_(form.find_one('dict/surname').value, None)

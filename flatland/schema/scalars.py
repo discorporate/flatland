@@ -547,7 +547,7 @@ class Ref(Scalar):
 
     @lazy_property
     def target(self):
-        return self.find_child(self.target_path)
+        return self.find_one(self.target_path)
 
     def _get_u(self):
         """The Unicode representation of the reference target."""

@@ -256,18 +256,18 @@ def test_naming_dict():
 
         assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.find_child(u'.') is root
+        assert root.find_one(u'.') is root
 
         assert leaf.fq_name() == u'/s'
         assert leaf.flattened_name() == leaf_flat
-        assert root.find_child(u'/s') is leaf
-        assert root.find_child(u's') is leaf
-        assert leaf.find_child(u'/s') is leaf
+        assert root.find_one(u'/s') is leaf
+        assert root.find_one(u's') is leaf
+        assert leaf.find_one(u'/s') is leaf
         assert_raises(LookupError, leaf.find_one, u's')
-        assert leaf.find_child(u'/') is root
+        assert leaf.find_one(u'/') is root
 
-        assert root.find_child([u's']) is leaf
-        assert root.find_child(iter([u's'])) is leaf
+        assert root.find_one([u's']) is leaf
+        assert root.find_one(iter([u's'])) is leaf
 
 
 def test_naming_dict_dict():
@@ -280,17 +280,17 @@ def test_naming_dict_dict():
 
         assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.find_child(u'/') is root
+        assert root.find_one(u'/') is root
 
         assert leaf.fq_name() == u'/d2/s'
         assert leaf.flattened_name() == leaf_flat
-        assert root.find_child(u'/d2/s') is leaf
-        assert root.find_child(u'd2/s') is leaf
-        assert leaf.find_child(u'/d2/s') is leaf
+        assert root.find_one(u'/d2/s') is leaf
+        assert root.find_one(u'd2/s') is leaf
+        assert leaf.find_one(u'/d2/s') is leaf
         assert_raises(LookupError, leaf.find_one, u'd2/s')
-        assert leaf.find_child(u'/') is root
+        assert leaf.find_one(u'/') is root
 
-        assert root.find_child([u'd2', u's']) is leaf
+        assert root.find_one([u'd2', u's']) is leaf
 
 
 def test_naming_list():
@@ -302,18 +302,18 @@ def test_naming_list():
 
         assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.find_child(u'.') is root
+        assert root.find_one(u'.') is root
 
         assert leaf.fq_name() == u'/0'
         assert leaf.flattened_name() == leaf_flat
-        assert root.find_child(u'/0') is leaf
-        assert root.find_child(u'0') is leaf
-        assert leaf.find_child(u'.') is leaf
+        assert root.find_one(u'/0') is leaf
+        assert root.find_one(u'0') is leaf
+        assert leaf.find_one(u'.') is leaf
         assert_raises(LookupError, leaf.find_one, u'0')
         assert_raises(LookupError, leaf.find_one, u's')
-        assert leaf.find_child(u'/') is root
+        assert leaf.find_one(u'/') is root
 
-        assert root.find_child([u'0']) is leaf
+        assert root.find_one([u'0']) is leaf
 
 
 def test_naming_list_list():
@@ -327,15 +327,15 @@ def test_naming_list_list():
 
         assert root.fq_name() == u'/'
         assert root.flattened_name() == root_flat
-        assert root.find_child(u'.') is root
+        assert root.find_one(u'.') is root
 
         assert leaf.fq_name() == u'/0/0'
         assert leaf.flattened_name() == leaf_flat
-        assert root.find_child(u'/0/0') is leaf
-        assert root.find_child(u'0/0') is leaf
-        assert leaf.find_child(u'/0/0') is leaf
+        assert root.find_one(u'/0/0') is leaf
+        assert root.find_one(u'0/0') is leaf
+        assert leaf.find_one(u'/0/0') is leaf
         assert_raises(LookupError, leaf.find_one, u'0')
         assert_raises(LookupError, leaf.find_one, u's')
-        assert leaf.find_child(u'/') is root
+        assert leaf.find_one(u'/') is root
 
-        assert root.find_child([u'0', u'0']) is leaf
+        assert root.find_one([u'0', u'0']) is leaf
