@@ -367,7 +367,7 @@ class Constrained(Scalar):
     """
 
     child_type = String
-    """.. TODO:: doc"""
+    """The type of constrained value, defaulting to String."""
 
     def __init__(self, value=Unspecified, **kw):
         Scalar.__init__(self, **kw)
