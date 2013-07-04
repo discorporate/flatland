@@ -350,8 +350,8 @@ def test_dict_find():
     schema = Dict.named(u's').of(Integer.named(u'x'), Integer.named(u'y'))
     element = schema()
 
-    assert element.find_child(u'x').name == u'x'
-    assert element.find_child(u'/x').name == u'x'
+    assert element.find_one(u'x').name == u'x'
+    assert element.find_one(u'/x').name == u'x'
     assert_raises(LookupError, element.find_one, u'not_x')
 
 

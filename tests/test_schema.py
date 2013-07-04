@@ -64,5 +64,5 @@ def test_path():
         Dict.named('dict').of(String.named('dict_element')))
     element = schema()
 
-    eq_(list(element.find_child(['dict', 'dict_element']).path),
+    eq_(list(element.find_one(['dict', 'dict_element']).path),
         [element, element['dict'], element['dict']['dict_element']])

@@ -381,19 +381,19 @@ def test_sample_compound():
     e = s()
     assert e.value is None
     assert e[u'year'].value is None
-    assert e.find_child(u'year').value is None
+    assert e.find_one(u'year').value is None
 
     when = datetime.date(2000, 10, 1)
     e.set(when)
     assert e.value == when
-    assert e.find_child(u'year').value == 2000
-    assert e.find_child(u'day').value == 1
+    assert e.find_one(u'year').value == 2000
+    assert e.find_one(u'day').value == 1
     assert e.u == u'2000-10-01'
-    assert e.find_child(u'day').u == u'01'
+    assert e.find_one(u'day').u == u'01'
 
-    e.find_child(u'day').set(5)
+    e.find_one(u'day').set(5)
     assert e.value == datetime.date(2000, 10, 5)
-    assert e.find_child(u'day').value == 5
+    assert e.find_one(u'day').value == 5
     assert e.u == u'2000-10-05'
 
     e = s()
@@ -401,14 +401,14 @@ def test_sample_compound():
     assert e.value is None
     assert e.u == u''
     assert e[u'year'].value is None
-    assert e.find_child(u'year').value is None
+    assert e.find_one(u'year').value is None
 
     e = s()
     e.set(u'snaggle')
     assert e.value is None
     assert e.u == u''
     assert e[u'year'].value is None
-    assert e.find_child(u'year').value is None
+    assert e.find_one(u'year').value is None
 
 
 def test_compound_optional():
@@ -416,17 +416,17 @@ def test_compound_optional():
     required = Dict.of(DateYYYYMMDD.named(u's').using(optional=False))
 
     f = required.from_defaults()
-    assert not f.find_child(u's/year').optional
-    assert not f.find_child(u's/month').optional
-    assert not f.find_child(u's/day').optional
+    assert not f.find_one(u's/year').optional
+    assert not f.find_one(u's/month').optional
+    assert not f.find_one(u's/day').optional
     assert not f.validate()
 
     optional = Dict.of(DateYYYYMMDD.named(u's').using(optional=True))
 
     f = optional.from_defaults()
-    assert f.find_child(u's/year').optional
-    assert f.find_child(u's/month').optional
-    assert f.find_child(u's/day').optional
+    assert f.find_one(u's/year').optional
+    assert f.find_one(u's/month').optional
+    assert f.find_one(u's/day').optional
     assert f.validate()
 
 
@@ -434,7 +434,7 @@ def test_compound_is_empty():
     element = DateYYYYMMDD()
     assert element.is_empty
 
-    element.find_child(u'year').set(1979)
+    element.find_one(u'year').set(1979)
     assert not element.is_empty
 
 

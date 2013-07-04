@@ -53,7 +53,7 @@ Example:
   [(u'names_0_name', u'a'), (u'names_1_name', u'b')]
   >>> names[1].value
   u'b'
-  >>> names.find_child('1').value
+  >>> names.find_one('1').value
   u'b'
 
 Validation
