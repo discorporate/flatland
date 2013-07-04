@@ -102,8 +102,6 @@ class PathExpression(object):
         return 'pathexpr(%r)' % self.__unicode__()
 
 
-# TODO: glob syntax  foo/*/baz  sneep/_*/squiznart
-
 def tokenize(path):
     """Parse *path* and return a list of (OP, data) pairs."""
     tokens = []
