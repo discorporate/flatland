@@ -1,5 +1,4 @@
 # -*- coding: utf-8; fill-column: 78 -*-
-# TODO: Temporal stripping
 import datetime
 import decimal
 import re
