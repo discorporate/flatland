@@ -65,15 +65,15 @@ blank, using default values, or with values taken from your objects.
 
   form = SignInForm.from_flat(request.POST)
   if form.validate():
-      logging.info(u"sign-in: %s" % form.el('username'))
+      logging.info(u"sign-in: %s" % form['username'].value)
       redirect('/app/')
   else:
       render('login.html', form=form)
 
 Elements are rich objects that validate and normalize input data as well as
 hold field-level error and warning messages.  Elements can be exported to a
-native Python structure, flattened back into Unicode key, value pairs or used
-as-is in output templates for form layout, redisplay and error reporting.
+native Python structure, flattened back into Unicode (key, value) pairs or
+used as-is in output templates for form layout, redisplay and error reporting.
 
 .. doctest::
 

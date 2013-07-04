@@ -234,29 +234,17 @@ def test_corrupt_all_children():
     assert list(_.value for _ in el.all_children) == list(u'xyz')
 
 
-def test_naming_bogus():
-    e = String(name=u's')
-
-    assert e.find_child(u'.') is e
-    assert_raises(LookupError, e.el, u'')
-    assert_raises(TypeError, e.el, None)
-    assert_raises(LookupError, e.el, ())
-    assert_raises(LookupError, e.el, iter(()))
-    assert_raises(TypeError, e.el)
-
-
 def test_naming_shallow():
     root = String(name=u's')
     assert root.fq_name() == u'/'
     assert root.flattened_name() == u's'
-    assert root.find_child(u'.') is root
+    assert root.find_one(u'.') is root
 
     root = String(name=None)
     assert root.fq_name() == u'/'
     assert root.flattened_name() == u''
-    assert root.find_child(u'.') is root
-    assert_raises(LookupError, root.el, ())
-    assert root.find_child([u'/']) is root
+    assert root.find_one(u'.') is root
+    assert root.find_one([u'/']) is root
 
 
 def test_naming_dict():
@@ -275,7 +263,7 @@ def test_naming_dict():
         assert root.find_child(u'/s') is leaf
         assert root.find_child(u's') is leaf
         assert leaf.find_child(u'/s') is leaf
-        assert_raises(LookupError, leaf.el, u's')
+        assert_raises(LookupError, leaf.find_one, u's')
         assert leaf.find_child(u'/') is root
 
         assert root.find_child([u's']) is leaf
@@ -299,7 +287,7 @@ def test_naming_dict_dict():
         assert root.find_child(u'/d2/s') is leaf
         assert root.find_child(u'd2/s') is leaf
         assert leaf.find_child(u'/d2/s') is leaf
-        assert_raises(LookupError, leaf.el, u'd2/s')
+        assert_raises(LookupError, leaf.find_one, u'd2/s')
         assert leaf.find_child(u'/') is root
 
         assert root.find_child([u'd2', u's']) is leaf
@@ -321,8 +309,8 @@ def test_naming_list():
         assert root.find_child(u'/0') is leaf
         assert root.find_child(u'0') is leaf
         assert leaf.find_child(u'.') is leaf
-        assert_raises(LookupError, leaf.el, u'0')
-        assert_raises(LookupError, leaf.el, u's')
+        assert_raises(LookupError, leaf.find_one, u'0')
+        assert_raises(LookupError, leaf.find_one, u's')
         assert leaf.find_child(u'/') is root
 
         assert root.find_child([u'0']) is leaf
@@ -346,8 +334,8 @@ def test_naming_list_list():
         assert root.find_child(u'/0/0') is leaf
         assert root.find_child(u'0/0') is leaf
         assert leaf.find_child(u'/0/0') is leaf
-        assert_raises(LookupError, leaf.el, u'0')
-        assert_raises(LookupError, leaf.el, u's')
+        assert_raises(LookupError, leaf.find_one, u'0')
+        assert_raises(LookupError, leaf.find_one, u's')
         assert leaf.find_child(u'/') is root
 
         assert root.find_child([u'0', u'0']) is leaf

@@ -37,7 +37,7 @@ is a shorthand for creating a ``member_schema`` instance and
 
 List extends :class:`Sequence` and adds positional naming to its
 elements.  Elements are addressable via their list index in
-:meth:`~flatland.schema.base.Element.el` and their index in the list
+:meth:`~flatland.schema.base.Element.find` and their index in the list
 is reflected in their flattened name:
 
 Example:
@@ -51,7 +51,9 @@ Example:
   [u'a', u'b']
   >>> names.flatten()
   [(u'names_0_name', u'a'), (u'names_1_name', u'b')]
-  >>> names.el('.1').value
+  >>> names[1].value
+  u'b'
+  >>> names.find_child('1').value
   u'b'
 
 Validation
