@@ -18,6 +18,9 @@ extensions = [
 ]
 
 
+rst_epilog = open('abbrevs.txt').read()
+
+
 autoclass_content = 'both'
 autodoc_default_flags = ['members', 'show-inheritance']
 autodoc_member_order = 'bysource'
