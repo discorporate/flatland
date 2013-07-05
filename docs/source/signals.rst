@@ -10,4 +10,6 @@ signals can be used for advanced customization in your application or simply
 as a means for tracing and logging flatland activity during development.
 
 
+.. autodata:: flatland.signals.element_set
+
 .. autodata:: flatland.signals.validator_validated
