@@ -221,7 +221,7 @@ class Number(Scalar):
             raise AdaptationError()
         else:
             if not self.signed:
-                if native < 0:
+                if native < self.type_():  # 0, 0.0, etc.
                     raise AdaptationError()
             return native
 
