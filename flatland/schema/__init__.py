@@ -41,6 +41,8 @@ from .compound import (
     )
 from .declarative import (
     Form,
+    Schema,
+    SparseSchema,
     )
 from .properties import (
     Properties,

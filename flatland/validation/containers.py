@@ -40,7 +40,7 @@ class NotDuplicated(Validator):
 
       .. testcode::
 
-        from flatland import Form, List, String, Integer, Boolean
+        from flatland import Schema, List, String, Integer, Boolean
         from flatland.validation import NotDuplicated
 
         def live_addrs(element, sibling):
@@ -52,7 +52,7 @@ class NotDuplicated(Validator):
             return (thisval['street'] == thatval['street'] and
                     thisval['city'] == thatval['city'])
 
-        class Address(Form):
+        class Address(Schema):
             validators = [NotDuplicated(comparator=live_addrs)]
 
             id = Integer.using(optional=True)

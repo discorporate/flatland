@@ -1,25 +1,25 @@
 # -*- coding: utf-8; fill-column: 78 -*-
 """Class attribute-style declarative schema construction."""
 from .base import Element
-from .containers import Dict
+from .containers import Dict, SparseDict
 
 
-__all__ = 'Form',
+__all__ = ['Schema', 'SparseSchema']
 
 
-class _MetaForm(type):
-    """Allows fields to be specified as class attribute declarations.
+class _MetaSchema(type):
+    """Allows elements to be declared as class attributes.
 
     Processes class declarations of the form:
 
-      from flatland import Form, String
+      from flatland import Schema, String
 
-      class MyForm(Form):
+      class MySchema(Schema):
           name = String
           favorite_color = String.using(optional=True)
 
     and converts them to a :attr:`~flatland.Dict.field_schema` specification
-    at class construction time.  Forms may inherit from other Forms, with
+    at class construction time.  Schemas may inherit from other Schemas, with
     schema declarations following normal Python class property inheritance
     semantics.
 
@@ -38,7 +38,6 @@ class _MetaForm(type):
         # add / replace fields declared as attributes on this class
         declared_fields = []
         for name, value in members.items():
-            # TODO warn about instances found here?
             if isinstance(value, type) and issubclass(value, Element):
                 if name != value.name:
                     value = value.named(name)
@@ -52,7 +51,7 @@ class _MetaForm(type):
 
 
 class _ElementCollection(object):
-    """Internal helper collection for calculating Form field inheritance."""
+    """Internal helper collection for calculating Schema field inheritance."""
 
     def __init__(self):
         self.elements = []
@@ -78,72 +77,85 @@ class _ElementCollection(object):
             self.elements.append(field)
 
 
-class Form(Dict):
-    """A declarative collection of named fields.
+class Schema(Dict):
+    """A declarative collection of named elements.
 
     .. |Dict| replace:: `~flatland.schema.containers.Dict`
 
-    Forms behave like |Dict|, but are defined
-    with Python class syntax:
+    Schemas behave like |Dict|, but are defined with Python class syntax:
 
     .. doctest::
 
-      >>> from flatland import Form, String
-      >>> class HelloForm(Form):
+      >>> from flatland import Schema, String
+      >>> class HelloSchema(Schema):
       ...     hello = String
       ...     world = String
       ...
 
-    Fields are assigned names from the declaration.  If a named schema is
-    used, a renamed copy will be assigned to the Form.
+    Elements are assigned names from the attribute declaration.  If a named
+    element schema is used, a renamed copy will be assigned to the Schema to
+    match the declaration.
 
     .. doctest::
 
-      >>> class HelloForm(Form):
-      ...     hello = String.named('hello')   # redundant
-      ...     world = String.named('goodbye') # will be renamed 'world'
+      >>> class HelloSchema(Schema):
+      ...     hello = String.named('hello')    # redundant
+      ...     world = String.named('goodbye')  # will be renamed 'world'
       ...
-      >>> form = HelloForm()
-      >>> sorted(form.keys())
+      >>> helloworld = HelloSchema()
+      >>> sorted(helloworld.keys())
       [u'hello', u'world']
 
-    Forms may embed other container fields and other forms:
+    Schemas may embed other container fields and other schemas:
 
     .. doctest::
 
       >>> from flatland import List
-      >>> class BigForm(Form):
-      ...     main_hello = HelloForm
+      >>> class BigSchema(Schema):
+      ...     main_hello = HelloSchema
       ...     alt_hello = List.of(String.named('alt_name'),
-      ...                         HelloForm.named('alt_hello'))
+      ...                         HelloSchema.named('alt_hello'))
       ...
 
-    This would create a form with one ``HelloForm`` embedded as
+    This would create a Schema with one ``HelloSchema`` embedded as
     ``main_hello``, and a list of zero or more dicts, each containing an
-    ``alt_name`` and another ``HelloForm`` named ``alt_hello``.
+    ``alt_name`` and another ``HelloSchema`` named ``alt_hello``.
 
-    Forms may inherit from other Forms or Dicts.  Field declared in a subclass
-    will override those of a superclass.  Multiple inheritance is supported.
+    Schemas may inherit from other Schemas or Dicts.  Element attributes
+    declared in a subclass will override those of a superclass.  Multiple
+    inheritance is supported.
 
-    The special behavior of ``Form`` is limited to class construction time
-    only.  After construction, the ``Form`` acts exactly like a
-    |Dict|.  In particular, fields declared in class
-    attribute style do **not** remain class attributes.  They are removed from
-    the class dictionary and placed in the
-    `~flatland.schema.containers.Mapping.field_schema`:
+    The special behavior of ``Schema`` is limited to class construction time
+    only.  After construction, the ``Schema`` acts exactly like a |Dict|.  In
+    particular, fields declared as class attributes as above do **not** remain
+    class attributes.  They are removed from the class dictionary and placed
+    in the `~flatland.schema.containers.Mapping.field_schema`:
 
     .. doctest::
 
-      >>> hasattr(HelloForm, 'hello')
+      >>> hasattr(HelloSchema, 'hello')
       False
-      >>> sorted([field.name for field in HelloForm.field_schema])
+      >>> sorted([field.name for field in HelloSchema.field_schema])
       [u'hello', u'world']
 
-    The order of ``field_schema`` after construction is undefined.
+    The order of ``field_schema`` is undefined.
 
     """
 
-    __metaclass__ = _MetaForm
+    __metaclass__ = _MetaSchema
 
-    # TODO:
-    #   some kind of validator merging helper?  or punt?
+
+class SparseSchema(SparseDict):
+    """A sparse variant of `:~flatland.schema.declarative.Schema`.
+
+    Exactly as ``Schema``, but based upon
+    ``~flatland.schema.containers.SparseDict`.
+
+    """
+    __metaclass__ = _MetaSchema
+
+
+class Form(Dict):
+    """An alias for Schema, for older flatland version compatibility."""
+
+    __metaclass__ = _MetaSchema
