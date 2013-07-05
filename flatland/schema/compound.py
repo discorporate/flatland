@@ -2,6 +2,7 @@ from functools import wraps
 import operator
 
 from flatland.exc import AdaptationError
+from flatland.signals import element_set
 from flatland.util import (
     Unspecified,
     autodocument_from_superclasses,
@@ -177,15 +178,18 @@ class Compound(Mapping, Scalar):
     def set(self, value):
         self.raw = value
         try:
+            res = self.explode(value)
             # TODO: historically explode() did not need to have a return value
             # but it would be nice to return it form set() as below.
-            res = self.explode(value)
-            return True if res is None else res
+            res = True if res is None else res  # compat
+            element_set.send(self, adapted=res)
+            return res
         except (SystemExit, KeyboardInterrupt, NotImplementedError):
             raise
         except Exception:
             # not wild about quashing here, but set() doesn't allow
             # adaptation exceptions to bubble up.
+            element_set.send(self, adapted=False)
             return False
 
     def _set_flat(self, pairs, sep):
@@ -322,7 +326,10 @@ class JoinedString(Array, String):
             child = self.member_schema()
             success.append(child.set(value))
             self.append(child)
-        return all(success)
+
+        res = all(success)
+        element_set.send(self, adapted=res)
+        return res
 
     def _set_flat(self, pairs, sep):
         return Scalar._set_flat(self, pairs, sep)

@@ -1,9 +1,11 @@
+from __future__ import with_statement
 from flatland import (
     Dict,
     Integer,
     String,
     SparseDict,
     Unset,
+    element_set,
     )
 from flatland.util import Unspecified, keyslice_pairs
 from tests._util import (
@@ -319,6 +321,27 @@ def test_dict_raw():
     el = schema.from_flat([(u'x', u'123')])
     assert el.raw is Unset
     assert el[u'x'].raw == u'123'
+
+
+def test_dict_set_signal():
+    data = []
+    sentinel = lambda sender, adapted: data.append((sender, adapted))
+
+    schema = Dict.of(Integer.named('x'))
+    schema({u'x': 0})
+
+    with element_set.connected_to(sentinel):
+        schema({u'x': 1})
+        schema({u'x': u'bogus'})
+
+    assert len(data) == 4  # Integer, Dict, Integer, Dict
+    assert data[1][0].value == {u'x': 1}
+    assert data[1][1] is True
+
+    assert data[2][0].raw == u'bogus'
+    assert data[2][1] is False
+
+    assert data[3][1] is False
 
 
 def test_dict_as_unicode():

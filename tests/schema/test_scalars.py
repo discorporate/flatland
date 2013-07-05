@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import datetime
 import decimal
 
@@ -13,6 +14,7 @@ from flatland import (
     String,
     Time,
     Unset,
+    element_set,
     )
 
 from tests._util import eq_, assert_raises, requires_unicode_coercion
@@ -122,6 +124,23 @@ def test_scalar_set():
         ('\xef\xf0', None, ur'\ufffd\ufffd'),
         ):
         yield (coerced_validate_element_set, Integer) + spec
+
+
+def test_scalar_set_signal():
+    data = []
+    sentinel = lambda sender, adapted: data.append((sender, adapted))
+
+    Integer(0)
+    with element_set.connected_to(sentinel):
+        Integer(1)
+        Integer(u'bogus')
+
+    assert len(data) == 2
+    assert data[0][0].value == 1
+    assert data[0][1] is True
+
+    assert data[1][0].raw == u'bogus'
+    assert data[1][1] is False
 
 
 def test_integer():
