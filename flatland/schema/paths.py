@@ -35,7 +35,9 @@ _unescape_re = re.compile(r"\\(/|\[|\]|\.)")
 
 
 def pathexpr(expr):
-    if isinstance(expr, str):
+    if isinstance(expr, PathExpression):
+        return expr
+    elif isinstance(expr, str):
         expr = unicode(expr)
     elif isinstance(expr, basestring):
         pass

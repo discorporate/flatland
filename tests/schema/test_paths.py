@@ -179,6 +179,12 @@ def test_find_strict_loose():
         assert not found
 
 
+def test_pathexpr():
+    xy = pathexpr('x/y')
+    assert xy is pathexpr(xy)
+    assert xy == pathexpr(['x', 'y'])
+
+
 def _find_message(el, path, **find_kw):
     try:
         el.find(path, **find_kw)
