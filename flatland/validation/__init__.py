@@ -33,9 +33,3 @@ from network import (
     URLCanonicalizer,
     URLValidator,
     )
-from number import (
-    Luhn10,
-    )
-from string import (
-    NANPphone,
-    )
