@@ -175,6 +175,7 @@ class Compound(Mapping, Scalar):
     del set_value
 
     def set(self, value):
+        self.raw = value
         try:
             # TODO: historically explode() did not need to have a return value
             # but it would be nice to return it form set() as below.
@@ -300,6 +301,7 @@ class JoinedString(Array, String):
     children_flattenable = False
 
     def set(self, value):
+        self.raw = value
         if isinstance(value, (list, tuple)):
             values = value
         elif not isinstance(value, basestring):
