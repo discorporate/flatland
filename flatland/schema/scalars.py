@@ -93,8 +93,8 @@ class Scalar(Element):
             self.u = self.serialize(obj)
         return True
 
-    def adapt(self, value):
-        """Given any value, try to coerce it into native format.
+    def adapt(self, obj):
+        """Given any object *obj*, try to coerce it into native format.
 
         :returns: the native format or raises AdaptationError on failure.
 
@@ -103,8 +103,8 @@ class Scalar(Element):
         """
         raise NotImplementedError()
 
-    def serialize(self, value):
-        """Given any value, coerce it into a Unicode representation.
+    def serialize(self, obj):
+        """Given any object *obj*, coerce it into a Unicode representation.
 
         :returns: **Must** return a Unicode object, always.
 
@@ -112,10 +112,10 @@ class Scalar(Element):
         compatible type.
 
         This semi-abstract method is called by :meth:`set`.  The base
-        implementation returns ``unicode(value)``.
+        implementation returns ``unicode(obj)``.
 
         """
-        return unicode(value)
+        return unicode(obj)
 
     def _index(self, name):
         raise IndexError(name)
