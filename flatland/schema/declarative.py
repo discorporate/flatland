@@ -146,10 +146,10 @@ class Schema(Dict):
 
 
 class SparseSchema(SparseDict):
-    """A sparse variant of `:~flatland.schema.declarative.Schema`.
+    """A sparse variant of `~flatland.schema.declarative.Schema`.
 
     Exactly as ``Schema``, but based upon
-    ``~flatland.schema.containers.SparseDict`.
+    ~flatland.schema.containers.SparseDict`.
 
     """
     __metaclass__ = _MetaSchema
