@@ -49,12 +49,12 @@ class Scalar(Element):
 
     validates_down = 'validators'
 
-    def set(self, value):
-        """Assign the native and Unicode value.
+    def set(self, obj):
+        """Process *obj* and assign the native and Unicode values.
 
-        :returns: True if adaptation of *value* was successful.
+        :returns: True if adaptation of *obj* was successful.
 
-        Attempts to adapt the given value and assigns this element's
+        Attempts to adapt the given object and assigns this element's
         :attr:`~flatland.Element.value` and :attr:`u`
         attributes in tandem.
 
@@ -64,32 +64,33 @@ class Scalar(Element):
         of ``None`` will be represented as ``u''`` in ``.u``.
 
         If adaptation fails, ``.value`` will be ``None`` and ``.u`` will
-        contain ``unicode(value)`` or ``u''`` for none.
+        contain ``unicode(obj)`` or ``u''`` for none.
 
         """
-        self.raw = value
+        self.raw = obj
         try:
             # adapt and normalize the value, if possible
-            value = self.value = self.adapt(value)
+            obj = self.value = self.adapt(obj)
         except AdaptationError:
-            self.value = None
-            if value is None:
+            self.value = None  # could not be adapted
+            # but, still try to textify it
+            if obj is None:
                 self.u = u''
-            elif isinstance(value, unicode):
-                self.u = value
+            elif isinstance(obj, unicode):
+                self.u = obj
             else:
                 try:
-                    self.u = unicode(value)
+                    self.u = unicode(obj)
                 except UnicodeDecodeError:
-                    self.u = unicode(value, errors='replace')
+                    self.u = unicode(obj, errors='replace')
             return False
 
         # stringify it, possibly storing what we received verbatim or a
         # normalized version of it.
-        if value is None:
+        if obj is None:
             self.u = u''
         else:
-            self.u = self.serialize(value)
+            self.u = self.serialize(obj)
         return True
 
     def adapt(self, value):

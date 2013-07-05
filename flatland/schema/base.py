@@ -604,10 +604,10 @@ class Element(object):
                          if e.flattenable)
         return pairs
 
-    def set(self, value):
-        """Assign the native and Unicode value.
+    def set(self, obj):
+        """Process *obj* and assign the native and Unicode values.
 
-        Attempts to adapt the given *value* and assigns this element's
+        Attempts to adapt the given *obj* and assigns this element's
         :attr:`value` and :attr:`u` attributes in tandem.  Returns True if the
         adaptation was successful.
 
