@@ -4,7 +4,7 @@ from blinker import signal
 validator_validated = signal('validator_validated', doc="""\
 Emitted after a validator has processed an element.
 
-:param sender: the validator
+:param sender: the validator callable doing validation
 
 :param element: the element being validated
 
