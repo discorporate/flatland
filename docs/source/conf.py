@@ -28,7 +28,7 @@ autodoc_member_order = 'bysource'
 
 intersphinx_mapping = {
     'http://docs.python.org/': None,
-    'http://discorporate.us/projects/Blinker/docs/tip/': None,
+    'http://pythonhosted.org/blinker/': None,
 }
 
 
