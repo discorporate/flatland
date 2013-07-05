@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import datetime
 import re
 
@@ -8,6 +9,7 @@ from flatland import (
     Integer,
     JoinedString,
     String,
+    element_set,
     )
 
 from tests._util import assert_raises, eq_, raises
@@ -189,9 +191,10 @@ class TestDoubleField(object):
                     x, y = value
                 except (TypeError, ValueError):
                     return False
-                self[u'x'].set(x)
-                self[u'y'].set(y)
-                return True
+                res = True
+                res &= self[u'x'].set(x)
+                res &= self[u'y'].set(y)
+                return res
 
         self.Double = Double
 
@@ -252,6 +255,34 @@ class TestDoubleField(object):
         assert e.set((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
+
+    def test_element_set(self):
+        data = []
+        sentinel = lambda sender, adapted: data.append((sender, adapted))
+
+        schema = self.Double.named(u's')
+
+        schema((0, 0))
+        with element_set.connected_to(sentinel):
+            schema((1, 1))
+            schema((2, u'bad child'))
+            schema(u'bad root')
+
+        assert len(data) == 7
+
+        # 1, 1
+        assert data[2][0].value == (1, 1)
+        assert data[2][1] is True
+
+        # 2, 'bad child'
+        assert data[3][1] is True
+        assert data[4][0].raw == u'bad child'
+        assert data[4][1] is False
+        assert data[5][1] is False
+
+        # u'bad root
+        assert data[6][0].raw == u'bad root'
+        assert data[6][1] is False
 
     def test_set_default(self):
         s = self.Double.named(u's').using(default=(4, 5))

@@ -4,6 +4,7 @@ import decimal
 import re
 
 from flatland.exc import AdaptationError
+from flatland.signals import element_set
 from flatland.util import (
     Unspecified,
     as_mapping,
@@ -83,6 +84,7 @@ class Scalar(Element):
                     self.u = unicode(obj)
                 except UnicodeDecodeError:
                     self.u = unicode(obj, errors='replace')
+            element_set.send(self, adapted=False)
             return False
 
         # stringify it, possibly storing what we received verbatim or a
@@ -91,6 +93,7 @@ class Scalar(Element):
             self.u = u''
         else:
             self.u = self.serialize(obj)
+        element_set.send(self, adapted=True)
         return True
 
     def adapt(self, obj):

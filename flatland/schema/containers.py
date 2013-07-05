@@ -11,6 +11,7 @@ from flatland.util import (
     re_uescape,
     to_pairs,
     )
+from flatland.signals import element_set
 from .base import Element, Unevaluated, Slot, validate_element
 from .scalars import Scalar
 
@@ -232,8 +233,10 @@ class Sequence(Container, list):
                 values.append(el)
             self.extend(values)
         except TypeError:
+            element_set.send(self, adapted=False)
             return False
         else:
+            element_set.send(self, adapted=converted)
             return converted
 
     def set_default(self):
@@ -803,6 +806,7 @@ class Mapping(Container, dict):
             raise TypeError(
                 'all keys required for a set() operation, missing %s.' % (
                     ','.join(repr(key) for key in missing)))
+        element_set.send(self, adapted=converted)
         return converted
 
     def _set_flat(self, pairs, sep):
@@ -999,6 +1003,7 @@ class Dict(Mapping, dict):
             else:
                 self[key] = el = fields[key]()
                 converted &= el.set(value)
+        element_set.send(self, adapted=converted)
         return converted
 
     def set_by_object(self, obj, include=None, omit=None, rename=None):

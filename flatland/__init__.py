@@ -37,6 +37,7 @@ from flatland.schema import (
     Unevaluated,
     Unset,
     )
+from flatland.signals import element_set
 from flatland.util import Unspecified, class_cloner
 
 
@@ -79,6 +80,7 @@ __all__ = [
     'Unset',
     'Unspecified',
     'class_cloner',
+    'element_set',
     ]
 
 __version__ = 'dev'

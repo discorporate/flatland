@@ -5,6 +5,8 @@ Changes
 Pre-release
 -----------
 
+- .set() now emits element_set signal
+
 - flatland.Form deprecated by flatland.Schema
 
 - flatland.SparseSchema is a declarative Schema backed by SparseDict
