@@ -387,7 +387,7 @@ class Constrained(Scalar):
         return False
 
     def adapt(self, value):
-        value = self.child_schema.adapt(value)
+        value = self.child_schema.adapt(value)  # may raise AdaptationError
         if not self.valid_value(self, value):
             raise AdaptationError()
         return value
