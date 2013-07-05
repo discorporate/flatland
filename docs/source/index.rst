@@ -43,4 +43,5 @@ Contents
    markup
    signals
    patterns/index
+   api
    project

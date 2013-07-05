@@ -6,11 +6,6 @@ Strings, Numbers and Booleans
 
 .. currentmodule:: flatland.schema.scalars
 
-Simple Fields
--------------
-
-.. autoclass:: Scalar
-
 
 Strings
 -------
@@ -21,14 +16,9 @@ Strings
 Numbers
 -------
 
-.. autoclass:: Number
-
-
 .. autoclass:: Integer
 
-
 .. autoclass:: Long
-
 
 .. autoclass:: Float
 
