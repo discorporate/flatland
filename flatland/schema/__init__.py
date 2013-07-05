@@ -39,7 +39,7 @@ from .compound import (
     DateYYYYMMDD,
     JoinedString,
     )
-from .forms import (
+from .declarative import (
     Form,
     )
 from .properties import (
