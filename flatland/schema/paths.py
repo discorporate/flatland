@@ -48,7 +48,7 @@ def pathexpr(expr):
         if len(expression_cache) < max_cache_size:
             return expression_cache.setdefault(expr, compiled)
         else:
-            return compile
+            return compiled
 
 
 class PathExpression(object):
