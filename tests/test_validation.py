@@ -1,6 +1,6 @@
 from flatland import (
     Dict,
-    Form,
+    Schema,
     Integer,
     )
 from flatland.validation import (
@@ -50,7 +50,7 @@ class ThirtySomething(Age):
 
 def test_custom_validation():
 
-    class MyForm(Form):
+    class MyForm(Schema):
         age = ThirtySomething
 
     f = MyForm.from_flat({})
@@ -72,7 +72,7 @@ def test_custom_validation():
 
 def test_child_validation():
 
-    class MyForm(Form):
+    class MyForm(Schema):
         x = Integer.using(validators=[Present()])
 
     form = MyForm()
@@ -84,7 +84,7 @@ def test_child_validation():
 
 def test_nested_validation():
 
-    class MyForm(Form):
+    class MyForm(Schema):
         x = Integer.using(validators=[Present()])
 
         d2 = Dict.of(Integer.named('x2').using(validators=[Present()]))

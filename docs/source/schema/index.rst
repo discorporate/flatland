@@ -9,7 +9,7 @@ Introduction
 .. toctree::
    :maxdepth: 1
 
-   forms
+   declarative
    schema
    traversal
    properties

@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from flatland import (
     Date,
     Dict,
-    Form,
+    Schema,
     Integer,
     List,
     String,
@@ -27,14 +27,14 @@ from tests._util import eq_
 
 def form(value):
 
-    class Schema(Form):
+    class Mixed(Schema):
         name = 'test'
         x = String
         y = String
         z = String
         sub = Dict.of(String.named('xx'))
 
-    return Schema(value)
+    return Mixed(value)
 
 
 def scalar(value):

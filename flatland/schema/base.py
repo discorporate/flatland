@@ -453,8 +453,8 @@ class Element(object):
 
         .. testsetup:: find
 
-          from flatland import Form, Dict, List, String
-          class Profile(Form):
+          from flatland import Schema, Dict, List, String
+          class Profile(Schema):
               contact = Dict.of(String.named('name'),
                                 List.named('addresses').
                                   of(Dict.of(String.named('street1'),
@@ -571,8 +571,8 @@ class Element(object):
 
         Given a simple form with a string field and a nested dictionary::
 
-          >>> from flatland import Dict, String
-          >>> class Nested(Form):
+          >>> from flatland import Schema, Dict, String
+          >>> class Nested(Schema):
           ...     contact = Dict.of(String.named(u'name'),
           ...                       Dict.named(u'address').
           ...                            of(String.named(u'email')))

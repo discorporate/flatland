@@ -2,9 +2,9 @@ from tests.markup._util import desired_output
 
 
 def simple_schema():
-    from flatland import Form, String
+    from flatland import Schema, String
 
-    class SmallForm(Form):
+    class SmallForm(Schema):
         valued = String
         empty = String
 

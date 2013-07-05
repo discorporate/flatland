@@ -6,7 +6,7 @@ test file, now providing a sample of some possible usage patterns.
 """
 from flatland import (
     Dict,
-    Form,
+    Schema,
     Integer,
     List,
     String,
@@ -29,7 +29,7 @@ REQUEST_DATA = ((u'abc', u'123'),
                 (u'ns_age', u'23'))
 
 
-class SimpleForm1(Form):
+class SimpleForm1(Schema):
     fname = String
     surname = String
     age = Integer
@@ -75,7 +75,7 @@ def test_namespaced_parse():
 
 def test_default_behavior():
 
-    class SimpleForm2(Form):
+    class SimpleForm2(Schema):
         fname = String.using(default=u'FN')
         surname = String
 
@@ -87,7 +87,7 @@ def test_default_behavior():
     eq_(form['fname'].value, u'FN')
     eq_(form['surname'].value, None)
 
-    class DictForm(Form):
+    class DictForm(Schema):
         dict = Dict.of(String.named('fname').using(default=u'FN'),
                        String.named('surname'))
 

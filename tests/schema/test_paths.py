@@ -4,7 +4,7 @@ from flatland import (
     DateYYYYMMDD,
     Dict,
     Integer,
-    Form,
+    Schema,
     List,
     )
 from flatland.schema.paths import (
@@ -83,7 +83,7 @@ def test_tokenize_escapes():
         yield _tokenizes_as, path, expected
 
 
-class Schema(Form):
+class Mixed(Schema):
     i1 = Integer.using(default=0)
 
     d1 = Dict.of(Integer.named('d1i1').using(default=1),
@@ -113,7 +113,7 @@ def _finds(el, path, expected):
 
 
 def test_evaluation():
-    el = Schema.from_defaults()
+    el = Mixed.from_defaults()
     today = date.today()
 
     _finders = [
@@ -164,7 +164,7 @@ def test_evaluation():
 
 
 def test_find_strict_loose():
-    el = Schema.from_defaults()
+    el = Mixed.from_defaults()
     _cases = [
         (el, 'bogus'),
         (el, '/d1/d1i3'),
@@ -194,10 +194,10 @@ def _find_message(el, path, **find_kw):
 
 
 def test_find_strict_messaging():
-    el = Schema.from_defaults()
+    el = Mixed.from_defaults()
 
     message = _find_message(el, 'bogus')
-    expected = ("Unnamed element Schema has no child u'bogus' "
+    expected = ("Unnamed element Mixed has no child u'bogus' "
                 "in expression u'bogus'")
     assert expected in message
 
@@ -213,7 +213,7 @@ def test_find_strict_messaging():
 
 
 def test_find_default():
-    el = Schema.from_defaults()
+    el = Mixed.from_defaults()
     _cases = [
         (el, 'i1', [0]),
         (el, 'a1[:]', [10, 11, 12, 13, 14, 15]),
@@ -227,7 +227,7 @@ def test_find_default():
 
 
 def test_find_single():
-    el = Schema.from_defaults()
+    el = Mixed.from_defaults()
     _cases = [
         (el, 'i1', 0),
         (el, 'bogus', None),
@@ -246,7 +246,7 @@ def test_find_single():
 
 
 def test_find_single_loose():
-    el = Schema.from_defaults()
+    el = Mixed.from_defaults()
 
     element = el.find('l3[:][:]', single=True, strict=False)
     found = element.value
@@ -254,7 +254,7 @@ def test_find_single_loose():
 
 
 def test_find_single_messaging():
-    el = Schema.from_defaults()
+    el = Mixed.from_defaults()
 
     message = _find_message(el, 'a1[:]', single=True)
     expected = "Path 'a1[:]' matched multiple elements"

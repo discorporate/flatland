@@ -2,9 +2,9 @@ from tests.markup._util import alternate_expectation, desired_output
 
 
 def simple_schema():
-    from flatland import Form, String
+    from flatland import Schema, String
 
-    class SmallForm(Form):
+    class SmallForm(Schema):
         name = "test"
 
         valued = String

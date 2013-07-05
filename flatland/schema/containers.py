@@ -931,8 +931,8 @@ class Dict(Mapping, dict):
             *obj*, if present on the object.  Only these attributes will be
             included.
         :param omit: optional, an iterable of attribute names to ignore on
-            **obj**.  All other attributes matching a named field on the Form
-            will be included.
+            **obj**.  All other attributes matching a named field on the
+            mapping will be included.
         :param rename: optional, a mapping of attribute-to-field name
             transformations.  Attributes specified in the mapping will be
             included regardless of *include* or *omit*.
@@ -1009,8 +1009,8 @@ class Dict(Mapping, dict):
             *obj*, if present on the object.  Only these attributes will be
             included.
         :param omit: optional, an iterable of attribute names to ignore on
-            **obj**.  All other attributes matching a named field on the Form
-            will be included.
+            **obj**.  All other attributes matching a named field on the
+            mapping will be included.
         :param rename: optional, a mapping of attribute-to-field name
             transformations.  Attributes specified in the mapping will be
             included regardless of *include* or *omit*.
@@ -1027,8 +1027,8 @@ class Dict(Mapping, dict):
         .. testsetup::
 
           # FIXME
-          from flatland import Form, String
-          class UserForm(Form):
+          from flatland import Schema, String
+          class UserForm(Schema):
               login = String
               password = String
               verify_password = String
