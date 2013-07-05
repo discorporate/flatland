@@ -113,6 +113,7 @@ class Element(object):
     properties = Properties()
     """A mapping of arbitrary data associated with the element."""
 
+    # TODO: doc these!
     flattenable = False
     children_flattenable = True
     validates_down = None
@@ -166,6 +167,8 @@ class Element(object):
         """
 
         # TODO: See TODO in __init__
+        # TODO: take this from 'validates_up' and 'validates_down',
+        #       don't hardcode validators
         if 'validators' in overrides:
             overrides['validators'] = list(overrides['validators'])
 
