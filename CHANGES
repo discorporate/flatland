@@ -1,0 +1,18 @@
+Changes
+=======
+
+
+Pre-release
+-----------
+
+- Element.find_child renamed to Element.find_one
+
+- Removed flatland.ext (example credit card type)
+
+- Removed NAN related example validators
+
+- Deprecated Element.el is removed (use .find and .find_one)
+
+- Usage of deferred_module has been retired
+
+- Dict.policy is deprecated by Element.raw and new standard validators
