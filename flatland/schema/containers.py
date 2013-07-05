@@ -1114,7 +1114,6 @@ class SparseDict(Dict):
 
     #: The subset of fields to autovivify on instantiation.
     #:
-
     #: May be ``None`` or ``'required'``.  If ``None``, mappings will be
     #: created empty and mutation operations are unrestricted within the
     #: bounds of the :attr:`field_schema`.  If ``required``, fields with
