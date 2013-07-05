@@ -80,8 +80,6 @@ class _ElementCollection(object):
 class Schema(Dict):
     """A declarative collection of named elements.
 
-    .. |Dict| replace:: `~flatland.schema.containers.Dict`
-
     Schemas behave like |Dict|, but are defined with Python class syntax:
 
     .. doctest::
