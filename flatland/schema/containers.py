@@ -1074,7 +1074,7 @@ class Dict(Mapping, dict):
             attributes.difference_update(omit)
 
         possible = ((attr, getattr(obj, attr))
-                    for attr in attributes
+                    for attr in sorted(attributes)
                     if hasattr(obj, attr))
 
         sliced = keyslice_pairs(possible, include=include,
@@ -1101,10 +1101,14 @@ class Dict(Mapping, dict):
 
     def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a ``dict`` containing a subset of the element's values."""
-        return dict(
-            keyslice_pairs(
-                ((key, element.value) for key, element in self.iteritems()),
-                include=include, omit=omit, rename=rename, key=key))
+        pairs = ((key, element.value)
+                 for key, element in sorted(self.iteritems()))
+        sliced = keyslice_pairs(pairs,
+                                include=include,
+                                omit=omit,
+                                rename=rename,
+                                key=key)
+        return dict(sliced)
 
 
 class SparseDict(Dict):
