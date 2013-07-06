@@ -3,16 +3,16 @@ import sys
 
 __all__ = [
     'PY2',
-    'bytestring',
-    'text',
+    'bytestring_type',
+    'text_type',
     ]
 
 
 PY2 = sys.version_info[0] == 2
 
 if PY2:
-    text = unicode
-    bytestring = str
+    text_type = unicode
+    bytestring_type = str
 else:
-    text = str
-    bytestring = bytes
+    text_type = str
+    bytestring_type = bytes
