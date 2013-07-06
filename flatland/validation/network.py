@@ -104,6 +104,7 @@ class IsEmail(Validator):
 # ordered generic URL part names according to urlparse
 _url_parts = ['scheme', 'netloc', 'path', 'params', 'query', 'fragment']
 
+
 class URLValidator(Validator):
     """A general URL validator.
 
