@@ -1,3 +1,4 @@
+from flatland._compat import text_type
 from flatland.util import Maybe
 
 
@@ -9,10 +10,10 @@ MAYBE = (u'auto',)
 def parse_trool(value):
     if value is True or value is False or value is Maybe:
         return value
-    if isinstance(value, unicode):
+    if isinstance(value, text_type):
         value = value.lower()
     else:
-        value = unicode(value).lower()
+        value = text_type(value).lower()
     if value in YES:
         return True
     if value in NO:
