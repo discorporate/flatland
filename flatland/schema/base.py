@@ -61,7 +61,7 @@ class Element(object):
     """The Unicode name of the element."""
 
     optional = False
-    """If True, :meth:`validate` with return True if no value has been set.
+    """If True, :meth:`validate` will return True when no value has been set.
 
     :attr:`validators` are not called for optional, empty elements.
     """
