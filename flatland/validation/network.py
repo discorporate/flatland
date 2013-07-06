@@ -3,6 +3,7 @@
 import re
 import urlparse
 
+from flatland._compat import text_type
 from base import N_, Validator
 
 
@@ -258,7 +259,7 @@ class HTTPURLValidator(Validator):
             try:
                 value = getattr(parsed, part)
                 if part == 'port':
-                    value = None if value is None else str(value)
+                    value = None if value is None else text_type(value)
             except ValueError:
                 return self.note_error(element, state, 'bad_format')
             required = self.required_parts.get(part)
