@@ -13,7 +13,7 @@ from genshi.template.eval import Expression
 from genshi.template.directives import Directive
 from genshi.template.interpolation import interpolate
 
-
+from flatland._compat import text_type
 from flatland.out.generic import _unpack, transform, Context
 
 
@@ -122,7 +122,7 @@ class ControlAttribute(AttributeOnly):
     def inject(self, mapping, ctxt, vars):
         """Inject the translated key and interpolated value into *mapping*."""
         raw = self.raw_value
-        if raw.__class__ is unicode:
+        if raw.__class__ is text_type:
             final_value = raw
         else:
             parts = []
@@ -131,7 +131,7 @@ class ControlAttribute(AttributeOnly):
                     parts.append(value)
                 else:
                     value = _eval_expr(value, ctxt, vars)
-                    parts.append(unicode(value))
+                    parts.append(text_type(value))
             final_value = u''.join(parts)
         mapping[_to_context.get(self._name, self._name)] = final_value
 
@@ -273,7 +273,7 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
     existing_attributes = {}
     for qname, value in attrs:
         if qname.namespace is None:
-            if not isinstance(value, unicode):
+            if not isinstance(value, text_type):
                 value = _simplify_stream(value, ctxt, vars)
                 attrs |= ((qname, value),)
             existing_attributes[qname.localname] = qname
@@ -289,7 +289,7 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
 
     if new_contents is None:
         new_contents = ()
-    elif isinstance(new_contents, unicode):
+    elif isinstance(new_contents, text_type):
         new_contents = [(TEXT, new_contents, (None, -1, -1))]
 
     pairs = sorted(mutable_attrs.iteritems(), key=_attribute_sort_key)
@@ -370,12 +370,12 @@ def _simplify_stream(stream, ctxt, vars):
                 while hasattr(value, '__next__') or hasattr(value, 'next'):
                     value = list(value)
                     value = _simplify_stream(value, ctxt, vars)
-                if not isinstance(value, unicode):
+                if not isinstance(value, text_type):
                     stream[idx:idx + 1] = value
                 else:
                     stream[idx] = (TEXT, value, pos)
-            elif not isinstance(value, unicode):
-                value = unicode(value)
+            elif not isinstance(value, text_type):
+                value = text_type(value)
             parts.append(value)
         else:
             return stream
