@@ -500,26 +500,6 @@ class Element(object):
         """Return a named child or raise LookupError."""
         raise NotImplementedError()
 
-    @classmethod
-    def _parse_element_path(self, path, sep):
-        if isinstance(path, basestring):
-            if path == sep:
-                return [Root]
-            elif path.startswith(sep):
-                path = path[len(sep):]
-                parts = [Root]
-            else:
-                parts = []
-            parts.extend(path.split(sep))
-            return iter(parts)
-        else:
-            return iter(path)
-        if isinstance(path, (list, tuple)) or hasattr(path, 'next'):
-            return path
-        else:
-            assert False
-            return None
-
     def add_error(self, message):
         "Register an error message on this element, ignoring duplicates."
         if message not in self.errors:
