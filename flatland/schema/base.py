@@ -3,7 +3,7 @@ import collections
 import itertools
 import operator
 
-from flatland._compat import PY2, bytestring_type, text_type
+from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.schema.paths import pathexpr
 from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
@@ -177,7 +177,7 @@ class Element(object):
             if not isinstance(overrides['properties'], Properties):
                 overrides['properties'] = Properties(overrides['properties'])
 
-        for attribute, value in overrides.iteritems():
+        for attribute, value in iteritems(overrides):
             # TODO: must make better
             if callable(value):
                 value = staticmethod(value)
