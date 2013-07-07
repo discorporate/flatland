@@ -199,7 +199,7 @@ class Compound(Mapping, Scalar):
     def __repr__(self):
         try:
             return Scalar.__repr__(self)
-        except Exception, exc:
+        except Exception as exc:
             return '<%s %r; value raised %s>' % (
                 type(self).__name__, self.name, type(exc).__name__)
 
