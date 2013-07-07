@@ -145,8 +145,6 @@ class Schema(with_metaclass(_MetaSchema, Dict)):
 
     """
 
-    __metaclass__ = _MetaSchema
-
 
 class SparseSchema(with_metaclass(_MetaSchema, SparseDict)):
     """A sparse variant of `~flatland.schema.declarative.Schema`.
@@ -155,10 +153,7 @@ class SparseSchema(with_metaclass(_MetaSchema, SparseDict)):
     ~flatland.schema.containers.SparseDict`.
 
     """
-    __metaclass__ = _MetaSchema
 
 
 class Form(with_metaclass(_MetaSchema, Dict)):
     """An alias for Schema, for older flatland version compatibility."""
-
-    __metaclass__ = _MetaSchema
