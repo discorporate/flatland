@@ -1,5 +1,5 @@
 from flatland import String
-from flatland._compat import iterkeys
+from flatland._compat import iterkeys, itervalues
 from flatland.schema.properties import Properties
 
 from nose.tools import assert_raises
@@ -46,7 +46,7 @@ def test_dictlike():
     assert sorted(iterkeys(props)) == ['abc', 'def']
 
     assert sorted(props.values()) == [123, 456]
-    assert sorted(props.itervalues()) == [123, 456]
+    assert sorted(itervalues(props)) == [123, 456]
 
     assert props.get('abc') == 123
     assert props.get('abc', 'blah') == 123

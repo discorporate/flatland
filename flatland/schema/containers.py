@@ -6,6 +6,7 @@ from flatland._compat import (
     PY2,
     identifier_transform,
     iterkeys,
+    itervalues,
     bytestring_type,
     )
 from flatland.util import (
@@ -793,7 +794,7 @@ class Mapping(Container, dict):
     @property
     def children(self):
         # order not guaranteed
-        return self.itervalues()
+        return itervalues(self)
 
     def set(self, value):
         """.. TODO:: doc set()"""
