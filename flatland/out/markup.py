@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from flatland._compat import PY2, bytestring_type, text_type
+from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
@@ -277,7 +277,7 @@ class Tag(object):
         if self._context[u'ordered_attributes']:
             pairs = sorted(attributes.items(), key=_attribute_sort_key)
         else:
-            pairs = attributes.iteritems()
+            pairs = iteritems(attributes)
         guts = u' '.join(u'%s="%s"' % (k, _attribute_escape(v))
                          for k, v in pairs)
         if guts:

@@ -5,6 +5,7 @@ import re
 from flatland._compat import (
     PY2,
     identifier_transform,
+    iteritems,
     iterkeys,
     itervalues,
     bytestring_type,
@@ -776,7 +777,7 @@ class Mapping(Container, dict):
         elif dictish:
             for key, value in to_pairs(dictish[0]):
                 self[key] = value
-        for key, value in kwargs.iteritems():
+        for key, value in iteritems(kwargs):
             self[key] = value
 
     def setdefault(self, key, default=None):
@@ -867,7 +868,7 @@ class Mapping(Container, dict):
         """A string repr of the element."""
         pairs = ((key, value.u if isinstance(value, Container)
                                else repr(value.u).decode('raw_unicode_escape'))
-                  for key, value in self.iteritems())
+                  for key, value in iteritems(self))
         return u'{%s}' % u', '.join(
             u"%s: %s" % (repr(k).decode('raw_unicode_escape'), v)
             for k, v in pairs)
@@ -875,7 +876,7 @@ class Mapping(Container, dict):
     @property
     def value(self):
         """The element as a regular Python dictionary."""
-        return dict((key, value.value) for key, value in self.iteritems())
+        return dict((key, value.value) for key, value in iteritems(self))
 
     @property
     def is_empty(self):
@@ -1109,13 +1110,13 @@ class Dict(Mapping, dict):
 
         """
         data = self.slice(include=include, omit=omit, rename=rename, key=key)
-        for attribute, value in data.iteritems():
+        for attribute, value in iteritems(data):
             setattr(obj, attribute, value)
 
     def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a ``dict`` containing a subset of the element's values."""
         pairs = ((key, element.value)
-                 for key, element in sorted(self.iteritems()))
+                 for key, element in sorted(iteritems(self)))
         sliced = keyslice_pairs(pairs,
                                 include=include,
                                 omit=omit,
