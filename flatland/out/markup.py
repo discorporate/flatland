@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from flatland._compat import bytestring_type, text_type
+from flatland._compat import PY2, bytestring_type, text_type
 from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
@@ -12,7 +12,7 @@ _static_attribute_order = [u'type', u'name', u'value']
 class Generator(Context):
     """General XML/HTML tag generator"""
 
-    def __init__(self, markup='xhtml', **settings):
+    def __init__(self, markup=u'xhtml', **settings):
         """Create a generator.
 
         Accepts any :ref:`markupsettings`, as well as the following:
@@ -25,9 +25,9 @@ class Generator(Context):
 
         """
         Context.__init__(self)
-        if markup == 'html':
+        if markup == u'html':
             self.xml = False
-        elif markup in ('xhtml', 'xml'):
+        elif markup in (u'xhtml', u'xml'):
             self.xml = True
         else:
             raise TypeError("Unknown markup type %r" % markup)
@@ -45,7 +45,7 @@ class Generator(Context):
 
         """
         self.push(**settings)
-        return self['markup_wrapper'](u'')
+        return self[u'markup_wrapper'](u'')
 
     def end(self):
         """End a :ref:`markupsettings` context.
@@ -56,7 +56,7 @@ class Generator(Context):
         if len(self._frames) == 2:
             raise RuntimeError("end() without matching begin()")
         self.pop()
-        return self['markup_wrapper'](u'')
+        return self[u'markup_wrapper'](u'')
 
     def set(self, **settings):
         """Change the :ref:`markupsettings` in effect.
@@ -68,13 +68,15 @@ class Generator(Context):
         """
 
         for key, value in settings.items():
+            if PY2:
+                key = key.decode('ascii')
             if key not in self:
                 raise TypeError(
                     "%r is not a valid argument." % key)
-            if key.startswith('auto_'):
+            if key.startswith(u'auto_'):
                 value = parse_trool(value)
             self[key] = value
-        return self['markup_wrapper'](u'')
+        return self[u'markup_wrapper'](u'')
 
     @property
     def form(self):
@@ -257,7 +259,11 @@ class Tag(object):
     def _open(self, bind, kwargs):
         """Return a ``'<partial'`` opener tag with no terminator."""
         contents = kwargs.pop('contents', None)
-        attributes = _unicode_keyed(kwargs)
+
+        if PY2:
+            attributes = _unicode_keyed(kwargs)
+        else:
+            attributes = kwargs
         tagname = self.tagname
         new_contents = transform(
             tagname, attributes, contents, self._context, bind)
@@ -268,7 +274,7 @@ class Tag(object):
             new_contents = _unpack(new_contents)
         self.contents = self._markup(new_contents)
 
-        if self._context['ordered_attributes']:
+        if self._context[u'ordered_attributes']:
             pairs = sorted(attributes.items(), key=_attribute_sort_key)
         else:
             pairs = attributes.iteritems()
@@ -283,7 +289,7 @@ class Tag(object):
         return u'</' + self.tagname + u'>'
 
     def _markup(self, string):
-        return self._context['markup_wrapper'](string)
+        return self._context[u'markup_wrapper'](string)
 
     def __call__(self, bind=None, **attributes):
         """Return a complete, closed markup string."""

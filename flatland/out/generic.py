@@ -1,6 +1,6 @@
 import re
 
-from flatland._compat import text_type
+from flatland._compat import PY2, bytestring_type, text_type
 from flatland.out.util import parse_trool
 from flatland.schema import Array, Boolean
 from flatland.util import Maybe, to_pairs
@@ -66,7 +66,9 @@ class Context(object):
             for key, value in source:
                 self[key] = value
         for key, value in kwargs.iteritems():
-            self[key.decode('ascii')] = value
+            if PY2:
+                key = key.decode('ascii')
+            self[key] = value
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self._frames[-1])
@@ -81,7 +83,7 @@ class Markup(text_type):
     def __html__(self):
         return self
 
-_default_context['markup_wrapper'] = Markup
+_default_context[u'markup_wrapper'] = Markup
 
 
 def transformer(name, tags):
@@ -172,7 +174,7 @@ def transform_value(tagname, attributes, contents, context, bind):
             attributes.pop(u'selected', None)
     elif tagname == u'textarea':
         if contents is None or forced:
-            return context['markup_wrapper'](_markup_escape(bind.u))
+            return context[u'markup_wrapper'](_markup_escape(bind.u))
     else:
         current = attributes.get(u'value')
         if current is None or forced:
@@ -225,7 +227,7 @@ def transform_tabindex(tagname, attributes, contents, context, bind):
 
     current = attributes.get(u'tabindex')
     if forced or current is None and tagname in _auto_tags[u'tabindex']:
-        attributes[u'tabindex'] = text_type(tabindex)
+        attributes[u'tabindex'] = bytestring_type(tabindex).decode('ascii')
         if tabindex > 0:
             context[u'tabindex'] = tabindex + 1
     return contents

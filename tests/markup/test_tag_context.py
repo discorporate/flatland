@@ -5,7 +5,7 @@ def simple_schema():
     from flatland import Schema, String
 
     class SmallForm(Schema):
-        name = "test"
+        name = u'test'
 
         valued = String
         empty = String
@@ -15,7 +15,7 @@ def simple_schema():
 ### value
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def value_default():
     """<input name="test_valued" value="val" />"""
 
@@ -27,10 +27,10 @@ def test_value_default_genshi():
 
 @value_default.markup
 def test_value_default_markup(gen, el):
-    return gen.input(el['valued'])
+    return gen.input(el[u'valued'])
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def value_disabled():
     """<input name="test_valued" />"""
 
@@ -47,7 +47,7 @@ def test_with_value_disabled_genshi():
 @value_disabled.markup
 def test_with_value_disabled_markup(gen, el):
     gen.begin(auto_value=False)
-    output = gen.input(el['valued'])
+    output = gen.input(el[u'valued'])
     gen.end()
     return output
 
@@ -63,7 +63,7 @@ def test_set_value_disabled_genshi():
 @value_disabled.markup
 def test_set_value_disabled_markup(gen, el):
     gen.set(auto_value=False)
-    output = gen.input(el['valued'])
+    output = gen.input(el[u'valued'])
     return output
 
 
@@ -74,7 +74,7 @@ def test_element_value_disabled_genshi():
 
 @value_disabled.markup
 def test_element_value_disabled_markup(gen, el):
-    return gen.input(el['valued'], auto_value=False)
+    return gen.input(el[u'valued'], auto_value=False)
 
 
 @value_disabled.genshi
@@ -89,13 +89,13 @@ def test_element_value_auto_genshi():
 @value_disabled.markup
 def test_element_value_auto_markup(gen, el):
     gen.begin(auto_value=False)
-    output = gen.input(el['valued'], auto_value="auto")
+    output = gen.input(el[u'valued'], auto_value="auto")
     gen.end()
     return output
 
 ### name
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def name_default():
     """<form name="test"></form>"""
 
@@ -110,7 +110,7 @@ def test_name_default_markup(gen, el):
     return gen.form(el)
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def name_disabled():
     """<form></form>"""
 
@@ -176,7 +176,7 @@ def test_element_name_auto_markup(gen, el):
 ### domid
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def domid_default():
     """<select name="test_valued"></select>"""
 
@@ -188,10 +188,10 @@ def test_domid_default_genshi():
 
 @domid_default.markup
 def test_domid_default_markup(gen, el):
-    return gen.select(el['valued'])
+    return gen.select(el[u'valued'])
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def domid_enabled():
     """<select name="test_valued" id="-test_valued-"></select>"""
 
@@ -207,8 +207,8 @@ def test_with_domid_enabled_genshi():
 
 @domid_enabled.markup
 def test_with_domid_enabled_markup(gen, el):
-    gen.begin(auto_domid=True, domid_format="-%s-")
-    output = gen.select(el['valued'])
+    gen.begin(auto_domid=True, domid_format=u'-%s-')
+    output = gen.select(el[u'valued'])
     gen.end()
     return output
 
@@ -223,8 +223,8 @@ def test_set_domid_enabled_genshi():
 
 @domid_enabled.markup
 def test_set_domid_enabled_markup(gen, el):
-    gen.set(auto_domid=True, domid_format="-%s-")
-    return gen.select(el['valued'])
+    gen.set(auto_domid=True, domid_format=u'-%s-')
+    return gen.select(el[u'valued'])
 
 
 @domid_enabled.genshi
@@ -237,8 +237,8 @@ def test_element_domid_enabled_genshi():
 
 @domid_enabled.markup
 def test_element_domid_enabled_markup(gen, el):
-    gen.set(domid_format="-%s-")
-    return gen.select(el['valued'], auto_domid=True)
+    gen.set(domid_format=u'-%s-')
+    return gen.select(el[u'valued'], auto_domid=True)
 
 
 @domid_enabled.genshi
@@ -252,8 +252,8 @@ def test_element_domid_auto_genshi():
 
 @domid_enabled.markup
 def test_element_domid_auto_markup(gen, el):
-    gen.begin(auto_domid=True, domid_format="-%s-")
-    output = gen.select(el['valued'], auto_domid="auto")
+    gen.begin(auto_domid=True, domid_format=u'-%s-')
+    output = gen.select(el[u'valued'], auto_domid=u'auto')
     gen.end()
     return output
 
@@ -266,13 +266,13 @@ def test_element_domid_auto_markup(gen, el):
 
 
 def filter1(tagname, attributes, contents, context, bind):
-    attributes['class'] = 'required'
-    contents += ' *'
+    attributes[u'class'] = u'required'
+    contents += u' *'
 
     return contents
 
 
-@desired_output('xhtml', simple_schema, funky_filter=filter1)
+@desired_output(u'xhtml', simple_schema, funky_filter=filter1)
 def filter_enabled():
     """
     <label class="required">field2 *</label>
@@ -291,6 +291,6 @@ def test_with_filter_enabled_genshi():
 @filter_enabled.markup
 def test_with_filter_enabled_markup(gen, el, funky_filter):
     gen.begin(auto_filter=True, filters=[funky_filter])
-    output = gen.label(el['valued'], contents='field2')
+    output = gen.label(el[u'valued'], contents=u'field2')
     gen.end()
     return output

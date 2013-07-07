@@ -306,7 +306,7 @@ def test_dict_strict():
 
 
 def test_dict_raw():
-    schema = Dict.of(Integer.named('x').using(optional=False))
+    schema = Dict.of(Integer.named(u'x').using(optional=False))
     el = schema()
     assert el.raw is Unset
 
@@ -327,7 +327,7 @@ def test_dict_set_signal():
     data = []
     sentinel = lambda sender, adapted: data.append((sender, adapted))
 
-    schema = Dict.of(Integer.named('x'))
+    schema = Dict.of(Integer.named(u'x'))
     schema({u'x': 0})
 
     with element_set.connected_to(sentinel):
@@ -618,16 +618,16 @@ def test_sparsedict_flattening():
                         of(Integer.named(u'x'), Integer.named(u'y'))
 
     els = [
-        schema({'x': 123, 'y': 456}),
+        schema({u'x': 123, u'y': 456}),
         schema(),
         schema(),
         schema(),
         ]
-    els[1].set({'x': 123, 'y': 456})
-    els[2]['x'] = 123
-    els[2]['y'] = 456
-    els[3]['x'] = Integer(123)
-    els[3]['y'] = Integer(456)
+    els[1].set({u'x': 123, u'y': 456})
+    els[2][u'x'] = 123
+    els[2][u'y'] = 456
+    els[3][u'x'] = Integer(123)
+    els[3][u'y'] = Integer(456)
 
     wanted = [(u'top_x', u'123'), (u'top_y', u'456')]
     for el in els:

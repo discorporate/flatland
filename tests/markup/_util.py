@@ -12,7 +12,7 @@ class Capabilities(dict):
 
     def _genshi(self):
         try:
-            from genshi.template import MarkupTemplate
+            from XXXgenshi.template import MarkupTemplate
             # present only in >= 0.6
             return hasattr(MarkupTemplate, 'add_directives')
         except ImportError:
@@ -61,7 +61,7 @@ class desired_output(object):
         self.render_context = kw
 
     def __call__(self, fn):
-        self.expected = fn.__doc__.strip()
+        self.expected = fn.__doc__.strip().decode('utf8')
         self.alternate_expectations = getattr(fn, 'alternates', {})
         return self
 
@@ -173,19 +173,19 @@ def _render_genshi(markup, language, schema, **kw):
     output = template.generate(**kw).render(language)
 
     # strip div wrapper off
-    got = output[output.index('\n') + 1:output.rindex('\n')]
+    got = output[output.index(u'\n') + 1:output.rindex(u'\n')]
     got = got.strip()
 
     return got
 
 
 def _wrap_with_xmlns(template, language):
-    wrapped = '<div '
-    if language == 'xhtml':
-        wrapped += 'xmlns="http://www.w3.org/1999/xhtml" '
+    wrapped = u'<div '
+    if language == u'xhtml':
+        wrapped += u'xmlns="http://www.w3.org/1999/xhtml" '
     wrapped += (
-        'xmlns:form="http://ns.discorporate.us/flatland/genshi" ' +
-        'xmlns:py="http://genshi.edgewall.org/">\n' +
+        u'xmlns:form="http://ns.discorporate.us/flatland/genshi" ' +
+        u'xmlns:py="http://genshi.edgewall.org/">\n' +
         template +
-        '\n</div>')
+        u'\n</div>')
     return wrapped

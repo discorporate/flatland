@@ -1,6 +1,7 @@
 """Base functionality for fancy validation."""
 from operator import attrgetter
 
+from flatland._compat import getattr_py2, hasattr_py2, setattr_py2
 from flatland.schema.util import find_i18n_function
 
 
@@ -21,8 +22,8 @@ class Validator(object):
         """
         cls = type(self)
         for attr, value in kw.iteritems():
-            if hasattr(cls, attr):
-                setattr(self, attr, value)
+            if hasattr_py2(cls, attr):
+                setattr_py2(self, attr, value)
             else:
                 raise TypeError("%s has no attribute %r, can not override." % (
                     cls.__name__, attr))
@@ -104,7 +105,7 @@ class Validator(object):
           assert el.errors == ['Oh noes!']
 
         """
-        message = message or getattr(self, key)
+        message = message or getattr_py2(self, key)
         if message:
             element.add_error(
                 self.expand_message(element, state, message, **info))
@@ -140,7 +141,7 @@ class Validator(object):
 
         Always returns False.
         """
-        message = message or getattr(self, key)
+        message = message or getattr_py2(self, key)
         if message:
             element.add_warning(
                 self.expand_message(element, state, message, **info))
@@ -180,8 +181,8 @@ class Validator(object):
         5.  Otherwise return ``None``.
 
         """
-        if hasattr(state, type):
-            return getattr(state, type)
+        if hasattr_py2(state, type):
+            return getattr_py2(state, type)
         if hasattr(state, '__getitem__'):
             try:
                 return state[type]
@@ -289,7 +290,7 @@ class as_format_mapping(object):
                     pass
             # then target.item
             try:
-                value = getattr(target, item)
+                value = getattr_py2(target, item)
                 break
             except AttributeError:
                 pass

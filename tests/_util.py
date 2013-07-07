@@ -1,5 +1,6 @@
 """Test suite helpers."""
 import codecs
+from contextlib import contextmanager
 from functools import wraps
 from inspect import stack
 import sys
@@ -14,6 +15,10 @@ __all__ = ['asciistr', 'assert_raises', 'eq_', 'raises', 'fails',
 # sys.getdefaultencoding() == 'nocoercion'.
 _ascii_codec = codecs.getencoder('ascii')
 asciistr = lambda s: _ascii_codec(s)[0]
+# acts like naive unicode() on simple types like int
+textstr = lambda o: str(o).decode('ascii')
+
+_coercion_override = None
 
 
 def fails(reason):
@@ -63,12 +68,30 @@ def requires_unicode_coercion(fn):
     return decorated
 
 
+@contextmanager
+def unicode_coercion_allowed():
+    global _coercion_override
+    initial_value = _coercion_override
+    try:
+        _coercion_override = True
+        yield
+    finally:
+        _coercion_override = initial_value
+
+
 def _allowed_coercion(input):
-    global genshis
+    if _coercion_override:
+        return True
+    # TODO: this isn't hit anymore (buffer comes in). did it ever work?
     if isinstance(input, (int, float, long, type(None))):
         return True
     calling_file = stack()[2][1]
+
     if calling_file.endswith('sre_parse.py'):
+        return True
+    elif calling_file.endswith('decimal.py'):
+        return True
+    elif '/nose/' in calling_file:
         return True
     elif 'genshi' in calling_file and 'out/genshi' not in calling_file:
         # OMG slow on genshi 0.5.2
