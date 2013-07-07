@@ -1,5 +1,6 @@
 from weakref import WeakKeyDictionary
 
+from flatland._compat import iterkeys
 from flatland.util import symbol
 
 
@@ -18,7 +19,7 @@ class DictLike(object):
         return (item[0] for item in self.iteritems())
 
     def keys(self):
-        return list(self.iterkeys())
+        return list(iterkeys(self))
 
     def itervalues(self):
         return (item[1] for item in self.iteritems())
@@ -39,7 +40,7 @@ class DictLike(object):
         raise NotImplementedError
 
     def __contains__(self, key):
-        return key in self.iterkeys()
+        return key in iterkeys(self)
 
     def __nonzero__(self):
         return bool(self.copy())
@@ -83,7 +84,7 @@ class _TypeLookup(DictLike):
 
     def clear(self):
         frame = self._base_frame
-        for key in self.iterkeys():
+        for key in iterkeys(self):
             frame[key] = Deleted
 
     def pop(self, key, *default):

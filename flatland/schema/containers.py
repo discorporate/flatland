@@ -2,7 +2,12 @@
 from collections import defaultdict
 import re
 
-from flatland._compat import PY2, identifier_transform, bytestring_type
+from flatland._compat import (
+    PY2,
+    identifier_transform,
+    iterkeys,
+    bytestring_type,
+    )
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -805,7 +810,7 @@ class Mapping(Container, dict):
                         type(self).__name__, self.name, key))
             converted &= self[key].set(value)
             seen.add(key)
-        required = set(self.iterkeys())
+        required = set(iterkeys(self))
         if seen != required:
             missing = required - seen
             raise TypeError(
@@ -1070,7 +1075,7 @@ class Dict(Mapping, dict):
           >>> new_user = User(**user_keywords)
 
         """
-        fields = set(self.iterkeys())
+        fields = set(iterkeys(self))
         attributes = fields.copy()
         if rename:
             rename = list(to_pairs(rename))
@@ -1222,7 +1227,7 @@ class SparseDict(Dict):
 
     @property
     def is_empty(self):
-        for _ in self.iterkeys():
+        for _ in iterkeys(self):
             return False
         return True
 
