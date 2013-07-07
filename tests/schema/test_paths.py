@@ -188,7 +188,7 @@ def test_pathexpr():
 def _find_message(el, path, **find_kw):
     try:
         el.find(path, **find_kw)
-    except LookupError, exc:
+    except LookupError as exc:
         return str(exc)
     assert False
 
