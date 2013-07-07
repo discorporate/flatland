@@ -1,6 +1,6 @@
 import re
 
-from flatland._compat import PY2, bytestring_type, text_type
+from flatland._compat import PY2, bytestring_type, text_type, xrange
 from flatland.util import symbol
 
 

@@ -5,6 +5,7 @@ from flatland import (
     SkipAllFalse,
     Unevaluated,
     )
+from flatland._compat import xrange
 
 from tests._util import assert_raises, eq_, requires_unicode_coercion
 
