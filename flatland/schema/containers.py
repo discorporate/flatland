@@ -557,7 +557,7 @@ class List(Sequence):
             if not m:
                 continue
             try:
-                index = long(m.group(1))
+                index = int(m.group(1))
             except TypeError:
                 # Ignore keys with outrageously large indexes- they
                 # aren't valid data for us.
