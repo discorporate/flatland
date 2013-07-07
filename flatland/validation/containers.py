@@ -7,7 +7,7 @@ from flatland.schema.containers import (
     _evaluate_dict_subset_policy,
     )
 from flatland.util import to_pairs
-from . base import N_, P_, Validator
+from .base import N_, P_, Validator
 
 
 class NotDuplicated(Validator):
