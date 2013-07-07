@@ -2,6 +2,8 @@ from functools import wraps
 
 from nose import SkipTest
 
+from flatland._compat import bytestring_type
+
 
 class Capabilities(dict):
 
@@ -61,7 +63,9 @@ class desired_output(object):
         self.render_context = kw
 
     def __call__(self, fn):
-        self.expected = fn.__doc__.strip().decode('utf8')
+        self.expected = fn.__doc__.strip()
+        if isinstance(self.expected, bytestring_type):
+            self.expected = self.expected.decode('utf8')
         self.alternate_expectations = getattr(fn, 'alternates', {})
         return self
 
@@ -84,9 +88,9 @@ class desired_output(object):
                                      **self.render_context)
                 expected = self.expectation_for('genshi')
                 if expected != got:
-                    print "\n" + fn.__name__
-                    print "Expected:\n" + expected
-                    print "Got:\n" + got
+                    print("\n" + fn.__name__)
+                    print("Expected:\n" + expected)
+                    print("Got:\n" + got)
                 assert expected == got
             return runner
         return decorator
@@ -100,9 +104,9 @@ class desired_output(object):
                                         **self.render_context)
                 expected = self.expectation_for('markup')
                 if expected != got:
-                    print "\n" + fn.__name__
-                    print "Expected:\n" + expected
-                    print "Got:\n" + got
+                    print("\n" + fn.__name__)
+                    print("Expected:\n" + expected)
+                    print("Got:\n" + got)
                 assert expected == got
             return runner
         return decorator
@@ -117,7 +121,9 @@ def markup_test(markup='xml', schema=None):
 
     """
     def decorator(fn):
-        expected = fn.__doc__.decode('utf8').strip()
+        expected = fn.__doc__.strip()
+        if isinstance(expected, bytestring_type):
+            expected = expected.decode('utf8')
 
         @wraps(fn)
         def test():
@@ -133,9 +139,9 @@ def markup_test(markup='xml', schema=None):
 
             got = got.strip()
             if expected != got:
-                print "\n" + fn.__name__
-                print "Expected:\n" + expected
-                print "Got:\n" + got
+                print("\n" + fn.__name__)
+                print("Expected:\n" + expected)
+                print("Got:\n" + got)
             assert expected == got
         return test
     return decorator

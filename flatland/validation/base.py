@@ -1,7 +1,7 @@
 """Base functionality for fancy validation."""
 from operator import attrgetter
 
-from flatland._compat import getattr_py2, hasattr_py2, setattr_py2
+from flatland._compat import getattr_py2, hasattr_py2, iteritems, setattr_py2
 from flatland.schema.util import find_i18n_function
 
 
@@ -21,7 +21,7 @@ class Validator(object):
 
         """
         cls = type(self)
-        for attr, value in kw.iteritems():
+        for attr, value in iteritems(kw):
             if hasattr_py2(cls, attr):
                 setattr_py2(self, attr, value)
             else:

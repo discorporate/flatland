@@ -8,6 +8,9 @@ __all__ = [
     'getattr_py2',
     'hasattr_py2',
     'identifier_transform',
+    'iterkeys',
+    'iteritems',
+    'itervalues',
     'long_type',
     'setattr_py2',
     'string_types',
@@ -55,6 +58,9 @@ if PY2:
         attr = identifier_transform(attr)
         setattr(obj, attr, value)
 
+    iterkeys = lambda d: d.iterkeys()
+    itervalues = lambda d: d.itervalues()
+    iteritems = lambda d: d.iteritems()
 else:
     import builtins
     text_type = str
@@ -65,5 +71,8 @@ else:
     getattr_py2 = getattr
     hasattr_py2 = hasattr
     setattr_py2 = setattr
+    iterkeys = lambda d: iter(d.keys())
+    itervalues = lambda d: iter(d.values())
+    iteritems = lambda d: iter(d.items())
 
 string_types = (bytestring_type, text_type)

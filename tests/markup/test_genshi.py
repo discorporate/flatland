@@ -186,7 +186,7 @@ def test_tortured_select():
     factory = schema.using(default=u'hit').from_defaults
     rendered = render(markup, u'xhtml', factory)
     if rendered != expected:
-        print "\n" + __name__
-        print "Expected:\n" + expected
-        print "Got:\n" + rendered
+        print("\n" + __name__)
+        print("Expected:\n" + expected)
+        print("Got:\n" + rendered)
     assert rendered == expected
