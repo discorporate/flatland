@@ -7,6 +7,7 @@ __all__ = [
     'getattr_py2',
     'hasattr_py2',
     'identifier_transform',
+    'long_type',
     'setattr_py2',
     'string_types',
     'text_type',
