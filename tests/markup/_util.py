@@ -12,7 +12,7 @@ class Capabilities(dict):
 
     def _genshi(self):
         try:
-            from XXXgenshi.template import MarkupTemplate
+            from genshi.template import MarkupTemplate
             # present only in >= 0.6
             return hasattr(MarkupTemplate, 'add_directives')
         except ImportError:
