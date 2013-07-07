@@ -2,7 +2,7 @@
 from collections import defaultdict
 import re
 
-from flatland._compat import identifier_transform, bytestring_type
+from flatland._compat import PY2, identifier_transform, bytestring_type
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -1001,6 +1001,8 @@ class Dict(Mapping, dict):
         fields = self.field_schema_mapping
         converted = True
         for key, value in pairs:
+            if PY2 and isinstance(key, bytestring_type):
+                key = key.decode('ascii', 'replace')
             if key not in fields:
                 continue
             if dict.__contains__(self, key):
@@ -1241,18 +1243,27 @@ class SparseDict(Dict):
                                (self.minimum_fields,))
 
 
+def _textset(iterable):
+    values = set()
+    for value in iterable:
+        if PY2 and isinstance(value, bytestring_type):
+            value = value.decode('ascii', 'replace')
+        values.add(value)
+    return values
+
+
 # temporary home for this logic until deprecated Dict.policy is removed
 def _evaluate_dict_subset_policy(element, pairs):
-    allowed = set(element.field_schema_mapping.keys())
-    given = set(key for key, _ in pairs)
+    allowed = _textset(element.field_schema_mapping.keys())
+    given = _textset(key for key, _ in pairs)
     if not given.issubset(allowed):
         return given - allowed
     return ()
 
 
 def _evaluate_dict_strict_policy(element, pairs):
-    required = set(element.field_schema_mapping.keys())
-    given = set(key for key, _ in pairs)
+    required = _textset(element.field_schema_mapping.keys())
+    given = _textset(key for key, _ in pairs)
     if given != required:
         return required - given, given - required
     return (), ()

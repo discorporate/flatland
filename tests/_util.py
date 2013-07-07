@@ -85,18 +85,32 @@ def _allowed_coercion(input):
     # TODO: this isn't hit anymore (buffer comes in). did it ever work?
     if isinstance(input, (int, float, long, type(None))):
         return True
-    calling_file = stack()[2][1]
 
-    if calling_file.endswith('sre_parse.py'):
-        return True
-    elif calling_file.endswith('decimal.py'):
-        return True
-    elif '/nose/' in calling_file:
-        return True
-    elif 'genshi' in calling_file and 'out/genshi' not in calling_file:
-        # OMG slow on genshi 0.5.2
-        return True
-    return False
+    try:
+        caller = stack()[2]
+        if '__hopeless_morass_of_unicode_hell__' in caller[0].f_locals:
+            return True
+
+        calling_path = caller[1]
+        if '/' in calling_path:
+            calling_file = calling_path.rsplit('/', 1)[1]
+        else:
+            calling_file = calling_path
+
+        if calling_file in ('sre_parse.py', 'decimal.py', 'urlparse.py'):
+            return True
+        elif '/nose/' in calling_path:
+            return True
+        elif 'genshi' in calling_path and 'out/genshi' not in calling_path:
+            # OMG slow on genshi 0.5.2
+            return True
+        # this does lots of expected '%s' formatting e.g. unicode(2)
+        elif ('flatland/validation' in calling_path and
+              caller[3] == 'expand_message'):
+            return True
+        return False
+    finally:
+        del caller
 
 
 class NoCoercionCodec(codecs.Codec):

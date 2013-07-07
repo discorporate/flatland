@@ -25,6 +25,16 @@ if PY2:
         else:
             return identifier
 
+    # for simple, purposeful conversions ala ``unicode(2)`` that
+    # should be allowed by the text suite's unicode coercion detector
+    def text_transform(object):
+        if isinstance(object, unicode):
+            return object
+        elif hasattr(object, '__unicode__'):
+            return object.__unicode__()
+        else:
+            return str(object).decode('ascii', 'strict')
+
     def hasattr_py2(obj, attr):
         attr = identifier_transform(attr)
         return hasattr(obj, attr)
@@ -45,6 +55,7 @@ else:
     text_type = str
     bytestring_type = bytes
     identifier_transform = lambda i: i
+    text_transform = str
     getattr_py2 = getattr
     hasattr_py2 = hasattr
     setattr_py2 = setattr

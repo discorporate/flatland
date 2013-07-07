@@ -50,7 +50,6 @@ def test_from_object():
         dict(x=None, y=None))
 
 
-@requires_unicode_coercion
 def test_composition():
 
     class Inner(Schema):

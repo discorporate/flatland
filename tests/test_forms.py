@@ -51,7 +51,7 @@ def test_straight_parse():
 def test_namespaced_parse():
 
     def load(fn):
-        form = SimpleForm1.from_defaults(name='ns')
+        form = SimpleForm1.from_defaults(name=u'ns')
         fn(form)
         return form
 
@@ -80,21 +80,21 @@ def test_default_behavior():
         surname = String
 
     form = SimpleForm2()
-    eq_(form['fname'].value, None)
-    eq_(form['surname'].value, None)
+    eq_(form[u'fname'].value, None)
+    eq_(form[u'surname'].value, None)
 
     form = SimpleForm2.from_defaults()
-    eq_(form['fname'].value, u'FN')
-    eq_(form['surname'].value, None)
+    eq_(form[u'fname'].value, u'FN')
+    eq_(form[u'surname'].value, None)
 
     class DictForm(Schema):
-        dict = Dict.of(String.named('fname').using(default=u'FN'),
-                       String.named('surname'))
+        dict = Dict.of(String.named(u'fname').using(default=u'FN'),
+                       String.named(u'surname'))
 
     form = DictForm()
-    eq_(form.find_one('dict/fname').value, None)
-    eq_(form.find_one('dict/surname').value, None)
+    eq_(form.find_one(u'dict/fname').value, None)
+    eq_(form.find_one(u'dict/surname').value, None)
 
     form = DictForm.from_defaults()
-    eq_(form.find_one('dict/fname').value, u'FN')
-    eq_(form.find_one('dict/surname').value, None)
+    eq_(form.find_one(u'dict/fname').value, u'FN')
+    eq_(form.find_one(u'dict/surname').value, None)
