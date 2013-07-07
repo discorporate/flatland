@@ -3,7 +3,7 @@
 import re
 import urlparse
 
-from flatland._compat import identifier_transform, text_transform, text_type
+from flatland._compat import identifier_transform, text_transform
 from base import N_, Validator
 
 
