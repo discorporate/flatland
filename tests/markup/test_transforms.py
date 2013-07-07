@@ -60,8 +60,8 @@ class _TestAttributeTransform(object):
                          context=None,
                          tagname=None,
                          bind=Unspecified):
-        if hasattr(self.transform, 'im_func'):
-            transform = self.transform.im_func
+        if hasattr(self.transform, '__func__'):
+            transform = self.transform.__func__
         else:
             transform = self.transform
         if context is None:
@@ -69,8 +69,8 @@ class _TestAttributeTransform(object):
         if tagname is None:
             tagname = self.tagname
         if bind is Unspecified:
-            if hasattr(self.bind_factory, 'im_func'):
-                bind = self.bind_factory.im_func()
+            if hasattr(self.bind_factory, '__func__'):
+                bind = self.bind_factory.__func__()
             else:
                 bind = self.bind_factory()
 

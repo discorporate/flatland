@@ -72,7 +72,10 @@ class _MetaCompound(type):
 def _wrap_compound_init(fn):
     """Decorate __compound_init__ with a status setter & classmethod."""
     if isinstance(fn, classmethod):
-        fn = fn.__get__(str).im_func  # type doesn't matter here
+        if PY2:
+            fn = fn.__get__(str).__func__  # type doesn't matter here
+        else:
+            fn = fn.__func__
 
     @wraps(fn)
     def __compound_init__(cls):
