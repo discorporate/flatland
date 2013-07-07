@@ -7,7 +7,9 @@ from flatland import (
     Unset,
     element_set,
     )
+from flatland._compat import iteritems
 from flatland.util import Unspecified, keyslice_pairs
+
 from tests._util import (
     asciistr,
     assert_raises,
@@ -66,7 +68,7 @@ def test_dict_update():
     el = schema()
 
     def value_dict(element):
-        return dict((k, v.value) for k, v in element.iteritems())
+        return dict((k, v.value) for k, v in iteritems(element))
 
     try:
         el.update(x=20, y=30)
