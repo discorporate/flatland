@@ -26,7 +26,7 @@ class IsEmail(Validator):
 
     .. rubric:: Attributes
 
-    .. attribute:: nonlocal
+    .. attribute:: non_local
 
       Default ``True``.  When true, require at minimum two domain name
       components and reject local email addresses such as
@@ -58,7 +58,7 @@ class IsEmail(Validator):
 
     invalid = N_(u'%(label)s is not a valid email address.')
 
-    nonlocal = True
+    non_local = True
 
     local_part_pattern = None
 
@@ -92,7 +92,7 @@ class IsEmail(Validator):
             return self.note_error(element, state, 'invalid')
 
         labels = domain.split('.')
-        if len(labels) == 1 and self.nonlocal:
+        if len(labels) == 1 and self.non_local:
             return self.note_error(element, state, 'invalid')
 
         if not all(len(label) < 64 for label in labels):
