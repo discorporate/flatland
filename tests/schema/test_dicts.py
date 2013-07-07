@@ -365,7 +365,7 @@ def test_nested_unicode_dict_as_unicode():
         String.named(u'x').using(default=u'\u2308\u2309')))
     el = schema.from_defaults()
     eq_(el.value, {u'd': {u'x': u'\u2308\u2309'}})
-    eq_(el.u, ur"{u'd': {u'x': u'\u2308\u2309'}}")
+    eq_(el.u, u"{u'd': {u'x': u'\u2308\u2309'}}")
 
 
 def test_dict_find():

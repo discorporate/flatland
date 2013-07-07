@@ -510,8 +510,8 @@ class DateTime(Temporal):
 
     type_ = datetime.datetime
     regex = re.compile(
-        ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) '
-        ur'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
+        u'^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2}) '
+        u'(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
     format = (u'%(year)04i-%(month)02i-%(day)02i '
               u'%(hour)02i:%(minute)02i:%(second)02i')
     used = (u'year', u'month', u'day', u'hour', u'minute', u'second')
@@ -526,7 +526,7 @@ class Date(Temporal):
 
     type_ = datetime.date
     regex = re.compile(
-        ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$')
+        u'^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2})$')
     format = u'%(year)04i-%(month)02i-%(day)02i'
     used = (u'year', u'month', u'day')
 
@@ -540,7 +540,7 @@ class Time(Temporal):
 
     type_ = datetime.time
     regex = re.compile(
-        ur'^(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
+        u'^(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
     format = u'%(hour)02i:%(minute)02i:%(second)02i'
     used = (u'hour', u'minute', u'second')
 

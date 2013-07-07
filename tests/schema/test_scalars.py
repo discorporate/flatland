@@ -120,7 +120,7 @@ def test_scalar_set():
         yield (validate_element_set, Integer) + spec
 
     for spec in (
-        ('\xef\xf0', None, ur'\ufffd\ufffd'),
+        ('\xef\xf0', None, u'\ufffd\ufffd'),
         ):
         yield (coerced_validate_element_set, Integer) + spec
 

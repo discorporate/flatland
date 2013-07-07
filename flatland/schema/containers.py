@@ -533,10 +533,10 @@ class List(Sequence):
             return
 
         if self.name:
-            regex = re.compile(ur'^%s(\d+)(?:%s|$)' % (
+            regex = re.compile(u'^%s(\\d+)(?:%s|$)' % (
                 re_uescape(self.name + sep), re_uescape(sep)), re.UNICODE)
         else:
-            regex = re.compile(ur'^(\d+)(?:%s|$)' % (
+            regex = re.compile(u'^(\\d+)(?:%s|$)' % (
                 re_uescape(sep)), re.UNICODE)
 
         indexes = defaultdict(list)
@@ -647,7 +647,7 @@ class Array(Sequence):
                 member = self.member_schema.from_flat([(key, value)])
                 self.append(member)
         else:
-            regex = re.compile(ur'^(%s(?:%s|$))' % (
+            regex = re.compile(u'^(%s(?:%s|$))' % (
                 re_uescape(self.name), re_uescape(sep)), re.UNICODE)
             for key, value in pairs:
                 m = regex.match(key)
