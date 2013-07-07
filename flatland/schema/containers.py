@@ -2,6 +2,7 @@
 from collections import defaultdict
 import re
 
+from flatland._compat import identifier_transform, text_type
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -442,7 +443,7 @@ class List(Sequence):
 
     def _new_slot(self, value=Unspecified):
         """Wrap *value* in a Slot named as the element's index in the list."""
-        return self.slot_type(name=str(len(self)).decode('ascii'),
+        return self.slot_type(name=text_type(len(self)),
                               parent=self,
                               element=self._as_element(value))
 
@@ -515,7 +516,7 @@ class List(Sequence):
 
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
-            slot.name = str(idx).decode('ascii')
+            slot.name = text_type(idx)
 
     @property
     def children(self):
@@ -1085,7 +1086,7 @@ class Dict(Mapping, dict):
         self.set(final)
 
     def update_object(self, obj, include=None, omit=None, rename=None,
-                      key=str):
+                      key=identifier_transform):
         """Update an object's attributes using the element's values.
 
         Produces a :meth:`slice` using *include*, *omit*, *rename* and
