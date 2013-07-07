@@ -1,5 +1,5 @@
 from __future__ import division
-from base import N_, Validator
+from .base import N_, Validator
 
 
 class Luhn10(Validator):
