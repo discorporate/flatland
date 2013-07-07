@@ -1,7 +1,12 @@
 from functools import wraps
 import operator
 
-from flatland._compat import PY2, identifier_transform, text_type
+from flatland._compat import (
+    PY2,
+    identifier_transform,
+    text_type,
+    with_metaclass,
+    )
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -86,7 +91,7 @@ def _wrap_compound_init(fn):
     return classmethod(__compound_init__)
 
 
-class Compound(Mapping, Scalar):
+class Compound(with_metaclass(_MetaCompound, Mapping, Scalar)):
     """A mapping container that acts like a scalar value.
 
     Compound fields are dictionary-like fields that can assemble a
@@ -108,8 +113,6 @@ class Compound(Mapping, Scalar):
     Composites run validation after their children.
 
     """
-
-    __metaclass__ = _MetaCompound
 
     def __compound_init__(cls):
         """.. TODO:: doc
