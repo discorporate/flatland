@@ -15,6 +15,7 @@ __all__ = [
     'setattr_py2',
     'string_types',
     'text_type',
+    'xrange',
     ]
 
 
@@ -61,6 +62,7 @@ if PY2:
     iterkeys = lambda d: d.iterkeys()
     itervalues = lambda d: d.itervalues()
     iteritems = lambda d: d.iteritems()
+    xrange = xrange
 else:
     import builtins
     text_type = str
@@ -74,5 +76,5 @@ else:
     iterkeys = lambda d: iter(d.keys())
     itervalues = lambda d: iter(d.values())
     iteritems = lambda d: iter(d.items())
-
+    xrange = range
 string_types = (bytestring_type, text_type)

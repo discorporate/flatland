@@ -9,6 +9,7 @@ from flatland._compat import (
     iterkeys,
     itervalues,
     bytestring_type,
+    xrange,
     )
 from flatland.util import (
     Unspecified,

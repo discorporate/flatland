@@ -6,6 +6,7 @@ from flatland import (
     Unset,
     element_set,
 )
+from flatland._compat import xrange
 from flatland.schema.base import Unspecified
 
 from tests._util import eq_
