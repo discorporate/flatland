@@ -16,6 +16,7 @@ from flatland import (
     Unset,
     element_set,
     )
+from flatland._compat import long_type
 
 from tests._util import eq_, assert_raises, requires_unicode_coercion
 
@@ -163,19 +164,20 @@ def test_integer():
 
 
 def test_long():
-    for spec in ((u'123',    123L,  u'123'),
-                 (u' 123 ',  123L,  u'123'),
-                 (u'xyz',    None,  u'xyz'),
-                 (u'xyz123', None,  u'xyz123'),
-                 (u'123xyz', None,  u'123xyz'),
-                 (u'123.0',  None,  u'123.0'),
-                 (u'+123',   123L,  u'123'),
-                 (u'-123',   -123L, u'-123'),
-                 (u' +123 ', 123L,  u'123'),
-                 (u' -123 ', -123L, u'-123'),
-                 (u'+123',   123L,  u'123', dict(signed=False)),
-                 (u'-123',   None,  u'-123', dict(signed=False)),
-                 (None,      None,  u'', {}, True)):
+    L = long_type
+    for spec in ((u'123',    L(123),  u'123'),
+                 (u' 123 ',  L(123),  u'123'),
+                 (u'xyz',    None,    u'xyz'),
+                 (u'xyz123', None,    u'xyz123'),
+                 (u'123xyz', None,    u'123xyz'),
+                 (u'123.0',  None,    u'123.0'),
+                 (u'+123',   L(123),  u'123'),
+                 (u'-123',   L(-123), u'-123'),
+                 (u' +123 ', L(123),  u'123'),
+                 (u' -123 ', L(-123), u'-123'),
+                 (u'+123',   L(123),  u'123', dict(signed=False)),
+                 (u'-123',   None,    u'-123', dict(signed=False)),
+                 (None,      None,    u'', {}, True)):
         yield (validate_element_set, Long) + spec
 
 

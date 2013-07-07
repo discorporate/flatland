@@ -7,6 +7,8 @@ import sys
 
 from nose.tools import eq_, assert_raises, raises
 
+from flatland._compat import long_type
+
 
 __all__ = ['asciistr', 'assert_raises', 'eq_', 'raises', 'fails',
            'requires_unicode_coercion', 'udict', 'unicode_coercion_available']
@@ -83,7 +85,7 @@ def _allowed_coercion(input):
     if _coercion_override:
         return True
     # TODO: this isn't hit anymore (buffer comes in). did it ever work?
-    if isinstance(input, (int, float, long, type(None))):
+    if isinstance(input, (int, float, long_type, type(None))):
         return True
 
     try:
