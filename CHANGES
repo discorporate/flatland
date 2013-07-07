@@ -5,6 +5,9 @@ Changes
 Pre-release
 -----------
 
+- validation.IsEmail.nonlocal has been renamed to non_local for
+  Python 3 compatibility.
+
 - .set() now emits element_set signal
 
 - flatland.Form deprecated by flatland.Schema

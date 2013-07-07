@@ -41,12 +41,12 @@ def test_email_idna():
         assert_email_valid(u'bob@snow\u2603man.com')
 
 
-def test_email_nonlocal():
+def test_email_non_local():
     assert_email_not_valid(u'root@localhost')
 
 
-def test_email_nonlocal_ok():
-    assert_email_valid(u'root@localhost', {'nonlocal': False})
+def test_email_non_local_ok():
+    assert_email_valid(u'root@localhost', {'non_local': False})
 
 
 def test_email_altlocal():
