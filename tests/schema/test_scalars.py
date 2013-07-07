@@ -72,20 +72,20 @@ def test_string():
         for element in String(), String(strip=True):
             element.set(value)
             eq_(element.u, expected)
-            eq_(unicode(element), expected)
+            eq_(element.__unicode__(), expected)
             eq_(element.value, expected)
 
     for value, expected in ((u'abc ', u'abc '), (' abc ', u' abc ')):
         element = String(value, strip=False)
         eq_(element.u, expected)
-        eq_(unicode(element), expected)
+        eq_(element.__unicode__(), expected)
         eq_(element.value, expected)
 
     for value, expected_value, expected_unicode in ((u'', u'', u''),
                                                     (None, None, u'')):
         element = String(value)
         eq_(element.u, expected_unicode)
-        eq_(unicode(element), expected_unicode)
+        eq_(element.__unicode__(), expected_unicode)
         eq_(element.value, expected_value)
 
 
@@ -105,7 +105,7 @@ def validate_element_set(type_, raw, value, uni, schema_opts={},
     eq_(element.set(raw), set_return)
     eq_(element.value, value)
     eq_(element.u, uni)
-    eq_(unicode(element), uni)
+    eq_(element.__unicode__(), uni)
     eq_(element.__nonzero__(), bool(uni and value))
 
 
