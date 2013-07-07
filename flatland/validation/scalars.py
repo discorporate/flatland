@@ -567,7 +567,7 @@ class MapEqual(Validator):
         sample = fn(elements[0])
         if all(fn(el) == sample for el in elements[1:]):
             return True
-        labels = ', '.join(el.label for el in elements[:-1])
+        labels = u', '.join(el.label for el in elements[:-1])
         last_label = elements[-1].label
         return self.note_error(element, state, 'unequal',
                                labels=labels, last_label=last_label)

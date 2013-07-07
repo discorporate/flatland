@@ -3,7 +3,7 @@
 import re
 import urlparse
 
-from flatland._compat import text_type
+from flatland._compat import identifier_transform, text_transform, text_type
 from base import N_, Validator
 
 
@@ -66,7 +66,7 @@ class IsEmail(Validator):
                                 re.IGNORECASE)
 
     def validate(self, element, state):
-        addr = element.u
+        addr = element.value
         if addr.count(u'@') != 1:
             return self.note_error(element, state, 'invalid')
 
@@ -153,9 +153,9 @@ class URLValidator(Validator):
 
     """
 
-    bad_format = N_("%(label)s is not a valid URL.")
-    blocked_scheme = N_("%(label)s is not a valid URL.")
-    blocked_part = N_("%(label)s is not a valid URL.")
+    bad_format = N_(u'%(label)s is not a valid URL.')
+    blocked_scheme = N_(u'%(label)s is not a valid URL.')
+    blocked_part = N_(u'%(label)s is not a valid URL.')
 
     allowed_schemes = ('*',)
     allowed_parts = set(_url_parts)
@@ -170,16 +170,15 @@ class URLValidator(Validator):
         except Exception:
             return self.note_error(element, state, 'bad_format')
 
-        scheme_name = url.scheme
-        if scheme_name == u'':
+        scheme_name = identifier_transform(url.scheme)
+        if scheme_name == '':
             return self.note_error(element, state, 'blocked_scheme')
         elif self.allowed_schemes != ('*',):
             if scheme_name not in self.allowed_schemes:
                 return self.note_error(element, state, 'blocked_scheme')
 
         for part in _url_parts:
-            if (part not in self.allowed_parts and
-                getattr(url, part) != ''):
+            if (part not in self.allowed_parts and getattr(url, part) != ''):
                 return self.note_error(element, state, 'blocked_part')
         return True
 
@@ -252,7 +251,7 @@ class HTTPURLValidator(Validator):
 
     def validate(self, element, state):
         url = element.value
-        if url is None or not url.startswith('http'):
+        if url is None or not url.startswith(u'http'):
             return True
         parsed = self.urlparse.urlparse(url)
 
@@ -260,7 +259,7 @@ class HTTPURLValidator(Validator):
             try:
                 value = getattr(parsed, part)
                 if part == 'port':
-                    value = None if value is None else text_type(value)
+                    value = None if value is None else text_transform(value)
             except ValueError:
                 return self.note_error(element, state, 'bad_format')
             required = self.required_parts.get(part)

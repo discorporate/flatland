@@ -65,7 +65,6 @@ def test_scalar_set_flat():
     eq_(element_for(u'c').raw, Unset)
 
 
-@requires_unicode_coercion
 def test_string():
     for value, expected in ((u'abc', u'abc'), ('abc', u'abc'), (123, u'123'),
                             (u'abc ', u'abc'), (' abc ', u'abc')):
@@ -116,11 +115,11 @@ def test_scalar_set():
     # a variety of scalar set() failure cases, shoved through Integer
     for spec in (
         (None,       None, u'', {}, True),
+        ([],         None, u'[]'),
         ):
         yield (validate_element_set, Integer) + spec
 
     for spec in (
-        ([],         None, u'[]'),
         ('\xef\xf0', None, ur'\ufffd\ufffd'),
         ):
         yield (coerced_validate_element_set, Integer) + spec
@@ -157,11 +156,10 @@ def test_integer():
                  (u'+123',   123,  u'123', dict(signed=False)),
                  (u'-123',   None, u'-123', dict(signed=False)),
                  (123,       123,  u'123'),
-                 (None,      None, u'', {}, True)):
+                 (None,      None, u'', {}, True),
+                 (-123,      None, u'-123', dict(signed=False)),
+                 ):
         yield (validate_element_set, Integer) + spec
-
-    for spec in ((-123,      None, u'-123', dict(signed=False)),):
-        yield (coerced_validate_element_set, Integer) + spec
 
 
 def test_long():

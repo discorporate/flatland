@@ -3,7 +3,7 @@ import datetime
 import decimal
 import re
 
-from flatland._compat import PY2, string_types, text_type
+from flatland._compat import PY2, string_types, text_type, text_transform
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -82,7 +82,7 @@ class Scalar(Element):
                 self.u = obj
             else:
                 try:
-                    self.u = text_type(obj)
+                    self.u = text_transform(obj)
                 except TypeError:
                     self.u = u''
                 except UnicodeDecodeError:
@@ -121,7 +121,7 @@ class Scalar(Element):
         implementation returns ``str(obj)`` (or unicode).
 
         """
-        return text_type(obj)
+        return text_transform(obj)
 
     def _index(self, name):
         raise IndexError(name)
@@ -171,7 +171,7 @@ class String(Scalar):
         if value is None:
             return None
         if not isinstance(value, text_type):
-            value = text_type(value)
+            value = text_transform(value)
 
         if self.strip:
             return value.strip()
@@ -190,7 +190,7 @@ class String(Scalar):
         if value is None:
             return u''
         if not isinstance(value, text_type):
-            value = text_type(value)
+            value = text_transform(value)
 
         if self.strip:
             return value.strip()
@@ -256,7 +256,7 @@ class Number(Scalar):
         """
         if type(value) is self.type_:
             return self.format % value
-        return text_type(value)
+        return text_transform(value)
 
 
 class Integer(Number):
@@ -498,7 +498,7 @@ class Temporal(Scalar):
         if isinstance(value, self.type_):
             return self.format % as_mapping(value)
         else:
-            return text_type(value)
+            return text_transform(value)
 
 
 class DateTime(Temporal):

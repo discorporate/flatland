@@ -22,7 +22,7 @@ from flatland.validation import (
     ValuesEqual,
     )
 
-from tests._util import eq_
+from tests._util import eq_, unicode_coercion_allowed
 
 
 def form(value):
@@ -88,7 +88,8 @@ def test_value_less_than():
     assert V(date.today() + timedelta(days=2)).validate(d, None)
     two_days_ago = date.today() - timedelta(days=2)
     assert not V(two_days_ago).validate(d, None)
-    assert d.errors == [u'test must be less than %s.' % two_days_ago]
+    with unicode_coercion_allowed():
+        assert d.errors == [u'test must be less than %s.' % two_days_ago]
 
 
 def test_value_at_most():
@@ -137,7 +138,7 @@ def test_value_between():
 
 
 def test_map_equal():
-    v = MapEqual('x', 'y',
+    v = MapEqual(u'x', u'y',
                  transform=lambda el: el.value.upper(),
                  unequal=u'%(labels)s/%(last_label)s')
     el = form(dict(x=u'a', y=u'A'))
