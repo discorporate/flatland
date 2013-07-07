@@ -1,6 +1,7 @@
 from functools import wraps
 import operator
 
+from flatland._compat import PY2, identifier_transform, text_type
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -120,9 +121,9 @@ class Compound(Mapping, Scalar):
         """
 
     def compose(self):
-        """Return a unicode, native tuple built from children's state.
+        """Return a text, native tuple built from children's state.
 
-        :returns: a 2-tuple of unicode representation, native value.
+        :returns: a 2-tuple of text representation, native value.
            These correspond to the
            :meth:`~flatland.schema.scalars.Scalar.serialize_element` and
            :meth:`~flatland.schema.scalars.Scalar.adapt_element` methods of
@@ -249,7 +250,7 @@ class DateYYYYMMDD(Compound, Date):
 
             for attrib, child_schema in zip(self.used, self.field_schema):
                 self[child_schema.name].set(
-                    getattr(value, attrib.encode('ascii')))
+                    getattr(value, identifier_transform(attrib)))
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:
                 self[child_schema.name].set(None)
@@ -308,13 +309,13 @@ class JoinedString(Array, String):
         self.raw = value
         if isinstance(value, (list, tuple)):
             values = value
-        elif not isinstance(value, basestring):
+        elif not isinstance(value, text_type):
             values = list(value)
         elif self.separator_regex:
-            # a basestring, regexp separator
+            # a text regexp separator
             values = self.separator_regex.split(value)
         else:
-            # a basestring, static separator
+            # a text static separator
             values = value.split(self.separator)
 
         del self[:]

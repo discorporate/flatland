@@ -2,6 +2,8 @@
 import collections
 import itertools
 import operator
+
+from flatland._compat import PY2, bytestring_type, text_type
 from flatland.schema.paths import pathexpr
 from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
@@ -58,7 +60,7 @@ class Element(object):
     """
 
     name = None
-    """The Unicode name of the element."""
+    """The string name of the element."""
 
     optional = False
     """If True, :meth:`validate` will return True when no value has been set.
@@ -104,7 +106,7 @@ class Element(object):
     """The element's raw, unadapted value from input."""
 
     u = u''
-    """A Unicode representation of the element's value.
+    """A string representation of the element's value.
 
     As in :attr:`value`, writing directly to this attribute should be
     restricted to validation routines.
@@ -147,13 +149,12 @@ class Element(object):
     def named(cls, name):
         """Return a class with ``name`` = *name*
 
-        :param name: a string or None.  ``str`` will be converted to
-          ``unicode``.
+        :param name: a string or None.
         :returns: a new class
 
         """
-        if not isinstance(name, (unicode, NoneType)):
-            name = unicode(name)
+        if PY2 and isinstance(name, bytestring_type):
+            name = text_type(name)
         cls.name = name
         return cls
 
@@ -545,7 +546,7 @@ class Element(object):
 
         Encodes the element hierarchy in a *sep*-separated name
         string, paired with any representation of the element you
-        like.  The default is the Unicode value of the element, and the
+        like.  The default is the text value of the element, and the
         output of the default :meth:`flatten` can be round-tripped
         with :meth:`set_flat`.
 
@@ -585,18 +586,18 @@ class Element(object):
         return pairs
 
     def set(self, obj):
-        """Process *obj* and assign the native and Unicode values.
+        """Process *obj* and assign the native and text values.
 
         Attempts to adapt the given *obj* and assigns this element's
         :attr:`value` and :attr:`u` attributes in tandem.  Returns True if the
         adaptation was successful.
 
         If adaptation succeeds, :attr:`value` will contain the adapted native
-        value and :attr:`u` will contain a Unicode serialized version of it. A
+        value and :attr:`u` will contain a text serialized version of it. A
         native value of None will be represented as u'' in :attr:`u`.
 
         If adaptation fails, :attr:`value` will be ``None`` and :attr:`u` will
-        contain ``unicode(value)`` or ``u''`` for None.
+        contain ``str(value)`` (or unicode), or ``u''`` for None.
 
           >>> from flatland import Integer
           >>> el = Integer()
