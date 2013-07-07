@@ -484,8 +484,9 @@ class Element(object):
         elif not results:
             return None
         elif len(results) > 1 and strict:
-            raise LookupError("Path %r matched multiple elements; single "
-                              "result expected." % (path,))
+            display_path = repr(path).lstrip('u')
+            raise LookupError("Path %s matched multiple elements; single "
+                              "result expected." % display_path)
         else:
             return results[0]
 

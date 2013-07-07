@@ -11,7 +11,7 @@ from tests._util import eq_, assert_raises
 
 def test_set_flat_pruned():
     sub = String.named(u's')
-    pairs = [(u's', u'val0'), (u's', ''), (u's', u'val1'), (u's', u'')]
+    pairs = [(u's', u'val0'), (u's', u''), (u's', u'val1'), (u's', u'')]
     wanted = [u'val0', u'val1']
 
     for schema in Array.of(sub), Array.of(sub).using(prune_empty=True):
@@ -45,7 +45,7 @@ def test_set_flat_like_named():
 
 def test_set_flat_unnamed_child():
     pairs = [(u's', u'abc'), (u's', u'def')]
-    bogus = [(u'', 'xxx')]
+    bogus = [(u'', u'xxx')]
     schema = Array.named(u's').of(String)
 
     _assert_array_set_flat(schema, pairs, bogus)
@@ -54,7 +54,7 @@ def test_set_flat_unnamed_child():
 def test_set_flat_anonymous_array():
     schema = Array.of(String.named(u's'))
     pairs = [(u's', u'abc'), (u's', u'def')]
-    bogus = [(u'', 'xxx')]
+    bogus = [(u'', u'xxx')]
 
     _assert_array_set_flat(schema, pairs, bogus)
 
@@ -67,7 +67,7 @@ def test_set_flat_fully_anonymous_array():
 
 
 def test_set_flat_anonymous_dict():
-    schema = Array.of(Dict.of(String.named('x')))
+    schema = Array.of(Dict.of(String.named(u'x')))
     pairs = [(u'x', u'abc'), (u'x', u'def')]
     assert_raises(AssertionError, schema.from_flat, pairs)
 
@@ -277,7 +277,7 @@ def test_multivalue_set_flat_like_named():
 
 def test_multivalue_set_flat_unnamed_child():
     pairs = [(u's', u'abc'), (u's', u'def')]
-    bogus = [(u'', 'xxx')]
+    bogus = [(u'', u'xxx')]
     schema = MultiValue.named(u's').of(String)
 
     _assert_multivalue_set_flat(schema, pairs, bogus)
@@ -286,7 +286,7 @@ def test_multivalue_set_flat_unnamed_child():
 def test_multivalue_set_flat_anonymous_array():
     schema = MultiValue.of(String.named(u's'))
     pairs = [(u's', u'abc'), (u's', u'def')]
-    bogus = [(u'', 'xxx')]
+    bogus = [(u'', u'xxx')]
 
     _assert_multivalue_set_flat(schema, pairs, bogus)
 

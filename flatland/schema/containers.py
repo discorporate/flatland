@@ -2,7 +2,7 @@
 from collections import defaultdict
 import re
 
-from flatland._compat import identifier_transform, text_type
+from flatland._compat import identifier_transform, bytestring_type
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -443,7 +443,10 @@ class List(Sequence):
 
     def _new_slot(self, value=Unspecified):
         """Wrap *value* in a Slot named as the element's index in the list."""
-        return self.slot_type(name=text_type(len(self)),
+        # avoid direct text_type() here so that test suite unicode coercion
+        # detector isn't triggered
+        name = bytestring_type(len(self)).decode('ascii')
+        return self.slot_type(name=name,
                               parent=self,
                               element=self._as_element(value))
 
@@ -516,7 +519,8 @@ class List(Sequence):
 
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
-            slot.name = text_type(idx)
+            # don't trigger naive unicode coercion (for test suite)
+            slot.name = bytestring_type(idx).decode('ascii')
 
     @property
     def children(self):

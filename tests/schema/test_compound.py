@@ -492,19 +492,19 @@ def test_joined_string():
 
     # The child (String) strips by default
     el = JoinedString(u' abc ,, ghi ', strip=False)
-    assert el.value == 'abc,ghi'
+    assert el.value == u'abc,ghi'
     assert [child.value for child in el] == [u'abc', u'ghi']
 
     # Try with a non-stripping String
     el = JoinedString(u' abc ,, ghi ',
                       strip=False,
                       member_schema=String.using(strip=False))
-    assert el.value == ' abc , ghi '
+    assert el.value == u' abc , ghi '
     assert [child.value for child in el] == [u' abc ', u' ghi ']
 
 
 def test_joined_string_flat():
-    schema = JoinedString.named('js').of(Integer)
+    schema = JoinedString.named(u'js').of(Integer)
 
     for set_value, flat_value in [
         ([1], (u'js', u'1')),

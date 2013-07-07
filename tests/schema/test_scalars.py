@@ -22,7 +22,7 @@ from tests._util import eq_, assert_raises, requires_unicode_coercion
 
 def test_scalar_abstract():
     el = Scalar()
-    assert_raises(NotImplementedError, el.set, 'blagga')
+    assert_raises(NotImplementedError, el.set, u'blagga')
 
 
 def test_scalar_assignments_are_independent():
