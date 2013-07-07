@@ -1,6 +1,6 @@
 from weakref import WeakKeyDictionary
 
-from flatland._compat import iterkeys
+from flatland._compat import iterkeys, itervalues
 from flatland.util import symbol
 
 
