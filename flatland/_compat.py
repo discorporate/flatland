@@ -18,6 +18,7 @@ PY2 = sys.version_info[0] == 2
 if PY2:
     text_type = unicode
     bytestring_type = str
+    long_type = long
 
     def identifier_transform(identifier):
         if isinstance(identifier, unicode):
@@ -54,6 +55,7 @@ if PY2:
 else:
     text_type = str
     bytestring_type = bytes
+    long_type = int
     identifier_transform = lambda i: i
     text_transform = str
     getattr_py2 = getattr

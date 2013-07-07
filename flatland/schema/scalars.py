@@ -3,7 +3,13 @@ import datetime
 import decimal
 import re
 
-from flatland._compat import PY2, string_types, text_type, text_transform
+from flatland._compat import (
+    PY2,
+    long_type,
+    string_types,
+    text_type,
+    text_transform,
+    )
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -272,8 +278,8 @@ class Integer(Number):
 class Long(Number):
     """Element type for Python's long."""
 
-    type_ = long
-    """``long``"""
+    type_ = long_type
+    """``long``, or ``int`` on Python 3."""
 
     format = u'%i'
     """``u'%i'``"""
