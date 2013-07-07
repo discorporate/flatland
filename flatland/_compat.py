@@ -3,6 +3,7 @@ import sys
 
 __all__ = [
     'PY2',
+    'builtins',
     'bytestring_type',
     'getattr_py2',
     'hasattr_py2',
@@ -17,6 +18,7 @@ __all__ = [
 PY2 = sys.version_info[0] == 2
 
 if PY2:
+    import __builtin__ as builtins
     text_type = unicode
     bytestring_type = str
     long_type = long
@@ -54,6 +56,7 @@ if PY2:
         setattr(obj, attr, value)
 
 else:
+    import builtins
     text_type = str
     bytestring_type = bytes
     long_type = int
