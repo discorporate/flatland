@@ -27,7 +27,7 @@ class lazy_property(object):
         if obj is None:
             return self
         value = self._deferred(obj)
-        setattr(obj, self._deferred.func_name, value)
+        setattr(obj, self._deferred.__name__, value)
         return value
 
 
