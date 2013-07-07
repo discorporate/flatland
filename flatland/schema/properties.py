@@ -25,7 +25,7 @@ class DictLike(object):
         return (item[1] for item in self.iteritems())
 
     def values(self):
-        return list(self.itervalues())
+        return list(itervalues(self))
 
     def get(self, key, default=None):
         try:
