@@ -250,7 +250,7 @@ class HTTPURLValidator(Validator):
 
     def validate(self, element, state):
         url = element.value
-        if url is None or not url.startswith('http'):
+        if url is None:
             return True
         parsed = self.urlparse.urlparse(url)
 

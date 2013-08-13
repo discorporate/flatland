@@ -120,6 +120,10 @@ def test_http_validator_default():
     not v.validate(el, None)
     eq_(el.errors, ['X'])
 
+    el = scalar('www.example.com')
+    not v.validate(el, None)
+    eq_(el.errors, ['test is not a valid URL.'])
+
 
 def test_url_canonicalizer_default():
     v = URLCanonicalizer()
