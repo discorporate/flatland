@@ -1,0 +1,27 @@
+syntax: glob
+
+*.py?
+*.egg-info
+MANIFEST
+.coverage
+htmlcov
+tests/cover
+build
+dist
+html
+junk
+*.swp
+docs/coverage
+docs/doctrees
+docs/doctest
+docs/html
+docs/pickles
+docs/source/_static
+docs/source/_template
+docs/text
+docs/website
+bench
+*~
+bin
+include
+lib
