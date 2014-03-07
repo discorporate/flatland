@@ -1,8 +1,8 @@
 import os
 import sys
 
-if sys.version_info < (2, 5):
-    print "Python 2.5 or higher is required."
+if sys.version_info < (2, 6):
+    print "Python 2.6 or higher is required."
     sys.exit(1)
 
 try:
@@ -40,7 +40,6 @@ setup(name="flatland",
                    'Natural Language :: English',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python',
-                   'Programming Language :: Python :: 2.5',
                    'Programming Language :: Python :: 2.6',
                    'Programming Language :: Python :: 2.7',
                    'Topic :: Internet :: WWW/HTTP :: WSGI',
