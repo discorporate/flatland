@@ -2,16 +2,10 @@
 Compound Fields
 ===============
 
-.. currentmodule:: flatland
+.. currentmodule:: flatland.schema.compound
 
-.. autoclass:: Compound
-   :show-inheritance:
-   :members:
 
 .. autoclass:: DateYYYYMMDD
-   :show-inheritance:
-   :members:
+
 
 .. autoclass:: JoinedString
-   :show-inheritance:
-   :members:

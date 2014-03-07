@@ -2,6 +2,15 @@
 from collections import defaultdict
 import re
 
+from flatland._compat import (
+    PY2,
+    identifier_transform,
+    iteritems,
+    iterkeys,
+    itervalues,
+    bytestring_type,
+    xrange,
+    )
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -11,6 +20,7 @@ from flatland.util import (
     re_uescape,
     to_pairs,
     )
+from flatland.signals import element_set
 from .base import Element, Unevaluated, Slot, validate_element
 from .scalars import Scalar
 
@@ -39,7 +49,7 @@ class Container(Element):
       run after contained elements are validated.
 
     :param \*\*kw: other arguments common to
-      :class:`~flatland.schema.base.FieldSchema`.
+      :class:`~flatland.schema.base.Element`.
 
     """
 
@@ -48,7 +58,7 @@ class Container(Element):
     validates_up = 'validators'
 
     descent_validators = ()
-    """TODO: doc descent_validators"""
+    """.. TODO:: doc descent_validators"""
 
     @class_cloner
     def descent_validated_by(cls, *validators):
@@ -92,30 +102,6 @@ class Container(Element):
         mutable[position:position] = list(validators)
         cls.descent_validators = mutable
         return cls
-
-    def validate_element(self, element, state, descending):
-        """Validates on the first (downward) and second (upward) pass.
-
-        If :attr:`descent_validators` are defined on the schema, they
-        will be evaluated before children are validated.  If a
-        validation function returns :obj:`flatland.SkipAll` or
-        :obj:`flatland.SkipFalse`, downward validation will halt on
-        this container and children will not be validated.
-
-        If :attr:`validators` are defined, they will be evaluated
-        after children are validated.
-
-        See :meth:`FieldSchema.validate_element`.
-
-        """
-        if descending:
-            if self.descent_validators:
-                return validate_element(
-                    element, state, self.descent_validators)
-            else:
-                return None
-        else:
-            return validate_element(element, state, self.validators)
 
     def _validate(self, state, descending):
         """Run validation, transforming None into success. Internal."""
@@ -182,7 +168,7 @@ class Sequence(Container, list):
     def of(cls, *schema):
         """Declare the class to hold a sequence of *\*schema*.
 
-        :params \*schema: one or more :class:`flatland.Element` classes
+        :params \*schema: one or more `~flatland.schema.base.Element` classes
         :returns: *cls*
 
         Configures the :attr:`member_schema` of *cls* to hold instances of
@@ -198,7 +184,7 @@ class Sequence(Container, list):
           >>> el
           [<String u'name'; value=u'Bob'>, <String u'name'; value=u'Biff'>]
 
-        If more than one :class:`~flatland.Element` is specified in
+        If more than one `~flatland.schema.base.Element` is specified in
         *\*schema*, an anonymous :class:`Dict` is created to hold them.
 
         .. doctest::
@@ -256,8 +242,10 @@ class Sequence(Container, list):
                 values.append(el)
             self.extend(values)
         except TypeError:
+            element_set.send(self, adapted=False)
             return False
         else:
+            element_set.send(self, adapted=converted)
             return converted
 
     def set_default(self):
@@ -453,7 +441,7 @@ class List(Sequence):
     """
 
     def _as_element(self, value):
-        """TODO"""
+        """.. TODO::"""
         if value is Unspecified:
             return self.member_schema()
         if isinstance(value, Element):
@@ -463,7 +451,10 @@ class List(Sequence):
 
     def _new_slot(self, value=Unspecified):
         """Wrap *value* in a Slot named as the element's index in the list."""
-        return self.slot_type(name=str(len(self)).decode('ascii'),
+        # avoid direct text_type() here so that test suite unicode coercion
+        # detector isn't triggered
+        name = bytestring_type(len(self)).decode('ascii')
+        return self.slot_type(name=name,
                               parent=self,
                               element=self._as_element(value))
 
@@ -536,7 +527,8 @@ class List(Sequence):
 
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
-            slot.name = str(idx).decode('ascii')
+            # don't trigger naive unicode coercion (for test suite)
+            slot.name = bytestring_type(idx).decode('ascii')
 
     @property
     def children(self):
@@ -549,10 +541,10 @@ class List(Sequence):
             return
 
         if self.name:
-            regex = re.compile(ur'^%s(\d+)(?:%s|$)' % (
+            regex = re.compile(u'^%s(\\d+)(?:%s|$)' % (
                 re_uescape(self.name + sep), re_uescape(sep)), re.UNICODE)
         else:
-            regex = re.compile(ur'^(\d+)(?:%s|$)' % (
+            regex = re.compile(u'^(\\d+)(?:%s|$)' % (
                 re_uescape(sep)), re.UNICODE)
 
         indexes = defaultdict(list)
@@ -565,7 +557,7 @@ class List(Sequence):
             if not m:
                 continue
             try:
-                index = long(m.group(1))
+                index = int(m.group(1))
             except TypeError:
                 # Ignore keys with outrageously large indexes- they
                 # aren't valid data for us.
@@ -663,7 +655,7 @@ class Array(Sequence):
                 member = self.member_schema.from_flat([(key, value)])
                 self.append(member)
         else:
-            regex = re.compile(ur'^(%s(?:%s|$))' % (
+            regex = re.compile(u'^(%s(?:%s|$))' % (
                 re_uescape(self.name), re_uescape(sep)), re.UNICODE)
             for key, value in pairs:
                 m = regex.match(key)
@@ -681,7 +673,7 @@ class Array(Sequence):
 class MultiValue(Array, Scalar):
     """A transparent homogeneous Container, for multivalued form elements.
 
-    MultiValues combine aspects of :class:`Scalar` and
+    MultiValues combine aspects of `~flatland.schema.scalars.Scalar` and
     :class:`Sequence` fields, allowing all values of a repeated `(key,
     value)` pair to be captured and used.
 
@@ -733,7 +725,7 @@ class Mapping(Container, dict):
     """Base of mapping-like Containers."""
 
     field_schema = ()
-    """TODO: doc field_schema"""
+    """.. TODO:: doc field_schema"""
 
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, **kw)
@@ -786,7 +778,7 @@ class Mapping(Container, dict):
         elif dictish:
             for key, value in to_pairs(dictish[0]):
                 self[key] = value
-        for key, value in kwargs.iteritems():
+        for key, value in iteritems(kwargs):
             self[key] = value
 
     def setdefault(self, key, default=None):
@@ -804,10 +796,10 @@ class Mapping(Container, dict):
     @property
     def children(self):
         # order not guaranteed
-        return self.itervalues()
+        return itervalues(self)
 
     def set(self, value):
-        """TODO: doc set()"""
+        """.. TODO:: doc set()"""
         self.raw = value
         pairs = to_pairs(value)
         self._reset()
@@ -821,12 +813,13 @@ class Mapping(Container, dict):
                         type(self).__name__, self.name, key))
             converted &= self[key].set(value)
             seen.add(key)
-        required = set(self.iterkeys())
+        required = set(iterkeys(self))
         if seen != required:
             missing = required - seen
             raise TypeError(
                 'all keys required for a set() operation, missing %s.' % (
                     ','.join(repr(key) for key in missing)))
+        element_set.send(self, adapted=converted)
         return converted
 
     def _set_flat(self, pairs, sep):
@@ -876,7 +869,7 @@ class Mapping(Container, dict):
         """A string repr of the element."""
         pairs = ((key, value.u if isinstance(value, Container)
                                else repr(value.u).decode('raw_unicode_escape'))
-                  for key, value in self.iteritems())
+                  for key, value in iteritems(self))
         return u'{%s}' % u', '.join(
             u"%s: %s" % (repr(k).decode('raw_unicode_escape'), v)
             for k, v in pairs)
@@ -884,7 +877,7 @@ class Mapping(Container, dict):
     @property
     def value(self):
         """The element as a regular Python dictionary."""
-        return dict((key, value.value) for key, value in self.iteritems())
+        return dict((key, value.value) for key, value in iteritems(self))
 
     @property
     def is_empty(self):
@@ -912,14 +905,19 @@ class Dict(Mapping, dict):
     """A mapping Container with named members."""
 
     policy = 'subset'
-    """One of 'strict', 'subset' or 'duck'.  Default 'subset'.
+    """Deprecated.  One of 'strict', 'subset' or 'duck'.  Default 'subset'.
 
-    See :ref:`set_policy`
+    Operates as :class:`~flatland.validation.containers.SetWithAllFields`
+    and :class:`~flatland.validation.containers.SetWithKnownFields`, except
+    raises an exception immediately upon :meth:`set`.
+
+    To migrate to the new validators, set :attr:`policy` to ``None`` to
+    disable the policy behavior.
     """
 
     @class_cloner
     def of(cls, *fields):
-        """TODO: doc of()"""
+        """.. TODO:: doc of()"""
         # TODO: doc
         # TODO: maybe accept **kw?
         for field in fields:
@@ -950,8 +948,8 @@ class Dict(Mapping, dict):
             *obj*, if present on the object.  Only these attributes will be
             included.
         :param omit: optional, an iterable of attribute names to ignore on
-            **obj**.  All other attributes matching a named field on the Form
-            will be included.
+            **obj**.  All other attributes matching a named field on the
+            mapping will be included.
         :param rename: optional, a mapping of attribute-to-field name
             transformations.  Attributes specified in the mapping will be
             included regardless of *include* or *omit*.
@@ -971,41 +969,56 @@ class Dict(Mapping, dict):
         return self
 
     def set(self, value, policy=None):
-        """TODO: doc set()"""
         self.raw = value
-        pairs = to_pairs(value)
+        pairs = list(to_pairs(value))
         self._reset()
 
-        if policy is not None:
-            assert policy in ('strict', 'subset', 'duck')
-        else:
+        if policy is None:
             policy = self.policy
+        if policy not in ('strict', 'subset', 'duck', None):
+            raise RuntimeError("Unknown %s policy %r" % (
+                self.__class__.__name__, policy))
+
+        if policy == 'strict':
+            missing, extra = _evaluate_dict_strict_policy(self, pairs)
+            if missing and extra:
+                raise KeyError(
+                    'Strict %s %r schema does not allow keys %r and '
+                    'requires keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(extra), list(missing)))
+            elif missing:
+                # match previous logic's exception type here
+                raise TypeError(
+                    'Strict %s %r schema requires keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(missing)))
+            elif extra:
+                raise KeyError(
+                    'Strict %s %r schema does not allow keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(extra)))
+        elif policy == 'subset':
+            mismatch = _evaluate_dict_subset_policy(self, pairs)
+            if mismatch:
+                raise KeyError(
+                    'Subset %s %r schema does not allow keys %r' % (
+                        self.__class__.__name__, self.name,
+                        list(mismatch)))
 
         fields = self.field_schema_mapping
-        seen = set()
         converted = True
         for key, value in pairs:
+            if PY2 and isinstance(key, bytestring_type):
+                key = key.decode('ascii', 'replace')
             if key not in fields:
-                if policy != 'duck':
-                    raise KeyError(
-                        'Dict %r schema does not allow key %r' % (
-                            self.name, key))
                 continue
             if dict.__contains__(self, key):
                 converted &= self[key].set(value)
             else:
                 self[key] = el = fields[key]()
                 converted &= el.set(value)
-            seen.add(key)
-
-        if policy == 'strict':
-            required = set(fields.iterkeys())
-            if seen != required:
-                missing = required - seen
-                raise TypeError(
-                    'strict-mode Dict requires all keys for '
-                    'a set() operation, missing %s.' % (
-                        ','.join(repr(key) for key in missing)))
+        element_set.send(self, adapted=converted)
         return converted
 
     def set_by_object(self, obj, include=None, omit=None, rename=None):
@@ -1016,8 +1029,8 @@ class Dict(Mapping, dict):
             *obj*, if present on the object.  Only these attributes will be
             included.
         :param omit: optional, an iterable of attribute names to ignore on
-            **obj**.  All other attributes matching a named field on the Form
-            will be included.
+            **obj**.  All other attributes matching a named field on the
+            mapping will be included.
         :param rename: optional, a mapping of attribute-to-field name
             transformations.  Attributes specified in the mapping will be
             included regardless of *include* or *omit*.
@@ -1034,8 +1047,8 @@ class Dict(Mapping, dict):
         .. testsetup::
 
           # FIXME
-          from flatland import Form, String
-          class UserForm(Form):
+          from flatland import Schema, String
+          class UserForm(Schema):
               login = String
               password = String
               verify_password = String
@@ -1065,7 +1078,7 @@ class Dict(Mapping, dict):
           >>> new_user = User(**user_keywords)
 
         """
-        fields = set(self.iterkeys())
+        fields = set(iterkeys(self))
         attributes = fields.copy()
         if rename:
             rename = list(to_pairs(rename))
@@ -1076,7 +1089,7 @@ class Dict(Mapping, dict):
             attributes.difference_update(omit)
 
         possible = ((attr, getattr(obj, attr))
-                    for attr in attributes
+                    for attr in sorted(attributes)
                     if hasattr(obj, attr))
 
         sliced = keyslice_pairs(possible, include=include,
@@ -1087,7 +1100,7 @@ class Dict(Mapping, dict):
         self.set(final)
 
     def update_object(self, obj, include=None, omit=None, rename=None,
-                      key=str):
+                      key=identifier_transform):
         """Update an object's attributes using the element's values.
 
         Produces a :meth:`slice` using *include*, *omit*, *rename* and
@@ -1098,15 +1111,19 @@ class Dict(Mapping, dict):
 
         """
         data = self.slice(include=include, omit=omit, rename=rename, key=key)
-        for attribute, value in data.iteritems():
+        for attribute, value in iteritems(data):
             setattr(obj, attribute, value)
 
     def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a ``dict`` containing a subset of the element's values."""
-        return dict(
-            keyslice_pairs(
-                ((key, element.value) for key, element in self.iteritems()),
-                include=include, omit=omit, rename=rename, key=key))
+        pairs = ((key, element.value)
+                 for key, element in sorted(iteritems(self)))
+        sliced = keyslice_pairs(pairs,
+                                include=include,
+                                omit=omit,
+                                rename=rename,
+                                key=key)
+        return dict(sliced)
 
 
 class SparseDict(Dict):
@@ -1121,7 +1138,6 @@ class SparseDict(Dict):
 
     #: The subset of fields to autovivify on instantiation.
     #:
-
     #: May be ``None`` or ``'required'``.  If ``None``, mappings will be
     #: created empty and mutation operations are unrestricted within the
     #: bounds of the :attr:`field_schema`.  If ``required``, fields with
@@ -1214,7 +1230,7 @@ class SparseDict(Dict):
 
     @property
     def is_empty(self):
-        for _ in self.iterkeys():
+        for _ in iterkeys(self):
             return False
         return True
 
@@ -1233,6 +1249,32 @@ class SparseDict(Dict):
         else:
             raise RuntimeError("Unknown minimum_fields setting %r" %
                                (self.minimum_fields,))
+
+
+def _textset(iterable):
+    values = set()
+    for value in iterable:
+        if PY2 and isinstance(value, bytestring_type):
+            value = value.decode('ascii', 'replace')
+        values.add(value)
+    return values
+
+
+# temporary home for this logic until deprecated Dict.policy is removed
+def _evaluate_dict_subset_policy(element, pairs):
+    allowed = _textset(element.field_schema_mapping.keys())
+    given = _textset(key for key, _ in pairs)
+    if not given.issubset(allowed):
+        return given - allowed
+    return ()
+
+
+def _evaluate_dict_strict_policy(element, pairs):
+    required = _textset(element.field_schema_mapping.keys())
+    given = _textset(key for key, _ in pairs)
+    if given != required:
+        return required - given, given - required
+    return (), ()
 
 
 for cls_name in __all__:

@@ -1,0 +1,4 @@
+Exceptions
+==========
+
+.. automodule:: flatland.exc

@@ -2,11 +2,12 @@
 import re
 import string
 import sys
-
 try:
     import threading
 except ImportError:                                           # pragma:nocover
     import dummy_threading as threading
+
+from flatland._compat import PY2, text_type
 
 
 # derived from ASPN Cookbook (#36302)
@@ -26,7 +27,7 @@ class lazy_property(object):
         if obj is None:
             return self
         value = self._deferred(obj)
-        setattr(obj, self._deferred.func_name, value)
+        setattr(obj, self._deferred.__name__, value)
         return value
 
 
@@ -163,14 +164,14 @@ class as_mapping(object):
 
     def __getitem__(self, item):
         try:
-            if isinstance(item, unicode):
+            if PY2 and isinstance(item, text_type):
                 return getattr(self.target, item.encode('ascii'))
             return getattr(self.target, item)
         except (AttributeError, UnicodeError):
             raise KeyError(item)
 
     def __contains__(self, item):
-        if isinstance(item, unicode):
+        if PY2 and isinstance(item, text_type):
             try:
                 return hasattr(self.target, item.encode('ascii'))
             except UnicodeError:
@@ -196,7 +197,9 @@ def re_ucompile(pattern, flags=0):
     return re.compile(pattern, flags | re.UNICODE)
 
 
-_alphanum = set((string.digits + string.letters).decode('ascii'))
+_alphanum = set(text_type(string.digits +
+                          string.ascii_lowercase +
+                          string.ascii_uppercase))
 
 
 def re_uescape(pattern):
@@ -209,20 +212,6 @@ def re_uescape(pattern):
             else:
                 mutable[idx] = u"\\" + char
     return u''.join(mutable)
-
-
-def luhn10(number):
-    """Return True if the number passes the Luhn checksum algorithm."""
-
-    sum = 0
-    while number:
-        r = number % 100
-        number //= 100
-        z = r % 10
-        r = r // 10 * 2
-        sum += r // 10 + r % 10 + z
-
-    return 0 == sum % 10
 
 
 def to_pairs(dictlike):

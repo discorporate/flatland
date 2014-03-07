@@ -1,5 +1,6 @@
 import re
 
+from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.out.util import parse_trool
 from flatland.schema import Array, Boolean
 from flatland.util import Maybe, to_pairs
@@ -64,15 +65,17 @@ class Context(object):
             source = to_pairs(iterable[0])
             for key, value in source:
                 self[key] = value
-        for key, value in kwargs.iteritems():
-            self[key.decode('ascii')] = value
+        for key, value in iteritems(kwargs):
+            if PY2:
+                key = key.decode('ascii')
+            self[key] = value
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self._frames[-1])
 
 
-class Markup(unicode):
-    """A unicode string of HTML markup that should not be escaped in output."""
+class Markup(text_type):
+    """A string of HTML markup that should not be escaped in output."""
     __slots__ = ()
 
     # Not a full featured implementation.
@@ -80,7 +83,7 @@ class Markup(unicode):
     def __html__(self):
         return self
 
-_default_context['markup_wrapper'] = Markup
+_default_context[u'markup_wrapper'] = Markup
 
 
 def transformer(name, tags):
@@ -155,7 +158,7 @@ def transform_value(tagname, attributes, contents, context, bind):
         current = attributes.get(u'value')
         if current is not None:
             value = current
-        elif isinstance(contents, unicode):
+        elif isinstance(contents, text_type):
             value = contents.strip()
         elif contents is None:
             value = u''
@@ -171,7 +174,7 @@ def transform_value(tagname, attributes, contents, context, bind):
             attributes.pop(u'selected', None)
     elif tagname == u'textarea':
         if contents is None or forced:
-            return context['markup_wrapper'](_markup_escape(bind.u))
+            return context[u'markup_wrapper'](_markup_escape(bind.u))
     else:
         current = attributes.get(u'value')
         if current is None or forced:
@@ -224,7 +227,7 @@ def transform_tabindex(tagname, attributes, contents, context, bind):
 
     current = attributes.get(u'tabindex')
     if forced or current is None and tagname in _auto_tags[u'tabindex']:
-        attributes[u'tabindex'] = unicode(tabindex)
+        attributes[u'tabindex'] = bytestring_type(tabindex).decode('ascii')
         if tabindex > 0:
             context[u'tabindex'] = tabindex + 1
     return contents
@@ -289,7 +292,7 @@ def _generate_raw_domid(tagname, attributes, bind):
 
 
 def _sanitize_domid_suffix(string):
-    """Try to convert Unicode *string* into a valid non-leading NAME or ID.
+    """Try to convert *string* into a valid non-leading NAME or ID.
 
       'ID and NAME tokens must begin with a letter ([A-Za-z]) and may be
        followed by any number of letters, digits ([0-9]), hyphens ("-"),
@@ -301,11 +304,11 @@ def _sanitize_domid_suffix(string):
 
 
 def _unpack(html_string):
-    """Extract HTML unicode from a __html__() interface."""
+    """Extract HTML from a __html__() interface."""
     unpacked = html_string.__html__()
-    if unpacked.__class__ is unicode:
+    if unpacked.__class__ is text_type:
         return unpacked
-    return unicode(unpacked)
+    return text_type(unpacked)
 
 
 def _markup_escape(string):

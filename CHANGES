@@ -1,0 +1,29 @@
+Changes
+=======
+
+
+Pre-release
+-----------
+
+- validation.IsEmail.nonlocal has been renamed to non_local for
+  Python 3 compatibility.
+
+- .set() now emits element_set signal
+
+- flatland.Form deprecated by flatland.Schema
+
+- flatland.SparseSchema is a declarative Schema backed by SparseDict
+
+- schema.forms moved to schema.declarative
+
+- Element.find_child renamed to Element.find_one
+
+- Removed flatland.ext (example credit card type)
+
+- Removed NAN related example validators
+
+- Deprecated Element.el is removed (use .find and .find_one)
+
+- Usage of deferred_module has been retired
+
+- Dict.policy is deprecated by Element.raw and new standard validators

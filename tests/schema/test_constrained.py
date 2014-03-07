@@ -3,6 +3,7 @@ from flatland import (
     Enum,
     Integer,
     )
+from flatland._compat import text_transform
 
 from tests._util import eq_, assert_raises
 
@@ -104,9 +105,9 @@ def test_typed_enum():
 
     for good_val in good_values:
         el = schema()
-        assert el.set(unicode(str(good_val), 'ascii'))
+        assert el.set(text_transform(good_val))
         assert el.value == good_val
-        assert el.u == unicode(str(good_val), 'ascii')
+        assert el.u == text_transform(good_val)
         assert not el.errors
 
     el = schema()

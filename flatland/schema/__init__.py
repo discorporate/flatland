@@ -39,8 +39,10 @@ from .compound import (
     DateYYYYMMDD,
     JoinedString,
     )
-from .forms import (
+from .declarative import (
     Form,
+    Schema,
+    SparseSchema,
     )
 from .properties import (
     Properties,

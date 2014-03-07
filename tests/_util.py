@@ -1,10 +1,13 @@
 """Test suite helpers."""
 import codecs
+from contextlib import contextmanager
 from functools import wraps
 from inspect import stack
 import sys
 
 from nose.tools import eq_, assert_raises, raises
+
+from flatland._compat import long_type
 
 
 __all__ = ['asciistr', 'assert_raises', 'eq_', 'raises', 'fails',
@@ -14,6 +17,10 @@ __all__ = ['asciistr', 'assert_raises', 'eq_', 'raises', 'fails',
 # sys.getdefaultencoding() == 'nocoercion'.
 _ascii_codec = codecs.getencoder('ascii')
 asciistr = lambda s: _ascii_codec(s)[0]
+# acts like naive unicode() on simple types like int
+textstr = lambda o: str(o).decode('ascii')
+
+_coercion_override = None
 
 
 def fails(reason):
@@ -63,17 +70,49 @@ def requires_unicode_coercion(fn):
     return decorated
 
 
+@contextmanager
+def unicode_coercion_allowed():
+    global _coercion_override
+    initial_value = _coercion_override
+    try:
+        _coercion_override = True
+        yield
+    finally:
+        _coercion_override = initial_value
+
+
 def _allowed_coercion(input):
-    global genshis
-    if isinstance(input, (int, float, long, type(None))):
+    if _coercion_override:
         return True
-    calling_file = stack()[2][1]
-    if calling_file.endswith('sre_parse.py'):
+    # TODO: this isn't hit anymore (buffer comes in). did it ever work?
+    if isinstance(input, (int, float, long_type, type(None))):
         return True
-    elif 'genshi' in calling_file and 'out/genshi' not in calling_file:
-        # OMG slow on genshi 0.5.2
-        return True
-    return False
+
+    try:
+        caller = stack()[2]
+        if '__hopeless_morass_of_unicode_hell__' in caller[0].f_locals:
+            return True
+
+        calling_path = caller[1]
+        if '/' in calling_path:
+            calling_file = calling_path.rsplit('/', 1)[1]
+        else:
+            calling_file = calling_path
+
+        if calling_file in ('sre_parse.py', 'decimal.py', 'urlparse.py'):
+            return True
+        elif '/nose/' in calling_path:
+            return True
+        elif 'genshi' in calling_path and 'out/genshi' not in calling_path:
+            # OMG slow on genshi 0.5.2
+            return True
+        # this does lots of expected '%s' formatting e.g. unicode(2)
+        elif ('flatland/validation' in calling_path and
+              caller[3] == 'expand_message'):
+            return True
+        return False
+    finally:
+        del caller
 
 
 class NoCoercionCodec(codecs.Codec):

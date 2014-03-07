@@ -1,5 +1,4 @@
 from flatland import (
-    Array,
     Dict,
     Integer,
     List,
@@ -10,9 +9,11 @@ from flatland.validation import (
     HasAtMost,
     HasBetween,
     NotDuplicated,
+    SetWithAllFields,
+    SetWithKnownFields,
     )
 
-from tests._util import assert_raises
+from tests._util import assert_raises, unicode_coercion_allowed
 
 
 def valid_of_children(element):
@@ -20,8 +21,9 @@ def valid_of_children(element):
 
 
 def validated_string(*validators):
-    return List.named('test').of(String.using(name=u'foo',
-                                             validators=validators))
+    return List.named(u'test').of(String.using(name=u'foo',
+                                               validators=validators))
+
 
 def test_no_duplicates_message():
     schema = validated_string(NotDuplicated())
@@ -51,20 +53,23 @@ def _test_no_duplicates(schema, a, b):
     el = schema([a, b, a])
     assert not el.validate()
     assert valid_of_children(el) == [True, True, False]
-    assert el[2].errors == [u'%s %s' % (label, 3)]
+    with unicode_coercion_allowed():
+        assert el[2].errors == [u'%s %s' % (label, 3)]
 
     el = schema([a, b, a, b])
     assert not el.validate()
     assert valid_of_children(el) == [True, True, False, False]
-    assert el[2].errors == [u'%s %s' % (label, 3)]
-    assert el[3].errors == [u'%s %s' % (label, 4)]
+    with unicode_coercion_allowed():
+        assert el[2].errors == [u'%s %s' % (label, 3)]
+        assert el[3].errors == [u'%s %s' % (label, 4)]
 
     el = schema([a, a, a, a])
     assert not el.validate()
     assert valid_of_children(el) == [True, False, False, False]
-    assert el[1].errors == [u'%s %s' % (label, 2)]
-    assert el[2].errors == [u'%s %s' % (label, 3)]
-    assert el[3].errors == [u'%s %s' % (label, 4)]
+    with unicode_coercion_allowed():
+        assert el[1].errors == [u'%s %s' % (label, 2)]
+        assert el[2].errors == [u'%s %s' % (label, 3)]
+        assert el[3].errors == [u'%s %s' % (label, 4)]
 
 
 def test_no_duplicates_list_scalar():
@@ -81,32 +86,32 @@ def test_no_duplicates_array():
 
 def test_no_duplicates_list_anon_dict():
     nd = NotDuplicated(failure=u'%(container_label)s %(position)s')
-    schema = (List.named('test').
-              of(Dict.of(Integer.named('x'),
-                         Integer.named('y')).
+    schema = (List.named(u'test').
+              of(Dict.of(Integer.named(u'x'),
+                         Integer.named(u'y')).
                  using(validators=[nd])))
-    _test_no_duplicates(schema, {'x': 1, 'y': 2}, {'x': 3, 'y': 4})
+    _test_no_duplicates(schema, {u'x': 1, u'y': 2}, {u'x': 3, u'y': 4})
 
 
 def test_no_duplicates_list_dict():
     nd = NotDuplicated(failure=u'%(container_label)s %(position)s')
-    schema = (List.named('test').
-              of(Dict.named('xyz').
-                 of(Integer.named('x'),
-                    Integer.named('y')).
+    schema = (List.named(u'test').
+              of(Dict.named(u'xyz').
+                 of(Integer.named(u'x'),
+                    Integer.named(u'y')).
                  using(validators=[nd])))
-    _test_no_duplicates(schema, {'x': 1, 'y': 2}, {'x': 3, 'y': 4})
+    _test_no_duplicates(schema, {u'x': 1, u'y': 2}, {u'x': 3, u'y': 4})
 
 
 def validated_list(*validators):
-    return List.named('outer').of(String.named('inner')).using(
+    return List.named(u'outer').of(String.named(u'inner')).using(
         validators=validators)
 
 
 def test_has_at_least_none():
     schema = validated_list(HasAtLeast(minimum=0))
 
-    el = schema(['a'])
+    el = schema([u'a'])
     assert el.validate()
 
     el = schema()
@@ -120,25 +125,25 @@ def test_has_at_least_one():
     assert not el.validate()
     assert el.errors == [u'outer must contain at least one inner']
 
-    el = schema(['a'])
+    el = schema([u'a'])
     assert el.validate()
 
 
 def test_has_at_least_two():
     schema = validated_list(HasAtLeast(minimum=2))
 
-    el = schema(['a'])
+    el = schema([u'a'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at least 2 inners']
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert el.validate()
 
 
 def test_has_at_most_none():
     schema = validated_list(HasAtMost(maximum=0))
 
-    el = schema(['a'])
+    el = schema([u'a'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at most 0 inners']
 
@@ -152,10 +157,10 @@ def test_has_at_most_one():
     el = schema()
     assert el.validate()
 
-    el = schema(['a'])
+    el = schema([u'a'])
     assert el.validate()
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at most one inner']
 
@@ -166,10 +171,10 @@ def test_has_at_most_two():
     el = schema()
     assert el.validate()
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert el.validate()
 
-    el = schema(['a', 'b', 'c'])
+    el = schema([u'a', u'b', u'c'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at most 2 inners']
 
@@ -180,7 +185,7 @@ def test_has_between_none():
     el = schema()
     assert el.validate()
 
-    el = schema(['a'])
+    el = schema([u'a'])
     assert not el.validate()
     assert el.errors == [u'outer must contain exactly 0 inners']
 
@@ -192,10 +197,10 @@ def test_has_between_one():
     assert not el.validate()
     assert el.errors == [u'outer must contain exactly one inner']
 
-    el = schema(['a'])
+    el = schema([u'a'])
     assert el.validate()
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert not el.validate()
     assert el.errors == [u'outer must contain exactly one inner']
 
@@ -207,11 +212,11 @@ def test_has_between_two():
     assert not el.validate()
     assert el.errors == [u'outer must contain exactly 2 inners']
 
-    el = schema(['b'])
+    el = schema([u'b'])
     assert not el.validate()
     assert el.errors == [u'outer must contain exactly 2 inners']
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert el.validate()
 
 
@@ -221,10 +226,10 @@ def test_has_between_none_and_one():
     el = schema()
     assert el.validate()
 
-    el = schema(['b'])
+    el = schema([u'b'])
     assert el.validate()
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at least 0 and at most 1 inner']
 
@@ -235,10 +240,10 @@ def test_has_between_none_and_two():
     el = schema()
     assert el.validate()
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert el.validate()
 
-    el = schema(['a', 'b', 'c'])
+    el = schema([u'a', u'b', u'c'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at least 0 and at most 2 inners']
 
@@ -250,12 +255,56 @@ def test_has_between_one_and_two():
     assert not el.validate()
     assert el.errors == [u'outer must contain at least 1 and at most 2 inners']
 
-    el = schema(['b'])
+    el = schema([u'b'])
     assert el.validate()
 
-    el = schema(['a', 'b'])
+    el = schema([u'a', u'b'])
     assert el.validate()
 
-    el = schema(['a', 'b', 'c'])
+    el = schema([u'a', u'b', u'c'])
     assert not el.validate()
     assert el.errors == [u'outer must contain at least 1 and at most 2 inners']
+
+
+def test_set_with_known():
+    Int = Integer.using(optional=True)
+    schema = (Dict.named(u'point').of(Int.named(u'x'), Int.named(u'y')).
+              using(policy=None).
+              validated_by(SetWithKnownFields()))
+
+    # no coverage of set_flat
+    el = schema.from_flat([(u'point_x', u'1'), (u'point_Z', u'3')])
+    assert el.value == {u'x': 1, u'y': None}
+    assert el.validate()
+
+    el = schema({u'x': 1, u'Z': 3})
+    assert el.value == {u'x': 1, u'y': None}
+    assert not el.validate()
+    assert el.errors == [u'point may not contain Z']
+
+
+def test_set_with_all():
+    Int = Integer.using(optional=True)
+    schema = (Dict.named(u'point').of(Int.named(u'x'), Int.named(u'y')).
+              using(policy=None).
+              validated_by(SetWithAllFields()))
+
+    # no coverage of set_flat
+    el = schema.from_flat([(u'point_x', u'1'), (u'point_Z', u'3')])
+    assert el.value == {u'x': 1, u'y': None}
+    assert el.validate()
+
+    el = schema({u'x': 1, u'Z': 3})
+    assert el.value == {u'x': 1, u'y': None}
+    assert not el.validate()
+    assert el.errors == [u'point must contain y and not contain Z']
+
+    el = schema({u'x': 1, u'y': 2, u'Z': 3, u'A': 4})
+    assert el.value == {u'x': 1, u'y': 2}
+    assert not el.validate()
+    assert el.errors == [u'point may not contain A, Z']
+
+    el = schema({u'x': 1})
+    assert el.value == {u'x': 1, u'y': None}
+    assert not el.validate()
+    assert el.errors == [u'point must contain y']

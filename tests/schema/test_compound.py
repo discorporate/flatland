@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import datetime
 import re
 
@@ -8,6 +9,7 @@ from flatland import (
     Integer,
     JoinedString,
     String,
+    element_set,
     )
 
 from tests._util import assert_raises, eq_, raises
@@ -189,9 +191,10 @@ class TestDoubleField(object):
                     x, y = value
                 except (TypeError, ValueError):
                     return False
-                self[u'x'].set(x)
-                self[u'y'].set(y)
-                return True
+                res = True
+                res &= self[u'x'].set(x)
+                res &= self[u'y'].set(y)
+                return res
 
         self.Double = Double
 
@@ -252,6 +255,34 @@ class TestDoubleField(object):
         assert e.set((4, 5))
         assert_values_(e, (4, 5), 4, 5)
         assert_us_(e, u'4x5', u'4', u'5')
+
+    def test_element_set(self):
+        data = []
+        sentinel = lambda sender, adapted: data.append((sender, adapted))
+
+        schema = self.Double.named(u's')
+
+        schema((0, 0))
+        with element_set.connected_to(sentinel):
+            schema((1, 1))
+            schema((2, u'bad child'))
+            schema(u'bad root')
+
+        assert len(data) == 7
+
+        # 1, 1
+        assert data[2][0].value == (1, 1)
+        assert data[2][1] is True
+
+        # 2, 'bad child'
+        assert data[3][1] is True
+        assert data[4][0].raw == u'bad child'
+        assert data[4][1] is False
+        assert data[5][1] is False
+
+        # u'bad root
+        assert data[6][0].raw == u'bad root'
+        assert data[6][1] is False
 
     def test_set_default(self):
         s = self.Double.named(u's').using(default=(4, 5))
@@ -381,19 +412,19 @@ def test_sample_compound():
     e = s()
     assert e.value is None
     assert e[u'year'].value is None
-    assert e.el(u'year').value is None
+    assert e.find_one(u'year').value is None
 
     when = datetime.date(2000, 10, 1)
     e.set(when)
     assert e.value == when
-    assert e.el(u'year').value == 2000
-    assert e.el(u'day').value == 1
+    assert e.find_one(u'year').value == 2000
+    assert e.find_one(u'day').value == 1
     assert e.u == u'2000-10-01'
-    assert e.el(u'day').u == u'01'
+    assert e.find_one(u'day').u == u'01'
 
-    e.el(u'day').set(5)
+    e.find_one(u'day').set(5)
     assert e.value == datetime.date(2000, 10, 5)
-    assert e.el(u'day').value == 5
+    assert e.find_one(u'day').value == 5
     assert e.u == u'2000-10-05'
 
     e = s()
@@ -401,14 +432,14 @@ def test_sample_compound():
     assert e.value is None
     assert e.u == u''
     assert e[u'year'].value is None
-    assert e.el(u'year').value is None
+    assert e.find_one(u'year').value is None
 
     e = s()
     e.set(u'snaggle')
     assert e.value is None
     assert e.u == u''
     assert e[u'year'].value is None
-    assert e.el(u'year').value is None
+    assert e.find_one(u'year').value is None
 
 
 def test_compound_optional():
@@ -416,17 +447,17 @@ def test_compound_optional():
     required = Dict.of(DateYYYYMMDD.named(u's').using(optional=False))
 
     f = required.from_defaults()
-    assert not f.el(u's.year').optional
-    assert not f.el(u's.month').optional
-    assert not f.el(u's.day').optional
+    assert not f.find_one(u's/year').optional
+    assert not f.find_one(u's/month').optional
+    assert not f.find_one(u's/day').optional
     assert not f.validate()
 
     optional = Dict.of(DateYYYYMMDD.named(u's').using(optional=True))
 
     f = optional.from_defaults()
-    assert f.el(u's.year').optional
-    assert f.el(u's.month').optional
-    assert f.el(u's.day').optional
+    assert f.find_one(u's/year').optional
+    assert f.find_one(u's/month').optional
+    assert f.find_one(u's/day').optional
     assert f.validate()
 
 
@@ -434,7 +465,7 @@ def test_compound_is_empty():
     element = DateYYYYMMDD()
     assert element.is_empty
 
-    element.el(u'year').set(1979)
+    element.find_one(u'year').set(1979)
     assert not element.is_empty
 
 
@@ -461,19 +492,19 @@ def test_joined_string():
 
     # The child (String) strips by default
     el = JoinedString(u' abc ,, ghi ', strip=False)
-    assert el.value == 'abc,ghi'
+    assert el.value == u'abc,ghi'
     assert [child.value for child in el] == [u'abc', u'ghi']
 
     # Try with a non-stripping String
     el = JoinedString(u' abc ,, ghi ',
                       strip=False,
                       member_schema=String.using(strip=False))
-    assert el.value == ' abc , ghi '
+    assert el.value == u' abc , ghi '
     assert [child.value for child in el] == [u' abc ', u' ghi ']
 
 
 def test_joined_string_flat():
-    schema = JoinedString.named('js').of(Integer)
+    schema = JoinedString.named(u'js').of(Integer)
 
     for set_value, flat_value in [
         ([1], (u'js', u'1')),

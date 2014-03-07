@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
@@ -11,12 +12,12 @@ _static_attribute_order = [u'type', u'name', u'value']
 class Generator(Context):
     """General XML/HTML tag generator"""
 
-    def __init__(self, markup='xhtml', **settings):
+    def __init__(self, markup=u'xhtml', **settings):
         """Create a generator.
 
         Accepts any :ref:`markupsettings`, as well as the following:
 
-        :param markup: tag output style: 'xml', 'xhtml' or 'html'
+        :param markup: tag output style: ``'xml'``, ``'xhtml'`` or ``'html'``
 
         :param ordered_attributes: if True (default), output markup attributes
           in a predictable order.  Useful for tests and generally a little
@@ -24,9 +25,9 @@ class Generator(Context):
 
         """
         Context.__init__(self)
-        if markup == 'html':
+        if markup == u'html':
             self.xml = False
-        elif markup in ('xhtml', 'xml'):
+        elif markup in (u'xhtml', u'xml'):
             self.xml = True
         else:
             raise TypeError("Unknown markup type %r" % markup)
@@ -44,7 +45,7 @@ class Generator(Context):
 
         """
         self.push(**settings)
-        return self['markup_wrapper'](u'')
+        return self[u'markup_wrapper'](u'')
 
     def end(self):
         """End a :ref:`markupsettings` context.
@@ -55,7 +56,7 @@ class Generator(Context):
         if len(self._frames) == 2:
             raise RuntimeError("end() without matching begin()")
         self.pop()
-        return self['markup_wrapper'](u'')
+        return self[u'markup_wrapper'](u'')
 
     def set(self, **settings):
         """Change the :ref:`markupsettings` in effect.
@@ -67,20 +68,22 @@ class Generator(Context):
         """
 
         for key, value in settings.items():
+            if PY2:
+                key = key.decode('ascii')
             if key not in self:
                 raise TypeError(
                     "%r is not a valid argument." % key)
-            if key.startswith('auto_'):
+            if key.startswith(u'auto_'):
                 value = parse_trool(value)
             self[key] = value
-        return self['markup_wrapper'](u'')
+        return self[u'markup_wrapper'](u'')
 
     @property
     def form(self):
-        """Generate a <form/> tag.
+        """Generate a ``<form/>`` tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, form tags can generate the *name* attribute.
@@ -90,10 +93,10 @@ class Generator(Context):
 
     @property
     def input(self):
-        """Generate an <input/> tag.
+        """Generate an ``<input/>`` tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, input tags can generate the *name*, *value*
@@ -104,10 +107,10 @@ class Generator(Context):
 
     @property
     def textarea(self):
-        """Generate a <textarea/> tag.
+        """Generate a ``<textarea/>`` tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, textarea tags can generate the *name* and
@@ -121,10 +124,10 @@ class Generator(Context):
 
     @property
     def button(self):
-        """Generate a <button/> tag.
+        """Generate a ``<button/>`` tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, button tags can generate the *name*, *value*,
@@ -135,10 +138,10 @@ class Generator(Context):
 
     @property
     def select(self):
-        """Generate a <select/> tag.
+        """Generate a ``<select/>`` tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, select tags can generate the *name* and *id*
@@ -149,10 +152,10 @@ class Generator(Context):
 
     @property
     def option(self):
-        """Generate a <option/> tag.
+        """Generate an ``<option/>`` tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, option tags can generate the *value*
@@ -168,10 +171,10 @@ class Generator(Context):
 
     @property
     def label(self):
-        """Generate a <label/> tag.
+        """Generate a ``<label/>`` tag.
 
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         If provided with a bind, label tags can generate the *for* attribute
@@ -186,15 +189,15 @@ class Generator(Context):
 
         :param tagname: the name of the tag.
         :param bind: optional, a flatland element.
-        :param \*\*attributes: any desired xml/html attributes.
+        :param \*\*attributes: any desired XML/HTML attributes.
         :returns: a printable :class:`Tag`
 
         The attribute rules appropriate for *tagname* will be applied.  For
         example, ``tag('input')`` is equivalent to ``input()``.
 
         """
-        if isinstance(tagname, str):  # pragma: nocover
-            tagname = unicode(tagname)
+        if isinstance(tagname, bytestring_type):  # pragma: nocover
+            tagname = text_type(tagname)
         tagname = tagname.lower()
         if bind is None and not attributes:
             return self._tag(tagname)
@@ -235,7 +238,7 @@ class Tag(object):
         self.contents = None
 
     def open(self, bind=None, **attributes):
-        """Return the opening half of the tag, e.g. <p>.
+        """Return the opening half of the tag, e.g. ``<p>``.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired tag attributes.
@@ -246,7 +249,7 @@ class Tag(object):
         return self._markup(self._open(bind, attributes) + u'>')
 
     def close(self):
-        """Return the closing half of the tag, e.g. </p>."""
+        """Return the closing half of the tag, e.g. ``</p>``."""
         try:
             self._context._tags[self.tagname].remove(self)
         except ValueError:
@@ -254,9 +257,13 @@ class Tag(object):
         return self._markup(self._close())
 
     def _open(self, bind, kwargs):
-        """Return a '<partial' opener tag with no terminator."""
+        """Return a ``'<partial'`` opener tag with no terminator."""
         contents = kwargs.pop('contents', None)
-        attributes = _unicode_keyed(kwargs)
+
+        if PY2:
+            attributes = _unicode_keyed(kwargs)
+        else:
+            attributes = kwargs
         tagname = self.tagname
         new_contents = transform(
             tagname, attributes, contents, self._context, bind)
@@ -267,10 +274,10 @@ class Tag(object):
             new_contents = _unpack(new_contents)
         self.contents = self._markup(new_contents)
 
-        if self._context['ordered_attributes']:
+        if self._context[u'ordered_attributes']:
             pairs = sorted(attributes.items(), key=_attribute_sort_key)
         else:
-            pairs = attributes.iteritems()
+            pairs = iteritems(attributes)
         guts = u' '.join(u'%s="%s"' % (k, _attribute_escape(v))
                          for k, v in pairs)
         if guts:
@@ -282,7 +289,7 @@ class Tag(object):
         return u'</' + self.tagname + u'>'
 
     def _markup(self, string):
-        return self._context['markup_wrapper'](string)
+        return self._context[u'markup_wrapper'](string)
 
     def __call__(self, bind=None, **attributes):
         """Return a complete, closed markup string."""

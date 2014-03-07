@@ -8,7 +8,7 @@ schema = String.named(u'element').using(default=u'val').from_defaults
 ### value
 
 
-@desired_output('html', schema)
+@desired_output(u'html', schema)
 def value_bound():
     """<div value="val"></div>"""
 
@@ -20,10 +20,10 @@ def test_value_bound_genshi():
 
 @value_bound.markup
 def test_value_bound_markup(gen, el):
-    return gen.tag('div', el, auto_value=True)
+    return gen.tag(u'div', el, auto_value=True)
 
 
-@desired_output('html', None)
+@desired_output(u'html', None)
 def value_unbound():
     """<div></div>"""
 
@@ -35,13 +35,13 @@ def test_value_unbound_genshi():
 
 @value_unbound.markup
 def test_value_unbound_markup(gen, el):
-    return gen.tag('div', auto_value=True)
+    return gen.tag(u'div', auto_value=True)
 
 
 ### name
 
 
-@desired_output('html', schema)
+@desired_output(u'html', schema)
 def name_bound():
     """<div name="element"></div>"""
 
@@ -53,10 +53,10 @@ def test_name_bound_genshi():
 
 @name_bound.markup
 def test_name_bound_markup(gen, el):
-    return gen.tag('div', el, auto_name=True)
+    return gen.tag(u'div', el, auto_name=True)
 
 
-@desired_output('html', None)
+@desired_output(u'html', None)
 def name_unbound():
     """<div></div>"""
 
@@ -68,13 +68,13 @@ def test_name_unbound_genshi():
 
 @name_unbound.markup
 def test_name_unbound_markup(gen, el):
-    return gen.tag('div', auto_name=True)
+    return gen.tag(u'div', auto_name=True)
 
 
 ### domid
 
 
-@desired_output('html', schema)
+@desired_output(u'html', schema)
 def domid_bound():
     """<div id="f_element"></div>"""
 
@@ -86,10 +86,10 @@ def test_domid_bound_genshi():
 
 @domid_bound.markup
 def test_domid_bound_markup(gen, el):
-    return gen.tag('div', el, auto_domid=True)
+    return gen.tag(u'div', el, auto_domid=True)
 
 
-@desired_output('html', None)
+@desired_output(u'html', None)
 def domid_unbound():
     """<div></div>"""
 
@@ -101,13 +101,13 @@ def test_domid_unbound_genshi():
 
 @domid_unbound.markup
 def test_domid_unbound_markup(gen, el):
-    return gen.tag('div', auto_domid=True)
+    return gen.tag(u'div', auto_domid=True)
 
 
 ### for
 
 
-@desired_output('html', schema)
+@desired_output(u'html', schema)
 def for_bound():
     """<div for="f_element"></div>"""
 
@@ -119,10 +119,10 @@ def test_for_bound_genshi():
 
 @for_bound.markup
 def test_for_bound_markup(gen, el):
-    return gen.tag('div', el, auto_for=True)
+    return gen.tag(u'div', el, auto_for=True)
 
 
-@desired_output('html', None)
+@desired_output(u'html', None)
 def for_unbound():
     """<div></div>"""
 
@@ -134,13 +134,13 @@ def test_for_unbound_genshi():
 
 @for_unbound.markup
 def test_for_unbound_markup(gen, el):
-    return gen.tag('div', auto_for=True)
+    return gen.tag(u'div', auto_for=True)
 
 
 ### tabindex
 
 
-@desired_output('html', schema)
+@desired_output(u'html', schema)
 def tabindex_bound():
     """<div tabindex="1"></div>"""
 
@@ -156,10 +156,10 @@ def test_tabindex_bound_genshi():
 @tabindex_bound.markup
 def test_tabindex_bound_markup(gen, el):
     gen.set(tabindex=1)
-    return gen.tag('div', el, auto_tabindex=True)
+    return gen.tag(u'div', el, auto_tabindex=True)
 
 
-@desired_output('html', None)
+@desired_output(u'html', None)
 def tabindex_unbound():
     """<div tabindex="1"></div>"""
 
@@ -175,12 +175,12 @@ def test_tabindex_unbound_genshi():
 @tabindex_unbound.markup
 def test_tabindex_unbound_markup(gen, el):
     gen.set(tabindex=1)
-    return gen.tag('div', auto_tabindex=True)
+    return gen.tag(u'div', auto_tabindex=True)
 
 
 ### combo
 
-@desired_output('html', schema)
+@desired_output(u'html', schema)
 def combo_unbound():
     """<div tabindex="1"></div>"""
 
@@ -196,4 +196,4 @@ def test_combo_unbound_genshi():
 @combo_unbound.markup
 def test_combo_unbound_markup(gen, el):
     gen.set(tabindex=1)
-    return gen.tag('div', auto_tabindex=True, auto_domid=True)
+    return gen.tag(u'div', auto_tabindex=True, auto_domid=True)

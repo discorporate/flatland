@@ -7,7 +7,7 @@ from .base import N_, Validator
 class Present(Validator):
     """Validates that a value is present.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: missing
 
@@ -28,7 +28,7 @@ class Present(Validator):
 class IsTrue(Validator):
     """Validates that a value evaluates to true.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: false
 
@@ -47,7 +47,7 @@ class IsTrue(Validator):
 class IsFalse(Validator):
     """Validates that a value evaluates to false.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: true
 
@@ -76,13 +76,13 @@ class ValueIn(Validator):
       is_yesno = ValueIn(valid_options=['yes', 'no'])
       schema = flatland.String('yn', validators=[is_yesno])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: valid_options
 
       A list, set, or other container of valid element values.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: fail
 
@@ -118,7 +118,7 @@ class Converted(Validator):
       not_bogus = Converted(incorrect='Please enter a valid date.')
       schema = flatland.DateTime('when', validators=[not_bogus])
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: incorrect
 
@@ -149,7 +149,7 @@ class ShorterThan(Validator):
       valid_length = ShorterThan(8)
       schema = flatland.String('password', validators=[valid_length])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: maxlength
 
@@ -159,7 +159,7 @@ class ShorterThan(Validator):
       This attribute may be supplied as the first positional argument
       to the constructor.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: exceeded
 
@@ -198,7 +198,7 @@ class LongerThan(Validator):
       valid_length = LongerThan(4)
       schema = flatland.String('password', validators=[valid_length])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: minlength
 
@@ -208,7 +208,7 @@ class LongerThan(Validator):
       This attribute may be supplied as the first positional argument
       to the constructor.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: short
 
@@ -245,7 +245,7 @@ class LengthBetween(Validator):
       valid_length = LengthBetween(4, 8)
       schema = flatland.String('password', validators=[valid_length])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: minlength
 
@@ -263,7 +263,7 @@ class LengthBetween(Validator):
       This attribute may be supplied as the second positional argument
       to the constructor.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: breached
 
@@ -304,13 +304,13 @@ class ValueLessThan(Validator):
 
       schema = flatland.Integer('wishes', validators=[ValueLessThan(boundary=4)])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: boundary
 
       Any comparable object.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure
 
@@ -342,13 +342,13 @@ class ValueAtMost(Validator):
 
       schema = flatland.Integer('wishes', validators=[ValueAtMost(maximum=3)])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: maximum
 
       Any comparable object.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure
 
@@ -380,13 +380,13 @@ class ValueGreaterThan(Validator):
 
       schema = flatland.Integer('wishes', validators=[ValueGreaterThan(boundary=4)])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: boundary
 
       Any comparable object.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure
 
@@ -418,13 +418,13 @@ class ValueAtLeast(Validator):
 
       schema = flatland.Integer('wishes', validators=[ValueAtLeast(minimum=3)])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: minimum
 
       Any comparable object.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure
 
@@ -457,7 +457,7 @@ class ValueBetween(Validator):
       schema = flatland.Integer('wishes',
                                validators=[ValueBetween(minimum=1, maximum=3)])
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: minimum
 
@@ -472,7 +472,7 @@ class ValueBetween(Validator):
       Boolean value indicating that :attr:`minimum` and :attr:`maximum` are
       included in the range.  Defaults to True.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: failure_inclusive
 
@@ -515,7 +515,7 @@ class MapEqual(Validator):
 
     Validates that two or more fields are equal.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: field_paths
 
@@ -530,7 +530,7 @@ class MapEqual(Validator):
       :class:`~flatland.schema.base.Element`, returning a value for
       equality testing.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: unequal
 
@@ -567,7 +567,7 @@ class MapEqual(Validator):
         sample = fn(elements[0])
         if all(fn(el) == sample for el in elements[1:]):
             return True
-        labels = ', '.join(el.label for el in elements[:-1])
+        labels = u', '.join(el.label for el in elements[:-1])
         last_label = elements[-1].label
         return self.note_error(element, state, 'unequal',
                                labels=labels, last_label=last_label)
@@ -582,17 +582,17 @@ class ValuesEqual(MapEqual):
 
     .. testcode::
 
-      import flatland
+      from flatland import Schema, String
       from flatland.validation import ValuesEqual
 
-      class MyForm(flatland.Form):
+      class MyForm(Schema):
           password = String
           password_again = String
           validators = [ValuesEqual('password', 'password_again')]
 
     .. attribute:: transform()
 
-      attrgettr('value')
+      attrgetter('value')
 
     """
 
@@ -607,7 +607,7 @@ class UnisEqual(MapEqual):
 
     .. attribute:: transform
 
-      attrgettr('u')
+      attrgetter('u')
 
     """
 

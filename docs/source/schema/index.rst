@@ -2,19 +2,40 @@
 Defining and Using Forms
 ========================
 
-.. toctree::
-   :maxdepth: 2
 
-   forms
+Introduction
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   declarative
    schema
    traversal
    properties
+   exceptions
+
+
+Element Types
+-------------
+
+.. toctree::
+   :maxdepth: 1
+
    scalars
    datetimes
    dicts
    lists
    arrays
    enums
-   references
    compound
-   containers
+
+
+Advanced Usage
+--------------
+
+.. toctree::
+   :maxdepth: 1
+
+   references
+

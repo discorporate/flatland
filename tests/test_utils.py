@@ -51,12 +51,6 @@ def test_as_mapping():
     assert sorted(dir(Foo())) == sorted(mi)
 
 
-def test_luhn10():
-    assert util.luhn10(0) is True
-    assert util.luhn10(4100000000000001) is True
-    assert util.luhn10(4100000000000009) is False
-
-
 def test_to_pairs():
     to_pairs = util.to_pairs
     wanted = [('a', 1), ('b', 2)]

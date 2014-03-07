@@ -6,7 +6,7 @@ from tests.markup._util import render_genshi as render, need
 
 
 TemplateSyntaxError = None
-schema = String.named('element').using(default=u'val')
+schema = String.named(u'element').using(default=u'val')
 
 
 @need('genshi')
@@ -17,7 +17,7 @@ def setup():
 
 def test_version_sensor():
     from flatland.out import genshi
-    template = 'not a Genshi 0.6+ template'
+    template = u'not a Genshi 0.6+ template'
     assert_raises(RuntimeError, genshi.setup, template)
 
 
@@ -29,7 +29,7 @@ def test_bogus_tags():
         u'<form:auto-for/>',
         u'<form:auto-tabindex/>',
         ]:
-        assert_raises(TemplateSyntaxError, render, snippet, 'xml', schema)
+        assert_raises(TemplateSyntaxError, render, snippet, u'xml', schema)
 
 
 def test_bogus_elements():
@@ -37,41 +37,41 @@ def test_bogus_elements():
         u'<div form:with="snacks" />',
         u'<div form:set="snacks" />',
         ]:
-        assert_raises(TemplateSyntaxError, render, snippet, 'xml', schema)
+        assert_raises(TemplateSyntaxError, render, snippet, u'xml', schema)
 
 
 def test_directive_ordering():
-    markup = """\
+    markup = u"""\
 <form form:bind="form" py:if="True">
   <input form:bind="form" py:if="False"/>
   <input py:with="foo=form" form:bind="foo" />
 </form>
 """
-    expected = """\
+    expected = u"""\
 <form name="element">
   <input name="element" value="" />
 </form>"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, u'xhtml', schema)
     assert rendered == expected
 
 
 def test_attribute_interpolation():
-    markup = """\
+    markup = u"""\
 <input form:bind="form" form:auto-domid="${ON}" />
 <input form:bind="form" form:auto-domid="o${N}" />
 <input type="checkbox" value="${VAL}" form:bind="form" />
 <input type="checkbox" value="v${A}l" form:bind="form" />
 <input type="checkbox" value="${V}a${L}" form:bind="form" />
 """
-    expected = """\
+    expected = u"""\
 <input name="element" value="val" id="f_element" />
 <input name="element" value="val" id="f_element" />
 <input type="checkbox" value="val" name="element" checked="checked" />
 <input type="checkbox" value="val" name="element" checked="checked" />
 <input type="checkbox" value="val" name="element" checked="checked" />"""
 
-    rendered = render(markup, 'xhtml', schema.from_defaults,
+    rendered = render(markup, u'xhtml', schema.from_defaults,
                       ON=u'on',
                       N=u'n',
                       VAL=Markup(u'val'),
@@ -83,43 +83,43 @@ def test_attribute_interpolation():
 
 
 def test_pruned_tag():
-    markup = """\
+    markup = u"""\
 <form:with auto-name="off" py:if="False">xxx</form:with>
 """
     expected = ""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, u'xhtml', schema)
     assert rendered == expected
 
 
 def test_attributes_preserved():
-    markup = """\
+    markup = u"""\
 <div xmlns:xyzzy="yo">
   <input xyzzy:blat="pow" class="abc" form:bind="form" />
 </div>
 """
-    expected = """\
+    expected = u"""\
 <div xmlns:xyzzy="yo">
   <input xyzzy:blat="pow" class="abc" name="element" value="" />
 </div>"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, u'xhtml', schema)
     assert rendered == expected
 
 
 def test_attribute_removal():
-    markup = """\
+    markup = u"""\
 <input type="checkbox" form:bind="form" value="xyzzy" checked="checked" />
 """
-    expected = """\
+    expected = u"""\
 <input type="checkbox" value="xyzzy" name="element" />"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, u'xhtml', schema)
     assert rendered == expected
 
 
 def test_stream_preserved():
-    markup = """\
+    markup = u"""\
 <py:def function="stream_fn()"><b py:if="1">lumpy.</b></py:def>
 <py:def function="flattenable_fn()"><py:if test="1">flat.</py:if></py:def>
 <button form:bind="form">
@@ -128,19 +128,19 @@ def test_stream_preserved():
 <button form:bind="form">${stream_fn()}</button>
 <button form:bind="form">${flattenable_fn()}</button>
 """
-    expected = """\
+    expected = u"""\
 <button name="element" value="">
   <em>wow!</em> 2
 </button>
 <button name="element" value=""><b>lumpy.</b></button>
 <button name="element" value="">flat.</button>"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, u'xhtml', schema)
     assert rendered == expected
 
 
 def test_tortured_select():
-    markup = """\
+    markup = u"""\
 <select form:bind="form">
   <option value="hit"/>
   <option value="miss"/>
@@ -162,7 +162,7 @@ def test_tortured_select():
 </select>
     """
 
-    expected = """\
+    expected = u"""\
 <select name="element">
   <option value="hit" selected="selected"></option>
   <option value="miss"></option>
@@ -184,9 +184,9 @@ def test_tortured_select():
 </select>"""
 
     factory = schema.using(default=u'hit').from_defaults
-    rendered = render(markup, 'xhtml', factory)
+    rendered = render(markup, u'xhtml', factory)
     if rendered != expected:
-        print "\n" + __name__
-        print "Expected:\n" + expected
-        print "Got:\n" + rendered
+        print("\n" + __name__)
+        print("Expected:\n" + expected)
+        print("Got:\n" + rendered)
     assert rendered == expected

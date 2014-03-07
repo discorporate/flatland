@@ -1,4 +1,6 @@
 import re
+
+from flatland._compat import PY2, bytestring_type, text_type, xrange
 from flatland.util import symbol
 
 
@@ -35,8 +37,14 @@ _unescape_re = re.compile(r"\\(/|\[|\]|\.)")
 
 
 def pathexpr(expr):
-    if not isinstance(expr, unicode):
-        expr = unicode(expr)
+    if isinstance(expr, PathExpression):
+        return expr
+    elif PY2 and isinstance(expr, bytestring_type):
+        expr = text_type(expr)
+    elif isinstance(expr, text_type):
+        pass
+    elif hasattr(expr, '__iter__'):
+        expr = u'/'.join(expr)
     try:
         return expression_cache[expr]
     except KeyError:
@@ -44,7 +52,7 @@ def pathexpr(expr):
         if len(expression_cache) < max_cache_size:
             return expression_cache.setdefault(expr, compiled)
         else:
-            return compile
+            return compiled
 
 
 class PathExpression(object):
@@ -91,14 +99,17 @@ class PathExpression(object):
                 found.append(el)
         return found
 
+    def __str__(self):
+        if PY2:
+            return self.expr.encode('utf8')
+        return self.expr
+
     def __unicode__(self):
         return self.expr
 
     def __repr__(self):
-        return 'pathexpr(%r)' % self.__unicode__()
+        return 'pathexpr(%r)' % self.__str__()
 
-
-# TODO: glob syntax  foo/*/baz  sneep/_*/squiznart
 
 def tokenize(path):
     """Parse *path* and return a list of (OP, data) pairs."""
@@ -107,21 +118,21 @@ def tokenize(path):
     canonical = True
 
     for token, slice_spec in _tokenize_re.findall(path):
-        if token == '/':
+        if token == u'/':
             # '/foo' -> TOP, 'foo'
             if last is None:
                 tokens.append((TOP, None))
             # 'foo//' -> 'foo', None
-            elif last == '/':
+            elif last == u'/':
                 tokens.append((NAME, None))
 
         # . -> here
-        elif token == '.':
+        elif token == u'.':
             canonical = False
             tokens.append((HERE, None))
 
         # foo/../bar -> 'foo', up, 'bar'
-        elif token == '..':
+        elif token == u'..':
             canonical = False
             tokens.append((UP, None))
 
@@ -130,15 +141,15 @@ def tokenize(path):
             tokens.append(_parse_slice(slice_spec))
 
         # /foo/bar[quux]/ -> 'foo', 'bar[quux]'
-        elif token.startswith('[') and last_type is NAME:
+        elif token.startswith(u'[') and last_type is NAME:
             previous = tokens.pop()
-            last = last + _unescape_re.sub(r'\1', token)
+            last = last + _unescape_re.sub(u'\\1', token)
             tokens.append((previous[0], last))
             continue
 
         # foo/bar/baz[bogus] -> 'foo', 'bar', 'baz[bogus]'
         else:
-            name = _unescape_re.sub(r'\1', token)
+            name = _unescape_re.sub(u'\\1', token)
             tokens.append((NAME, name))
         last = token
         last_type = tokens[-1][0]
@@ -170,10 +181,10 @@ def _canonicalize(tokens):
 
 def _parse_slice(pattern):
     """Return a slice() instance for a string:slice:pattern."""
-    if pattern == ':' or pattern == '::':
+    if pattern == u':' or pattern == u'::':
         return (SLICE, slice(None))
-    elif ':' not in pattern:
-        if not pattern.startswith('-'):
+    elif u':' not in pattern:
+        if not pattern.startswith(u'-'):
             return (NAME, pattern)
         else:
             offset = int(pattern)
@@ -181,7 +192,7 @@ def _parse_slice(pattern):
                 return (SLICE, slice(offset, None))
             return (SLICE, slice(offset, offset + 1))
 
-    segs = pattern.split(':', 2)
+    segs = pattern.split(u':', 2)
     start = segs[0] and int(segs[0]) or 0
     stop = segs[1] and int(segs[1]) or None
 

@@ -2,6 +2,8 @@
 import collections
 import itertools
 import operator
+
+from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.schema.paths import pathexpr
 from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
@@ -50,26 +52,18 @@ Assigned to newly created elements that have never been evaluated by
 :meth:`Element.validate`.  Evaluates to true.
 """)
 
-# TODO: implement a lighter version of the xml quoters
-xml = None
 
-
-class _BaseElement(object):
-    # Required by the genshi support's __bases__ manipulation, unfortunately.
-    pass
-
-
-class Element(_BaseElement):
+class Element(object):
     """Base class for form fields.
 
     A data node that stores a Python and a text value plus added state.
     """
 
     name = None
-    """The Unicode name of the element."""
+    """The string name of the element."""
 
     optional = False
-    """If True, :meth:`validate` with return True if no value has been set.
+    """If True, :meth:`validate` will return True when no value has been set.
 
     :attr:`validators` are not called for optional, empty elements.
     """
@@ -77,7 +71,7 @@ class Element(_BaseElement):
     validators = ()
     """A sequence of validators, invoked by :meth:`validate`.
 
-    See `Validation`_
+    See :ref:`Validation`.
     """
 
     default = None
@@ -92,13 +86,13 @@ class Element(_BaseElement):
     ugettext = None
     """If set, provides translation support to validation messages.
 
-    See `Message Internationalization`_.
+    See :ref:`msg-i18n`.
     """
 
     ungettext = None
     """If set, provides translation support to validation messages.
 
-    See `Message Internationalization`_.
+    See :ref:`msg-i18n`.
     """
 
     value = None
@@ -112,7 +106,7 @@ class Element(_BaseElement):
     """The element's raw, unadapted value from input."""
 
     u = u''
-    """A Unicode representation of the element's value.
+    """A string representation of the element's value.
 
     As in :attr:`value`, writing directly to this attribute should be
     restricted to validation routines.
@@ -121,6 +115,7 @@ class Element(_BaseElement):
     properties = Properties()
     """A mapping of arbitrary data associated with the element."""
 
+    # TODO: doc these!
     flattenable = False
     children_flattenable = True
     validates_down = None
@@ -154,13 +149,12 @@ class Element(_BaseElement):
     def named(cls, name):
         """Return a class with ``name`` = *name*
 
-        :param name: a string or None.  ``str`` will be converted to
-          ``unicode``.
+        :param name: a string or None.
         :returns: a new class
 
         """
-        if not isinstance(name, (unicode, NoneType)):
-            name = unicode(name)
+        if PY2 and isinstance(name, bytestring_type):
+            name = text_type(name)
         cls.name = name
         return cls
 
@@ -174,6 +168,8 @@ class Element(_BaseElement):
         """
 
         # TODO: See TODO in __init__
+        # TODO: take this from 'validates_up' and 'validates_down',
+        #       don't hardcode validators
         if 'validators' in overrides:
             overrides['validators'] = list(overrides['validators'])
 
@@ -181,7 +177,7 @@ class Element(_BaseElement):
             if not isinstance(overrides['properties'], Properties):
                 overrides['properties'] = Properties(overrides['properties'])
 
-        for attribute, value in overrides.iteritems():
+        for attribute, value in iteritems(overrides):
             # TODO: must make better
             if callable(value):
                 value = staticmethod(value)
@@ -240,59 +236,19 @@ class Element(_BaseElement):
 
     @class_cloner
     def with_properties(cls, *iterable, **properties):
-        """TODO: doc"""
-        simplified = dict(*iterable, **properties)
-        cls.properties.update(simplified)
-        return cls
+        """Return a class with *\*\*properties* set.
 
-    def validate_element(self, element, state, descending):
-        """Assess the validity of an element.
+        :param: optional positional parameter, an iterable of property name /
+          value pairs
 
-        TODO: this method is dead.  Evaluate docstring for good bits that
-        should be elsewhere.
+        :param \*\*properties: property names and values as keyword arguments
 
-        :param element: an :class:`Element`
-        :param state: may be None, an optional value of supplied to
-            ``element.validate``
-        :param descending: a boolean, True the first time the element
-            has been seen in this run, False the next
-
-        :returns: boolean; a truth value or None
-
-        The :meth:`Element.validate` process visits each element in
-        the tree twice: once heading down the tree, breadth-first, and
-        again heading back up in the reverse direction.  Scalar fields
-        will typically validate on the first pass, and containers on
-        the second.
-
-        Return no value or None to ``pass``, accepting the element as
-        presumptively valid.
-
-        Exceptions raised by :meth:`validate_element` will not be
-        caught by :meth:`Element.validate`.
-
-        Directly modifying and normalizing :attr:`Element.value` and
-        :attr:`Element.u` within a validation routine is acceptable.
-
-        The standard implementation of validate_element is:
-
-         - If :attr:`element.is_empty` and :attr:`self.optional`,
-           return True.
-
-         - If :attr:`self.validators` is empty and
-           :attr:`element.is_empty`, return False.
-
-         - If :attr:`self.validators` is empty and not
-           :attr:`element.is_empty`, return True.
-
-         - Iterate through :attr:`self.validators`, calling each
-           member with (*element*, *state*).  If one returns a false
-           value, stop iterating and return False immediately.
-
-         - Otherwise return True.
+        :returns: a new class
 
         """
-        return validate_element(element, state, self.validators)
+        simplified = dict(iterable, **properties)
+        cls.properties.update(simplified)
+        return cls
 
     @classmethod
     def from_flat(cls, pairs, **kw):
@@ -416,12 +372,11 @@ class Element(_BaseElement):
             yield element
             queue.extend(element.children)
 
-    def fq_name(self, sep=u'.'):
+    def fq_name(self):
         """Return the fully qualified path name of the element.
 
-        Returns a *sep*-separated string of :meth:`.el` compatible element
-        indexes starting from the :attr:`Element.root` (``.``) down to the
-        element.
+        Returns :meth:`find` compatible element path string from the
+        :attr:`Element.root` (``/``) down to the element.
 
           >>> from flatland import Dict, Integer
           >>> Point = Dict.named(u'point').of(Integer.named(u'x'),
@@ -430,11 +385,11 @@ class Element(_BaseElement):
           >>> p.name
           u'point'
           >>> p.fq_name()
-          u'.'
+          u'/'
           >>> p['x'].name
           u'x'
           >>> p['x'].fq_name()
-          u'.x'
+          u'/x'
 
         The index used in a path may not be the :attr:`.name` of the
         element.  For example, sequence members are referenced by their
@@ -446,15 +401,15 @@ class Element(_BaseElement):
           >>> form.name
           u'addresses'
           >>> form.fq_name()
-          u'.'
+          u'/'
           >>> form[0].name
           u'address'
           >>> form[0].fq_name()
-          u'.0'
+          u'/0'
 
         """
         if self.parent is None:
-            return sep
+            return u'/'
 
         children_of_root = reversed(list(self.parents)[:-1])
 
@@ -463,10 +418,10 @@ class Element(_BaseElement):
             # allow Slot elements to mask the names of their child
             # e.g.
             #     <List name='l'> <Slot name='0'> <String name='s'>
-            # has an .el()/Python path of just
-            #   l.0
+            # has an .fq_name()/Python path of just
+            #   l/0
             # not
-            #   l.0.s
+            #   l/0/s
             if isinstance(element, Slot):
                 mask = element.name
                 continue
@@ -475,13 +430,13 @@ class Element(_BaseElement):
                 mask = None
                 continue
             parts.append(element.name)
-        return sep + sep.join(parts)
+        return u'/' + u'/'.join(parts)
 
     def find(self, path, single=False, strict=True):
         """Find child elements by string path.
 
         :param path: a /-separated string specifying elements to select,
-          such as 'child/grandchild/greatgrandchild'.  Relative & absolute
+          such as 'child/grandchild/great grandchild'.  Relative & absolute
           paths are supported, as well as container expansion.  See
           :ref:`path_lookups`.
 
@@ -492,15 +447,15 @@ class Element(_BaseElement):
           element from the result set is returned.
 
         :param strict: defaults to True.  If *path* specifies children or
-          sequence indexes that do not exist, a `:ref:`LookupError` is raised.
+          sequence indexes that do not exist, a :exc:`LookupError` is raised.
 
         :returns: a list of :class:`Element` instances, an :class:`Element` if
           *single* is true, or raises :exc:`LookupError`.
 
         .. testsetup:: find
 
-          from flatland import Form, Dict, List, String
-          class Profile(Form):
+          from flatland import Schema, Dict, List, String
+          class Profile(Schema):
               contact = Dict.of(String.named('name'),
                                 List.named('addresses').
                                   of(Dict.of(String.named('street1'),
@@ -529,89 +484,23 @@ class Element(_BaseElement):
         elif not results:
             return None
         elif len(results) > 1 and strict:
-            raise LookupError("Path %r matched multiple elements; single "
-                              "result expected." % (path,))
+            display_path = repr(path).lstrip('u')
+            raise LookupError("Path %s matched multiple elements; single "
+                              "result expected." % display_path)
         else:
             return results[0]
 
-    def el(self, path, sep=u'.'):
-        """Find a child element by string path.
+    def find_one(self, path):
+        """Find a single element at *path*.
 
-        :param path: a *sep*-separated string of element names, or an
-            iterable of names
-        :param sep: optional, a string separator used to parse *path*
-
-        :returns: an :class:`Element` or raises :exc:`KeyError`.
-
-        .. testsetup:: el
-
-          from flatland import Form, Dict, List, String
-          class Profile(Form):
-              contact = Dict.of(List.named('addresses').
-                                of(Dict.of(String.named('street1'),
-                                           String.named('city'))).
-                                using(default=1))
-          form = Profile.from_defaults()
-
-        .. doctest:: el
-
-          >>> first_address = form.el('contact.addresses.0')
-          >>> first_address.el('street1')
-          <String u'street1'; value=None>
-
-        Given a relative path as above, :meth:`el` searches for a matching
-        path among the element's children.
-
-        If *path* begins with *sep*, the path is considered fully qualified
-        and the search is resolved from the :attr:`Element.root`.  The
-        leading *sep* will always match the root node, regardless of its
-        :attr:`.name`.
-
-        .. doctest:: el
-
-          >>> form.el('.contact.addresses.0.city')
-          <String u'city'; value=None>
-          >>> first_address.el('.contact.addresses.0.city')
-          <String u'city'; value=None>
-
+        An alias for :meth:`find`.  Equivalent to
+        ``find(path, single=True, strict=True)``.
         """
-        try:
-            names = list(self._parse_element_path(path, sep)) or ()
-            if names[0] is Root:
-                element = self.root
-                names.pop(0)
-            else:
-                element = self
-            while names:
-                element = element._index(names.pop(0))
-            return element
-        except LookupError:
-            raise KeyError('No element at %r' % (path,))
+        return self.find(path, single=True, strict=True)
 
     def _index(self, name):
         """Return a named child or raise LookupError."""
         raise NotImplementedError()
-
-    @classmethod
-    def _parse_element_path(self, path, sep):
-        if isinstance(path, basestring):
-            if path == sep:
-                return [Root]
-            elif path.startswith(sep):
-                path = path[len(sep):]
-                parts = [Root]
-            else:
-                parts = []
-            parts.extend(path.split(sep))
-            return iter(parts)
-        else:
-            return iter(path)
-        # fixme: nuke?
-        if isinstance(path, (list, tuple)) or hasattr(path, 'next'):
-            return path
-        else:
-            assert False
-            return None
 
     def add_error(self, message):
         "Register an error message on this element, ignoring duplicates."
@@ -637,9 +526,9 @@ class Element(_BaseElement):
           ...                      flatland.String('address'))
           >>> element = form()
           >>> element.set([u'uptown', u'downtown'])
-          >>> element.el('0').value
+          >>> element[0].value
           u'uptown'
-          >>> element.el('0').flattened_name()
+          >>> element['0'].flattened_name()
           u'addresses_0_address'
 
         """
@@ -658,16 +547,16 @@ class Element(_BaseElement):
 
         Encodes the element hierarchy in a *sep*-separated name
         string, paired with any representation of the element you
-        like.  The default is the Unicode value of the element, and the
+        like.  The default is the text value of the element, and the
         output of the default :meth:`flatten` can be round-tripped
         with :meth:`set_flat`.
 
         Given a simple form with a string field and a nested dictionary::
 
-          >>> from flatland import Dict, String
-          >>> class Nested(Form):
+          >>> from flatland import Schema, Dict, String
+          >>> class Nested(Schema):
           ...     contact = Dict.of(String.named(u'name'),
-          ...                       Dict.named(u'address').\
+          ...                       Dict.named(u'address').
           ...                            of(String.named(u'email')))
           ...
           >>> element = Nested()
@@ -697,19 +586,19 @@ class Element(_BaseElement):
                          if e.flattenable)
         return pairs
 
-    def set(self, value):
-        """Assign the native and Unicode value.
+    def set(self, obj):
+        """Process *obj* and assign the native and text values.
 
-        Attempts to adapt the given *value* and assigns this element's
+        Attempts to adapt the given *obj* and assigns this element's
         :attr:`value` and :attr:`u` attributes in tandem.  Returns True if the
         adaptation was successful.
 
         If adaptation succeeds, :attr:`value` will contain the adapted native
-        value and :attr:`u` will contain a Unicode serialized version of it. A
+        value and :attr:`u` will contain a text serialized version of it. A
         native value of None will be represented as u'' in :attr:`u`.
 
         If adaptation fails, :attr:`value` will be ``None`` and :attr:`u` will
-        contain ``unicode(value)`` or ``u''`` for None.
+        contain ``str(value)`` (or unicode), or ``u''`` for None.
 
           >>> from flatland import Integer
           >>> el = Integer()
@@ -770,13 +659,14 @@ class Element(_BaseElement):
         :param state: optional, will be passed unchanged to all validator
             callables.
 
-        :param recurse: if False, do not validate children.  :returns: True or
-          False
+        :param recurse: if False, do not validate children.
+
+        :returns: True or False.
 
         Iterates through this element and all of its children, invoking each
-        element's :meth:`schema.validate_element`.  Each element will be
-        visited twice: once heading down the tree, breadth-first, and again
-        heading back up in reverse order.
+        validation on each.  Each element will be visited twice: once heading
+        down the tree, breadth-first, and again heading back up in reverse
+        order.
 
         Returns True if all validations pass, False if one or more fail.
 
@@ -864,19 +754,21 @@ class Element(_BaseElement):
 
     @property
     def x(self):
-        """Sugar, the xml-escaped value of :attr:`.u`."""
-        global xml
-        if xml is None:
-            import xml.sax.saxutils
-        return xml.sax.saxutils.escape(self.u)
+        """Sugar, the XML-escaped value of :attr:`.u`."""
+        return (self.u.replace(u'&', u'&amp;').
+                       replace(u'>', u'&gt;').
+                       replace(u'<', u'&lt;'))
 
     @property
     def xa(self):
-        """Sugar, the xml-attribute-escaped value of :attr:`.u`."""
-        global xml
-        if xml is None:
-            import xml.sax.saxutils
-        return xml.sax.saxutils.quoteattr(self.u)[1:-1]
+        """Sugar, the XML-attribute-escaped quoted value of :attr:`.u`."""
+        return (self.u.replace(u'&', u'&amp;').
+                       replace(u'>', u'&gt;').
+                       replace(u'<', u'&lt;').
+                       replace(u'"', u'&quot;').
+                       replace(u'\n', u'&#10;').
+                       replace(u'\r', u'&#13;').
+                       replace(u'\t', u'&#9;'))
 
     def __hash__(self):
         raise TypeError('%s object is unhashable', self.__class__.__name__)

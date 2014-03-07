@@ -1,0 +1,31 @@
+<html
+    xmlns:form="http://ns.discorporate.us/flatland/genshi"
+    xmlns:py="http://genshi.edgewall.org/"
+    py:strip=""
+  >
+
+  <py:def
+      function="widget(field)"
+      py:with="macro = value_of(field.properties.widget + '_widget')"
+      py:replace="macro(field)"
+    />
+
+  <fieldset py:def="input_widget(field)">
+    <form:with
+        auto-domid="on"
+        auto-for="on"
+      >
+
+      <label
+          form:bind="field"
+          py:content="field.label"
+        />
+
+      <input
+          form:bind="field"
+          type="${field.properties.type}"
+        />
+
+    </form:with>
+  </fieldset>
+</html>
