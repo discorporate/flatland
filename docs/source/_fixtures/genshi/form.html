@@ -1,0 +1,16 @@
+<html
+    xmlns:py="http://genshi.edgewall.org/"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
+  >
+  <xi:include href="widgets.html"/>
+  <body>
+    <form>
+
+      <py:for
+          each="field in form.children"
+          py:replace="widget(field)"
+        />
+
+    </form>
+  </body>
+</html>

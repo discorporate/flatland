@@ -17,7 +17,7 @@ def test_read_write_known():
 def test_read_write_unknown():
     ctx = Context()
 
-    needle = 'xyzzy'
+    needle = u'xyzzy'
     assert needle not in _default_context.keys()
     assert needle not in ctx
     assert_raises(KeyError, lambda: ctx[needle])
@@ -41,10 +41,11 @@ def test_push_known():
 def test_push_unknown():
     ctx = Context()
 
-    needle = 'xyzzy'
+    needle = u'xyzzy'
+    needle_attribute = 'xyzzy'  # native text type
     assert needle not in _default_context.keys()
 
-    assert_raises(KeyError, ctx.push, **{needle: Nothing})
+    assert_raises(KeyError, ctx.push, **{needle_attribute: Nothing})
     assert_raises(RuntimeError, ctx.pop)
 
 

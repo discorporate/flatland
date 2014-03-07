@@ -50,26 +50,26 @@ def test_regular_gettext():
     catalog = GetTextish()
 
     # translators placed at the top of the form
-    schema = Dict.of(String.named('age').using(validators=[Converted()])).\
+    schema = Dict.of(String.named(u'age').using(validators=[Converted()])).\
              using(ugettext=catalog.ugettext,
                    ungettext=catalog.ungettext)
 
     data = schema()
     data.validate()
-    assert data['age'].errors == [u'reg AGE']
+    assert data[u'age'].errors == [u'reg AGE']
 
 
 def test_local_gettext():
     catalog = GetTextish()
 
     # translators placed on a specific form element
-    schema = Dict.of(String.named('age').using(validators=[Converted()],
-                                               ugettext=catalog.ugettext,
-                                               ungettext=catalog.ungettext))
+    schema = Dict.of(String.named(u'age').using(validators=[Converted()],
+                                                ugettext=catalog.ugettext,
+                                                ungettext=catalog.ungettext))
 
     data = schema()
     data.validate()
-    assert data['age'].errors == [u'reg AGE']
+    assert data[u'age'].errors == [u'reg AGE']
 
 
 def test_local_gettext_search_is_not_overeager():
@@ -79,7 +79,7 @@ def test_local_gettext_search_is_not_overeager():
         assert False
 
     # if a translator is found on an element, its parents won't be searched
-    schema = (Dict.of(String.named('age').
+    schema = (Dict.of(String.named(u'age').
                      using(validators=[Converted()],
                            ugettext=catalog.ugettext,
                            ungettext=catalog.ungettext)).
@@ -88,13 +88,13 @@ def test_local_gettext_search_is_not_overeager():
 
     data = schema()
     data.validate()
-    assert data['age'].errors == [u'reg AGE']
+    assert data[u'age'].errors == [u'reg AGE']
 
 
 def test_builtin_gettext():
     catalog = GetTextish()
 
-    schema = Dict.of(String.named('age').using(validators=[Converted()]))
+    schema = Dict.of(String.named(u'age').using(validators=[Converted()]))
 
     data = schema()
 
@@ -104,7 +104,7 @@ def test_builtin_gettext():
         __builtin__.ugettext = catalog.ugettext
         __builtin__.ungettext = catalog.ungettext
         data.validate()
-        assert data['age'].errors == [u'reg AGE']
+        assert data[u'age'].errors == [u'reg AGE']
     finally:
         del __builtin__.ugettext
         del __builtin__.ungettext
@@ -113,35 +113,35 @@ def test_builtin_gettext():
 def test_state_gettext():
     catalog = GetTextish()
 
-    schema = Dict.of(String.named('age').using(validators=[Converted()]))
+    schema = Dict.of(String.named(u'age').using(validators=[Converted()]))
 
     # if state has ugettext or ungettext attributes, those will be used
     data = schema()
     data.validate(catalog)
-    assert data['age'].errors == [u'reg AGE']
+    assert data[u'age'].errors == [u'reg AGE']
 
     # also works if state is dict-like
     data = schema()
     state = dict(ugettext=catalog.ugettext, ungettext=catalog.ungettext)
     data.validate(state)
-    assert data['age'].errors == [u'reg AGE']
+    assert data[u'age'].errors == [u'reg AGE']
 
 
 def test_tuple_single():
     catalog = GetTextish()
-    schema = Dict.of(String.named('name').
+    schema = Dict.of(String.named(u'name').
                      using(validators=[LocalizedShort(1)]))
 
-    data = schema(dict(name='xxx'))
+    data = schema(dict(name=u'xxx'))
     data.validate(catalog)
-    assert data['name'].errors == [u'single NAME 1']
+    assert data[u'name'].errors == [u'single NAME 1']
 
 
 def test_tuple_plural():
     catalog = GetTextish()
-    schema = Dict.of(String.named('name').
+    schema = Dict.of(String.named(u'name').
                      using(validators=[LocalizedShort(2)]))
 
-    data = schema(dict(name='xxx'))
+    data = schema(dict(name=u'xxx'))
     data.validate(catalog)
-    assert data['name'].errors == [u'plural NAME 2']
+    assert data[u'name'].errors == [u'plural NAME 2']

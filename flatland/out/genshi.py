@@ -13,7 +13,7 @@ from genshi.template.eval import Expression
 from genshi.template.directives import Directive
 from genshi.template.interpolation import interpolate
 
-
+from flatland._compat import bytestring_type, iteritems, text_type
 from flatland.out.generic import _unpack, transform, Context
 
 
@@ -71,7 +71,7 @@ class TagOnly(EvaluatedLast):
     def attach(cls, template, stream, value, namespaces, pos):
         if type(value) is not dict:
             raise TemplateSyntaxError(
-                "The %s directive must be an element" % cls._name,
+                "The %r directive must be an element" % cls._name,
                 template.filepath, *pos[1:])
         return super(TagOnly, cls).attach(
             template, stream, value, namespaces, pos)
@@ -90,7 +90,7 @@ class AttributeOnly(EvaluatedLast):
     def attach(cls, template, stream, value, namespaces, pos):
         if type(value) is dict:
             raise TemplateSyntaxError(
-                ("The %s directive may only be used as a "
+                ("The %r directive may only be used as a "
                  "tag attribute" % cls._name),
                 template.filepath, *pos[1:])
         return super(AttributeOnly, cls).attach(
@@ -122,7 +122,7 @@ class ControlAttribute(AttributeOnly):
     def inject(self, mapping, ctxt, vars):
         """Inject the translated key and interpolated value into *mapping*."""
         raw = self.raw_value
-        if raw.__class__ is unicode:
+        if raw.__class__ is text_type:
             final_value = raw
         else:
             parts = []
@@ -131,43 +131,43 @@ class ControlAttribute(AttributeOnly):
                     parts.append(value)
                 else:
                     value = _eval_expr(value, ctxt, vars)
-                    parts.append(unicode(value))
+                    parts.append(text_type(value))
             final_value = u''.join(parts)
         mapping[_to_context.get(self._name, self._name)] = final_value
 
 
 class AutoName(ControlAttribute):
-    _name = 'auto-name'
+    _name = u'auto-name'
     __slots__ = ()
 
 
 class AutoValue(ControlAttribute):
-    _name = 'auto-value'
+    _name = u'auto-value'
     __slots__ = ()
 
 
 class AutoDomID(ControlAttribute):
-    _name = 'auto-domid'
+    _name = u'auto-domid'
     __slots__ = ()
 
 
 class AutoFor(ControlAttribute):
-    _name = 'auto-for'
+    _name = u'auto-for'
     __slots__ = ()
 
 
 class AutoTabindex(ControlAttribute):
-    _name = 'auto-tabindex'
+    _name = u'auto-tabindex'
     __slots__ = ()
 
 
 class AutoFilter(ControlAttribute):
-    _name = 'auto-filter'
+    _name = u'auto-filter'
     __slots__ = ()
 
 
 class Binding(AttributeOnly):
-    _name = 'bind'
+    _name = u'bind'
     __slots__ = ('bind',)
 
     def __init__(self, attributes, template=None, namespaces=None,
@@ -202,20 +202,20 @@ class RenderContextManipulator(TagOnly):
 
 
 class With(RenderContextManipulator):
-    _name = 'with'
+    _name = u'with'
     __slots__ = ()
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt['flatland_render_context']
+            render_context = ctxt[u'flatland_render_context']
         except KeyError:
-            ctxt['flatland_render_context'] = render_context = Context()
+            ctxt[u'flatland_render_context'] = render_context = Context()
 
-        if 'filters' not in self.attributes:
+        if u'filters' not in self.attributes:
             attrs = self.attributes
         else:
             attrs = self.attributes.copy()
-            attrs['filters'] = _eval_expr(Expression(attrs['filters']),
+            attrs[u'filters'] = _eval_expr(Expression(attrs[u'filters']),
                                           ctxt, vars)
 
         render_context.push()
@@ -227,14 +227,14 @@ class With(RenderContextManipulator):
 
 
 class Set(RenderContextManipulator):
-    _name = 'set'
+    _name = u'set'
     __slots__ = ()
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt['flatland_render_context']
+            render_context = ctxt[u'flatland_render_context']
         except KeyError:
-            ctxt['flatland_render_context'] = render_context = Context()
+            ctxt[u'flatland_render_context'] = render_context = Context()
         render_context.update(self.attributes)
         assert not directives
         return stream
@@ -245,15 +245,15 @@ class FlatlandElements(DirectiveFactory):
     NAMESPACE = NS
 
     directives = [
-        ('with', With),
-        ('set', Set),
-        ('bind', Binding),
-        ('auto-name', AutoName),
-        ('auto-value', AutoValue),
-        ('auto-domid', AutoDomID),
-        ('auto-for', AutoFor),
-        ('auto-tabindex', AutoTabindex),
-        ('auto-filter', AutoFilter),
+        (u'with', With),
+        (u'set', Set),
+        (u'bind', Binding),
+        (u'auto-name', AutoName),
+        (u'auto-value', AutoValue),
+        (u'auto-domid', AutoDomID),
+        (u'auto-for', AutoFor),
+        (u'auto-tabindex', AutoTabindex),
+        (u'auto-filter', AutoFilter),
         ]
 
 
@@ -273,26 +273,26 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
     existing_attributes = {}
     for qname, value in attrs:
         if qname.namespace is None:
-            if not isinstance(value, unicode):
+            if not isinstance(value, text_type):
                 value = _simplify_stream(value, ctxt, vars)
                 attrs |= ((qname, value),)
             existing_attributes[qname.localname] = qname
             mutable_attrs[qname.localname] = value
 
     try:
-        render_context = ctxt['flatland_render_context']
+        render_context = ctxt[u'flatland_render_context']
     except KeyError:
-        ctxt['flatland_render_context'] = render_context = Context()
+        ctxt[u'flatland_render_context'] = render_context = Context()
 
     new_contents = transform(tagname.localname, mutable_attrs, contents,
                              render_context, bind)
 
     if new_contents is None:
         new_contents = ()
-    elif isinstance(new_contents, unicode):
+    elif isinstance(new_contents, text_type):
         new_contents = [(TEXT, new_contents, (None, -1, -1))]
 
-    pairs = sorted(mutable_attrs.iteritems(), key=_attribute_sort_key)
+    pairs = sorted(iteritems(mutable_attrs), key=_attribute_sort_key)
     for attribute_name, value in pairs:
         if attribute_name in existing_attributes:
             qname = existing_attributes.pop(attribute_name)
@@ -307,7 +307,7 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
         if tagname.namespace:
             sub_tag = Namespace(tagname.namespace).option
         else:  # pragma: nocover
-            sub_tag = QName('option')
+            sub_tag = QName(u'option')
         new_contents = _bind_unbound_tags(new_contents, sub_tag, bind)
     if new_contents:
         stream[1:-1] = new_contents
@@ -370,12 +370,14 @@ def _simplify_stream(stream, ctxt, vars):
                 while hasattr(value, '__next__') or hasattr(value, 'next'):
                     value = list(value)
                     value = _simplify_stream(value, ctxt, vars)
-                if not isinstance(value, unicode):
+                if not isinstance(value, text_type):
                     stream[idx:idx + 1] = value
                 else:
                     stream[idx] = (TEXT, value, pos)
-            elif not isinstance(value, unicode):
-                value = unicode(value)
+            elif isinstance(value, bytestring_type):
+                value = value.decode('utf8', 'replace')
+            elif not isinstance(value, text_type):
+                value = text_type(value)
             parts.append(value)
         else:
             return stream

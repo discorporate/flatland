@@ -13,7 +13,7 @@ def multivalue_schema():
     return schema([u'abc', u'xyz'])
 
 
-@desired_output('xhtml', scalar_schema)
+@desired_output(u'xhtml', scalar_schema)
 def select():
     """
 <select name="scalar">
@@ -49,7 +49,7 @@ def test_select_markup(gen, el):
     return u'\n'.join(output)
 
 
-@desired_output('xhtml', multivalue_schema)
+@desired_output(u'xhtml', multivalue_schema)
 def multiselect():
     """
 <select name="multi" multiple="multiple">

@@ -1,5 +1,6 @@
-import __builtin__
 import itertools
+
+from flatland._compat import builtins
 
 
 def element_ancestry(element):
@@ -40,13 +41,13 @@ def find_i18n_function(element, finder):
 
     Searches the ancestry of *element* and it's schema with *finder*
     ala :func:`search_ancestry`, falling back to a search against
-    ``__builtin__``.
+    ``builtins``.
 
     """
     transformer = search_ancestry(element, finder)
     if transformer:
         return transformer
     try:
-        return finder(__builtin__)
+        return finder(builtins)
     except AttributeError:
         return None

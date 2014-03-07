@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import datetime
 import decimal
 
@@ -13,14 +14,16 @@ from flatland import (
     String,
     Time,
     Unset,
+    element_set,
     )
+from flatland._compat import long_type
 
 from tests._util import eq_, assert_raises, requires_unicode_coercion
 
 
 def test_scalar_abstract():
     el = Scalar()
-    assert_raises(NotImplementedError, el.set, 'blagga')
+    assert_raises(NotImplementedError, el.set, u'blagga')
 
 
 def test_scalar_assignments_are_independent():
@@ -63,27 +66,26 @@ def test_scalar_set_flat():
     eq_(element_for(u'c').raw, Unset)
 
 
-@requires_unicode_coercion
 def test_string():
     for value, expected in ((u'abc', u'abc'), ('abc', u'abc'), (123, u'123'),
                             (u'abc ', u'abc'), (' abc ', u'abc')):
         for element in String(), String(strip=True):
             element.set(value)
             eq_(element.u, expected)
-            eq_(unicode(element), expected)
+            eq_(element.__unicode__(), expected)
             eq_(element.value, expected)
 
     for value, expected in ((u'abc ', u'abc '), (' abc ', u' abc ')):
         element = String(value, strip=False)
         eq_(element.u, expected)
-        eq_(unicode(element), expected)
+        eq_(element.__unicode__(), expected)
         eq_(element.value, expected)
 
     for value, expected_value, expected_unicode in ((u'', u'', u''),
                                                     (None, None, u'')):
         element = String(value)
         eq_(element.u, expected_unicode)
-        eq_(unicode(element), expected_unicode)
+        eq_(element.__unicode__(), expected_unicode)
         eq_(element.value, expected_value)
 
 
@@ -103,7 +105,7 @@ def validate_element_set(type_, raw, value, uni, schema_opts={},
     eq_(element.set(raw), set_return)
     eq_(element.value, value)
     eq_(element.u, uni)
-    eq_(unicode(element), uni)
+    eq_(element.__unicode__(), uni)
     eq_(element.__nonzero__(), bool(uni and value))
 
 
@@ -114,14 +116,31 @@ def test_scalar_set():
     # a variety of scalar set() failure cases, shoved through Integer
     for spec in (
         (None,       None, u'', {}, True),
+        ([],         None, u'[]'),
         ):
         yield (validate_element_set, Integer) + spec
 
     for spec in (
-        ([],         None, u'[]'),
-        ('\xef\xf0', None, ur'\ufffd\ufffd'),
+        ('\xef\xf0', None, u'\ufffd\ufffd'),
         ):
         yield (coerced_validate_element_set, Integer) + spec
+
+
+def test_scalar_set_signal():
+    data = []
+    sentinel = lambda sender, adapted: data.append((sender, adapted))
+
+    Integer(0)
+    with element_set.connected_to(sentinel):
+        Integer(1)
+        Integer(u'bogus')
+
+    assert len(data) == 2
+    assert data[0][0].value == 1
+    assert data[0][1] is True
+
+    assert data[1][0].raw == u'bogus'
+    assert data[1][1] is False
 
 
 def test_integer():
@@ -138,27 +157,27 @@ def test_integer():
                  (u'+123',   123,  u'123', dict(signed=False)),
                  (u'-123',   None, u'-123', dict(signed=False)),
                  (123,       123,  u'123'),
-                 (None,      None, u'', {}, True)):
+                 (None,      None, u'', {}, True),
+                 (-123,      None, u'-123', dict(signed=False)),
+                 ):
         yield (validate_element_set, Integer) + spec
-
-    for spec in ((-123,      None, u'-123', dict(signed=False)),):
-        yield (coerced_validate_element_set, Integer) + spec
 
 
 def test_long():
-    for spec in ((u'123',    123L,  u'123'),
-                 (u' 123 ',  123L,  u'123'),
-                 (u'xyz',    None,  u'xyz'),
-                 (u'xyz123', None,  u'xyz123'),
-                 (u'123xyz', None,  u'123xyz'),
-                 (u'123.0',  None,  u'123.0'),
-                 (u'+123',   123L,  u'123'),
-                 (u'-123',   -123L, u'-123'),
-                 (u' +123 ', 123L,  u'123'),
-                 (u' -123 ', -123L, u'-123'),
-                 (u'+123',   123L,  u'123', dict(signed=False)),
-                 (u'-123',   None,  u'-123', dict(signed=False)),
-                 (None,      None,  u'', {}, True)):
+    L = long_type
+    for spec in ((u'123',    L(123),  u'123'),
+                 (u' 123 ',  L(123),  u'123'),
+                 (u'xyz',    None,    u'xyz'),
+                 (u'xyz123', None,    u'xyz123'),
+                 (u'123xyz', None,    u'123xyz'),
+                 (u'123.0',  None,    u'123.0'),
+                 (u'+123',   L(123),  u'123'),
+                 (u'-123',   L(-123), u'-123'),
+                 (u' +123 ', L(123),  u'123'),
+                 (u' -123 ', L(-123), u'-123'),
+                 (u'+123',   L(123),  u'123', dict(signed=False)),
+                 (u'-123',   None,    u'-123', dict(signed=False)),
+                 (None,      None,    u'', {}, True)):
         yield (validate_element_set, Long) + spec
 
 

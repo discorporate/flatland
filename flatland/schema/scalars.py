@@ -1,10 +1,17 @@
 # -*- coding: utf-8; fill-column: 78 -*-
-# TODO: Temporal stripping
 import datetime
 import decimal
 import re
 
+from flatland._compat import (
+    PY2,
+    long_type,
+    string_types,
+    text_type,
+    text_transform,
+    )
 from flatland.exc import AdaptationError
+from flatland.signals import element_set
 from flatland.util import (
     Unspecified,
     as_mapping,
@@ -12,6 +19,7 @@ from flatland.util import (
     class_cloner,
     lazy_property,
     )
+from flatland.schema.paths import pathexpr
 from .base import Element
 
 
@@ -40,7 +48,7 @@ class Scalar(Element):
 
     Scalar subclasses have two responsibilities: provide a method to adapt a
     value to native Python form, and provide a method to serialize the native
-    form to a Unicode string.
+    form to a string.
 
     This class is abstract.
 
@@ -49,51 +57,56 @@ class Scalar(Element):
 
     validates_down = 'validators'
 
-    def set(self, value):
-        """Assign the native and Unicode value.
+    def set(self, obj):
+        """Process *obj* and assign the native and text values.
 
-        :returns: True if adaptation of *value* was successful.
+        :returns: True if adaptation of *obj* was successful.
 
-        Attempts to adapt the given value and assigns this element's
+        Attempts to adapt the given object and assigns this element's
         :attr:`~flatland.Element.value` and :attr:`u`
         attributes in tandem.
 
         If adaptation succeeds, ``.value`` will contain the
         :meth:`adapted<adapt>` native Python value and ``.u`` will contain a
-        Unicode :meth:`serialized<serialize>` version of it.  A native value
+        text :meth:`serialized<serialize>` version of it.  A native value
         of ``None`` will be represented as ``u''`` in ``.u``.
 
         If adaptation fails, ``.value`` will be ``None`` and ``.u`` will
-        contain ``unicode(value)`` or ``u''`` for none.
+        contain ``str(obj)`` (or unicode), or ``u''`` for none.
 
         """
-        self.raw = value
+        self.raw = obj
         try:
             # adapt and normalize the value, if possible
-            value = self.value = self.adapt(value)
+            obj = self.value = self.adapt(obj)
         except AdaptationError:
-            self.value = None
-            if value is None:
+            self.value = None  # could not be adapted
+            # but, still try to textify it
+            if obj is None:
                 self.u = u''
-            elif isinstance(value, unicode):
-                self.u = value
+            elif isinstance(obj, text_type):
+                self.u = obj
             else:
                 try:
-                    self.u = unicode(value)
+                    self.u = text_transform(obj)
+                except TypeError:
+                    self.u = u''
                 except UnicodeDecodeError:
-                    self.u = unicode(value, errors='replace')
+                    self.u = text_type(obj, errors='replace')
+            element_set.send(self, adapted=False)
             return False
 
         # stringify it, possibly storing what we received verbatim or a
         # normalized version of it.
-        if value is None:
+        if obj is None:
             self.u = u''
         else:
-            self.u = self.serialize(value)
+            self.u = self.serialize(obj)
+        element_set.send(self, adapted=True)
         return True
 
-    def adapt(self, value):
-        """Given any value, try to coerce it into native format.
+    def adapt(self, obj):
+        """Given any object *obj*, try to coerce it into native format.
 
         :returns: the native format or raises AdaptationError on failure.
 
@@ -102,19 +115,19 @@ class Scalar(Element):
         """
         raise NotImplementedError()
 
-    def serialize(self, value):
-        """Given any value, coerce it into a Unicode representation.
+    def serialize(self, obj):
+        """Given any object *obj*, coerce it into a text representation.
 
-        :returns: **Must** return a Unicode object, always.
+        :returns: **Must** return a Unicode text object, always.
 
         No special effort is made to coerce values not of native or a
         compatible type.
 
         This semi-abstract method is called by :meth:`set`.  The base
-        implementation returns ``unicode(value)``.
+        implementation returns ``str(obj)`` (or unicode).
 
         """
-        return unicode(value)
+        return text_transform(obj)
 
     def _index(self, name):
         raise IndexError(name)
@@ -133,6 +146,11 @@ class Scalar(Element):
     def __nonzero__(self):
         return True if self.u and self.value else False
 
+    def __str__(self):
+        if PY2:
+            return self.u.encode('utf8', 'replace')
+        return self.u
+
     def __unicode__(self):
         return self.u
 
@@ -141,32 +159,16 @@ class Scalar(Element):
             type(self).__name__, self.name, self.value)
 
 
-    #######################################################################
-
-    def validate_element(self, state, descending):
-        """Validates on the first, downward pass.
-
-        See :meth:`FieldSchema.validate_element`.
-
-        """
-        # FIXME: now unused
-        if descending:
-            return FieldSchema.validate_element(
-                self, element, state, descending)
-        else:
-            return None
-
-
 class String(Scalar):
-    """A regular old Unicode string."""
+    """A regular old text string."""
 
     strip = True
     """If true, strip leading and trailing whitespace during conversion."""
 
     def adapt(self, value):
-        """Return a Unicode representation.
+        """Return a Python representation.
 
-        :returns: a ``unicode`` value or ``None``
+        :returns: a text value or ``None``
 
         If :attr:`strip` is true, leading and trailing whitespace will be
         removed.
@@ -174,15 +176,18 @@ class String(Scalar):
         """
         if value is None:
             return None
-        elif self.strip:
-            return unicode(value).strip()
+        if not isinstance(value, text_type):
+            value = text_transform(value)
+
+        if self.strip:
+            return value.strip()
         else:
-            return unicode(value)
+            return value
 
     def serialize(self, value):
-        """Return a Unicode representation.
+        """Return a text representation.
 
-        :returns: a ``unicode`` value or ``u'' if *value* is ``None``
+        :returns: a Unicode value or ``u''`` if *value* is ``None``
 
         If :attr:`strip` is true, leading and trailing whitespace will be
         removed.
@@ -190,10 +195,13 @@ class String(Scalar):
         """
         if value is None:
             return u''
-        elif self.strip:
-            return unicode(value).strip()
+        if not isinstance(value, text_type):
+            value = text_transform(value)
+
+        if self.strip:
+            return value.strip()
         else:
-            return unicode(value)
+            return value
 
     @property
     def is_empty(self):
@@ -216,7 +224,7 @@ class Number(Scalar):
     """If true, allow negative numbers.  Default ``True``."""
 
     format = u'%s'
-    """The ``unicode`` serialization format."""
+    """The ``text`` serialization format."""
 
     def adapt(self, value):
         """Generic numeric coercion.
@@ -228,7 +236,7 @@ class Number(Scalar):
         """
         if value is None:
             return None
-        if isinstance(value, basestring):
+        if isinstance(value, string_types):
             value = value.strip()  # decimal.Decimal doesn't like whitespace
         try:
             native = self.type_(value)
@@ -236,15 +244,16 @@ class Number(Scalar):
             raise AdaptationError()
         else:
             if not self.signed:
-                if native < 0:
+                if native < self.type_():  # 0, 0.0, etc.
                     raise AdaptationError()
             return native
 
     def serialize(self, value):
         """Generic numeric serialization.
 
-        :returns: a ``unicode`` string formatted with :attr:`format` or the
-          ``unicode()`` of *value* if *value* is not of :attr:`type_`
+        :returns: Unicode text formatted with :attr:`format` or the
+          ``str()`` (or unicode) of *value* if *value* is not of
+          :attr:`type_`
 
         Converts *value* to a string using Python's string formatting function
         and the :attr:`format` as the template.  The *value* is provided to
@@ -253,7 +262,7 @@ class Number(Scalar):
         """
         if type(value) is self.type_:
             return self.format % value
-        return unicode(value)
+        return text_transform(value)
 
 
 class Integer(Number):
@@ -269,11 +278,12 @@ class Integer(Number):
 class Long(Number):
     """Element type for Python's long."""
 
-    type_ = long
-    """``long``"""
+    type_ = long_type
+    """``long``, or ``int`` on Python 3."""
 
     format = u'%i'
     """``u'%i'``"""
+
 
 class Float(Number):
     """Element type for Python's float."""
@@ -299,7 +309,7 @@ class Boolean(Scalar):
     """Element type for Python's ``bool``."""
 
     true = u'1'
-    """The ``unicode`` serialization for ``True``: ``u'1'``."""
+    """The text serialization for ``True``: ``u'1'``."""
 
     true_synonyms = (u'on', u'true', u'True', u'1')
     """A sequence of acceptable string equivalents for True.
@@ -308,7 +318,7 @@ class Boolean(Scalar):
     """
 
     false = u''
-    """The ``unicode`` serialization for ``False``: ``u''``."""
+    """The text serialization for ``False``: ``u''``."""
 
     false_synonyms = (u'off', u'false', u'False', u'0', u'')
     """A sequence of acceptable string equivalents for False.
@@ -321,14 +331,14 @@ class Boolean(Scalar):
 
         :returns: a ``bool`` or ``None``
 
-        If *value* is a string, returns ``True`` if the value is in
+        If *value* is text, returns ``True`` if the value is in
         :attr:`true_synonyms`, ``False`` if in :attr:`false_synonyms` and
         ``None`` otherwise.
 
-        For non-string values, equivalent to ``bool(value)``.
+        For non-text values, equivalent to ``bool(value)``.
 
         """
-        if not isinstance(value, basestring):
+        if not isinstance(value, text_type):
             return bool(value)
         elif value == self.true or value in self.true_synonyms:
             return True
@@ -337,7 +347,7 @@ class Boolean(Scalar):
         raise AdaptationError()
 
     def serialize(self, value):
-        """Convert ``bool(value)`` to a canonical string representation.
+        """Convert ``bool(value)`` to a canonical text representation.
 
         :returns: either :attr:`self.true` or :attr:`self.false`.
 
@@ -382,7 +392,7 @@ class Constrained(Scalar):
     """
 
     child_type = String
-    """TODO: doc"""
+    """The type of constrained value, defaulting to String."""
 
     def __init__(self, value=Unspecified, **kw):
         Scalar.__init__(self, **kw)
@@ -401,7 +411,7 @@ class Constrained(Scalar):
         return False
 
     def adapt(self, value):
-        value = self.child_schema.adapt(value)
+        value = self.child_schema.adapt(value)  # may raise AdaptationError
         if not self.valid_value(self, value):
             raise AdaptationError()
         return value
@@ -469,7 +479,7 @@ class Temporal(Scalar):
             return value
         elif isinstance(value, self.type_):
             return value
-        elif isinstance(value, basestring):
+        elif isinstance(value, string_types):
             if self.strip:
                 value = value.strip()
             match = self.regex.match(value)
@@ -487,13 +497,14 @@ class Temporal(Scalar):
         """Serializes value to string.
 
         If *value* is an instance of :attr:`type`, formats it as described in
-        the attribute documentation.  Otherwise returns ``unicode(value)``.
+        the attribute documentation.  Otherwise returns ``str(value)`` (or
+        unicode).
 
         """
         if isinstance(value, self.type_):
             return self.format % as_mapping(value)
         else:
-            return unicode(value)
+            return text_transform(value)
 
 
 class DateTime(Temporal):
@@ -505,8 +516,8 @@ class DateTime(Temporal):
 
     type_ = datetime.datetime
     regex = re.compile(
-        ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2}) '
-        ur'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
+        u'^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2}) '
+        u'(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
     format = (u'%(year)04i-%(month)02i-%(day)02i '
               u'%(hour)02i:%(minute)02i:%(second)02i')
     used = (u'year', u'month', u'day', u'hour', u'minute', u'second')
@@ -521,7 +532,7 @@ class Date(Temporal):
 
     type_ = datetime.date
     regex = re.compile(
-        ur'^(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})$')
+        u'^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2})$')
     format = u'%(year)04i-%(month)02i-%(day)02i'
     used = (u'year', u'month', u'day')
 
@@ -535,7 +546,7 @@ class Time(Temporal):
 
     type_ = datetime.time
     regex = re.compile(
-        ur'^(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})$')
+        u'^(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
     format = u'%(hour)02i:%(minute)02i:%(second)02i'
     used = (u'hour', u'minute', u'second')
 
@@ -543,20 +554,15 @@ class Time(Temporal):
 class Ref(Scalar):
     flattenable = False
 
-    #######################################################################
     writable = 'ignore'
-
-    sep = u'.'
 
     target_path = None
 
     @class_cloner
-    def to(cls, name, sep=Unspecified):
-        if sep is Unspecified:
-            sep = cls.sep
-        cls.target_path = list(cls._parse_element_path(name, sep))
-        if cls.target_path is None:
-            raise TypeError("Could not parse path %r" % name)
+    def to(cls, path):
+        # ensure *path* parses
+        pathexpr(path)
+        cls.target_path = path
         return cls
 
     def adapt(self, value):
@@ -565,14 +571,12 @@ class Ref(Scalar):
     def serialize(self, value):
         return self.target.serialize(value)
 
-    #######################################################################
-
     @lazy_property
     def target(self):
-        return self.root.el(self.target_path)
+        return self.find_one(self.target_path)
 
     def _get_u(self):
-        """The Unicode representation of the reference target."""
+        """The text representation of the reference target."""
         return self.target.u
 
     def _set_u(self, ustr):

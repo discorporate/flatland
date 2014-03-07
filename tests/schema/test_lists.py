@@ -1,9 +1,12 @@
+from __future__ import with_statement
 from flatland import (
     Integer,
     List,
     String,
     Unset,
+    element_set,
 )
+from flatland._compat import xrange
 from flatland.schema.base import Unspecified
 
 from tests._util import eq_
@@ -271,6 +274,27 @@ def test_set():
     assert el.value == [4, 5, 6]
     assert el.set([])
     assert el.value == []
+
+
+def test_element_set():
+    data = []
+    sentinel = lambda sender, adapted: data.append((sender, adapted))
+
+    schema = List.of(Integer)
+    schema([0])
+
+    with element_set.connected_to(sentinel):
+        schema([1])
+        schema([u'bogus'])
+
+    assert len(data) == 4  # Integer, List, Integer, List
+    assert data[1][0].value == [1]
+    assert data[1][1] is True
+
+    assert data[2][0].raw == u'bogus'
+    assert data[2][1] is False
+
+    assert data[3][1] is False
 
 
 def test_raw():

@@ -1,11 +1,15 @@
+from __future__ import with_statement
 from flatland import (
     Dict,
     Integer,
     String,
     SparseDict,
     Unset,
+    element_set,
     )
+from flatland._compat import iteritems
 from flatland.util import Unspecified, keyslice_pairs
+
 from tests._util import (
     asciistr,
     assert_raises,
@@ -64,7 +68,7 @@ def test_dict_update():
     el = schema()
 
     def value_dict(element):
-        return dict((k, v.value) for k, v in element.iteritems())
+        return dict((k, v.value) for k, v in iteritems(element))
 
     try:
         el.update(x=20, y=30)
@@ -286,7 +290,7 @@ def test_dict_valid_policies():
     schema = Dict.of(Integer)
     el = schema()
 
-    assert_raises(AssertionError, el.set, {}, policy='bogus')
+    assert_raises(RuntimeError, el.set, {}, policy='bogus')
 
 
 def test_dict_strict():
@@ -304,7 +308,7 @@ def test_dict_strict():
 
 
 def test_dict_raw():
-    schema = Dict.of(Integer.named('x').using(optional=False))
+    schema = Dict.of(Integer.named(u'x').using(optional=False))
     el = schema()
     assert el.raw is Unset
 
@@ -319,6 +323,27 @@ def test_dict_raw():
     el = schema.from_flat([(u'x', u'123')])
     assert el.raw is Unset
     assert el[u'x'].raw == u'123'
+
+
+def test_dict_set_signal():
+    data = []
+    sentinel = lambda sender, adapted: data.append((sender, adapted))
+
+    schema = Dict.of(Integer.named(u'x'))
+    schema({u'x': 0})
+
+    with element_set.connected_to(sentinel):
+        schema({u'x': 1})
+        schema({u'x': u'bogus'})
+
+    assert len(data) == 4  # Integer, Dict, Integer, Dict
+    assert data[1][0].value == {u'x': 1}
+    assert data[1][1] is True
+
+    assert data[2][0].raw == u'bogus'
+    assert data[2][1] is False
+
+    assert data[3][1] is False
 
 
 def test_dict_as_unicode():
@@ -342,16 +367,17 @@ def test_nested_unicode_dict_as_unicode():
         String.named(u'x').using(default=u'\u2308\u2309')))
     el = schema.from_defaults()
     eq_(el.value, {u'd': {u'x': u'\u2308\u2309'}})
-    eq_(el.u, ur"{u'd': {u'x': u'\u2308\u2309'}}")
+    eq_(el.u, u"{u'd': {u'x': u'\u2308\u2309'}}")
 
 
-def test_dict_el():
+def test_dict_find():
     # stub
     schema = Dict.named(u's').of(Integer.named(u'x'), Integer.named(u'y'))
     element = schema()
 
-    assert element.el(u'x').name == u'x'
-    assert_raises(KeyError, element.el, u'not_x')
+    assert element.find_one(u'x').name == u'x'
+    assert element.find_one(u'/x').name == u'x'
+    assert_raises(LookupError, element.find_one, u'not_x')
 
 
 def test_update_object():
@@ -594,16 +620,16 @@ def test_sparsedict_flattening():
                         of(Integer.named(u'x'), Integer.named(u'y'))
 
     els = [
-        schema({'x': 123, 'y': 456}),
+        schema({u'x': 123, u'y': 456}),
         schema(),
         schema(),
         schema(),
         ]
-    els[1].set({'x': 123, 'y': 456})
-    els[2]['x'] = 123
-    els[2]['y'] = 456
-    els[3]['x'] = Integer(123)
-    els[3]['y'] = Integer(456)
+    els[1].set({u'x': 123, u'y': 456})
+    els[2][u'x'] = 123
+    els[2][u'y'] = 456
+    els[3][u'x'] = Integer(123)
+    els[3][u'y'] = Integer(456)
 
     wanted = [(u'top_x', u'123'), (u'top_y', u'456')]
     for el in els:

@@ -5,6 +5,7 @@ from flatland import (
     SkipAllFalse,
     Unevaluated,
     )
+from flatland._compat import xrange
 
 from tests._util import assert_raises, eq_, requires_unicode_coercion
 
@@ -127,7 +128,7 @@ def test_abstract():
 
     assert_raises(NotImplementedError, element.set, None)
     assert_raises(NotImplementedError, element.set_flat, ())
-    assert_raises(NotImplementedError, element.el, u'foo')
+    assert_raises(NotImplementedError, element.find_one, u'foo')
 
 
 def test_message_buckets():
@@ -239,3 +240,12 @@ def test_default_value():
     # a default_factory may reference el.default
     el = Element(default='mno', default_factory=lambda x: x.default)
     assert el.default_value == 'mno'
+
+
+def test_xml_helpers():
+    el = Element()
+
+    el.u = u'<foo\t&\r\n"bar">'
+
+    assert el.x == u'&lt;foo\t&amp;\r\n"bar"&gt;'
+    assert el.xa == u'&lt;foo&#9;&amp;&#13;&#10;&quot;bar&quot;&gt;'

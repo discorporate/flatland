@@ -7,8 +7,8 @@ from tests._util import eq_
 
 
 def test_dict():
-    s = Dict.named('dict').of(String.named('k1'),
-                              String.named('k2'))
+    s = Dict.named(u'dict').of(String.named(u'k1'),
+                               String.named(u'k2'))
     el = s()
     assert s
     assert el
@@ -59,10 +59,10 @@ def test_string_element():
 
 
 def test_path():
-    schema = Dict.named('root').of(
-        String.named('element'),
-        Dict.named('dict').of(String.named('dict_element')))
+    schema = Dict.named(u'root').of(
+        String.named(u'element'),
+        Dict.named(u'dict').of(String.named(u'dict_element')))
     element = schema()
 
-    eq_(list(element.el(['dict', 'dict_element']).path),
-        [element, element['dict'], element['dict']['dict_element']])
+    eq_(list(element.find_one([u'dict', u'dict_element']).path),
+        [element, element[u'dict'], element[u'dict'][u'dict_element']])

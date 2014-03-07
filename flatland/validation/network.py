@@ -1,9 +1,14 @@
 # -*- coding: utf-8; fill-column: 78 -*-
 """Network address and URL validation."""
+from flatland._compat import PY2
 import re
-import urlparse
+if PY2:
+    import urlparse
+else:
+    from urllib import parse as urlparse
 
-from base import N_, Validator
+from flatland._compat import identifier_transform, text_transform
+from .base import N_, Validator
 
 
 class IsEmail(Validator):
@@ -23,9 +28,9 @@ class IsEmail(Validator):
       representation before length assertions are applied.  No top level
       domain validations are applied.
 
-    **Attributes**
+    .. rubric:: Attributes
 
-    .. attribute:: nonlocal
+    .. attribute:: non_local
 
       Default ``True``.  When true, require at minimum two domain name
       components and reject local email addresses such as
@@ -47,7 +52,7 @@ class IsEmail(Validator):
       The default pattern rejects the valid but obscure quoted IP-address form
       (``[1.2.3.4]``).
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: invalid
 
@@ -57,7 +62,7 @@ class IsEmail(Validator):
 
     invalid = N_(u'%(label)s is not a valid email address.')
 
-    nonlocal = True
+    non_local = True
 
     local_part_pattern = None
 
@@ -65,7 +70,7 @@ class IsEmail(Validator):
                                 re.IGNORECASE)
 
     def validate(self, element, state):
-        addr = element.u
+        addr = element.value
         if addr.count(u'@') != 1:
             return self.note_error(element, state, 'invalid')
 
@@ -91,7 +96,7 @@ class IsEmail(Validator):
             return self.note_error(element, state, 'invalid')
 
         labels = domain.split('.')
-        if len(labels) == 1 and self.nonlocal:
+        if len(labels) == 1 and self.non_local:
             return self.note_error(element, state, 'invalid')
 
         if not all(len(label) < 64 for label in labels):
@@ -103,13 +108,14 @@ class IsEmail(Validator):
 # ordered generic URL part names according to urlparse
 _url_parts = ['scheme', 'netloc', 'path', 'params', 'query', 'fragment']
 
+
 class URLValidator(Validator):
     """A general URL validator.
 
     Validates that a URL is well-formed and may optionally restrict
     the set of valid schemes and other URL components.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: allowed_schemes
 
@@ -133,7 +139,7 @@ class URLValidator(Validator):
       any object that implements :func:`urlparse.urlparse` and
       :func:`urlparse.urlunparse`.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: bad_format
 
@@ -151,9 +157,9 @@ class URLValidator(Validator):
 
     """
 
-    bad_format = N_("%(label)s is not a valid URL.")
-    blocked_scheme = N_("%(label)s is not a valid URL.")
-    blocked_part = N_("%(label)s is not a valid URL.")
+    bad_format = N_(u'%(label)s is not a valid URL.')
+    blocked_scheme = N_(u'%(label)s is not a valid URL.')
+    blocked_part = N_(u'%(label)s is not a valid URL.')
 
     allowed_schemes = ('*',)
     allowed_parts = set(_url_parts)
@@ -168,16 +174,15 @@ class URLValidator(Validator):
         except Exception:
             return self.note_error(element, state, 'bad_format')
 
-        scheme_name = url.scheme
-        if scheme_name == u'':
+        scheme_name = identifier_transform(url.scheme)
+        if scheme_name == '':
             return self.note_error(element, state, 'blocked_scheme')
         elif self.allowed_schemes != ('*',):
             if scheme_name not in self.allowed_schemes:
                 return self.note_error(element, state, 'blocked_scheme')
 
         for part in _url_parts:
-            if (part not in self.allowed_parts and
-                getattr(url, part) != ''):
+            if (part not in self.allowed_parts and getattr(url, part) != ''):
                 return self.note_error(element, state, 'blocked_part')
         return True
 
@@ -189,12 +194,12 @@ class HTTPURLValidator(Validator):
     optionally require and restrict the permissible values of its
     components.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: all_parts
 
       A sequence of known URL parts.  Defaults to the full 10-tuple of
-      names in :mod:`urlparse`'s vocabulary for http-like URls.
+      names in :mod:`urlparse`'s vocabulary for HTTP-like URLs.
 
     .. attribute:: required_parts
 
@@ -203,7 +208,7 @@ class HTTPURLValidator(Validator):
       value of the part must be present in this collection to
       validate.
 
-      The default requires a ``scheme`` of 'http' or 'https'.
+      The default requires a ``scheme`` of ``'http'`` or ``'https'``.
 
     .. attribute:: forbidden_parts
 
@@ -220,7 +225,7 @@ class HTTPURLValidator(Validator):
       any object that implements :func:`urlparse.urlparse` and
       :func:`urlparse.urlunparse`.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: bad_format
 
@@ -258,7 +263,7 @@ class HTTPURLValidator(Validator):
             try:
                 value = getattr(parsed, part)
                 if part == 'port':
-                    value = None if value is None else str(value)
+                    value = None if value is None else text_transform(value)
             except ValueError:
                 return self.note_error(element, state, 'bad_format')
             required = self.required_parts.get(part)
@@ -285,7 +290,7 @@ class URLCanonicalizer(Validator):
     default implementation drops the ``#fragment`` from the URL, if
     present.
 
-    **Attributes**
+    .. rubric:: Attributes
 
     .. attribute:: discard_parts
 
@@ -300,7 +305,7 @@ class URLCanonicalizer(Validator):
       any object that implements :func:`urlparse.urlparse` and
       :func:`urlparse.urlunparse`.
 
-    **Messages**
+    .. rubric:: Messages
 
     .. attribute:: bad_format
 

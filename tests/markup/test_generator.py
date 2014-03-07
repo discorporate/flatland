@@ -8,26 +8,26 @@ from tests.markup._util import markup_test
 schema = String.named(u'field1').using(default=u'val').from_defaults
 
 
-@markup_test('html', schema)
+@markup_test(u'html', schema)
 def test_input_html(gen, el):
     """<input type="text" name="field1" value="val">"""
     return gen.input(type=u'text', bind=el)
 
 
-@markup_test('xml', schema)
+@markup_test(u'xml', schema)
 def test_input_xml(gen, el):
     """<input type="text" name="field1" value="val" />"""
     return gen.input(type=u'text', bind=el)
 
 
-@markup_test('xml', schema)
+@markup_test(u'xml', schema)
 def test_input_open(gen, el):
     """<input type="text" name="field1" value="val">"""
     return gen.input.open(type=u'text', bind=el)
 
 
 def test_detached_reuse():
-    gen = Generator('xml')
+    gen = Generator(u'xml')
     el = schema()
 
     tag = gen.textarea
@@ -47,13 +47,13 @@ def test_detached_reuse():
     tag.close()
 
 
-@markup_test('xml', schema)
+@markup_test(u'xml', schema)
 def test_input_close(gen, el):
     """</input>"""
     return gen.input.close()
 
 
-@markup_test('xml', schema)
+@markup_test(u'xml', schema)
 def test_textarea_escaped(gen, el):
     '''<textarea name="field1">"&lt;quoted &amp; escaped&gt;"</textarea>'''
     bind = el
@@ -61,14 +61,14 @@ def test_textarea_escaped(gen, el):
     return gen.textarea(bind)
 
 
-@markup_test('xml', schema)
+@markup_test(u'xml', schema)
 def test_textarea_contents(gen, el):
     """val"""
     gen.textarea.open(el)
     return gen.textarea.contents
 
 
-@markup_test('xml', schema)
+@markup_test(u'xml', schema)
 def test_textarea_escaped_contents(gen, el):
     '''"&lt;quoted &amp; escaped&gt;"'''
     bind = el
@@ -77,7 +77,7 @@ def test_textarea_escaped_contents(gen, el):
     return gen.textarea.contents
 
 
-@markup_test('xml', schema)
+@markup_test(u'xml', schema)
 def test_textarea_explicit_contents(gen, el):
     """xyzzy"""
     gen.textarea.open(el, contents=u'xyzzy')
@@ -105,8 +105,8 @@ def test_Markup_concatenation():
 def _generate_markup_test(impl):
     def test(gen, el):
         """<label><x></label>"""
-        gen['markup_wrapper'] = impl
+        gen[u'markup_wrapper'] = impl
         return gen.label(contents=impl(u'<x>'))
 
-    wrapper = lambda label: markup_test('xml', schema)(test)()
+    wrapper = lambda label: markup_test(u'xml', schema)(test)()
     return wrapper

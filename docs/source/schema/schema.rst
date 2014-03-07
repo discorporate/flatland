@@ -17,7 +17,7 @@ types:
   from flatland import Dict, String
   SearchSchema = Dict.named('search').of(String.named(u'keywords'))
 
-FIXME UPDATE:
+.. TODO:: FIXME UPDATE:
 
   FieldSchemas are a bit like Python ``class`` definitions: they need be
   defined only once and don't do much on their own.
@@ -33,7 +33,7 @@ FIXME UPDATE:
   >>> form.value
   {u'keywords': u'foo bar baz'}
 
-FIXME UPDATE:
+.. TODO:: FIXME UPDATE:
 
   FieldSchema instances may be freely composed and shared among many
   containers.
@@ -47,40 +47,25 @@ FIXME UPDATE:
   >>> sorted(form.value.keys())
   [u'many_searches', u'search']
 
-FIXME UPDATE:
+.. TODO:: FIXME UPDATE:
 
-    Elements can be supplied to template environments and used to
-    great effect there: elements contain all of the information needed
-    to display or redisplay a HTML form field, including errors
-    specific to a field.
+  Elements can be supplied to template environments and used to
+  great effect there: elements contain all of the information needed
+  to display or redisplay a HTML form field, including errors
+  specific to a field.
 
-    The :attr:`.u`, :attr:`.x`, :attr:`.xa` and :meth:`el` members are
-    especially useful in templates and have shortened names to help
-    preserve your sanity when used in markup.
+  The :attr:`~Element.u`, :attr:`~Element.x`, :attr:`~Element.xa` and
+  :meth:`~Element.el` members are especially useful in templates and have
+  shortened names to help preserve your sanity when used in markup.
 
-
-Schema Constructors
--------------------
-
-.. automethod:: Element.named
-
-.. automethod:: Element.using
-
-Factory Methods
----------------
-
-.. automethod:: Element.from_defaults
-
-.. automethod:: Element.from_flat
 
 ``Element``
 -----------
 
 .. autoclass:: Element
-   :members:
-   :undoc-members:
+   :no-show-inheritance:
 
-   **Instance Attributes**
+   .. rubric:: Instance Attributes
 
    .. attribute:: parent
 
@@ -89,12 +74,12 @@ Factory Methods
 
    .. attribute:: valid
 
-   .. attribute:: errors = []
+   .. attribute:: errors
 
       A list of validation error messages.
 
-   .. attribute:: warnings = []
+   .. attribute:: warnings
 
       A list of validation warning messages.
 
-   **Members**
+   .. rubric:: Members

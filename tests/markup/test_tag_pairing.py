@@ -2,9 +2,9 @@ from tests.markup._util import desired_output
 
 
 def simple_schema():
-    from flatland import Form, String
+    from flatland import Schema, String
 
-    class SmallForm(Form):
+    class SmallForm(Schema):
         valued = String
         empty = String
 
@@ -13,7 +13,7 @@ def simple_schema():
 ###
 
 
-@desired_output('html', simple_schema)
+@desired_output(u'html', simple_schema)
 def input_value_html():
     """<input name="valued" value="val">"""
 
@@ -25,12 +25,12 @@ def test_input_value_html_genshi():
 
 @input_value_html.markup
 def test_input_value_html_markup(gen, el):
-    return gen.input(el['valued'])
+    return gen.input(el[u'valued'])
 
 ###
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def input_value_xhtml():
     """<input name="valued" value="val" />"""
 
@@ -42,12 +42,12 @@ def test_input_value_xhtml_genshi():
 
 @input_value_xhtml.markup
 def test_input_value_xhtml_markup(gen, el):
-    return gen.input(el['valued'])
+    return gen.input(el[u'valued'])
 
 ###
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def textarea_value():
     """<textarea name="valued">val</textarea>"""
 
@@ -59,12 +59,12 @@ def test_textarea_value_genshi():
 
 @textarea_value.markup
 def test_textarea_value_markup(gen, el):
-    return gen.textarea(el['valued'])
+    return gen.textarea(el[u'valued'])
 
 ###
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def textarea_empty_value():
     """<textarea name="empty"></textarea>"""
 
@@ -76,12 +76,12 @@ def test_textarea_empty_value_genshi():
 
 @textarea_empty_value.markup
 def test_textarea_empty_value_markup(gen, el):
-    return gen.textarea(el['empty'])
+    return gen.textarea(el[u'empty'])
 
 ###
 
 
-@desired_output('xhtml', simple_schema)
+@desired_output(u'xhtml', simple_schema)
 def textarea_explicit_value():
     """<textarea name="valued">override</textarea>"""
 
@@ -93,12 +93,12 @@ def test_textarea_explicit_value_genshi():
 
 @textarea_explicit_value.markup
 def test_textarea_explicit_value_markup(gen, el):
-    return gen.textarea(el['valued'], contents='override')
+    return gen.textarea(el[u'valued'], contents=u'override')
 
 ###
 
 
-@desired_output('html', simple_schema)
+@desired_output(u'html', simple_schema)
 def label_empty_html():
     """<label></label>"""
 
@@ -110,4 +110,4 @@ def test_label_empty_html_genshi():
 
 @label_empty_html.markup
 def test_label_empty_html_markup(gen, el):
-    return gen.label(el['valued'])
+    return gen.label(el[u'valued'])

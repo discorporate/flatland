@@ -3,6 +3,8 @@ from flatland import Array, Boolean, Integer
 from flatland.out import generic
 from flatland.out.generic import Context
 
+from tests._util import unicode_coercion_allowed, textstr
+
 
 Unspecified = object()
 Unique = object()
@@ -34,7 +36,8 @@ def assert_transform(fn, tagname, given, expected,
     got = given.copy()
     got_contents = fn(tagname, got, contents, context, bind)
     assert got == expected
-    assert got_contents == expected_contents
+    assert (got_contents is expected_contents or
+            got_contents == expected_contents)
 
     types = zip(sorted(got.keys()), sorted(expected.keys()))
     for got_key, expected_key in types:
@@ -57,8 +60,8 @@ class _TestAttributeTransform(object):
                          context=None,
                          tagname=None,
                          bind=Unspecified):
-        if hasattr(self.transform, 'im_func'):
-            transform = self.transform.im_func
+        if hasattr(self.transform, '__func__'):
+            transform = self.transform.__func__
         else:
             transform = self.transform
         if context is None:
@@ -66,8 +69,8 @@ class _TestAttributeTransform(object):
         if tagname is None:
             tagname = self.tagname
         if bind is Unspecified:
-            if hasattr(self.bind_factory, 'im_func'):
-                bind = self.bind_factory.im_func()
+            if hasattr(self.bind_factory, '__func__'):
+                bind = self.bind_factory.__func__()
             else:
                 bind = self.bind_factory()
 
@@ -191,7 +194,7 @@ class TestTextboxValue(_TestAttributeTransform):
     applied_value = u'123'
     transform = generic.transform_value
     tagname = u'input'
-    skip_tags = ['textarea', 'option']
+    skip_tags = [u'textarea', u'option']
 
 
 class TestButtonValue(_TestAttributeTransform):
@@ -200,7 +203,7 @@ class TestButtonValue(_TestAttributeTransform):
     applied_value = u'123'
     transform = generic.transform_value
     tagname = u'button'
-    skip_tags = ['textarea', 'option']
+    skip_tags = [u'textarea', u'option']
 
 
 class TestDomID(_TestAttributeTransform):
@@ -250,7 +253,7 @@ def test_contents_textarea():
                            u'textarea', {}, {},
                            contents=given, expected_contents=expected)
 
-    for given in u'existing_value', u'', generic.Markup('xyzzy'), []:
+    for given in u'existing_value', u'', generic.Markup(u'xyzzy'), []:
         expected = given
         assert_bound_transform(generic.transform_value,
                                u'textarea', {}, {},
@@ -457,12 +460,13 @@ def test_value_option():
                          expected_contents=expected_contents)
 
         # This matches value = contents via a sentinel object
-        given = {
-            }
-        expected = {
-            }
-        assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind)
+        with unicode_coercion_allowed():
+            given = {
+                }
+            expected = {
+                }
+            assert_transform(generic.transform_value,
+                             u'option', given, expected, bind=bind)
 
         contents = expected_contents = u'123'
         given = {
@@ -506,7 +510,7 @@ def test_domid_checkable_array():
         generic.transform_domid, u'input', given, expected,
         context=context, bind=bind)
 
-    for type in 'radio', 'checkbox':
+    for type in u'radio', u'checkbox':
         given = {
             u'type': u'radio',
             u'value': u'xxx',
@@ -554,7 +558,7 @@ def test_domid_checkable_scalar():
     context = Context()
     context[u'auto_domid'] = True
 
-    for type in 'radio', 'checkbox':
+    for type in u'radio', u'checkbox':
         given = {
             u'type': u'radio',
             u'value': u'xxx',
@@ -619,7 +623,7 @@ def test_tabindex_stop_numbers():
     for stop_num in -1, -2:
         context = Context()
         context[u'tabindex'] = stop_num
-        expected = {u'tabindex': unicode(stop_num)}
+        expected = {u'tabindex': textstr(stop_num)}
         assert_bound_transform(generic.transform_tabindex,
                                u'input', given, expected, context=context)
         assert_unbound_transform(generic.transform_tabindex,

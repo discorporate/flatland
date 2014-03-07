@@ -1,10 +1,28 @@
-from functools import update_wrapper
+from functools import wraps
 import operator
 
+from flatland._compat import (
+    PY2,
+    identifier_transform,
+    text_type,
+    with_metaclass,
+    )
 from flatland.exc import AdaptationError
-from flatland.util import Unspecified, threading
+from flatland.signals import element_set
+from flatland.util import (
+    Unspecified,
+    autodocument_from_superclasses,
+    threading,
+    )
 from .containers import Array, Mapping
 from .scalars import Date, Integer, Scalar, String
+
+
+__all__ = [
+    'Compound',
+    'DateYYYYMMDD',
+    'JoinedString',
+    ]
 
 
 class _MetaCompound(type):
@@ -59,21 +77,26 @@ class _MetaCompound(type):
 def _wrap_compound_init(fn):
     """Decorate __compound_init__ with a status setter & classmethod."""
     if isinstance(fn, classmethod):
-        fn = fn.__get__(str).im_func  # type doesn't matter here
+        if PY2:
+            fn = fn.__get__(str).__func__  # type doesn't matter here
+        else:
+            fn = fn.__func__
+
+    @wraps(fn)
     def __compound_init__(cls):
         res = fn(cls)
         cls._compound_prepared = True
         return res
-    update_wrapper(__compound_init__, fn)
+
     return classmethod(__compound_init__)
 
 
-class Compound(Mapping, Scalar):
+class Compound(with_metaclass(_MetaCompound, Mapping, Scalar)):
     """A mapping container that acts like a scalar value.
 
     Compound fields are dictionary-like fields that can assemble a
-    :attr:`.u` and :attr:`.value` from their children, and can
-    decompose a structured value passed to a :meth:`.set` into values
+    :attr:`u` and :attr:`value` from their children, and can
+    decompose a structured value passed to a :meth:`set` into values
     for its children.
 
     A simple example is a logical calendar date field composed of 3
@@ -91,10 +114,8 @@ class Compound(Mapping, Scalar):
 
     """
 
-    __metaclass__ = _MetaCompound
-
     def __compound_init__(cls):
-        """TODO: doc
+        """.. TODO:: doc
 
         Gist: runs *once* per class, at the time the first element is
         constructed.  You can run it by hand if you want to finalize
@@ -106,12 +127,13 @@ class Compound(Mapping, Scalar):
         """
 
     def compose(self):
-        """Return a unicode, native tuple built from children's state.
+        """Return a text, native tuple built from children's state.
 
-        :returns: a 2-tuple of unicode representation, native value.
-           These correspond to the :meth:`Scalar.serialize_element`
-           and :meth:`Scalar.adapt_element` methods of :class:`Scalar`
-           objects.
+        :returns: a 2-tuple of text representation, native value.
+           These correspond to the
+           :meth:`~flatland.schema.scalars.Scalar.serialize_element` and
+           :meth:`~flatland.schema.scalars.Scalar.adapt_element` methods of
+           `~flatland.schema.scalars.Scalar` objects.
 
         For example, a compound date field may return a '-' delimited
         string of year, month and day digits and a
@@ -126,7 +148,7 @@ class Compound(Mapping, Scalar):
         :param value: a value to be adapted and exploded
 
         For example, a compound date field may read attributes from a
-        :class:`datetime.date` value and :meth:`.set()` them on child
+        :class:`datetime.date` value and :meth:`set` them on child
         fields.
 
         The decision to perform type checking on *value* is completely
@@ -137,6 +159,7 @@ class Compound(Mapping, Scalar):
         raise NotImplementedError()
 
     def serialize(self, value):
+        """Not implemented for Compound types."""
         raise TypeError("Not implemented for Compound types.")
 
     def u(self):
@@ -160,16 +183,20 @@ class Compound(Mapping, Scalar):
     del set_value
 
     def set(self, value):
+        self.raw = value
         try:
+            res = self.explode(value)
             # TODO: historically explode() did not need to have a return value
             # but it would be nice to return it form set() as below.
-            res = self.explode(value)
-            return True if res is None else res
+            res = True if res is None else res  # compat
+            element_set.send(self, adapted=res)
+            return res
         except (SystemExit, KeyboardInterrupt, NotImplementedError):
             raise
         except Exception:
             # not wild about quashing here, but set() doesn't allow
             # adaptation exceptions to bubble up.
+            element_set.send(self, adapted=False)
             return False
 
     def _set_flat(self, pairs, sep):
@@ -178,7 +205,7 @@ class Compound(Mapping, Scalar):
     def __repr__(self):
         try:
             return Scalar.__repr__(self)
-        except Exception, exc:
+        except Exception as exc:
             return '<%s %r; value raised %s>' % (
                 type(self).__name__, self.name, type(exc).__name__)
 
@@ -211,10 +238,6 @@ class DateYYYYMMDD(Compound, Date):
 
         cls.field_schema = fields
 
-    #if any(not field.name for field in fields):
-    #    raise TypeError("Child fields of %s %r must be named." %
-    #                    type(self).__name__, name)
-
     def compose(self):
         try:
             data = dict([(label, self[child_schema.name].value)
@@ -233,7 +256,7 @@ class DateYYYYMMDD(Compound, Date):
 
             for attrib, child_schema in zip(self.used, self.field_schema):
                 self[child_schema.name].set(
-                    getattr(value, attrib.encode('ascii')))
+                    getattr(value, identifier_transform(attrib)))
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:
                 self[child_schema.name].set(None)
@@ -289,15 +312,16 @@ class JoinedString(Array, String):
     children_flattenable = False
 
     def set(self, value):
+        self.raw = value
         if isinstance(value, (list, tuple)):
             values = value
-        elif not isinstance(value, basestring):
+        elif not isinstance(value, text_type):
             values = list(value)
         elif self.separator_regex:
-            # a basestring, regexp separator
+            # a text regexp separator
             values = self.separator_regex.split(value)
         else:
-            # a basestring, static separator
+            # a text static separator
             values = value.split(self.separator)
 
         del self[:]
@@ -309,7 +333,10 @@ class JoinedString(Array, String):
             child = self.member_schema()
             success.append(child.set(value))
             self.append(child)
-        return all(success)
+
+        res = all(success)
+        element_set.send(self, adapted=res)
+        return res
 
     def _set_flat(self, pairs, sep):
         return Scalar._set_flat(self, pairs, sep)
@@ -323,3 +350,8 @@ class JoinedString(Array, String):
     def u(self):
         """A read-only :attr:`separator`-joined string of child values."""
         return self.value
+
+
+for cls_name in __all__:
+    autodocument_from_superclasses(globals()[cls_name])
+del cls_name

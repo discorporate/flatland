@@ -1,5 +1,5 @@
 from flatland import (
-    Form,
+    Schema,
     Integer,
     String,
     )
@@ -16,11 +16,11 @@ def test_from_object():
             for (k, v) in kw.items():
                 setattr(self, k, v)
 
-    class Schema(Form):
+    class Point(Schema):
         x = String
         y = String
 
-    from_obj = lambda obj, **kw: Schema.from_object(obj, **kw).value
+    from_obj = lambda obj, **kw: Point.from_object(obj, **kw).value
 
     eq_(from_obj(None), dict(x=None, y=None))
     eq_(from_obj([]), dict(x=None, y=None))
@@ -50,13 +50,12 @@ def test_from_object():
         dict(x=None, y=None))
 
 
-@requires_unicode_coercion
 def test_composition():
 
-    class Inner(Form):
+    class Inner(Schema):
         sound = String.using(default='bleep')
 
-    class Outer(Form):
+    class Outer(Schema):
         the_in = Inner
         way_out = String.using(default='mooooog')
 
@@ -76,17 +75,17 @@ def test_composition():
 @requires_unicode_coercion
 def test_inheritance_straight():
 
-    class Base(Form):
+    class Base(Schema):
         base_member = String
 
     assert len(Base.field_schema) == 1
-    assert Base().keys() == ['base_member']
+    assert list(Base().keys()) == ['base_member']
 
     class Sub(Base):
         added_member = String
 
     assert len(Base.field_schema) == 1
-    assert Base().keys() == ['base_member']
+    assert list(Base().keys()) == ['base_member']
 
     assert len(Sub.field_schema) == 2
     assert set(Sub().keys()) == set(['base_member', 'added_member'])
@@ -95,10 +94,10 @@ def test_inheritance_straight():
 @requires_unicode_coercion
 def test_inheritance_diamond():
 
-    class A(Form):
+    class A(Schema):
         a_member = String
 
-    class B(Form):
+    class B(Schema):
         b_member = String
 
     class AB1(A, B):

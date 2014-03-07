@@ -1,0 +1,127 @@
+@import url(http://fonts.googleapis.com/css?family=Ubuntu:400,400italic,500);
+@import url(http://fonts.googleapis.com/css?family=Anonymous+Pro:400,400italic,700);
+@import url(basic.css);
+
+
+body {
+  font-family: 'Ubuntu', sans-serif;
+  line-height: 160%;
+  color: #333;
+  background: #fff;
+}
+
+
+pre, code, tt {
+  font-family: 'Anonymous Pro', monospace;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 2em;
+}
+
+
+/* Use medium weight for proportional boldfaces */
+h1, h2, h3, h4, h5, h6,
+strong, th,
+ul.search li a, ul.keywordmatches li.goodmatch a,
+p.rubric, p.sidebar-title, p.topic-title,
+div.admonition dt, p.admonition-title,
+dl.glossary dt {
+  font-weight: 500;
+}
+
+
+a {
+  color: #048;
+  text-decoration: none;
+}
+
+
+ul ul {
+  margin-bottom: 1em;
+}
+
+
+div.highlight pre {
+  background: #eee;
+  margin: 1em -3em;
+  padding: 1em 3em;
+}
+
+
+div.document {
+  margin: -3em auto 3em auto;
+  width: 950px;
+}
+
+
+div.documentwrapper {
+  width: 650px;
+  float: right;
+}
+
+
+div.sphinxsidebar {
+  margin: 1em 0;
+  max-width: 250px;
+}
+
+
+div.sphinxsidebar ul {
+  margin: 0;
+  padding: 0;
+}
+
+
+div#searchbox input {
+   border: 1px solid #333 !important;
+}
+
+
+div#searchbox input[type=text] {
+   background: #fff !important;
+   color: #333 !important;
+   width: 150px;
+}
+
+
+div#searchbox input[type=submit] {
+   background: #333 !important;
+   color: #fff !important;
+}
+
+
+p.searchtip {
+   font-style: italic;
+}
+
+
+div.footer {
+   width: 950px;
+   margin: auto;
+   text-align: center;
+}
+
+
+div.admonition {
+  background: #efefef;
+  border-left: .3em solid #333;
+  margin: 1em -3em;
+  padding: 1em 3em;
+}
+
+
+div.admonition-todo {
+  border-left: .3em solid #A2C875;
+}
+
+
+div.admonition.note {
+  border-left: .3em solid #F2DD8F;
+}
+
+
+dt:target, .highlighted {
+  background: #F2DD8F;
+}

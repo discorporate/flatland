@@ -4,8 +4,8 @@
 Overview
 ========
 
-Philosphy
----------
+Philosophy
+----------
 
 flatland's design stems from a few basic tenets:
 
@@ -65,15 +65,15 @@ blank, using default values, or with values taken from your objects.
 
   form = SignInForm.from_flat(request.POST)
   if form.validate():
-      logging.info(u"sign-in: %s" % form.el('username'))
+      logging.info(u"sign-in: %s" % form['username'].value)
       redirect('/app/')
   else:
       render('login.html', form=form)
 
 Elements are rich objects that validate and normalize input data as well as
 hold field-level error and warning messages.  Elements can be exported to a
-native Python structure, flattened back into Unicode key, value pairs or used
-as-is in output templates for form layout, redisplay and error reporting.
+native Python structure, flattened back into Unicode (key, value) pairs or
+used as-is in output templates for form layout, redisplay and error reporting.
 
 .. doctest::
 
@@ -84,17 +84,3 @@ as-is in output templates for form layout, redisplay and error reporting.
   u'jek'
   >>> form2 = SignInForm(as_regular_python_data)
   >>> assert form['username'].value == form2['username'].value
-
-License
--------
-
-flatland is free software distributed under the MIT License.
-
-History
--------
-
-flatland is a Python implementation of techniques I've been using for form and
-web data processing for ages, in many different languages.  It is an immediate
-conceptual descendant and re-write of "springy", a closed-source library used
-interally at Virtuous, Inc.  The Genshi filter support was donated to the
-flatland project by Virtuous.

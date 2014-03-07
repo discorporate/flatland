@@ -1,5 +1,5 @@
 ========
-flatland
+Flatland
 ========
 
 Flatland maps between rich, structured Python application data and the
@@ -20,14 +20,15 @@ Flatland is great for:
   - Associating arbitrary Python types with JSON, .ini, or sys.argv
     members that would otherwise deserialize as simple strings.
 
-  - Reusing a single data schema for HTML, JSON apis, RPC, ...
+  - Reusing a single data schema for HTML, JSON APIs, RPC, ...
 
-The core of the flatland toolkit is a flexible and extensible
+The core of the Flatland toolkit is a flexible and extensible
 declarative schema system representing many data types and structures.
 
 A validation system and library of schema-aware validators is also
 provided, with rich i18n capabilities for use in HTML, network APIs
 and other environments where user-facing messaging is required.
+
 
 Contents
 --------
@@ -41,4 +42,6 @@ Contents
    validation/index
    markup
    signals
-
+   patterns/index
+   api
+   project

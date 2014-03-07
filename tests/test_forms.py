@@ -6,7 +6,7 @@ test file, now providing a sample of some possible usage patterns.
 """
 from flatland import (
     Dict,
-    Form,
+    Schema,
     Integer,
     List,
     String,
@@ -29,7 +29,7 @@ REQUEST_DATA = ((u'abc', u'123'),
                 (u'ns_age', u'23'))
 
 
-class SimpleForm1(Form):
+class SimpleForm1(Schema):
     fname = String
     surname = String
     age = Integer
@@ -51,7 +51,7 @@ def test_straight_parse():
 def test_namespaced_parse():
 
     def load(fn):
-        form = SimpleForm1.from_defaults(name='ns')
+        form = SimpleForm1.from_defaults(name=u'ns')
         fn(form)
         return form
 
@@ -75,26 +75,26 @@ def test_namespaced_parse():
 
 def test_default_behavior():
 
-    class SimpleForm2(Form):
+    class SimpleForm2(Schema):
         fname = String.using(default=u'FN')
         surname = String
 
     form = SimpleForm2()
-    eq_(form['fname'].value, None)
-    eq_(form['surname'].value, None)
+    eq_(form[u'fname'].value, None)
+    eq_(form[u'surname'].value, None)
 
     form = SimpleForm2.from_defaults()
-    eq_(form['fname'].value, u'FN')
-    eq_(form['surname'].value, None)
+    eq_(form[u'fname'].value, u'FN')
+    eq_(form[u'surname'].value, None)
 
-    class DictForm(Form):
-        dict = Dict.of(String.named('fname').using(default=u'FN'),
-                       String.named('surname'))
+    class DictForm(Schema):
+        dict = Dict.of(String.named(u'fname').using(default=u'FN'),
+                       String.named(u'surname'))
 
     form = DictForm()
-    eq_(form.el('dict.fname').value, None)
-    eq_(form.el('dict.surname').value, None)
+    eq_(form.find_one(u'dict/fname').value, None)
+    eq_(form.find_one(u'dict/surname').value, None)
 
     form = DictForm.from_defaults()
-    eq_(form.el('dict.fname').value, u'FN')
-    eq_(form.el('dict.surname').value, None)
+    eq_(form.find_one(u'dict/fname').value, u'FN')
+    eq_(form.find_one(u'dict/surname').value, None)
