@@ -19,8 +19,11 @@ except ImportError:
                 for w in os.walk('flatland')
                 if '__init__.py' in w[2]]
 
-import flatland
-version = flatland.__version__
+# note: importing flatland so we can use flatland.__version__ here does
+# NOT work at package installation time - it falls over the blinker import.
+# thus, until this is fixed, we duplicate the version number here:
+version = 'dev'
+
 long_desc = open('README').read()
 
 setup(name="flatland",
