@@ -127,6 +127,30 @@ def test_http_validator_default():
     eq_(el.errors, ['test is not a valid URL.'])
 
 
+def test_http_validator_schemes():
+    v = HTTPURLValidator()
+    el = scalar(u'http://there/path')
+    assert v.validate(el, None)
+    assert not el.errors
+
+    el = scalar(u'//there/path')
+    assert not v.validate(el, None)
+    eq_(el.errors, ['test is not a valid URL.'])
+
+    v = HTTPURLValidator(required_parts=dict(scheme=(u'https', u''),
+                                             hostname=True))
+    el = scalar(u'http://there/path')
+    assert not v.validate(el, None)
+    eq_(el.errors, [u'test is not a valid URL.'])
+
+    el = scalar(u'https://there/path')
+    assert v.validate(el, None)
+    assert not el.errors
+    el = scalar(u'//there/path')
+    assert v.validate(el, None)
+    assert not el.errors
+
+
 def test_url_canonicalizer_default():
     v = URLCanonicalizer()
     el = scalar(u'http://localhost/#foo')
