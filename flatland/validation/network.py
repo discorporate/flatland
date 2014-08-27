@@ -249,7 +249,7 @@ class HTTPURLValidator(Validator):
 
     all_parts = ('scheme', 'username', 'password', 'hostname', 'port',
                  'path', 'params', 'query', 'fragment')
-    required_parts = dict(schema=('http', 'https'), hostname=True)
+    required_parts = dict(scheme=('http', 'https'), hostname=True)
     forbidden_parts = dict(username=True, password=True)
     urlparse = urlparse
 
