@@ -84,4 +84,4 @@ __all__ = [
     'validator_validated',
     ]
 
-__version__ = 'dev'
+__version__ = '0.8'

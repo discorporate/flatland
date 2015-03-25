@@ -22,7 +22,7 @@ except ImportError:
 # note: importing flatland so we can use flatland.__version__ here does
 # NOT work at package installation time - it falls over the blinker import.
 # thus, until this is fixed, we duplicate the version number here:
-version = 'dev'
+version = '0.8'
 
 long_desc = open('README').read()
 
