@@ -22,6 +22,7 @@ class NotDuplicated(Validator):
     .. testcode::
 
       import flatland
+      from flatland.schema.containers import List
       from flatland.validation import NotDuplicated
 
       validator = NotDuplicated(failure="Please enter each color only once.")
