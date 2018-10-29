@@ -14,13 +14,6 @@ Containers
 .. automodule:: flatland.validation.containers
 
 
-Strings
-~~~~~~~
-
-.. autoclass:: flatland.validation.string.NANPphone
-   :no-members:
-
-
 Numbers
 ~~~~~~~
 
