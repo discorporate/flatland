@@ -1,5 +1,16 @@
 language: python
-env:
-- TOXENV=py27
+
+matrix:
+    include:
+        - python: "2.7"
+          os: linux
+          dist: xenial
+          env: TOXENV=py27
+        - python: "pypy"
+          os: linux
+          dist: trusty  # pypy download on xenial is 403
+          env: TOXENV=pypy
+
 install: pip install tox
+
 script: tox
