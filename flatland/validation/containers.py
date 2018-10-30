@@ -310,6 +310,7 @@ class SetWithKnownFields(Validator):
 
       schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
                     validated_by(SetWithKnownFields())
+      schema.policy = None
       element = schema()
 
       element.set({'x': 123})
@@ -383,6 +384,7 @@ class SetWithAllFields(Validator):
 
       schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
                     validated_by(SetWithAllFields())
+      schema.policy = None
       element = schema()
 
       element.set({'x': 123, 'y': 456})
