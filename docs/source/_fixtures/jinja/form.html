@@ -2,9 +2,8 @@
 <html>
   <body>
     <form>
-      {%- for field in form.children %}
-        {{- widget(field) }}
-      {%- endfor %}
+      {{- widget(form['username']) }}
+      {{- widget(form['password']) }}
     </form>
   </body>
 </html>

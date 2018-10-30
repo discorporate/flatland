@@ -69,7 +69,8 @@ we stub out widgets for each field in arbitrary order:
         <fieldset>
         <label for="f_username">Username</label>
         <input type="text" name="username" value="admin" id="f_username"/>
-    </fieldset><fieldset>
+    </fieldset>
+        <fieldset>
         <label for="f_password">Password</label>
         <input type="password" name="password" id="f_password"/>
     </fieldset>
