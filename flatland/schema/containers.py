@@ -194,8 +194,11 @@ class Sequence(Container, list):
           >>> Points.member_schema
           <class 'flatland.schema.containers.Dict'>
           >>> el = Points([dict(x=1, y=2)])
-          >>> el
-          [{u'y': <Integer u'y'; value=2>, u'x': <Integer u'x'; value=1>}]
+          >>> point = el[0]
+          >>> point['x']
+          <Integer u'x'; value=1>
+          >>> point['y']
+          <Integer u'y'; value=2>
 
         """
         for field in schema:
