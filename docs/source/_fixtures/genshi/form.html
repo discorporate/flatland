@@ -5,12 +5,8 @@
   <xi:include href="widgets.html"/>
   <body>
     <form>
-
-      <py:for
-          each="field in form.children"
-          py:replace="widget(field)"
-        />
-
+      ${widget(form['username'])}
+      ${widget(form['password'])}
     </form>
   </body>
 </html>

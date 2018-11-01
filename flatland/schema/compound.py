@@ -4,7 +4,7 @@ import operator
 from flatland._compat import (
     PY2,
     identifier_transform,
-    text_type,
+    string_types,
     with_metaclass,
     )
 from flatland.exc import AdaptationError
@@ -315,7 +315,7 @@ class JoinedString(Array, String):
         self.raw = value
         if isinstance(value, (list, tuple)):
             values = value
-        elif not isinstance(value, text_type):
+        elif not isinstance(value, string_types):
             values = list(value)
         elif self.separator_regex:
             # a text regexp separator

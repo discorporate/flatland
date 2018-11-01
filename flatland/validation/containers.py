@@ -22,6 +22,7 @@ class NotDuplicated(Validator):
     .. testcode::
 
       import flatland
+      from flatland.schema.containers import List
       from flatland.validation import NotDuplicated
 
       validator = NotDuplicated(failure="Please enter each color only once.")
@@ -309,13 +310,30 @@ class SetWithKnownFields(Validator):
 
       schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
                     validated_by(SetWithKnownFields())
+      schema.policy = None
       element = schema()
 
-      element.set({'x': 123})
+      element.set({'x': 123, 'y': 456})
       assert element.validate()
 
-      element.set({'x': 123, 'z': 789})
+      element.set({'x': 123, 'y': 456, 'z': 789})
       assert not element.validate()
+
+    .. testcode::
+
+      #from flatland import Dict, Integer
+      #from flatland.validation import SetWithKnownFields
+      #
+      #schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
+      #              validated_by(SetWithKnownFields())
+      #schema.policy = None
+      #element = schema()
+      #
+      #element.set({'x': 123})
+      #assert element.validate()  # assertion error, issue #25, FIXME!
+      #
+      #element.set({'x': 123, 'z': 789})
+      #assert not element.validate()  # no assertion error, but maybe due to #25 also.
 
     This validator collects the keys from :attr:`~flatland.Element.raw` and
     compares them to the allowed keys for the element.  Only elements in which
@@ -382,6 +400,7 @@ class SetWithAllFields(Validator):
 
       schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
                     validated_by(SetWithAllFields())
+      schema.policy = None
       element = schema()
 
       element.set({'x': 123, 'y': 456})
