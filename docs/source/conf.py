@@ -1,8 +1,8 @@
 project = u'flatland'
-copyright = u'2008-2013, the flatland authors and contributors'
+copyright = u'2008-2018, the flatland authors and contributors'
 
 version = '0.0'
-release = '0.0.hg-tip'
+release = '0.0.git-master'
 
 
 master_doc = 'index'
