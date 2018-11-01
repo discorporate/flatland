@@ -1,4 +1,4 @@
-TIP=$(shell hg tip --template '{rev}')
+TIP=$(shell git rev-list HEAD | head -1)
 SOURCES=$(shell find flatland -name '*.py')
 I18N=flatland/i18n
 
@@ -18,14 +18,14 @@ compile-messages:
 	pybabel compile -d $(I18N) -D flatland
 
 tip-sdist: compile-messages
-	@echo "Preparing sdist of flatland @ hg.$(TIP)"
+	@echo "Preparing sdist of flatland @ git.$(TIP)"
 	perl -pi -e \
-          "s~version = flatland.__version__~version = 'hg.$(TIP)'~" \
+          "s~version = flatland.__version__~version = 'git.$(TIP)'~" \
           setup.py
 	(cd docs/source && make clean)
 	(cd docs/source && VERSION=$(TIP) make html)
 	(cd docs/source && VERSION=$(TIP) make text)
 	python setup.py sdist
 	perl -pi -e \
-          "s~version = 'hg.$(TIP)'~version = flatland.__version__~" \
+          "s~version = 'git.$(TIP)'~version = flatland.__version__~" \
           setup.py
