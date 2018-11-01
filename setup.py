@@ -19,15 +19,10 @@ except ImportError:
                 for w in os.walk('flatland')
                 if '__init__.py' in w[2]]
 
-# note: importing flatland so we can use flatland.__version__ here does
-# NOT work at package installation time - it falls over the blinker import.
-# thus, until this is fixed, we duplicate the version number here:
-version = '0.8'
 
 long_desc = open('README').read()
 
 setup(name="flatland",
-      version=version,
       packages=find_packages(exclude=['tests.*', 'tests']),
       author='Jason Kirtland',
       author_email='jek@discorporate.us',
@@ -46,7 +41,13 @@ setup(name="flatland",
                    'Programming Language :: Python :: 2.7',
                    'Topic :: Internet :: WWW/HTTP :: WSGI',
                    'Topic :: Software Development :: Libraries'],
+      use_scm_version={
+          'write_to': 'flatland/_version.py',
+      },
+      setup_requires=[
+          'setuptools_scm',
+      ],
       install_requires=[
           'blinker',
-          ],
+      ],
       **extra_setup)
