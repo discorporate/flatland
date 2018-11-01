@@ -5,6 +5,7 @@ syntax: glob
 MANIFEST
 .coverage
 htmlcov
+flatland/_version.py
 tests/cover
 build
 dist

@@ -1,8 +1,14 @@
 project = u'flatland'
 copyright = u'2008-2018, the flatland authors and contributors'
 
-version = '0.0'
-release = '0.0.git-master'
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+import sys, os
+sys.path.insert(0, os.path.abspath('../..'))
+
+from flatland._version import version
+release = version
 
 
 master_doc = 'index'

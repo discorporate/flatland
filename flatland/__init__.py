@@ -84,4 +84,4 @@ __all__ = [
     'validator_validated',
     ]
 
-__version__ = '0.8'
+from ._version import version as __version__
