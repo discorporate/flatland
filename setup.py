@@ -2,7 +2,7 @@ import os
 import sys
 
 if sys.version_info < (2, 7):
-    print "Python 2.7.x is required."
+    print("Python 2.7.x is required.")
     sys.exit(1)
 
 try:
