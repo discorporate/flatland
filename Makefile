@@ -1,4 +1,3 @@
-TIP=$(shell git rev-list HEAD | head -1)
 SOURCES=$(shell find flatland -name '*.py')
 I18N=flatland/i18n
 
@@ -18,14 +17,8 @@ compile-messages:
 	pybabel compile -d $(I18N) -D flatland
 
 tip-sdist: compile-messages
-	@echo "Preparing sdist of flatland @ git.$(TIP)"
-	perl -pi -e \
-          "s~version = flatland.__version__~version = 'git.$(TIP)'~" \
-          setup.py
+	@echo "Preparing sdist of flatland..."
 	(cd docs/source && make clean)
-	(cd docs/source && VERSION=$(TIP) make html)
-	(cd docs/source && VERSION=$(TIP) make text)
+	(cd docs/source && make html)
+	(cd docs/source && make text)
 	python setup.py sdist
-	perl -pi -e \
-          "s~version = 'git.$(TIP)'~version = flatland.__version__~" \
-          setup.py

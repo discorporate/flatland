@@ -4,7 +4,6 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-VERSION      ?= tip
 
 # Internal variables.
 ALLSPHINXOPTS = -d ../doctrees $(SPHINXOPTS) .
@@ -39,7 +38,6 @@ website:
 	mkdir -p ../website ../doctrees
 	$(SPHINXBUILD) -b discorporate \
            -D html_theme=discorporate \
-           -D version=$(VERSION) \
            $(ALLSPHINXOPTS) ../website
 
 doctest:
