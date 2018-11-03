@@ -1,3 +1,5 @@
+API
+===
 
 
 .. autoclass:: flatland.schema.scalars.Scalar

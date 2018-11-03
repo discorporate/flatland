@@ -1,16 +1,18 @@
 Changes
 =======
 
-Release 0.8.1 (not released yet)
---------------------------------
 
-- github is our new home, add .gitignore
+Release 0.8.1 (2018-11-03)
+--------------------------
+
 - drop support for python < 2.7, fixes #16
-- use travis-ci for py27 and pypy27
-- update i18n: regenerate .pot, update .po, remove crap
-- Makefile: use git, not hg
+- github is our new home, add .gitignore
+- add requirements.d/develop.txt to ease development requirements installation
+- update i18n: regenerate .pot, update .po, remove unused strings
+- add setuptools_scm for versioning and manifest, fixes #18
+- Makefile: clean up, version related stuff done by setuptools_scm now
 - setup.py: use print() to enable running tox with py3
-- docs: update year, change version from .hg-tip to .git-master
+- use travis-ci for py27 and pypy27, 0 failing tests now
 - doctests:
 
   - fix JoinedString - bad type check
@@ -22,6 +24,10 @@ Release 0.8.1 (not released yet)
     see #25
   - NotDuplicated: import List to avoid NameError
   - flatland.validation.string.NANPphone does not exist, removed docs
+- docs:
+
+  - update year, change version from .hg-tip to .git-master
+  - README: add links section with updated links
 
 
 Release 0.8.0 (2015-03-25)
