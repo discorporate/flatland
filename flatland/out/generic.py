@@ -227,7 +227,7 @@ def transform_tabindex(tagname, attributes, contents, context, bind):
 
     current = attributes.get(u'tabindex')
     if forced or current is None and tagname in _auto_tags[u'tabindex']:
-        attributes[u'tabindex'] = bytestring_type(tabindex).decode('ascii')
+        attributes[u'tabindex'] = text_type(str((tabindex)))
         if tabindex > 0:
             context[u'tabindex'] = tabindex + 1
     return contents
