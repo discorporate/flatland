@@ -1,7 +1,7 @@
 import re
 
 from flatland._compat import PY2, bytestring_type, text_type, xrange
-from flatland.util import symbol
+from flatland.util import decode_repr, symbol
 
 
 __all__ = ['pathexpr']
@@ -81,14 +81,14 @@ class PathExpression(object):
                     except (LookupError, TypeError):
                         if strict:
                             if el.name:
-                                type_ = '%s element %r' % (
-                                    el.__class__.__name__, el.name)
+                                type_ = '%s element %s' % (
+                                    el.__class__.__name__, decode_repr(el.name))
                             else:
                                 type_ = 'Unnamed element %s' % (
                                     el.__class__.__name__)
                             raise LookupError(
-                                "%s has no child %r in expression %r" % (
-                                    type_, data, self.expr))
+                                "%s has no child %s in expression %s" % (
+                                    type_, decode_repr(data), decode_repr(self.expr)))
                         break
                 elif op is SLICE:
                     children = list(el.children)[data]

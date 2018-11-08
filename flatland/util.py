@@ -10,6 +10,17 @@ except ImportError:                                           # pragma:nocover
 from flatland._compat import PY2, text_type
 
 
+def decode_repr(x):
+    """create a unicode string representation (as a unicode string)
+       for py2 and py3 that looks the same: u'example'
+    """
+    r = repr(x)
+    if PY2:
+        return r.decode('raw_unicode_escape')
+    else:
+        return 'u' + r
+
+
 # derived from ASPN Cookbook (#36302)
 class lazy_property(object):
     """An @property that is only calculated once.
