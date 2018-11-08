@@ -521,7 +521,8 @@ class List(Sequence):
         self._renumber()
 
     def sort(self, cmp=None, key=None, reverse=False):
-        list.sort(self, cmp, key, reverse)
+        assert cmp is None  # no cmp for list.sort in py3
+        list.sort(self, key=key, reverse=reverse)
         self._renumber()
 
     def reverse(self):
