@@ -153,7 +153,7 @@ class Element(object):
         :returns: a new class
 
         """
-        if PY2 and isinstance(name, bytestring_type):
+        if not isinstance(name, (text_type, NoneType)):
             name = text_type(name)
         cls.name = name
         return cls

@@ -9,6 +9,7 @@ from flatland._compat import (
     iterkeys,
     itervalues,
     bytestring_type,
+    text_type,
     xrange,
     )
 from flatland.util import (
@@ -457,7 +458,10 @@ class List(Sequence):
         """Wrap *value* in a Slot named as the element's index in the list."""
         # avoid direct text_type() here so that test suite unicode coercion
         # detector isn't triggered
-        name = bytestring_type(len(self)).decode('ascii')
+        new_idx = len(self)
+        name = str(new_idx)
+        if not isinstance(name, text_type):
+            name = name.decode('ascii')
         return self.slot_type(name=name,
                               parent=self,
                               element=self._as_element(value))
@@ -533,7 +537,10 @@ class List(Sequence):
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
             # don't trigger naive unicode coercion (for test suite)
-            slot.name = bytestring_type(idx).decode('ascii')
+            name = str(idx)
+            if not isinstance(name, text_type):
+                name = name.decode('ascii')
+            slot.name = name
 
     @property
     def children(self):
