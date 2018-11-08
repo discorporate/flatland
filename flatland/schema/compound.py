@@ -43,7 +43,7 @@ class _MetaCompound(type):
         # Find **kw that would override existing class properties and
         # remove them from kw.
         overrides = {}
-        for key in kw.keys():
+        for key in list(kw.keys()):
             if hasattr(cls, key):
                 overrides[key] = kw.pop(key)
 

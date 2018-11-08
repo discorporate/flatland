@@ -568,7 +568,7 @@ def test_sparsedict_required_key_mutability():
     assert_raises(NotImplementedError, el.popitem)
 
     el.clear()
-    assert el.keys() == [required]
+    assert list(el.keys()) == [required]
 
 
 def test_sparsedict_from_flat():
@@ -576,7 +576,7 @@ def test_sparsedict_from_flat():
                            Integer.named(u'y'))
 
     el = schema.from_flat([])
-    assert el.items() == []
+    assert list(el.items()) == []
 
     el = schema.from_flat([(u'x', u'123')])
     assert el.value == {u'x': 123}

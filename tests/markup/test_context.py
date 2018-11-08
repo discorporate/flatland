@@ -7,7 +7,7 @@ Nothing = object()
 def test_read_write_known():
     ctx = Context()
 
-    needle = _default_context.keys()[0]
+    needle = list(_default_context.keys())[0]
     assert needle in ctx
     assert ctx[needle] is not Nothing
     ctx[needle] = Nothing
@@ -27,7 +27,7 @@ def test_read_write_unknown():
 def test_push_known():
     ctx = Context()
 
-    needle = _default_context.keys()[0]
+    needle = list(_default_context.keys())[0]
     assert needle in ctx
     assert ctx[needle] is not Nothing
 
@@ -51,7 +51,7 @@ def test_push_unknown():
 
 def test_update_known():
     ctx = Context()
-    known = _default_context.keys()
+    known = list(_default_context.keys())
     sentinels = [object(), object()]
 
     iterable = [(known[0], sentinels[0])]
@@ -98,7 +98,7 @@ def test_default_minimum_stack():
 def test_stack_plain_push_pop():
     ctx = Context()
 
-    needle, initial_value = _default_context.items()[0]
+    needle, initial_value = list(_default_context.items())[0]
     assert ctx[needle] == initial_value
 
     ctx.push()
