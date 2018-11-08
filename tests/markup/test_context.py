@@ -31,7 +31,7 @@ def test_push_known():
     assert needle in ctx
     assert ctx[needle] is not Nothing
 
-    ctx.push(**{needle.encode('ascii'): Nothing})
+    ctx.push(**{needle: Nothing})
     assert ctx[needle] is Nothing
 
     ctx.pop()
@@ -55,7 +55,7 @@ def test_update_known():
     sentinels = [object(), object()]
 
     iterable = [(known[0], sentinels[0])]
-    kwargs = {known[1].encode('ascii'): sentinels[1]}
+    kwargs = {known[1]: sentinels[1]}
 
     ctx.update(iterable, **kwargs)
 

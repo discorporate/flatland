@@ -7,7 +7,7 @@ from flatland import (
     Unset,
     element_set,
     )
-from flatland._compat import iteritems
+from flatland._compat import PY2, iteritems
 from flatland.util import Unspecified, keyslice_pairs
 
 from tests._util import (
@@ -397,10 +397,11 @@ def test_update_object():
     def updated_(obj_factory, initial_value, wanted=None, **update_kw):
         el = schema(initial_value)
         obj = obj_factory()
-        update_kw.setdefault('key', asciistr)
+        keyfunc = lambda x: (asciistr(x) if PY2 else x)
+        update_kw.setdefault('key', keyfunc)
         el.update_object(obj, **update_kw)
         if wanted is None:
-            wanted = dict((asciistr(k), v) for k, v in initial_value.items())
+            wanted = dict((keyfunc(k), v) for k, v in initial_value.items())
         have = dict(obj.__dict__)
         assert have == wanted
 
