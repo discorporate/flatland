@@ -718,10 +718,12 @@ class MultiValue(Array, Scalar):
     value = property(value, _set_value)
     del _set_value
 
-    def __nonzero__(self):
+    def __bool__(self):
         # this is a little troubling, given that it may not match the
         # appearance of the element in a scalar context.
-        return len(self)
+        return bool(len(self))
+
+    __nonzero__ = __bool__
 
 
 class Mapping(Container, dict):

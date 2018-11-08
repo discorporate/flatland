@@ -325,8 +325,10 @@ class Maybe(object):
         else:
             raise TypeError(type(other).__name__)
 
-    def __nonzero__(self):
+    def __bool__(self):
         raise NotImplementedError()
+
+    __nonzero__ = __bool__
 
     def __str__(self):
         return 'Maybe'

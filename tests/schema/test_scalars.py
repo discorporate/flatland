@@ -107,6 +107,7 @@ def validate_element_set(type_, raw, value, uni, schema_opts={},
     eq_(element.u, uni)
     eq_(element.__unicode__(), uni)
     eq_(element.__nonzero__(), bool(uni and value))
+    eq_(element.__bool__(), bool(uni and value))
 
 
 coerced_validate_element_set = requires_unicode_coercion(validate_element_set)

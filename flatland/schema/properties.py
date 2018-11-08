@@ -42,8 +42,10 @@ class DictLike(object):
     def __contains__(self, key):
         return key in self.iterkeys()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.copy())
+
+    __nonzero__ = __bool__
 
     def __eq__(self, other):
         return self.copy() == other
