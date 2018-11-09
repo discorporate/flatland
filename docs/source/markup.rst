@@ -63,7 +63,7 @@ Basic "Do What I Mean" form binding:
 
 .. doctest:: generatorintro
 
-   >>> print html.input(form['username'])
+   >>> print(html.input(form['username']))
    <input name="username" value="jek" />
 
 Likewise with Genshi.
@@ -93,7 +93,7 @@ This time, the Generator is used in a Jinja2 template.
     >>> template = Template("""\
     ... {{ html.input(form.username, name="other", class_="custom") }}
     ... """)
-    >>> print template.render(html=html, form=form)
+    >>> print(template.render(html=html, form=form))
     <input name="other" value="jek" class="custom" />
 
 These features are very similar in Genshi, too.
@@ -173,13 +173,13 @@ participate in ``tabindex=`` generation.
 .. doctest:: transforms1
 
    >>> html = Generator(tabindex=100)
-   >>> print html.textarea()
+   >>> print(html.textarea())
    <textarea></textarea>
-   >>> print html.textarea(auto_tabindex=True)
+   >>> print(html.textarea(auto_tabindex=True))
    <textarea tabindex="100"></textarea>
    >>> html.set(auto_tabindex=True)
    u''
-   >>> print html.textarea()
+   >>> print(html.textarea())
    <textarea tabindex="101"></textarea>
 
 
@@ -189,7 +189,7 @@ that normally would not be transformed.
 
 .. doctest:: transforms1
 
-   >>> print html.tag('squiznart', auto_tabindex=True)
+   >>> print(html.tag('squiznart', auto_tabindex=True))
    <squiznart tabindex="102" />
 
 The Python APIs and the Generator tags use "_"-separated transform names
@@ -220,21 +220,21 @@ uses XML-friendly "-"-separated attribute names in markup.
 
    .. doctest:: transforms2
 
-     >>> print html.input(form['username'], type="text")
+     >>> print(html.input(form['username'], type="text"))
      <input type="text" name="username" value="jek" />
 
    Uses the explicitly provided ``name="foo"``:
 
    .. doctest:: transforms2
 
-     >>> print html.input(form['username'], type="text", name='foo')
+     >>> print(html.input(form['username'], type="text", name='foo'))
      <input type="text" name="foo" value="jek" />
 
    Replaces ``name="foo"`` with the element's name:
 
    .. doctest:: transforms2
 
-     >>> print html.input(form['username'], type="text", name='foo', auto_name=True)
+     >>> print(html.input(form['username'], type="text", name='foo', auto_name=True))
      <input type="text" name="username" value="jek" />
 
 
@@ -255,14 +255,14 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      .. doctest:: transforms2
 
-       >>> print html.input(form['username'], type="text")
+       >>> print(html.input(form['username'], type="text"))
        <input type="text" name="username" value="jek" />
 
      Uses the explicitly provided ``value="quux"``:
 
      .. doctest:: transforms2
 
-       >>> print html.input(form['username'], type="text", value='quux')
+       >>> print(html.input(form['username'], type="text", value='quux'))
        <input type="text" name="username" value="quux" />
 
    ``<input>`` types **password**, **image** and **file**:
@@ -271,14 +271,14 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      .. doctest:: transforms2
 
-       >>> print html.input(form['password'], type="password")
+       >>> print(html.input(form['password'], type="password"))
        <input type="password" name="password" />
 
      But this behavior can be forced:
 
      .. doctest:: transforms2
 
-       >>> print html.input(form['password'], type="password", auto_value=True)
+       >>> print(html.input(form['password'], type="password", auto_value=True))
        <input type="password" name="password" value="secret" />
 
    ``<input>`` type **radio**:
@@ -293,11 +293,11 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      .. doctest:: transforms2
 
-       >>> print form['username'].u
+       >>> print(form['username'].u)
        jek
-       >>> print html.input(form['username'], type="radio", value="quux")
+       >>> print(html.input(form['username'], type="radio", value="quux"))
        <input type="radio" name="username" value="quux" />
-       >>> print html.input(form['username'], type="radio", value="jek")
+       >>> print(html.input(form['username'], type="radio", value="jek"))
        <input type="radio" name="username" value="jek" checked="checked" />
 
    ``<input>`` type **checkbox**:
@@ -307,11 +307,11 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      .. doctest:: transforms2
 
-       >>> print form['username'].u
+       >>> print(form['username'].u)
        jek
-       >>> print html.input(form['username'], type="checkbox", value="quux")
+       >>> print(html.input(form['username'], type="checkbox", value="quux"))
        <input type="checkbox" name="username" value="quux" />
-       >>> print html.input(form['username'], type="checkbox", value="jek")
+       >>> print(html.input(form['username'], type="checkbox", value="jek"))
        <input type="checkbox" name="username" value="jek" checked="checked" />
 
      Or, if the bind is a :class:`~flatland.Container`, ``value=`` will be
@@ -324,7 +324,7 @@ uses XML-friendly "-"-separated attribute names in markup.
        >>> Bag = Array.named('bag').of(String)
        >>> bag = Bag(['a', 'c'])
        >>> for value in 'a', 'b', 'c':
-       ...     print html.input(bag, type="checkbox", value=value)
+       ...     print(html.input(bag, type="checkbox", value=value))
        ...
        <input type="checkbox" name="bag" value="a" checked="checked" />
        <input type="checkbox" name="bag" value="b" />
@@ -336,15 +336,15 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      .. doctest:: transforms2
 
-       >>> print html.input(form['username'], type="checkbox")
+       >>> print(html.input(form['username'], type="checkbox"))
        <input type="checkbox" name="username" />
        >>> from flatland import Boolean
        >>> toggle = Boolean.named('toggle')()
-       >>> print html.input(toggle, type="checkbox")
+       >>> print(html.input(toggle, type="checkbox"))
        <input type="checkbox" name="toggle" value="1" />
        >>> toggle.set(True)
        True
-       >>> print html.input(toggle, type="checkbox")
+       >>> print(html.input(toggle, type="checkbox"))
        <input type="checkbox" name="toggle" value="1" checked="checked" />
        >>> toggle.true = "yes"
 
@@ -361,9 +361,9 @@ uses XML-friendly "-"-separated attribute names in markup.
 
      .. doctest:: transforms2
 
-       >>> print html.textarea(form['username'])
+       >>> print(html.textarea(form['username']))
        <textarea name="username">jek</textarea>
-       >>> print html.textarea(form['username'], contents="quux")
+       >>> print(html.textarea(form['username'], contents="quux"))
        <textarea name="username">quux</textarea>
 
      Note that in Genshi, these two forms are equivalent.

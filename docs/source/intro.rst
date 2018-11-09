@@ -78,8 +78,8 @@ used as-is in output templates for form layout, redisplay and error reporting.
 .. doctest::
 
   >>> as_regular_python_data = form.value
-  >>> type(as_regular_python_data)
-  <type 'dict'>
+  >>> isinstance(as_regular_python_data, dict)
+  True
   >>> as_regular_python_data['username']
   u'jek'
   >>> form2 = SignInForm(as_regular_python_data)

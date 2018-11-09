@@ -66,7 +66,7 @@ validity and status of child elements.
 
   >>> from flatland import Dict, String
   >>> def tattle(element, state):
-  ...     print element.name
+  ...     print(element.name)
   ...     return True
   ...
   >>> schema = (Dict.named('outer').

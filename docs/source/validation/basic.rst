@@ -99,8 +99,8 @@ aid in debugging.
   @validator_validated.connect
   def monitor_validation(sender, element, state, result):
       # print or logging.debug validations as they happen:
-      print "validation: %s(%s) valid == %r" % (
-        sender, element.flattened_name(), result)
+      print("validation: %s(%s) valid == %r" % (
+        sender, element.flattened_name(), result))
 
 .. doctest:: signals
 
