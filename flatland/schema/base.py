@@ -347,7 +347,6 @@ class Element(object):
         while element is not None:
             yield element
             element = element.parent
-        raise StopIteration()
 
     @property
     def path(self):
