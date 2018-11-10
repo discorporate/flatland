@@ -259,11 +259,7 @@ class Tag(object):
     def _open(self, bind, kwargs):
         """Return a ``'<partial'`` opener tag with no terminator."""
         contents = kwargs.pop('contents', None)
-
-        if PY2:
-            attributes = _unicode_keyed(kwargs)
-        else:
-            attributes = kwargs
+        attributes = _transform_keys(kwargs)
         tagname = self.tagname
         new_contents = transform(
             tagname, attributes, contents, self._context, bind)
@@ -322,11 +318,13 @@ def _attribute_escape(string):
                replace(u'"', u'&quot;')
 
 
-def _unicode_keyed(bytestring_keyed):
+def _transform_keys(d):
     rekeyed = {}
-    for key, value in bytestring_keyed.items():
-        as_unicode = key.rstrip('_').decode('ascii')
-        rekeyed[as_unicode] = value
+    for key, value in d.items():
+        if PY2:
+            key = key.decode('ascii')
+        key = key.rstrip('_')
+        rekeyed[key] = value
     return rekeyed
 
 
