@@ -53,3 +53,27 @@ html_sidebars = {
     'index': ['globaltoc.html', 'relations.html', 'links.html', 'sourcelink.html', 'searchbox.html'],
     'genindex': ['links.html', 'sourcelink.html', 'searchbox.html'],
 }
+
+# Avoid issues like below when running under python 3.x:
+#
+# Expected:
+#     [u'hello', u'world']
+#
+# Got:
+#     ['hello', 'world']
+
+import re
+import sys
+import doctest
+OrigOutputChecker = doctest.OutputChecker
+
+
+class Py23OutputChecker(OrigOutputChecker):
+    def check_output(self, want, got, optionflags):
+        if sys.version_info[0] > 2:
+            want = re.sub("u'(.*?)'", "'\\1'", want)
+            want = re.sub('u"(.*?)"', '"\\1"', want)
+        return OrigOutputChecker.check_output(self, want, got, optionflags)
+
+
+doctest.OutputChecker = Py23OutputChecker
