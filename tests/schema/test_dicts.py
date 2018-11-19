@@ -7,7 +7,7 @@ from flatland import (
     Unset,
     element_set,
     )
-from flatland._compat import iteritems
+from flatland._compat import PY2, iteritems
 from flatland.util import Unspecified, keyslice_pairs
 
 from tests._util import (
@@ -397,10 +397,11 @@ def test_update_object():
     def updated_(obj_factory, initial_value, wanted=None, **update_kw):
         el = schema(initial_value)
         obj = obj_factory()
-        update_kw.setdefault('key', asciistr)
+        keyfunc = lambda x: (asciistr(x) if PY2 else x)
+        update_kw.setdefault('key', keyfunc)
         el.update_object(obj, **update_kw)
         if wanted is None:
-            wanted = dict((asciistr(k), v) for k, v in initial_value.items())
+            wanted = dict((keyfunc(k), v) for k, v in initial_value.items())
         have = dict(obj.__dict__)
         assert have == wanted
 
@@ -568,7 +569,7 @@ def test_sparsedict_required_key_mutability():
     assert_raises(NotImplementedError, el.popitem)
 
     el.clear()
-    assert el.keys() == [required]
+    assert list(el.keys()) == [required]
 
 
 def test_sparsedict_from_flat():
@@ -576,7 +577,7 @@ def test_sparsedict_from_flat():
                            Integer.named(u'y'))
 
     el = schema.from_flat([])
-    assert el.items() == []
+    assert list(el.items()) == []
 
     el = schema.from_flat([(u'x', u'123')])
     assert el.value == {u'x': 123}

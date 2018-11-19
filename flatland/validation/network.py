@@ -85,7 +85,7 @@ class IsEmail(Validator):
 
         try:
             # convert domain to ascii
-            domain = domain.encode('idna')
+            domain = domain.encode('idna').decode('ascii')
         except UnicodeError:
             return self.note_error(element, state, 'invalid')
 

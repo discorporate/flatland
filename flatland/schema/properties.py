@@ -1,6 +1,6 @@
 from weakref import WeakKeyDictionary
 
-from flatland._compat import iterkeys, itervalues
+from flatland._compat import iteritems
 from flatland.util import symbol
 
 
@@ -19,13 +19,13 @@ class DictLike(object):
         return (item[0] for item in self.iteritems())
 
     def keys(self):
-        return list(iterkeys(self))
+        return list(self.iterkeys())
 
     def itervalues(self):
         return (item[1] for item in self.iteritems())
 
     def values(self):
-        return list(itervalues(self))
+        return list(self.itervalues())
 
     def get(self, key, default=None):
         try:
@@ -40,10 +40,12 @@ class DictLike(object):
         raise NotImplementedError
 
     def __contains__(self, key):
-        return key in iterkeys(self)
+        return key in self.iterkeys()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return bool(self.copy())
+
+    __nonzero__ = __bool__
 
     def __eq__(self, other):
         return self.copy() == other
@@ -84,7 +86,7 @@ class _TypeLookup(DictLike):
 
     def clear(self):
         frame = self._base_frame
-        for key in iterkeys(self):
+        for key in self.iterkeys():
             frame[key] = Deleted
 
     def pop(self, key, *default):
@@ -107,7 +109,7 @@ class _TypeLookup(DictLike):
     def iteritems(self):
         seen = set()
         for frame in self._frames():
-            for key, value in frame.iteritems():
+            for key, value in iteritems(frame):
                 if key not in seen:
                     seen.add(key)
                     if value is not Deleted:
@@ -196,7 +198,7 @@ class _InstanceLookup(DictLike):
 
     def iteritems(self):
         seen = set()
-        for key, value in self.local.iteritems():
+        for key, value in iteritems(self.local):
             seen.add(key)
             if value is not Deleted:
                 yield key, value

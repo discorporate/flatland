@@ -39,8 +39,8 @@ application.  An element's :attr:`~base.Element.value` is a full & recursive
 
   >>> ann1['title']     # ann1 is a flatland structure
   <String u'title'; value=u'Interesting Spot'>
-  >>> type(ann1.value)  # but its .value is not
-  <type 'dict'>
+  >>> isinstance(ann1.value, dict)  # but its .value is not
+  True
   >>> ann1.value == sample_data
   True
 

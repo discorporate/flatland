@@ -57,7 +57,7 @@ we stub out widgets for each field in arbitrary order:
   from flatland.out.genshi import setup
   loader = TemplateLoader(['docs/source/_fixtures/genshi'], callback=setup)
   template = loader.load('form.html')
-  print template.generate(form=form).render()
+  print(template.generate(form=form).render())
 
 
 .. testoutput:: genshi
@@ -112,7 +112,7 @@ environment::
   env = Environment(loader=loader, extensions=['jinja2.ext.do'])
   env.globals['form_generator'] = Generator('html')
   template = env.get_template('form.html')
-  print template.render(form=form)
+  print(template.render(form=form))
 
 
 .. testoutput:: jinja

@@ -176,7 +176,7 @@ class Validator(object):
         3.  If the schema of *element* or the schema of any of its
             parents have an attribute named *type*, return that.
 
-        4.  If *type* is in ``__builtin__``, return that.
+        4.  If *type* is in ``builtins``, return that.
 
         5.  Otherwise return ``None``.
 

@@ -9,6 +9,7 @@ from flatland._compat import (
     iterkeys,
     itervalues,
     bytestring_type,
+    text_type,
     xrange,
     )
 from flatland.util import (
@@ -19,6 +20,7 @@ from flatland.util import (
     keyslice_pairs,
     re_uescape,
     to_pairs,
+    decode_repr,
     )
 from flatland.signals import element_set
 from .base import Element, Unevaluated, Slot, validate_element
@@ -383,7 +385,7 @@ class Sequence(Container, list):
     def u(self):
         return u'[%s]' % u', '.join(
             element.u if isinstance(element, Container)
-                      else repr(element.u).decode('raw_unicode_escape')
+                      else decode_repr(element.u)
             for element in self.children)
 
 
@@ -456,7 +458,10 @@ class List(Sequence):
         """Wrap *value* in a Slot named as the element's index in the list."""
         # avoid direct text_type() here so that test suite unicode coercion
         # detector isn't triggered
-        name = bytestring_type(len(self)).decode('ascii')
+        new_idx = len(self)
+        name = str(new_idx)
+        if not isinstance(name, text_type):
+            name = name.decode('ascii')
         return self.slot_type(name=name,
                               parent=self,
                               element=self._as_element(value))
@@ -521,7 +526,8 @@ class List(Sequence):
         self._renumber()
 
     def sort(self, cmp=None, key=None, reverse=False):
-        list.sort(self, cmp, key, reverse)
+        assert cmp is None  # no cmp for list.sort in py3
+        list.sort(self, key=key, reverse=reverse)
         self._renumber()
 
     def reverse(self):
@@ -531,7 +537,10 @@ class List(Sequence):
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
             # don't trigger naive unicode coercion (for test suite)
-            slot.name = bytestring_type(idx).decode('ascii')
+            name = str(idx)
+            if not isinstance(name, text_type):
+                name = name.decode('ascii')
+            slot.name = name
 
     @property
     def children(self):
@@ -718,10 +727,12 @@ class MultiValue(Array, Scalar):
     value = property(value, _set_value)
     del _set_value
 
-    def __nonzero__(self):
+    def __bool__(self):
         # this is a little troubling, given that it may not match the
         # appearance of the element in a scalar context.
-        return len(self)
+        return bool(len(self))
+
+    __nonzero__ = __bool__
 
 
 class Mapping(Container, dict):
@@ -871,10 +882,10 @@ class Mapping(Container, dict):
     def u(self):
         """A string repr of the element."""
         pairs = ((key, value.u if isinstance(value, Container)
-                               else repr(value.u).decode('raw_unicode_escape'))
+                               else decode_repr(value.u))
                   for key, value in iteritems(self))
         return u'{%s}' % u', '.join(
-            u"%s: %s" % (repr(k).decode('raw_unicode_escape'), v)
+            u"%s: %s" % (decode_repr(k), v)
             for k, v in pairs)
 
     @property

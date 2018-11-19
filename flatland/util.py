@@ -10,6 +10,17 @@ except ImportError:                                           # pragma:nocover
 from flatland._compat import PY2, text_type
 
 
+def decode_repr(x):
+    """create a unicode string representation (as a unicode string)
+       for py2 and py3 that looks the same: u'example'
+    """
+    r = repr(x)
+    if PY2:
+        return r.decode('raw_unicode_escape')
+    else:
+        return 'u' + r
+
+
 # derived from ASPN Cookbook (#36302)
 class lazy_property(object):
     """An @property that is only calculated once.
@@ -325,8 +336,10 @@ class Maybe(object):
         else:
             raise TypeError(type(other).__name__)
 
-    def __nonzero__(self):
+    def __bool__(self):
         raise NotImplementedError()
+
+    __nonzero__ = __bool__
 
     def __str__(self):
         return 'Maybe'

@@ -1,5 +1,5 @@
 from flatland import String
-from flatland._compat import iterkeys, itervalues
+from flatland._compat import PY2, iterkeys, itervalues
 from flatland.schema.properties import Properties
 
 from nose.tools import assert_raises
@@ -274,14 +274,16 @@ def test_perverse():
     assert Broken.properties == 'something else'
 
 
-def test_perverse_slots():
+# python3 immediately raises an exception if there is such a name clash
+if PY2:
+    def test_perverse_slots():
 
-    class Base(object):
-        __slots__ = 'properties',
-        properties = Properties()
+        class Base(object):
+            __slots__ = 'properties',
+            properties = Properties()
 
-    b = Base()
-    assert_raises(AttributeError, lambda: b.properties['abc'])
+        b = Base()
+        assert_raises(AttributeError, lambda: b.properties['abc'])
 
 
 def test_dsl():
