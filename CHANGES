@@ -2,6 +2,16 @@ Changes
 =======
 
 
+Release 0.9.0 (2019-07-20)
+--------------------------
+
+- ported to python 3, now supports python 2.7, 3.4, 3.5, 3.6, 3.7
+- tox/travis: add testing on py34/35/36/37
+- Makefile: "make release", fixes #47
+- docs: fix logo path, fixes #46
+- translated to german
+
+
 Release 0.8.1 (2018-11-03)
 --------------------------
 
