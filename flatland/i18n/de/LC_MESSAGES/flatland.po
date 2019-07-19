@@ -1,18 +1,19 @@
-# German translations for PROJECT.
-# Copyright (C) 2010 ORGANIZATION
+# German translations for flatland.
+# Copyright (C) 2018 Thomas Waldmann
 # This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+# Translators:
+# Thomas Waldmann <tw@waldmann-edv.de>, 2018.
 #
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
+"Project-Id-Version: flatland 0.9\n"
 "Report-Msgid-Bugs-To: flatland-users@googlegroups.com\n"
 "POT-Creation-Date: 2018-11-01 20:12+0100\n"
-"PO-Revision-Date: 2010-07-16 14:20+0100\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2018-11-19 14:20+0100\n"
+"Last-Translator: Thomas Waldmann <tw@waldmann-edv.de>\n"
 "Language: de\n"
-"Language-Team: de <LL@li.org>\n"
+"Language-Team: Thomas Waldmann <tw@waldmann-edv.de>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -23,23 +24,23 @@ msgstr ""
 #: flatland/validation/containers.py:87
 #, python-format
 msgid "%(label)s may not be repeated within %(container_label)s."
-msgstr ""
+msgstr "%(label)s darf nicht wiederholt werden innerhalb von %(container_label)s."
 
 #. TRANSLATORS: HasAtLeast.failure
 #: flatland/validation/containers.py:149
 #, python-format
 msgid "%(label)s must contain at least one %(child_label)s"
 msgid_plural "%(label)s must contain at least %(minimum)s %(child_label)ss"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(label)s muss mindestens ein %(child_label)s enthalten"
+msgstr[1] "%(label)s muss mindestens %(minimum)s %(child_label)s enthalten"
 
 #. TRANSLATORS: HasAtMost.failure
 #: flatland/validation/containers.py:202
 #, python-format
 msgid "%(label)s must contain at most one %(child_label)s"
 msgid_plural "%(label)s must contain at most %(maximum)s %(child_label)ss"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(label)s darf maximal ein %(child_label)s enthalten"
+msgstr[1] "%(label)s darf maximal %(maximum)s %(child_label)s enthalten"
 
 #. TRANSLATORS: HasBetween.range
 #: flatland/validation/containers.py:268
@@ -51,39 +52,43 @@ msgid_plural ""
 "%(label)s must contain at least %(minimum)s and at most %(maximum)s "
 "%(child_label)ss"
 msgstr[0] ""
+"%(label)s muss mindestens %(minimum)s und maximal %(maximum)s "
+"%(child_label)s enthalten"
 msgstr[1] ""
+"%(label)s muss mindestens %(minimum)s und maximal %(maximum)s "
+"%(child_label)s enthalten"
 
 #. TRANSLATORS: HasBetween.exact
 #: flatland/validation/containers.py:275
 #, python-format
 msgid "%(label)s must contain exactly one %(child_label)s"
 msgid_plural "%(label)s must contain exactly %(minimum)s %(child_label)ss"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(label)s muss genau ein %(child_label)s enthalten"
+msgstr[1] "%(label)s muss genau %(minimum)s %(child_label)s enthalten"
 
 #. TRANSLATORS: SetWithKnownFields.unexpected
 #. TRANSLATORS: SetWithAllFields.unexpected
 #: flatland/validation/containers.py:366 flatland/validation/containers.py:454
 #, python-format
 msgid "%(label)s may not contain %(unexpected)s"
-msgstr ""
+msgstr "%(label)s darf keine %(unexpected)s enthalten"
 
 #. TRANSLATORS: SetWithAllFields.missing
 #: flatland/validation/containers.py:457
 #, python-format
 msgid "%(label)s must contain %(missing)s"
-msgstr ""
+msgstr "%(label)s muss %(missing)s enthalten"
 
 #. TRANSLATORS: SetWithAllFields.both
 #: flatland/validation/containers.py:460
 #, python-format
 msgid "%(label)s must contain %(missing)s and not contain %(unexpected)s"
-msgstr ""
+msgstr "%(label)s muss %(missing)s, aber nicht %(unexpected)s enthalten"
 
 #: flatland/validation/network.py:63
 #, python-format
 msgid "%(label)s is not a valid email address."
-msgstr ""
+msgstr "%(label)s ist keine gültige E-Mail-Adresse."
 
 #: flatland/validation/network.py:160 flatland/validation/network.py:161
 #: flatland/validation/network.py:162 flatland/validation/network.py:246
@@ -91,84 +96,84 @@ msgstr ""
 #: flatland/validation/network.py:317
 #, python-format
 msgid "%(label)s is not a valid URL."
-msgstr ""
+msgstr "%(label)s ist keine gültige URL."
 
 #: flatland/validation/number.py:8
 #, python-format
 msgid "The %(label)s was not entered correctly."
-msgstr ""
+msgstr "Das %(label)s wurde nicht korrekt eingegeben."
 
 #: flatland/validation/scalars.py:20
 #, python-format
 msgid "%(label)s may not be blank."
-msgstr ""
+msgstr "%(label)s darf nicht leer sein."
 
 #: flatland/validation/scalars.py:39
 #, python-format
 msgid "%(label)s must be True."
-msgstr ""
+msgstr "%(label)s muss wahr sein."
 
 #: flatland/validation/scalars.py:58
 #, python-format
 msgid "%(label)s must be False."
-msgstr ""
+msgstr "%(label)s muss falsch sein."
 
 #: flatland/validation/scalars.py:93
 #, python-format
 msgid "%(value)s is not a valid value for %(label)s."
-msgstr ""
+msgstr "%(value)s ist kein gültiger Wert für %(label)s."
 
 #: flatland/validation/scalars.py:130
 #, python-format
 msgid "%(label)s is not correct."
-msgstr ""
+msgstr "%(label)s ist nicht korrekt."
 
 #: flatland/validation/scalars.py:171
 #, python-format
 msgid "%(label)s may not exceed %(maxlength)s characters."
-msgstr ""
+msgstr "%(label)s darf nicht länger als %(maxlength)s Zeichen sein."
 
 #: flatland/validation/scalars.py:220
 #, python-format
 msgid "%(label)s must be at least %(minlength)s characters."
-msgstr ""
+msgstr "%(label)s muss mindestens %(minlength)s Zeichen lang sein."
 
 #: flatland/validation/scalars.py:275
 #, python-format
 msgid "%(label)s must be between %(minlength)s and %(maxlength)s characters long."
-msgstr ""
+msgstr "%(label)s muss zwischen %(minlength)s und %(maxlength)s Zeichen lang sein."
 
 #: flatland/validation/scalars.py:321
 #, python-format
 msgid "%(label)s must be less than %(boundary)s."
-msgstr ""
+msgstr "%(label)s muss kleiner als %(boundary)s sein."
 
 #: flatland/validation/scalars.py:359
 #, python-format
 msgid "%(label)s must be less than or equal to %(maximum)s."
-msgstr ""
+msgstr "%(label)s muss kleiner oder gleich %(maximum)s sein."
 
 #: flatland/validation/scalars.py:397
 #, python-format
 msgid "%(label)s must be greater than %(boundary)s."
-msgstr ""
+msgstr "%(label)s muss größer als %(boundary)s sein."
 
 #: flatland/validation/scalars.py:435
 #, python-format
 msgid "%(label)s must be greater than or equal to %(minimum)s."
-msgstr ""
+msgstr "%(label)s muss größer oder gleich %(minimum)s sein."
 
 #: flatland/validation/scalars.py:491
 #, python-format
 msgid "%(label)s must be in the range %(minimum)s to %(maximum)s."
-msgstr ""
+msgstr "%(label)s muss im Bereich von %(minimum)s bis %(maximum)s sein."
 
 #: flatland/validation/scalars.py:493
 #, python-format
 msgid "%(label)s must be greater than %(minimum)s and less than %(maximum)s."
-msgstr ""
+msgstr "%(label)s muss größer als %(minimum)s und kleiner als %(maximum)s sein."
 
 #: flatland/validation/scalars.py:544
 #, python-format
 msgid "%(labels)s and %(last_label)s do not match."
-msgstr ""
+msgstr "%(labels)s und %(last_label)s stimmen nicht überein."
