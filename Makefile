@@ -22,3 +22,8 @@ tip-sdist: compile-messages
 	(cd docs/source && make html)
 	(cd docs/source && make text)
 	python setup.py sdist
+
+release: tip-sdist
+	@echo "before doing 'make release', tag the new version with git,"
+	@echo "so setuptools_scm creates the correct version for docs and pkg."
+	python setup.py register sdist upload --identity="Thomas Waldmann" --sign
