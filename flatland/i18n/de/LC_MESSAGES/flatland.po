@@ -1,15 +1,14 @@
 # German translations for flatland.
 # Copyright (C) 2018 Thomas Waldmann
-# This file is distributed under the same license as the PROJECT project.
+# This file is distributed under the same license as the flatland project.
 # Translators:
 # Thomas Waldmann <tw@waldmann-edv.de>, 2018.
-#
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: flatland 0.9\n"
 "Report-Msgid-Bugs-To: flatland-users@googlegroups.com\n"
-"POT-Creation-Date: 2018-11-01 20:12+0100\n"
+"POT-Creation-Date: 2019-07-20 21:00+0200\n"
 "PO-Revision-Date: 2018-11-19 14:20+0100\n"
 "Last-Translator: Thomas Waldmann <tw@waldmann-edv.de>\n"
 "Language: de\n"
@@ -18,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.6.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 #. TRANSLATORS: NotDuplicated.failure
 #: flatland/validation/containers.py:87
@@ -177,3 +176,4 @@ msgstr "%(label)s muss größer als %(minimum)s und kleiner als %(maximum)s sein
 #, python-format
 msgid "%(labels)s and %(last_label)s do not match."
 msgstr "%(labels)s und %(last_label)s stimmen nicht überein."
+
