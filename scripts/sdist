@@ -1,0 +1,8 @@
+#!/bin/bash
+
+(cd docs/source && make clean)
+(cd docs/source && make html)
+(cd docs/source && make text)
+
+python setup.py sdist
+

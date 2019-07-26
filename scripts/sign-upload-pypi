@@ -1,0 +1,26 @@
+#!/bin/bash
+
+R=$1
+
+if [ "$R" = "" ]; then
+    echo "Usage: sign-upload-pypi 1.2.3 [test]"
+    exit
+fi
+
+if [ "$QUBES_GPG_DOMAIN" = "" ]; then
+    GPG=gpg
+else
+    GPG=qubes-gpg-client-wrapper
+fi
+
+if [ "$2" = "test" ]; then
+    export TWINE_REPOSITORY_URL=https://test.pypi.org/legacy/
+else
+    export TWINE_REPOSITORY_URL=
+fi
+
+D=dist/flatland-$R.tar.gz
+
+$GPG --detach-sign --local-user "Thomas Waldmann" --armor --output $D.asc $D
+
+twine upload $D.asc $D
