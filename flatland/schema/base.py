@@ -638,7 +638,7 @@ class Element(object):
         if hasattr(pairs, 'items'):
             pairs = pairs.items()
 
-        return self._set_flat(pairs, sep)
+        return self._set_flat(list(pairs), sep)
 
     def _set_flat(self, pairs, sep):
         raise NotImplementedError()
