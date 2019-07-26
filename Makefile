@@ -17,13 +17,6 @@ compile-messages:
 	pybabel compile -d $(I18N) -D flatland
 
 tip-sdist: compile-messages
-	@echo "Preparing sdist of flatland..."
-	(cd docs/source && make clean)
-	(cd docs/source && make html)
-	(cd docs/source && make text)
-	python setup.py sdist
+	scripts/sdist
 
-release: tip-sdist
-	@echo "before doing 'make release', tag the new version with git,"
-	@echo "so setuptools_scm creates the correct version for docs and pkg."
-	python setup.py register sdist upload --identity="Thomas Waldmann" --sign
+# release is now done by invoking scripts/sign-upload-pypi 1.2.3 [test] after creating the sdist.

@@ -6,6 +6,10 @@ Release 0.9.1 (2019-07-26)
 --------------------------
 
 - py3 fix: only give a list to _set_flat()
+- release scripts:
+
+  - support twine for uploading
+  - support signing the sdist with Qubes OS
 
 
 Release 0.9.0 (2019-07-20)
