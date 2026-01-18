@@ -7,7 +7,8 @@ from flatland import (
     )
 from flatland._compat import xrange
 
-from tests._util import assert_raises, requires_unicode_coercion
+import pytest
+from tests._util import requires_unicode_coercion
 
 
 def test_cloning():
@@ -56,7 +57,8 @@ def test_dsl_validated_by():
     s = Element.using(validators=(123, 456)).validated_by(789)
     assert s.validators == [789]
 
-    assert_raises(TypeError, Element.validated_by, int)
+    with pytest.raises(TypeError):
+        Element.validated_by(int)
 
 
 def test_dsl_including_validators():
@@ -125,10 +127,12 @@ def test_instance_defaults():
 
 def test_abstract():
     element = Element()
-
-    assert_raises(NotImplementedError, element.set, None)
-    assert_raises(NotImplementedError, element.set_flat, ())
-    assert_raises(NotImplementedError, element.find_one, u'foo')
+    with pytest.raises(NotImplementedError):
+        element.set(None)
+    with pytest.raises(NotImplementedError):
+        element.set_flat(())
+    with pytest.raises(NotImplementedError):
+        element.find_one(u'foo')
 
 
 def test_message_buckets():
@@ -223,7 +227,8 @@ def test_validator_return():
 
     for validator in [no]:
         el = Validatable(validators=(validator,))
-        assert_raises(TypeError, el.validate)
+        with pytest.raises(TypeError):
+            el.validate()
 
 
 def test_default_value():

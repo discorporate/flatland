@@ -1,8 +1,7 @@
 from flatland import String
 from flatland._compat import PY2, iterkeys, itervalues
 from flatland.schema.properties import Properties
-
-from tests._util import assert_raises
+import pytest
 
 
 def test_empty():
@@ -53,7 +52,8 @@ def test_dictlike():
     assert props.get('blah', 'default') == 'default'
     assert props.get('blah') is None
 
-    assert_raises(NotImplementedError, props.popitem)
+    with pytest.raises(NotImplementedError):
+        props.popitem()
 
     assert 'abc' in props
     assert 'ghi' not in props
@@ -113,7 +113,9 @@ def test_instance_overlay():
 
     del b.properties['b']
     assert b.properties == {'c': 3, 'd': 4}
-    assert_raises(KeyError, lambda: b.properties['b'])
+    with pytest.raises(KeyError):
+        # noinspection PyStatementEffect
+        b.properties['b']
 
     assert b.properties.setdefault('e', 5) == 5
     assert b.properties.setdefault('e', 'blah') == 5
@@ -122,7 +124,8 @@ def test_instance_overlay():
 
     assert b.properties.pop('e', 'blah') == 5
     assert b.properties.pop('e', 'blah') == 'blah'
-    assert_raises(KeyError, b.properties.pop, 'e')
+    with pytest.raises(KeyError):
+        b.properties.pop('e')
 
     b.properties.clear()
     assert b.properties == {}
@@ -183,11 +186,15 @@ def test_subclass_overlay():
 
     assert Middle.properties == {}
     assert 'abc' not in Middle.properties
-    assert_raises(KeyError, lambda: Middle.properties['abc'])
+    with pytest.raises(KeyError):
+        # noinspection PyStatementEffect
+        Middle.properties['abc']
 
     assert Lowest.properties == {'def': 456}
     assert 'abc' not in Lowest.properties
-    assert_raises(KeyError, lambda: Lowest.properties['abc'])
+    with pytest.raises(KeyError):
+        # noinspection PyStatementEffect
+        Lowest.properties['abc']
 
     Middle.properties.setdefault('ghi', 789)
     Middle.properties.setdefault('ghi', 'blah')
@@ -198,7 +205,8 @@ def test_subclass_overlay():
 
     assert Lowest.properties.pop('def', 'blah') == 456
     assert Lowest.properties.pop('def', 'blah') == 'blah'
-    assert_raises(KeyError, Lowest.properties.pop, 'def')
+    with pytest.raises(KeyError):
+        Lowest.properties.pop('def')
 
     assert Base.properties == {'abc': 123}
     assert Middle.properties == {'ghi': 789}
@@ -263,7 +271,9 @@ def test_perverse():
     assert lost == {}
 
     lost2 = unattached_properties()
-    assert_raises(KeyError, lambda: lost2['abc'])
+    with pytest.raises(KeyError):
+        # noinspection PyStatementEffect
+        lost2['abc']
 
     class Broken(object):
         properties = 'something else'
@@ -283,7 +293,9 @@ if PY2:
             properties = Properties()
 
         b = Base()
-        assert_raises(AttributeError, lambda: b.properties['abc'])
+        with pytest.raises(AttributeError):
+            # noinspection PyStatementEffect
+            b.properties['abc']
 
 
 def test_dsl():

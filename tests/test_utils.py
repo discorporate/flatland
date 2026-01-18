@@ -1,5 +1,5 @@
 # portions of this file are derived from SQLAlchemy
-from tests._util import assert_raises
+import pytest
 from flatland import util
 
 
@@ -25,7 +25,8 @@ def test_lazy_property():
     assert f.squiznart == 'abc'
 
     new_foo = Foo()
-    assert_raises(AssertionError, getattr, new_foo, 'squiznart')
+    with pytest.raises(AssertionError):
+        getattr(new_foo, 'squiznart')
     assert 'squiznart' not in new_foo.__dict__
 
 
@@ -41,14 +42,15 @@ def test_as_mapping():
     assert 'clazz' in m
     assert m['clazz'] == 'c'
     assert sorted(dir(Foo)) == sorted(m)
-    assert_raises(KeyError, m.__getitem__, 'inzt')
-
     mi = util.as_mapping(Foo())
     assert 'clazz' in mi
     assert mi['clazz'] == 'c'
     assert 'inzt' in mi
     assert mi['inzt'] == 'i'
     assert sorted(dir(Foo())) == sorted(mi)
+    with pytest.raises(KeyError):
+        # noinspection PyStatementEffect
+        m['inzt']
 
 
 def test_to_pairs():
@@ -76,7 +78,8 @@ PAIRS = [('a', 1), ('b', 2), ('c', 3),
 
 def test_keyslice_conflict():
     generator = util.keyslice_pairs((), include=[1], omit=[2])
-    assert_raises(TypeError, list, generator)
+    with pytest.raises(TypeError):
+        list(generator)
 
 
 def test_keyslice_pairs():

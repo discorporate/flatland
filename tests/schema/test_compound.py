@@ -12,7 +12,7 @@ from flatland import (
     element_set,
     )
 
-from tests._util import assert_raises, raises
+import pytest
 
 
 def test_compound_init_sequencing():
@@ -30,10 +30,12 @@ def test_compound_init_sequencing():
     assert True
 
     # called when an instance is created
-    assert_raises(Canary, InitNotCalledAtClassConstruction)
+    with pytest.raises(Canary):
+        InitNotCalledAtClassConstruction()
 
     # and again, if it fails
-    assert_raises(Canary, InitNotCalledAtClassConstruction)
+    with pytest.raises(Canary):
+        InitNotCalledAtClassConstruction()
 
 
 def test_compound_init_sequencing2():
@@ -121,7 +123,8 @@ def test_compound_snarfs_override_init_keywords():
     assert mc1.attr == 'value'
     assert type(mc2) is not type(mc1)
 
-    assert_raises(TypeError, MyCompound, unknown='boom')
+    with pytest.raises(TypeError):
+        MyCompound(unknown='boom')
 
 
 def test_compound_metaclass_calls_new():
@@ -366,27 +369,27 @@ def test_repr_always_safe():
     assert repr(e)
 
 
-@raises(NotImplementedError)
 def test_explode_abstract():
     schema = Compound.using(field_schema=[String.named(u'y')])
     el = schema()
-    el.set(u'x')
+    with pytest.raises(NotImplementedError):
+        el.set(u'x')
 
 
-@raises(NotImplementedError)
 def test_compose_abstract():
     schema = Compound.using(field_schema=[String.named(u'y')])
     el = schema()
-    el.value
+    with pytest.raises(NotImplementedError):
+        el.value
 
 
-@raises(TypeError)
 def test_compose_abstract_fixme():
     # really it'd be nice if serialize simply wasn't inherited. would
     # have to rejigger the hierarchy, not sure its worth it.
     schema = Compound.using(field_schema=[String.named(u'y')])
     el = schema()
-    schema.serialize(el, u'abc')
+    with pytest.raises(TypeError):
+        schema.serialize(el, u'abc')
 
 
 def assert_values_(el, top, x, y):

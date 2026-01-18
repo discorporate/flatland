@@ -5,29 +5,12 @@ from functools import wraps
 from inspect import stack
 import sys
 
-import pytest
 from flatland._compat import long_type, text_type
 
 
-__all__ = ['asciistr', 'assert_raises', 'raises', 'fails',
+__all__ = ['asciistr', 'fails',
            'requires_unicode_coercion', 'udict', 'unicode_coercion_available']
 
-def assert_raises(exception, callable, *args, **kw):
-    __tracebackhide__ = True
-    if exception is None:
-        callable(*args, **kw)
-    else:
-        with pytest.raises(exception):
-            callable(*args, **kw)
-
-def raises(exception):
-    def decorator(fn):
-        @wraps(fn)
-        def decorated(*args, **kw):
-            with pytest.raises(exception):
-                fn(*args, **kw)
-        return decorated
-    return decorator
 
 # acts like 'str', but safe to use when tests are running with
 # sys.getdefaultencoding() == 'nocoercion'.

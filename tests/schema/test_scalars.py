@@ -18,12 +18,14 @@ from flatland import (
     )
 from flatland._compat import PY2, long_type
 
-from tests._util import assert_raises, requires_unicode_coercion
+import pytest
+from tests._util import requires_unicode_coercion
 
 
 def test_scalar_abstract():
     el = Scalar()
-    assert_raises(NotImplementedError, el.set, u'blagga')
+    with pytest.raises(NotImplementedError):
+        el.set(u'blagga')
 
 
 def test_scalar_assignments_are_independent():

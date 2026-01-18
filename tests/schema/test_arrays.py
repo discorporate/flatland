@@ -6,7 +6,8 @@ from flatland import (
     String,
     )
 
-from tests._util import assert_raises
+import pytest
+from tests._util import udict
 
 
 def test_set_flat_pruned():
@@ -69,7 +70,8 @@ def test_set_flat_fully_anonymous_array():
 def test_set_flat_anonymous_dict():
     schema = Array.of(Dict.of(String.named(u'x')))
     pairs = [(u'x', u'abc'), (u'x', u'def')]
-    assert_raises(AssertionError, schema.from_flat, pairs)
+    with pytest.raises(AssertionError):
+        schema.from_flat(pairs)
 
 
 def test_set():
@@ -175,13 +177,15 @@ def test_mutation():
 
     def assign():
         el.u = u'z'
-    assert_raises(AttributeError, assign)
+    with pytest.raises(AttributeError):
+        assign()
     assert el.value == [u'a', u'z', u'b', u'c']
 
     def assign2():
         el.value = u'abc'
     del el[:]
-    assert_raises(AttributeError, assign2)
+    with pytest.raises(AttributeError):
+        assign2()
     assert el.value == []
 
 
@@ -192,7 +196,8 @@ def test_find():
 
     assert element.find_one(u'0').value == u'a'
     assert element.find_one(u'2').value == u'c'
-    assert_raises(LookupError, element.find_one, u'a')
+    with pytest.raises(LookupError):
+        element.find_one(u'a')
 
 
 def test_multivalue_set():

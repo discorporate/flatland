@@ -10,31 +10,41 @@ from flatland import (
 from flatland._compat import PY2, iteritems
 from flatland.util import Unspecified, keyslice_pairs
 
+import pytest
 from tests._util import (
     asciistr,
-    assert_raises,
     udict,
     unicode_coercion_available,
     )
 
 
 def test_dict():
-    assert_raises(TypeError, Dict)
+    with pytest.raises(TypeError):
+        Dict()
 
 
 def test_dict_immutable_keys():
     schema = Dict.of(Integer.named(u'x'), Integer.named(u'y'))
     el = schema()
 
-    assert_raises(TypeError, el.__setitem__, u'z', 123)
-    assert_raises(TypeError, el.__delitem__, u'x')
-    assert_raises(KeyError, el.__delitem__, u'z')
-    assert_raises(TypeError, el.setdefault, u'x', 123)
-    assert_raises(TypeError, el.setdefault, u'z', 123)
-    assert_raises(TypeError, el.pop, u'x')
-    assert_raises(KeyError, el.pop, u'z')
-    assert_raises(TypeError, el.popitem)
-    assert_raises(TypeError, el.clear)
+    with pytest.raises(TypeError):
+        el.__setitem__(u'z', 123)
+    with pytest.raises(TypeError):
+        el.__delitem__(u'x')
+    with pytest.raises(KeyError):
+        el.__delitem__(u'z')
+    with pytest.raises(TypeError):
+        el.setdefault(u'x', 123)
+    with pytest.raises(TypeError):
+        el.setdefault(u'z', 123)
+    with pytest.raises(TypeError):
+        el.pop(u'x')
+    with pytest.raises(KeyError):
+        el.pop(u'z')
+    with pytest.raises(TypeError):
+        el.popitem()
+    with pytest.raises(TypeError):
+        el.clear()
 
 
 def test_dict_reads():
@@ -57,8 +67,10 @@ def test_dict_reads():
     assert el.get(u'x').value == None
     assert el.get(u'x', 'default is never used').value == None
 
-    assert_raises(KeyError, el.get, u'z')
-    assert_raises(KeyError, el.get, u'z', 'even with a default')
+    with pytest.raises(KeyError):
+        el.get(u'z')
+    with pytest.raises(KeyError):
+        el.get(u'z', 'even with a default')
 
 
 def test_dict_update():
@@ -97,12 +109,18 @@ def test_dict_update():
         assert not unicode_coercion_available()
 
     if unicode_coercion_available():
-        assert_raises(TypeError, el.update, z=1)
-        assert_raises(TypeError, el.update, x=1, z=1)
-    assert_raises(TypeError, el.update, {u'z': 1})
-    assert_raises(TypeError, el.update, {u'x': 1, u'z': 1})
-    assert_raises(TypeError, el.update, ((u'z', 1),))
-    assert_raises(TypeError, el.update, ((u'x', 1), (u'z', 1)))
+        with pytest.raises(TypeError):
+            el.update(z=1)
+        with pytest.raises(TypeError):
+            el.update(x=1, z=1)
+    with pytest.raises(TypeError):
+        el.update({u'z': 1})
+    with pytest.raises(TypeError):
+        el.update({u'x': 1, u'z': 1})
+    with pytest.raises(TypeError):
+        el.update(((u'z', 1),))
+    with pytest.raises(TypeError):
+        el.update(((u'x', 1), (u'z', 1)))
 
 
 class DictSetTest(object):
@@ -217,8 +235,10 @@ class DictSetTest(object):
         too_much = {u'x': 1, u'y': 2, u'z': 3}
 
         el = self.new_element()
-        assert_raises(KeyError, el.set, too_much)
-        assert_raises(KeyError, self.new_element, value=too_much)
+        with pytest.raises(KeyError):
+            el.set(too_much)
+        with pytest.raises(KeyError):
+            self.new_element(value=too_much)
 
     def test_over_set_flat(self):
         wanted = {u'x': 123, u'y': None}
@@ -232,8 +252,10 @@ class DictSetTest(object):
         miss = {u'z': 3}
 
         el = self.new_element()
-        assert_raises(KeyError, el.set, miss)
-        assert_raises(KeyError, self.new_element, value=miss)
+        with pytest.raises(KeyError):
+            el.set(miss)
+        with pytest.raises(KeyError):
+            self.new_element(value=miss)
 
     def test_total_miss_flat(self):
         pairs = ((u'miss', u'10'),)
@@ -288,7 +310,8 @@ def test_dict_valid_policies():
     schema = Dict.of(Integer)
     el = schema()
 
-    assert_raises(RuntimeError, el.set, {}, policy='bogus')
+    with pytest.raises(RuntimeError):
+        el.set({}, policy='bogus')
 
 
 def test_dict_strict():
@@ -299,10 +322,12 @@ def test_dict_strict():
     el = schema({u'x': 123, u'y': 456})
 
     el = schema()
-    assert_raises(TypeError, el.set, {u'x': 123})
+    with pytest.raises(TypeError):
+        el.set({u'x': 123})
 
     el = schema()
-    assert_raises(KeyError, el.set, {u'x': 123, u'y': 456, u'z': 7})
+    with pytest.raises(KeyError):
+        el.set({u'x': 123, u'y': 456, u'z': 7})
 
 
 def test_dict_raw():
@@ -375,7 +400,8 @@ def test_dict_find():
 
     assert element.find_one(u'x').name == u'x'
     assert element.find_one(u'/x').name == u'x'
-    assert_raises(LookupError, element.find_one, u'not_x')
+    with pytest.raises(LookupError):
+        element.find_one(u'not_x')
 
 
 def test_update_object():
@@ -442,20 +468,25 @@ def test_sparsedict_key_mutability():
 
     el[ok] = 123
     assert el[ok].value == 123
-    assert_raises(TypeError, el.__setitem__, bogus, 123)
+    with pytest.raises(TypeError):
+        el.__setitem__(bogus, 123)
 
     del el[ok]
     assert ok not in el
-    assert_raises(TypeError, el.__delitem__, bogus)
+    with pytest.raises(TypeError):
+        el.__delitem__(bogus)
 
     assert el.setdefault(ok, 456)
-    assert_raises(TypeError, el.setdefault, bogus, 456)
+    with pytest.raises(TypeError):
+        el.setdefault(bogus, 456)
 
     el[ok] = 123
     assert el.pop(ok)
-    assert_raises(KeyError, el.pop, bogus)
+    with pytest.raises(KeyError):
+        el.pop(bogus)
 
-    assert_raises(NotImplementedError, el.popitem)
+    with pytest.raises(NotImplementedError):
+        el.popitem()
     el.clear()
     assert not el
 
@@ -466,7 +497,8 @@ def test_sparsedict_operations():
 
     el[u'x'] = 123
     del el[u'x']
-    assert_raises(KeyError, el.__delitem__, u'x')
+    with pytest.raises(KeyError):
+        el.__delitem__(u'x')
 
     assert el.setdefault(u'x', 123) == 123
     assert el.setdefault(u'x', 456) == 123
@@ -489,8 +521,10 @@ def test_sparsedict_required_operations():
     el = schema({u'opt': 123, u'req': 456})
 
     del el[u'opt']
-    assert_raises(KeyError, el.__delitem__, u'opt')
-    assert_raises(TypeError, el.__delitem__, u'req')
+    with pytest.raises(KeyError):
+        el.__delitem__(u'opt')
+    with pytest.raises(TypeError):
+        el.__delitem__(u'req')
 
     el = schema()
     assert el.setdefault(u'opt', 123) == 123
@@ -528,7 +562,8 @@ def test_sparsedict_bogus_set_default():
     schema = SparseDict.using(minimum_fields='bogus').\
                         of(Integer.named(u'x'))
     el = schema()
-    assert_raises(RuntimeError, el.set_default)
+    with pytest.raises(RuntimeError):
+        el.set_default()
 
 
 def test_sparsedict_required_key_mutability():
@@ -546,24 +581,31 @@ def test_sparsedict_required_key_mutability():
     assert el[ok].value == 123
     el[required] = 456
     assert el[required].value == 456
-    assert_raises(TypeError, el.__setitem__, bogus, 123)
+    with pytest.raises(TypeError):
+        el.__setitem__(bogus, 123)
 
     del el[ok]
     assert ok not in el
-    assert_raises(TypeError, el.__delitem__, required)
-    assert_raises(TypeError, el.__delitem__, bogus)
+    with pytest.raises(TypeError):
+        el.__delitem__(required)
+    with pytest.raises(TypeError):
+        el.__delitem__(bogus)
 
     assert el.setdefault(ok, 456)
     assert el.setdefault(required, 789)
-    assert_raises(TypeError, el.setdefault, bogus, 456)
+    with pytest.raises(TypeError):
+        el.setdefault(bogus, 456)
 
     el[ok] = 123
     assert el.pop(ok)
     el[required] = 456
-    assert_raises(TypeError, el.pop, required)
-    assert_raises(KeyError, el.pop, bogus)
+    with pytest.raises(TypeError):
+        el.pop(required)
+    with pytest.raises(KeyError):
+        el.pop(bogus)
 
-    assert_raises(NotImplementedError, el.popitem)
+    with pytest.raises(NotImplementedError):
+        el.popitem()
 
     el.clear()
     assert list(el.keys()) == [required]

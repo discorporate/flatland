@@ -16,7 +16,7 @@ from flatland.schema.paths import (
     pathexpr,
     tokenize,
     )
-from tests._util import assert_raises
+import pytest
 
 
 def _tokenizes_as(path, expected):
@@ -173,7 +173,8 @@ def test_find_strict_loose():
         ]
 
     for element, path in _cases:
-        assert_raises(LookupError, element.find, path)
+        with pytest.raises(LookupError):
+            element.find(path)
 
         found = element.find(path, strict=False)
         assert not found

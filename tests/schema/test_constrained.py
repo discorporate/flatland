@@ -5,7 +5,6 @@ from flatland import (
     )
 from flatland._compat import text_transform
 
-from tests._util import assert_raises
 
 
 def test_constrained_no_default_validity():

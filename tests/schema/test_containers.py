@@ -1,3 +1,4 @@
+import pytest
 from flatland import (
     Dict,
     Integer,
@@ -9,11 +10,11 @@ from flatland import (
     Unevaluated,
     )
 from flatland.schema.base import Root
-from tests._util import assert_raises
 
 
 def test_dsl_of():
-    assert_raises(TypeError, Sequence.of)
+    with pytest.raises(TypeError):
+        Sequence.of()
 
     t1 = Sequence.of(Integer)
     assert t1.member_schema is Integer
@@ -33,7 +34,8 @@ def test_dsl_descent_validated_by():
     s = Sequence.using(descent_validators=(123, 456)).descent_validated_by(789)
     assert s.descent_validators == [789]
 
-    assert_raises(TypeError, Sequence.descent_validated_by, int)
+    with pytest.raises(TypeError):
+        Sequence.descent_validated_by(int)
 
 
 def test_dsl_including_descent_validators():
@@ -263,7 +265,8 @@ def test_naming_dict():
         assert root.find_one(u'/s') is leaf
         assert root.find_one(u's') is leaf
         assert leaf.find_one(u'/s') is leaf
-        assert_raises(LookupError, leaf.find_one, u's')
+        with pytest.raises(LookupError):
+            leaf.find_one(u's')
         assert leaf.find_one(u'/') is root
 
         assert root.find_one([u's']) is leaf
@@ -287,7 +290,8 @@ def test_naming_dict_dict():
         assert root.find_one(u'/d2/s') is leaf
         assert root.find_one(u'd2/s') is leaf
         assert leaf.find_one(u'/d2/s') is leaf
-        assert_raises(LookupError, leaf.find_one, u'd2/s')
+        with pytest.raises(LookupError):
+            leaf.find_one(u'd2/s')
         assert leaf.find_one(u'/') is root
 
         assert root.find_one([u'd2', u's']) is leaf
@@ -309,8 +313,10 @@ def test_naming_list():
         assert root.find_one(u'/0') is leaf
         assert root.find_one(u'0') is leaf
         assert leaf.find_one(u'.') is leaf
-        assert_raises(LookupError, leaf.find_one, u'0')
-        assert_raises(LookupError, leaf.find_one, u's')
+        with pytest.raises(LookupError):
+            leaf.find_one(u'0')
+        with pytest.raises(LookupError):
+            leaf.find_one(u's')
         assert leaf.find_one(u'/') is root
 
         assert root.find_one([u'0']) is leaf
@@ -334,8 +340,10 @@ def test_naming_list_list():
         assert root.find_one(u'/0/0') is leaf
         assert root.find_one(u'0/0') is leaf
         assert leaf.find_one(u'/0/0') is leaf
-        assert_raises(LookupError, leaf.find_one, u'0')
-        assert_raises(LookupError, leaf.find_one, u's')
+        with pytest.raises(LookupError):
+            leaf.find_one(u'0')
+        with pytest.raises(LookupError):
+            leaf.find_one(u's')
         assert leaf.find_one(u'/') is root
 
         assert root.find_one([u'0', u'0']) is leaf
