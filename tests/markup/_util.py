@@ -1,3 +1,4 @@
+import inspect
 from functools import wraps
 
 import pytest
@@ -52,7 +53,7 @@ def alternate_expectation(backend, string):
             alternates = fn.alternates
         except AttributeError:
             alternates = fn.alternates = {}
-        alternates[backend] = string.strip()
+        alternates[backend] = inspect.cleandoc(string).strip()
         return fn
 
     return decorator
@@ -68,7 +69,7 @@ class desired_output:
         self.render_context = kw
 
     def __call__(self, fn):
-        self.expected = fn.__doc__.strip()
+        self.expected = inspect.cleandoc(fn.__doc__).strip()
         if isinstance(self.expected, bytestring_type):
             self.expected = self.expected.decode("utf8")
         self.alternate_expectations = getattr(fn, "alternates", {})
@@ -83,7 +84,8 @@ class desired_output:
     @property
     def genshi(self):
         def decorator(fn):
-            markup = _wrap_with_xmlns(fn.__doc__, self.language)
+            doc = inspect.cleandoc(fn.__doc__)
+            markup = _wrap_with_xmlns(doc, self.language)
             fn.__doc__ = None
 
             def runner():
