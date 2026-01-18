@@ -6,14 +6,14 @@ from flatland.validation import (
     HTTPURLValidator,
     URLCanonicalizer,
     URLValidator,
-    )
+)
 from flatland.validation.network import _url_parts
 
 from tests._util import unicode_coercion_allowed
 
 
 def email(value):
-    return String(value, name='email', strip=False)
+    return String(value, name="email", strip=False)
 
 
 def assert_email_not_valid(value, kw={}):
@@ -31,161 +31,175 @@ def assert_email_valid(value, kw={}):
 
 
 def test_email():
-    for addr in ('bob@noob.com', 'bob@noob.frizbit', '#"$!+,,@noob.c',
-                 'bob@bob-bob.bob'):
+    for addr in (
+        "bob@noob.com",
+        "bob@noob.frizbit",
+        '#"$!+,,@noob.c',
+        "bob@bob-bob.bob",
+    ):
         assert_email_valid(addr)
 
 
 def test_email_idna():
     with unicode_coercion_allowed():
-        assert_email_valid('bob@snow\u2603man.com')
+        assert_email_valid("bob@snow\u2603man.com")
 
 
 def test_email_non_local():
-    assert_email_not_valid('root@localhost')
+    assert_email_not_valid("root@localhost")
 
 
 def test_email_non_local_ok():
-    assert_email_valid('root@localhost', {'non_local': False})
+    assert_email_valid("root@localhost", {"non_local": False})
 
 
 def test_email_altlocal():
-    override = dict(local_part_pattern=re.compile('^bob$'))
-    assert_email_valid('bob@bob.com', override)
-    assert_email_not_valid('foo@bar.com', override)
+    override = dict(local_part_pattern=re.compile("^bob$"))
+    assert_email_valid("bob@bob.com", override)
+    assert_email_not_valid("foo@bar.com", override)
 
 
 def test_email_bogus():
-    c64 = 'x' * 64
-    c63 = 'x' * 63
-    for addr in ('bob@zig..', 'bob@', '@bob.com', '@', 'snork',
-                 'bob@zig:zag.com', 'bob@zig zag.com', 'bob@zig/zag.com',
-                 ' @zig.com', '\t\t@zag.com',
-                 'bob@%s.com' % c64,
-                 f'bob@{c63}.{c63}.{c63}.{c63}.com',
-                 'foo.com', 'bob@bob_bob.com', ''):
+    c64 = "x" * 64
+    c63 = "x" * 63
+    for addr in (
+        "bob@zig..",
+        "bob@",
+        "@bob.com",
+        "@",
+        "snork",
+        "bob@zig:zag.com",
+        "bob@zig zag.com",
+        "bob@zig/zag.com",
+        " @zig.com",
+        "\t\t@zag.com",
+        "bob@%s.com" % c64,
+        f"bob@{c63}.{c63}.{c63}.{c63}.com",
+        "foo.com",
+        "bob@bob_bob.com",
+        "",
+    ):
         assert_email_not_valid(addr)
 
 
 def scalar(value):
-    return String(value, name='test')
+    return String(value, name="test")
 
 
 def test_url_validator_default():
     v = URLValidator()
-    el = scalar('http://me:you@there/path#fragment')
+    el = scalar("http://me:you@there/path#fragment")
     assert v.validate(el, None)
     assert not el.errors
 
 
 def test_url_validator_schemes():
-    v = URLValidator(allowed_schemes=(), blocked_scheme='X')
-    el = scalar('http://me:you@there/path#fragment')
+    v = URLValidator(allowed_schemes=(), blocked_scheme="X")
+    el = scalar("http://me:you@there/path#fragment")
     assert not v.validate(el, None)
-    assert el.errors == ['X']
+    assert el.errors == ["X"]
 
-    v = URLValidator(allowed_schemes=('https',), blocked_scheme='X')
-    el = scalar('http://me:you@there/path#fragment')
+    v = URLValidator(allowed_schemes=("https",), blocked_scheme="X")
+    el = scalar("http://me:you@there/path#fragment")
     assert not v.validate(el, None)
-    assert el.errors == ['X']
+    assert el.errors == ["X"]
 
 
 def test_url_validator_parts():
-    v = URLValidator(allowed_parts=(), blocked_part='X')
-    el = scalar('http://me:you@there/path#fragment')
+    v = URLValidator(allowed_parts=(), blocked_part="X")
+    el = scalar("http://me:you@there/path#fragment")
     assert not v.validate(el, None)
-    assert el.errors == ['X']
+    assert el.errors == ["X"]
 
     v = URLValidator(allowed_parts=_url_parts)
-    el = scalar('http://me:you@there/path#fragment')
+    el = scalar("http://me:you@there/path#fragment")
     assert v.validate(el, None)
     assert not el.errors
 
-    v = URLValidator(allowed_parts=('scheme', 'netloc'))
-    el = scalar('http://blarg')
+    v = URLValidator(allowed_parts=("scheme", "netloc"))
+    el = scalar("http://blarg")
     assert v.validate(el, None)
     assert not el.errors
 
-    v = URLValidator(allowed_parts=('scheme', 'netloc'), blocked_part='X')
-    el = scalar('http://blarg/')
+    v = URLValidator(allowed_parts=("scheme", "netloc"), blocked_part="X")
+    el = scalar("http://blarg/")
     assert not v.validate(el, None)
-    assert el.errors == ['X']
+    assert el.errors == ["X"]
 
 
 def test_http_validator_default():
-    v = HTTPURLValidator(forbidden_part='X')
-    el = scalar('http://there/path#fragment')
+    v = HTTPURLValidator(forbidden_part="X")
+    el = scalar("http://there/path#fragment")
     assert v.validate(el, None)
     assert not el.errors
 
-    el = scalar('http://phis:ing@there/path#fragment')
+    el = scalar("http://phis:ing@there/path#fragment")
     not v.validate(el, None)
-    assert el.errors == ['X']
+    assert el.errors == ["X"]
 
-    el = scalar('www.example.com')
+    el = scalar("www.example.com")
     not v.validate(el, None)
-    assert el.errors == ['test is not a valid URL.']
+    assert el.errors == ["test is not a valid URL."]
 
 
 def test_http_validator_schemes():
     v = HTTPURLValidator()
-    el = scalar('http://there/path')
+    el = scalar("http://there/path")
     assert v.validate(el, None)
     assert not el.errors
 
-    el = scalar('//there/path')
+    el = scalar("//there/path")
     assert not v.validate(el, None)
-    assert el.errors == ['test is not a valid URL.']
+    assert el.errors == ["test is not a valid URL."]
 
-    v = HTTPURLValidator(required_parts=dict(scheme=('https', ''),
-                                             hostname=True))
-    el = scalar('http://there/path')
+    v = HTTPURLValidator(required_parts=dict(scheme=("https", ""), hostname=True))
+    el = scalar("http://there/path")
     assert not v.validate(el, None)
-    assert el.errors == ['test is not a valid URL.']
+    assert el.errors == ["test is not a valid URL."]
 
-    el = scalar('https://there/path')
+    el = scalar("https://there/path")
     assert v.validate(el, None)
     assert not el.errors
-    el = scalar('//there/path')
+    el = scalar("//there/path")
     assert v.validate(el, None)
     assert not el.errors
 
 
 def test_url_canonicalizer_default():
     v = URLCanonicalizer()
-    el = scalar('http://localhost/#foo')
-    assert el.value == 'http://localhost/#foo'
+    el = scalar("http://localhost/#foo")
+    assert el.value == "http://localhost/#foo"
 
     assert v.validate(el, None)
-    assert el.value == 'http://localhost/'
+    assert el.value == "http://localhost/"
     assert not el.errors
 
 
 def test_url_canonicalizer_want_none():
     v = URLCanonicalizer(discard_parts=_url_parts)
-    el = scalar('http://me:you@there/path#fragment')
-    assert el.value == 'http://me:you@there/path#fragment'
+    el = scalar("http://me:you@there/path#fragment")
+    assert el.value == "http://me:you@there/path#fragment"
 
     assert v.validate(el, None)
-    assert el.value == ''
+    assert el.value == ""
     assert not el.errors
 
 
 def test_url_canonicalizer_want_one():
     v = URLCanonicalizer(discard_parts=_url_parts[1:])
-    el = scalar('http://me:you@there/path#fragment')
-    assert el.value == 'http://me:you@there/path#fragment'
+    el = scalar("http://me:you@there/path#fragment")
+    assert el.value == "http://me:you@there/path#fragment"
 
     assert v.validate(el, None)
-    assert el.value == 'http://'
+    assert el.value == "http://"
     assert not el.errors
 
 
 def test_url_canonicalizer_want_all():
     v = URLCanonicalizer(discard_parts=())
-    el = scalar('http://me:you@there/path#fragment')
-    assert el.value == 'http://me:you@there/path#fragment'
+    el = scalar("http://me:you@there/path#fragment")
+    assert el.value == "http://me:you@there/path#fragment"
 
     assert v.validate(el, None)
-    assert el.value == 'http://me:you@there/path#fragment'
+    assert el.value == "http://me:you@there/path#fragment"
     assert not el.errors

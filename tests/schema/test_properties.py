@@ -22,50 +22,50 @@ def test_empty():
     assert Sub.properties == {}
     assert Sub().properties == {}
 
-    Sub().properties['abc'] = 123
+    Sub().properties["abc"] = 123
 
     assert Sub.properties == {}
     assert Sub().properties == {}
     assert Base.properties == {}
     assert Base().properties == {}
 
-    Sub.properties['def'] = 456
+    Sub.properties["def"] = 456
     assert Base.properties == {}
     assert Base().properties == {}
 
 
 def test_dictlike():
     class Base:
-        properties = Properties({'def': 456}, abc=123)
+        properties = Properties({"def": 456}, abc=123)
 
     props = Base.properties
-    assert sorted(props.items()) == [('abc', 123), ('def', 456)]
+    assert sorted(props.items()) == [("abc", 123), ("def", 456)]
 
-    assert sorted(props.keys()) == ['abc', 'def']
-    assert sorted(iterkeys(props)) == ['abc', 'def']
+    assert sorted(props.keys()) == ["abc", "def"]
+    assert sorted(iterkeys(props)) == ["abc", "def"]
 
     assert sorted(props.values()) == [123, 456]
     assert sorted(itervalues(props)) == [123, 456]
 
-    assert props.get('abc') == 123
-    assert props.get('abc', 'blah') == 123
-    assert props.get('blah', 'default') == 'default'
-    assert props.get('blah') is None
+    assert props.get("abc") == 123
+    assert props.get("abc", "blah") == 123
+    assert props.get("blah", "default") == "default"
+    assert props.get("blah") is None
 
     with pytest.raises(NotImplementedError):
         props.popitem()
 
-    assert 'abc' in props
-    assert 'ghi' not in props
+    assert "abc" in props
+    assert "ghi" not in props
 
-    assert props == {'abc': 123, 'def': 456}
-    assert props != {'ghi': 789}
+    assert props == {"abc": 123, "def": 456}
+    assert props != {"ghi": 789}
 
     assert props
     props.clear()
     assert not props
 
-    assert repr(props) == '{}'
+    assert repr(props) == "{}"
 
 
 def test_instance_population():
@@ -76,7 +76,7 @@ def test_instance_population():
     b = Base()
     b.properties.update(a=1, b=2, c=3)
 
-    assert b.properties == {'a': 1, 'b': 2, 'c': 3}
+    assert b.properties == {"a": 1, "b": 2, "c": 3}
     assert Base.properties == {}
 
     class Sub(Base):
@@ -86,8 +86,8 @@ def test_instance_population():
     s = Sub()
     assert s.properties == {}
 
-    s.properties['d'] = 4
-    assert s.properties == {'d': 4}
+    s.properties["d"] = 4
+    assert s.properties == {"d": 4}
     assert Sub.properties == {}
     assert Base.properties == {}
     assert Sub().properties == {}
@@ -97,48 +97,48 @@ def test_instance_overlay():
     class Base:
         properties = Properties()
 
-    Base.properties['a'] = 1
+    Base.properties["a"] = 1
     b = Base()
-    b.properties['b'] = 2
+    b.properties["b"] = 2
 
-    assert Base.properties == {'a': 1}
-    assert b.properties == {'a': 1, 'b': 2}
-    del b.properties['a']
-    assert b.properties == {'b': 2}
-    assert Base.properties == {'a': 1}
+    assert Base.properties == {"a": 1}
+    assert b.properties == {"a": 1, "b": 2}
+    del b.properties["a"]
+    assert b.properties == {"b": 2}
+    assert Base.properties == {"a": 1}
 
-    b.properties.update(b='x', c=3, d=4)
-    assert b.properties['b'] == 'x'
-    assert b.properties == {'b': 'x', 'c': 3, 'd': 4}
+    b.properties.update(b="x", c=3, d=4)
+    assert b.properties["b"] == "x"
+    assert b.properties == {"b": "x", "c": 3, "d": 4}
 
-    del b.properties['b']
-    assert b.properties == {'c': 3, 'd': 4}
+    del b.properties["b"]
+    assert b.properties == {"c": 3, "d": 4}
     with pytest.raises(KeyError):
         # noinspection PyStatementEffect
-        b.properties['b']
+        b.properties["b"]
 
-    assert b.properties.setdefault('e', 5) == 5
-    assert b.properties.setdefault('e', 'blah') == 5
+    assert b.properties.setdefault("e", 5) == 5
+    assert b.properties.setdefault("e", "blah") == 5
 
-    assert b.properties == {'c': 3, 'd': 4, 'e': 5}
+    assert b.properties == {"c": 3, "d": 4, "e": 5}
 
-    assert b.properties.pop('e', 'blah') == 5
-    assert b.properties.pop('e', 'blah') == 'blah'
+    assert b.properties.pop("e", "blah") == 5
+    assert b.properties.pop("e", "blah") == "blah"
     with pytest.raises(KeyError):
-        b.properties.pop('e')
+        b.properties.pop("e")
 
     b.properties.clear()
     assert b.properties == {}
-    assert Base.properties == {'a': 1}
+    assert Base.properties == {"a": 1}
 
-    Base.properties['b'] = 2
-    assert b.properties == {'b': 2}
-    assert Base.properties == {'a': 1, 'b': 2}
+    Base.properties["b"] = 2
+    assert b.properties == {"b": 2}
+    assert Base.properties == {"a": 1, "b": 2}
 
     Base.properties.update(c=3, d=4, e=5)
-    del Base.properties['e']
-    assert b.properties == {'b': 2, 'c': 3, 'd': 4}
-    assert Base.properties == {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+    del Base.properties["e"]
+    assert b.properties == {"b": 2, "c": 3, "d": 4}
+    assert Base.properties == {"a": 1, "b": 2, "c": 3, "d": 4}
 
 
 def test_instance_member_assignment():
@@ -147,14 +147,14 @@ def test_instance_member_assignment():
         properties = Properties(abc=123)
 
     b = Base()
-    assert b.properties == {'abc': 123}
-    b.properties = {'abc': 'detached'}
+    assert b.properties == {"abc": 123}
+    b.properties = {"abc": "detached"}
 
-    assert b.properties == {'abc': 'detached'}
+    assert b.properties == {"abc": "detached"}
 
-    Base.properties['def'] = 456
+    Base.properties["def"] = 456
 
-    assert b.properties == {'abc': 'detached'}
+    assert b.properties == {"abc": "detached"}
 
 
 def test_subclass_overlay():
@@ -167,55 +167,55 @@ def test_subclass_overlay():
     class Lowest(Middle):
         pass
 
-    Lowest.properties['def'] = 456
+    Lowest.properties["def"] = 456
 
     assert Base.properties == {}
     assert Middle.properties == {}
-    assert Lowest.properties == {'def': 456}
+    assert Lowest.properties == {"def": 456}
 
-    Base.properties['abc'] = 123
+    Base.properties["abc"] = 123
 
-    assert Base.properties == {'abc': 123}
-    assert Middle.properties == {'abc': 123}
-    assert Lowest.properties == {'abc': 123, 'def': 456}
+    assert Base.properties == {"abc": 123}
+    assert Middle.properties == {"abc": 123}
+    assert Lowest.properties == {"abc": 123, "def": 456}
 
-    del Middle.properties['abc']
+    del Middle.properties["abc"]
 
-    assert Base.properties == {'abc': 123}
-    assert 'abc' in Base.properties
+    assert Base.properties == {"abc": 123}
+    assert "abc" in Base.properties
 
     assert Middle.properties == {}
-    assert 'abc' not in Middle.properties
+    assert "abc" not in Middle.properties
     with pytest.raises(KeyError):
         # noinspection PyStatementEffect
-        Middle.properties['abc']
+        Middle.properties["abc"]
 
-    assert Lowest.properties == {'def': 456}
-    assert 'abc' not in Lowest.properties
+    assert Lowest.properties == {"def": 456}
+    assert "abc" not in Lowest.properties
     with pytest.raises(KeyError):
         # noinspection PyStatementEffect
-        Lowest.properties['abc']
+        Lowest.properties["abc"]
 
-    Middle.properties.setdefault('ghi', 789)
-    Middle.properties.setdefault('ghi', 'blah')
+    Middle.properties.setdefault("ghi", 789)
+    Middle.properties.setdefault("ghi", "blah")
 
-    assert Base.properties == {'abc': 123}
-    assert Middle.properties == {'ghi': 789}
-    assert Lowest.properties == {'ghi': 789, 'def': 456}
+    assert Base.properties == {"abc": 123}
+    assert Middle.properties == {"ghi": 789}
+    assert Lowest.properties == {"ghi": 789, "def": 456}
 
-    assert Lowest.properties.pop('def', 'blah') == 456
-    assert Lowest.properties.pop('def', 'blah') == 'blah'
+    assert Lowest.properties.pop("def", "blah") == 456
+    assert Lowest.properties.pop("def", "blah") == "blah"
     with pytest.raises(KeyError):
-        Lowest.properties.pop('def')
+        Lowest.properties.pop("def")
 
-    assert Base.properties == {'abc': 123}
-    assert Middle.properties == {'ghi': 789}
-    assert Lowest.properties == {'ghi': 789}
+    assert Base.properties == {"abc": 123}
+    assert Middle.properties == {"ghi": 789}
+    assert Lowest.properties == {"ghi": 789}
 
     Lowest.properties.clear()
 
-    assert Base.properties == {'abc': 123}
-    assert Middle.properties == {'ghi': 789}
+    assert Base.properties == {"abc": 123}
+    assert Middle.properties == {"ghi": 789}
     assert Lowest.properties == {}
 
 
@@ -227,36 +227,36 @@ def test_subclass_override():
         pass
 
     class Override(Middle):
-        properties = Properties({'def': 456})
+        properties = Properties({"def": 456})
 
-    assert Override.properties == {'def': 456}
+    assert Override.properties == {"def": 456}
     assert Middle.properties == {}
     assert Base.properties == {}
 
-    Base.properties['abc'] = 123
+    Base.properties["abc"] = 123
 
-    assert Base.properties == {'abc': 123}
-    assert Middle.properties == {'abc': 123}
-    assert Override.properties == {'def': 456}
+    assert Base.properties == {"abc": 123}
+    assert Middle.properties == {"abc": 123}
+    assert Override.properties == {"def": 456}
 
 
 def test_initialization():
     class Base:
         properties = Properties(abc=123)
 
-    assert Base.properties == {'abc': 123}
-    Base.properties['def'] = 456
+    assert Base.properties == {"abc": 123}
+    Base.properties["def"] = 456
 
-    assert Base.properties == {'abc': 123, 'def': 456}
-    del Base.properties['abc']
-    assert Base.properties == {'def': 456}
+    assert Base.properties == {"abc": 123, "def": 456}
+    del Base.properties["abc"]
+    assert Base.properties == {"def": 456}
 
 
 def test_perverse():
     class Base:
         properties = Properties()
 
-    descriptor = Base.__dict__['properties']
+    descriptor = Base.__dict__["properties"]
     props = Base.properties
     del Base.properties
     assert list(props._frames()) == []
@@ -273,46 +273,47 @@ def test_perverse():
     lost2 = unattached_properties()
     with pytest.raises(KeyError):
         # noinspection PyStatementEffect
-        lost2['abc']
+        lost2["abc"]
 
     class Broken:
-        properties = 'something else'
+        properties = "something else"
 
     broken = descriptor.__get__(None, Broken)
     broken.update(abc=123)
-    assert broken == {'abc': 123}
-    assert Broken.properties == 'something else'
+    assert broken == {"abc": 123}
+    assert Broken.properties == "something else"
 
 
 # python3 immediately raises an exception if there is such a name clash
 if PY2:
+
     def test_perverse_slots():
 
         class Base:
-            __slots__ = 'properties',
+            __slots__ = ("properties",)
             properties = Properties()
 
         b = Base()
         with pytest.raises(AttributeError):
             # noinspection PyStatementEffect
-            b.properties['abc']
+            b.properties["abc"]
 
 
 def test_dsl():
     Sub = String.with_properties(abc=123)
 
-    assert 'abc' not in String.properties
-    assert Sub.properties['abc'] == 123
+    assert "abc" not in String.properties
+    assert Sub.properties["abc"] == 123
 
-    Disconnected = Sub.using(properties={'def': 456})
-    assert Disconnected.properties['def'] == 456
-    assert 'abc' not in Disconnected.properties
+    Disconnected = Sub.using(properties={"def": 456})
+    assert Disconnected.properties["def"] == 456
+    assert "abc" not in Disconnected.properties
 
-    assert 'def' not in Sub.properties
-    assert 'def' not in String.properties
+    assert "def" not in Sub.properties
+    assert "def" not in String.properties
 
-    Sub.properties['ghi'] = 789
-    assert Disconnected.properties == {'def': 456}
+    Sub.properties["ghi"] = 789
+    assert Disconnected.properties == {"def": 456}
 
     Disconnected2 = Sub.using(properties=Properties(jkl=123))
-    assert Disconnected2.properties == {'jkl': 123}
+    assert Disconnected2.properties == {"jkl": 123}

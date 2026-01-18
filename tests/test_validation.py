@@ -2,50 +2,46 @@ from flatland import (
     Dict,
     Schema,
     Integer,
-    )
+)
 from flatland.validation import (
     Converted,
     Present,
     Validator,
-    )
+)
 
 
 class Age(Integer):
 
     class IsNumber(Converted):
-        incorrect = '%(label)s is not a valid number.'
+        incorrect = "%(label)s is not a valid number."
 
     class ValidAge(Validator):
         minage = 1
         maxage = 150
 
-        too_young = '%(label)s must be at least %(minage)s.'
-        too_old = '%(label)s may not be larger than %(maxage)s'
+        too_young = "%(label)s must be at least %(minage)s."
+        too_old = "%(label)s may not be larger than %(maxage)s"
 
-        at_min = '%(label)s is at the minimum age.'
-        at_max = '%(label)s is at the maximum age.'
+        at_min = "%(label)s is at the minimum age."
+        at_max = "%(label)s is at the maximum age."
 
         def validate(self, element, state):
             age = element.value
             if age < self.minage:
-                return self.note_error(element, state, 'too_young')
+                return self.note_error(element, state, "too_young")
             elif age == self.minage:
-                return self.note_warning(element, state, 'at_min')
+                return self.note_warning(element, state, "at_min")
             elif age == self.maxage:
-                return self.note_warning(element, state, 'at_max')
+                return self.note_warning(element, state, "at_max")
             elif age > self.maxage:
-                return self.note_error(element, state, 'too_old')
+                return self.note_error(element, state, "too_old")
             return True
 
-    validators = (Present(),
-                  IsNumber(),
-                  ValidAge())
+    validators = (Present(), IsNumber(), ValidAge())
 
 
 class ThirtySomething(Age):
-    validators = (Present(),
-                  Age.IsNumber(),
-                  Age.ValidAge(minage=30, maxage=39))
+    validators = (Present(), Age.IsNumber(), Age.ValidAge(minage=30, maxage=39))
 
 
 def test_custom_validation():
@@ -55,19 +51,19 @@ def test_custom_validation():
 
     f = MyForm.from_flat({})
     assert not f.validate()
-    assert f['age'].errors == ['age may not be blank.']
+    assert f["age"].errors == ["age may not be blank."]
 
-    f = MyForm.from_flat({'age': ''})
+    f = MyForm.from_flat({"age": ""})
     assert not f.validate()
-    assert f['age'].errors == ['age may not be blank.']
+    assert f["age"].errors == ["age may not be blank."]
 
-    f = MyForm.from_flat({'age': 'crunch'})
+    f = MyForm.from_flat({"age": "crunch"})
     assert not f.validate()
-    assert f['age'].errors == ['age is not a valid number.']
+    assert f["age"].errors == ["age is not a valid number."]
 
-    f = MyForm.from_flat({'age': '10'})
+    f = MyForm.from_flat({"age": "10"})
     assert not f.validate()
-    assert f['age'].errors == ['age must be at least 30.']
+    assert f["age"].errors == ["age must be at least 30."]
 
 
 def test_child_validation():
@@ -78,7 +74,7 @@ def test_child_validation():
     form = MyForm()
     assert not form.validate()
 
-    form.set({'x': 10})
+    form.set({"x": 10})
     assert form.validate()
 
 
@@ -87,14 +83,14 @@ def test_nested_validation():
     class MyForm(Schema):
         x = Integer.using(validators=[Present()])
 
-        d2 = Dict.of(Integer.named('x2').using(validators=[Present()]))
+        d2 = Dict.of(Integer.named("x2").using(validators=[Present()]))
 
     form = MyForm()
     assert not form.validate()
 
-    form['x'].set(1)
+    form["x"].set(1)
     assert not form.validate()
     assert form.validate(recurse=False)
 
-    form['d2']['x2'].set(2)
+    form["d2"]["x2"].set(2)
     assert form.validate()

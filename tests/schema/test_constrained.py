@@ -2,15 +2,14 @@ from flatland import (
     Constrained,
     Enum,
     Integer,
-    )
+)
 from flatland._compat import text_transform
 
 
-
 def test_constrained_no_default_validity():
-    el = Constrained('anything')
+    el = Constrained("anything")
     assert el.value is None
-    assert el.u == 'anything'
+    assert el.u == "anything"
 
 
 def test_constrained_instance_override():
@@ -20,27 +19,28 @@ def test_constrained_instance_override():
         def is_valid(element, value):
             assert isinstance(element, Constrained)
             return value in ok_values
+
         return is_valid
 
-    el = Constrained(valid_value=make_checker('a'))
-    assert el.set('a')
-    assert el.value == 'a'
-    assert el.u == 'a'
+    el = Constrained(valid_value=make_checker("a"))
+    assert el.set("a")
+    assert el.value == "a"
+    assert el.u == "a"
 
-    assert not el.set('b')
+    assert not el.set("b")
     assert el.value is None
-    assert el.u == 'b'
+    assert el.u == "b"
 
     el = Constrained(child_type=Integer, valid_value=make_checker(1, 2))
-    assert el.set('1')
+    assert el.set("1")
     assert el.value == 1
-    assert el.u == '1'
+    assert el.u == "1"
 
-    assert el.set('2')
+    assert el.set("2")
     assert el.value == 2
-    assert el.u == '2'
+    assert el.u == "2"
 
-    for invalid in '3', 'x':
+    for invalid in "3", "x":
         assert not el.set(invalid)
         assert el.value == None
         assert el.u == invalid
@@ -57,24 +57,22 @@ def test_constrained_instance_contrived():
             except:
                 return None
 
-    el = Constrained(child_type=CustomInteger,
-                     valid_value=lambda e, v: v in (1, None))
-    assert el.set('1')
+    el = Constrained(child_type=CustomInteger, valid_value=lambda e, v: v in (1, None))
+    assert el.set("1")
 
-    for out_of_bounds in '2', '3':
+    for out_of_bounds in "2", "3":
         assert not el.set(out_of_bounds)
 
-    for invalid in 'x', '':
+    for invalid in "x", "":
         assert el.set(invalid)
         assert el.value is None
-        assert el.u == ''
+        assert el.u == ""
 
 
 def test_default_enum():
-    good_values = ('a', 'b', 'c')
+    good_values = ("a", "b", "c")
     for good_val in good_values:
-        for schema in (Enum.using(valid_values=good_values),
-                       Enum.valued(*good_values)):
+        for schema in (Enum.using(valid_values=good_values), Enum.valued(*good_values)):
             el = schema()
             assert el.set(good_val)
             assert el.value == good_val
@@ -84,16 +82,16 @@ def test_default_enum():
 
     schema = Enum.valued(*good_values)
     el = schema()
-    assert not el.set('d')
+    assert not el.set("d")
     assert el.value is None
-    assert el.u == 'd'
+    assert el.u == "d"
     # present but not converted
     assert el.validate()
 
     el = schema()
     assert not el.set(None)
     assert el.value is None
-    assert el.u == ''
+    assert el.u == ""
     # not present
     assert not el.validate()
 
@@ -110,11 +108,11 @@ def test_typed_enum():
         assert not el.errors
 
     el = schema()
-    assert not el.set('x')
+    assert not el.set("x")
     assert el.value is None
-    assert el.u == 'x'
+    assert el.u == "x"
 
     el = schema()
-    assert not el.set('5')
+    assert not el.set("5")
     assert el.value is None
-    assert el.u == '5'
+    assert el.u == "5"

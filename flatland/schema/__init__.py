@@ -1,4 +1,5 @@
 """Schema components."""
+
 from .base import (
     Element,
     Skip,
@@ -7,7 +8,7 @@ from .base import (
     Slot,
     Unevaluated,
     Unset,
-    )
+)
 from .scalars import (
     Boolean,
     Constrained,
@@ -23,7 +24,7 @@ from .scalars import (
     Scalar,
     String,
     Time,
-    )
+)
 from .containers import (
     Array,
     Container,
@@ -33,17 +34,17 @@ from .containers import (
     MultiValue,
     Sequence,
     SparseDict,
-    )
+)
 from .compound import (
     Compound,
     DateYYYYMMDD,
     JoinedString,
-    )
+)
 from .declarative import (
     Form,
     Schema,
     SparseSchema,
-    )
+)
 from .properties import (
     Properties,
-    )
+)

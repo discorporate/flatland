@@ -1,10 +1,10 @@
 """Class attribute-style declarative schema construction."""
+
 from flatland._compat import PY2, with_metaclass
 from .base import Element
 from .containers import Dict, SparseDict
 
-
-__all__ = ['Schema', 'SparseSchema']
+__all__ = ["Schema", "SparseSchema"]
 
 
 class _MetaSchema(type):
@@ -30,16 +30,16 @@ class _MetaSchema(type):
 
         # collect existing fields from super classes in __mro__ order
         for base in bases:
-            fields.add_unseen(getattr(base, 'field_schema', ()))
+            fields.add_unseen(getattr(base, "field_schema", ()))
 
         # add / replace fields supplied in a field_schema on this class
-        fields.add_and_overwrite(members.get('field_schema', ()))
+        fields.add_and_overwrite(members.get("field_schema", ()))
 
         # add / replace fields declared as attributes on this class
         declared_fields = []
         for name, value in list(members.items()):
             if PY2:
-                text_name = name.decode('ascii')
+                text_name = name.decode("ascii")
             else:
                 text_name = name
             if isinstance(value, type) and issubclass(value, Element):
@@ -50,7 +50,7 @@ class _MetaSchema(type):
         fields.add_and_overwrite(declared_fields)
 
         # the new type's field_schema is the final result of all this
-        members['field_schema'] = fields.elements
+        members["field_schema"] = fields.elements
         return type.__new__(self, class_name, bases, members)
 
 

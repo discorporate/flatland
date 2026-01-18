@@ -11,51 +11,51 @@ def test_lazy_property():
         @util.lazy_property
         def squiznart(self):
             assert not poison
-            return 'abc'
+            return "abc"
 
-    assert Foo.squiznart != 'abc'
-    assert hasattr(Foo.squiznart, '__get__')
+    assert Foo.squiznart != "abc"
+    assert hasattr(Foo.squiznart, "__get__")
 
     f = Foo()
-    assert 'squiznart' not in f.__dict__
-    assert f.squiznart == 'abc'
-    assert f.__dict__['squiznart'] == 'abc'
+    assert "squiznart" not in f.__dict__
+    assert f.squiznart == "abc"
+    assert f.__dict__["squiznart"] == "abc"
 
     poison = True
-    assert f.squiznart == 'abc'
+    assert f.squiznart == "abc"
 
     new_foo = Foo()
     with pytest.raises(AssertionError):
-        getattr(new_foo, 'squiznart')
-    assert 'squiznart' not in new_foo.__dict__
+        getattr(new_foo, "squiznart")
+    assert "squiznart" not in new_foo.__dict__
 
 
 def test_as_mapping():
 
     class Foo:
-        clazz = 'c'
+        clazz = "c"
 
         def __init__(self):
-            self.inzt = 'i'
+            self.inzt = "i"
 
     m = util.as_mapping(Foo)
-    assert 'clazz' in m
-    assert m['clazz'] == 'c'
+    assert "clazz" in m
+    assert m["clazz"] == "c"
     assert sorted(dir(Foo)) == sorted(m)
     mi = util.as_mapping(Foo())
-    assert 'clazz' in mi
-    assert mi['clazz'] == 'c'
-    assert 'inzt' in mi
-    assert mi['inzt'] == 'i'
+    assert "clazz" in mi
+    assert mi["clazz"] == "c"
+    assert "inzt" in mi
+    assert mi["inzt"] == "i"
     assert sorted(dir(Foo())) == sorted(mi)
     with pytest.raises(KeyError):
         # noinspection PyStatementEffect
-        m['inzt']
+        m["inzt"]
 
 
 def test_to_pairs():
     to_pairs = util.to_pairs
-    wanted = [('a', 1), ('b', 2)]
+    wanted = [("a", 1), ("b", 2)]
 
     assert list(to_pairs(wanted)) == wanted
     assert list(to_pairs(iter(wanted))) == wanted
@@ -72,8 +72,7 @@ def test_to_pairs():
     assert sorted(to_pairs(Duck())) == wanted
 
 
-PAIRS = [('a', 1), ('b', 2), ('c', 3),
-         ('d', 4), ('d', 4), ('d', 5)]
+PAIRS = [("a", 1), ("b", 2), ("c", 3), ("d", 4), ("d", 4), ("d", 5)]
 
 
 def test_keyslice_conflict():
@@ -95,30 +94,29 @@ def _keyslice_eq_(wanted, kw={}):
 
 def test_keyslice_include():
     _keyslice_eq_(PAIRS, dict(include=[]))
-    _keyslice_eq_([('a', 1)], dict(include=['a']))
-    _keyslice_eq_([('a', 1), ('b', 2)], dict(include=['a', 'b']))
-    _keyslice_eq_([('d', 4), ('d', 4), ('d', 5)], dict(include=['d']))
-    _keyslice_eq_([('a', 1)], dict(include=['a', 'e']))
+    _keyslice_eq_([("a", 1)], dict(include=["a"]))
+    _keyslice_eq_([("a", 1), ("b", 2)], dict(include=["a", "b"]))
+    _keyslice_eq_([("d", 4), ("d", 4), ("d", 5)], dict(include=["d"]))
+    _keyslice_eq_([("a", 1)], dict(include=["a", "e"]))
 
 
 def test_keyslice_omit():
     _keyslice_eq_(PAIRS, dict(omit=[]))
-    _keyslice_eq_([('a', 1), ('b', 2), ('c', 3)], dict(omit=['d']))
-    _keyslice_eq_([('a', 1), ('b', 2)], dict(omit=['c', 'd']))
-    _keyslice_eq_([('a', 1), ('b', 2)], dict(omit=['c', 'd', 'e']))
-    _keyslice_eq_([], dict(omit=['a', 'b', 'c', 'd']))
+    _keyslice_eq_([("a", 1), ("b", 2), ("c", 3)], dict(omit=["d"]))
+    _keyslice_eq_([("a", 1), ("b", 2)], dict(omit=["c", "d"]))
+    _keyslice_eq_([("a", 1), ("b", 2)], dict(omit=["c", "d", "e"]))
+    _keyslice_eq_([], dict(omit=["a", "b", "c", "d"]))
 
 
 def test_keyslice_rename():
-    wanted = PAIRS[:3] + [('Z', 4), ('Z', 4), ('Z', 5)]
-    _keyslice_eq_(wanted, dict(rename={'d': 'Z'}))
-    _keyslice_eq_(wanted, dict(rename=[('d', 'Z')]))
-    _keyslice_eq_(wanted, dict(rename={'d': 'Z', 'e': 'Y'}))
+    wanted = PAIRS[:3] + [("Z", 4), ("Z", 4), ("Z", 5)]
+    _keyslice_eq_(wanted, dict(rename={"d": "Z"}))
+    _keyslice_eq_(wanted, dict(rename=[("d", "Z")]))
+    _keyslice_eq_(wanted, dict(rename={"d": "Z", "e": "Y"}))
 
-    wanted = [('d', 1), ('c', 2), ('b', 3),
-              ('a', 4), ('a', 4), ('a', 5)]
+    wanted = [("d", 1), ("c", 2), ("b", 3), ("a", 4), ("a", 4), ("a", 5)]
 
-    _keyslice_eq_(wanted, dict(rename=zip('abcddd', 'dcbaaa')))
+    _keyslice_eq_(wanted, dict(rename=zip("abcddd", "dcbaaa")))
 
 
 def test_keyslice_key():
@@ -132,37 +130,38 @@ def test_keyslice_key():
 
 
 def test_keyslice_mixed():
-    wanted = [('a', 1), ('X', 2)]
+    wanted = [("a", 1), ("X", 2)]
 
-    _keyslice_eq_(wanted, dict(rename={'b': 'X'}, include=['a']))
-    _keyslice_eq_(wanted, dict(rename={'b': 'X'}, omit=['b', 'c', 'd']))
+    _keyslice_eq_(wanted, dict(rename={"b": "X"}, include=["a"]))
+    _keyslice_eq_(wanted, dict(rename={"b": "X"}, omit=["b", "c", "d"]))
 
 
 def test_symbols():
-    sym1 = util.symbol('foo')
-    assert sym1.name == 'foo'
-    sym2 = util.symbol('foo')
+    sym1 = util.symbol("foo")
+    assert sym1.name == "foo"
+    sym2 = util.symbol("foo")
 
     assert sym1 is sym2
     assert sym1 == sym2
 
-    sym3 = util.symbol('bar')
+    sym3 = util.symbol("bar")
     assert sym1 is not sym3
     assert sym1 != sym3
 
-    assert repr(sym3) == 'bar'
+    assert repr(sym3) == "bar"
 
 
 def test_symbol_pickle():
     import pickle
+
     try:
         import cPickle
     except ImportError:
         cPickle = pickle
 
     for mod in pickle, cPickle:
-        sym1 = util.symbol('foo')
-        sym2 = util.symbol('foo')
+        sym1 = util.symbol("foo")
+        sym2 = util.symbol("foo")
 
         assert sym1 is sym2
 

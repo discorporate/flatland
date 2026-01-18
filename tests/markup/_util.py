@@ -8,15 +8,16 @@ from flatland._compat import bytestring_type
 class Capabilities(dict):
 
     def __missing__(self, capability):
-        probe = getattr(self, '_' + capability)
+        probe = getattr(self, "_" + capability)
         self[capability] = have = probe()
         return have
 
     def _genshi(self):
         try:
             from genshi.template import MarkupTemplate
+
             # present only in >= 0.6
-            return hasattr(MarkupTemplate, 'add_directives')
+            return hasattr(MarkupTemplate, "add_directives")
         except ImportError:
             return False
 
@@ -28,6 +29,7 @@ class Capabilities(dict):
         else:
             return True
 
+
 have = Capabilities()
 
 
@@ -38,7 +40,9 @@ def need(capability):
             if not have[capability]:
                 pytest.skip()
             return fn(*args, **kw)
+
         return decorated
+
     return decorator
 
 
@@ -50,6 +54,7 @@ def alternate_expectation(backend, string):
             alternates = fn.alternates = {}
         alternates[backend] = string.strip()
         return fn
+
     return decorator
 
 
@@ -65,8 +70,8 @@ class desired_output:
     def __call__(self, fn):
         self.expected = fn.__doc__.strip()
         if isinstance(self.expected, bytestring_type):
-            self.expected = self.expected.decode('utf8')
-        self.alternate_expectations = getattr(fn, 'alternates', {})
+            self.expected = self.expected.decode("utf8")
+        self.alternate_expectations = getattr(fn, "alternates", {})
         return self
 
     def expectation_for(self, backend):
@@ -80,39 +85,46 @@ class desired_output:
         def decorator(fn):
             markup = _wrap_with_xmlns(fn.__doc__, self.language)
             fn.__doc__ = None
+
             def runner():
-                if not have['genshi']:
+                if not have["genshi"]:
                     pytest.skip()
-                got = _render_genshi(markup, self.language, self.schema,
-                                     **self.render_context)
-                expected = self.expectation_for('genshi')
+                got = _render_genshi(
+                    markup, self.language, self.schema, **self.render_context
+                )
+                expected = self.expectation_for("genshi")
                 if expected != got:
                     print("\n" + fn.__name__)
                     print("Expected:\n" + expected)
                     print("Got:\n" + got)
                 assert expected == got
+
             runner.__name__ = fn.__name__
             runner.__doc__ = fn.__doc__
             runner.__module__ = fn.__module__
             return runner
+
         return decorator
 
     @property
     def markup(self):
         def decorator(fn):
             def runner():
-                got = _render_markup_fn(fn, self.language, self.schema,
-                                        **self.render_context)
-                expected = self.expectation_for('markup')
+                got = _render_markup_fn(
+                    fn, self.language, self.schema, **self.render_context
+                )
+                expected = self.expectation_for("markup")
                 if expected != got:
                     print("\n" + fn.__name__)
                     print("Expected:\n" + expected)
                     print("Got:\n" + got)
                 assert expected == got
+
             runner.__name__ = fn.__name__
             runner.__doc__ = fn.__doc__
             runner.__module__ = fn.__module__
             return runner
+
         return decorator
 
 
@@ -142,25 +154,26 @@ def _render_genshi(markup, language, schema, **kw):
     setup(template)
 
     if schema is not None:
-        kw['form'] = schema()
+        kw["form"] = schema()
     else:
-        kw['form'] = None
+        kw["form"] = None
     output = template.generate(**kw).render(language)
 
     # strip div wrapper off
-    got = output[output.index('\n') + 1:output.rindex('\n')]
+    got = output[output.index("\n") + 1 : output.rindex("\n")]
     got = got.strip()
 
     return got
 
 
 def _wrap_with_xmlns(template, language):
-    wrapped = '<div '
-    if language == 'xhtml':
+    wrapped = "<div "
+    if language == "xhtml":
         wrapped += 'xmlns="http://www.w3.org/1999/xhtml" '
     wrapped += (
-        'xmlns:form="http://ns.discorporate.us/flatland/genshi" ' +
-        'xmlns:py="http://genshi.edgewall.org/">\n' +
-        template +
-        '\n</div>')
+        'xmlns:form="http://ns.discorporate.us/flatland/genshi" '
+        + 'xmlns:py="http://genshi.edgewall.org/">\n'
+        + template
+        + "\n</div>"
+    )
     return wrapped

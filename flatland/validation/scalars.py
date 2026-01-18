@@ -17,11 +17,11 @@ class Present(Validator):
 
     """
 
-    missing = N_('%(label)s may not be blank.')
+    missing = N_("%(label)s may not be blank.")
 
     def validate(self, element, state):
-        if element.u == '':
-            return self.note_error(element, state, 'missing')
+        if element.u == "":
+            return self.note_error(element, state, "missing")
         return True
 
 
@@ -36,11 +36,11 @@ class IsTrue(Validator):
 
     """
 
-    false = N_('%(label)s must be True.')
+    false = N_("%(label)s must be True.")
 
     def validate(self, element, state):
         if not bool(element.value):
-            return self.note_error(element, state, 'false')
+            return self.note_error(element, state, "false")
         return True
 
 
@@ -55,11 +55,11 @@ class IsFalse(Validator):
 
     """
 
-    true = N_('%(label)s must be False.')
+    true = N_("%(label)s must be False.")
 
     def validate(self, element, state):
         if bool(element.value):
-            return self.note_error(element, state, 'true')
+            return self.note_error(element, state, "true")
         return True
 
 
@@ -90,7 +90,7 @@ class ValueIn(Validator):
 
     """
 
-    fail = N_('%(value)s is not a valid value for %(label)s.')
+    fail = N_("%(value)s is not a valid value for %(label)s.")
 
     valid_options = ()
 
@@ -101,7 +101,7 @@ class ValueIn(Validator):
 
     def validate(self, element, state):
         if element.value not in self.valid_options:
-            return self.note_error(element, state, 'fail')
+            return self.note_error(element, state, "fail")
         return True
 
 
@@ -127,13 +127,13 @@ class Converted(Validator):
 
     """
 
-    incorrect = N_('%(label)s is not correct.')
+    incorrect = N_("%(label)s is not correct.")
 
     def validate(self, element, state):
         if element.value is not None:
             return True
 
-        return self.note_error(element, state, 'incorrect')
+        return self.note_error(element, state, "incorrect")
 
 
 class ShorterThan(Validator):
@@ -168,7 +168,7 @@ class ShorterThan(Validator):
 
     """
 
-    exceeded = N_('%(label)s may not exceed %(maxlength)s characters.')
+    exceeded = N_("%(label)s may not exceed %(maxlength)s characters.")
 
     maxlength = 0
 
@@ -179,8 +179,9 @@ class ShorterThan(Validator):
 
     def validate(self, element, state):
         if len(element.u) > self.maxlength:
-            return self.note_error(element, state, 'exceeded')
+            return self.note_error(element, state, "exceeded")
         return True
+
 
 NoLongerThan = ShorterThan
 
@@ -217,7 +218,7 @@ class LongerThan(Validator):
 
     """
 
-    short = N_('%(label)s must be at least %(minlength)s characters.')
+    short = N_("%(label)s must be at least %(minlength)s characters.")
 
     minlength = 0
 
@@ -228,7 +229,7 @@ class LongerThan(Validator):
 
     def validate(self, element, state):
         if len(element.u) < self.minlength:
-            return self.note_error(element, state, 'short')
+            return self.note_error(element, state, "short")
         return True
 
 
@@ -272,8 +273,9 @@ class LengthBetween(Validator):
 
     """
 
-    breached = N_('%(label)s must be between %(minlength)s and '
-                  '%(maxlength)s characters long.')
+    breached = N_(
+        "%(label)s must be between %(minlength)s and " "%(maxlength)s characters long."
+    )
 
     minlength = 0
     maxlength = 0
@@ -288,7 +290,7 @@ class LengthBetween(Validator):
     def validate(self, element, state):
         l = len(element.u)
         if l < self.minlength or l > self.maxlength:
-            return self.note_error(element, state, 'breached')
+            return self.note_error(element, state, "breached")
         return True
 
 
@@ -318,7 +320,7 @@ class ValueLessThan(Validator):
 
     """
 
-    failure = N_('%(label)s must be less than %(boundary)s.')
+    failure = N_("%(label)s must be less than %(boundary)s.")
 
     def __init__(self, boundary, **kw):
         Validator.__init__(self, **kw)
@@ -326,7 +328,7 @@ class ValueLessThan(Validator):
 
     def validate(self, element, state):
         if not element.value < self.boundary:
-            return self.note_error(element, state, 'failure')
+            return self.note_error(element, state, "failure")
         return True
 
 
@@ -356,7 +358,7 @@ class ValueAtMost(Validator):
 
     """
 
-    failure = N_('%(label)s must be less than or equal to %(maximum)s.')
+    failure = N_("%(label)s must be less than or equal to %(maximum)s.")
 
     def __init__(self, maximum, **kw):
         Validator.__init__(self, **kw)
@@ -364,7 +366,7 @@ class ValueAtMost(Validator):
 
     def validate(self, element, state):
         if not element.value <= self.maximum:
-            return self.note_error(element, state, 'failure')
+            return self.note_error(element, state, "failure")
         return True
 
 
@@ -394,7 +396,7 @@ class ValueGreaterThan(Validator):
 
     """
 
-    failure = N_('%(label)s must be greater than %(boundary)s.')
+    failure = N_("%(label)s must be greater than %(boundary)s.")
 
     def __init__(self, boundary, **kw):
         Validator.__init__(self, **kw)
@@ -402,7 +404,7 @@ class ValueGreaterThan(Validator):
 
     def validate(self, element, state):
         if not element.value > self.boundary:
-            return self.note_error(element, state, 'failure')
+            return self.note_error(element, state, "failure")
         return True
 
 
@@ -432,7 +434,7 @@ class ValueAtLeast(Validator):
 
     """
 
-    failure = N_('%(label)s must be greater than or equal to %(minimum)s.')
+    failure = N_("%(label)s must be greater than or equal to %(minimum)s.")
 
     def __init__(self, minimum, **kw):
         Validator.__init__(self, **kw)
@@ -440,7 +442,7 @@ class ValueAtLeast(Validator):
 
     def validate(self, element, state):
         if not element.value >= self.minimum:
-            return self.note_error(element, state, 'failure')
+            return self.note_error(element, state, "failure")
         return True
 
 
@@ -488,10 +490,12 @@ class ValueBetween(Validator):
 
     """
 
-    failure_inclusive = N_('%(label)s must be in the range %(minimum)s '
-                           'to %(maximum)s.')
-    failure_exclusive = N_('%(label)s must be greater than %(minimum)s '
-                           'and less than %(maximum)s.')
+    failure_inclusive = N_(
+        "%(label)s must be in the range %(minimum)s " "to %(maximum)s."
+    )
+    failure_exclusive = N_(
+        "%(label)s must be greater than %(minimum)s " "and less than %(maximum)s."
+    )
 
     inclusive = True
 
@@ -503,10 +507,10 @@ class ValueBetween(Validator):
     def validate(self, element, state):
         if self.inclusive:
             if not self.minimum <= element.value <= self.maximum:
-                return self.note_error(element, state, 'failure_inclusive')
+                return self.note_error(element, state, "failure_inclusive")
         else:
             if not self.minimum < element.value < self.maximum:
-                return self.note_error(element, state, 'failure_exclusive')
+                return self.note_error(element, state, "failure_exclusive")
         return True
 
 
@@ -541,7 +545,7 @@ class MapEqual(Validator):
 
     """
 
-    unequal = N_('%(labels)s and %(last_label)s do not match.')
+    unequal = N_("%(labels)s and %(last_label)s do not match.")
 
     field_paths = ()
     transform = lambda el: el
@@ -555,9 +559,9 @@ class MapEqual(Validator):
 
         """
         if not field_paths:
-            assert self.field_paths, 'at least 2 element paths required.'
+            assert self.field_paths, "at least 2 element paths required."
         else:
-            assert len(field_paths) > 1, 'at least 2 element paths required.'
+            assert len(field_paths) > 1, "at least 2 element paths required."
             self.field_paths = field_paths
         Validator.__init__(self, **kw)
 
@@ -567,10 +571,12 @@ class MapEqual(Validator):
         sample = fn(elements[0])
         if all(fn(el) == sample for el in elements[1:]):
             return True
-        labels = ', '.join(el.label for el in elements[:-1])
+        labels = ", ".join(el.label for el in elements[:-1])
         last_label = elements[-1].label
-        return self.note_error(element, state, 'unequal',
-                               labels=labels, last_label=last_label)
+        return self.note_error(
+            element, state, "unequal", labels=labels, last_label=last_label
+        )
+
 
 class ValuesEqual(MapEqual):
     """Validates that the values of multiple elements are equal.
@@ -596,7 +602,7 @@ class ValuesEqual(MapEqual):
 
     """
 
-    transform = attrgetter('value')
+    transform = attrgetter("value")
 
 
 class UnisEqual(MapEqual):
@@ -611,4 +617,4 @@ class UnisEqual(MapEqual):
 
     """
 
-    transform = attrgetter('u')
+    transform = attrgetter("u")

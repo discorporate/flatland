@@ -4,7 +4,7 @@ from flatland import (
     SkipAll,
     SkipAllFalse,
     Unevaluated,
-    )
+)
 from flatland._compat import xrange
 
 import pytest
@@ -12,23 +12,23 @@ from tests._util import requires_unicode_coercion
 
 
 def test_cloning():
-    new_element = Element.named('x')
+    new_element = Element.named("x")
     assert isinstance(new_element, type)
     assert new_element.__module__ != Element.__module__
-    assert 'test_base' in new_element.__module__
+    assert "test_base" in new_element.__module__
 
 
 @requires_unicode_coercion
 def test_naming():
-    for arg in ('unicode', 'sysencoding', None):
+    for arg in ("unicode", "sysencoding", None):
         schema = Element.named(arg)
         assert schema.name == arg
         assert schema.label == arg
 
-    for arg in ('unicode', 'sysencoding', None):
-        schema = Element.named(arg).using(label='fleem')
+    for arg in ("unicode", "sysencoding", None):
+        schema = Element.named(arg).using(label="fleem")
         assert schema.name == arg
-        assert schema.label == 'fleem'
+        assert schema.label == "fleem"
 
 
 def test_validators():
@@ -95,13 +95,15 @@ def test_optional():
 
 def test_label():
     # .label fallback to .name works for instances and classes
-    for item in Element.named('x'), Element.named('x')(), Element(name='x'):
-        assert item.label == 'x'
+    for item in Element.named("x"), Element.named("x")(), Element(name="x"):
+        assert item.label == "x"
 
-    for item in (Element.using(name='x', label='L'),
-                 Element.using(name='x', label='L')(),
-                 Element(name='x', label='L')):
-        assert item.label == 'L'
+    for item in (
+        Element.using(name="x", label="L"),
+        Element.using(name="x", label="L")(),
+        Element(name="x", label="L"),
+    ):
+        assert item.label == "L"
 
 
 def test_instance_defaults():
@@ -120,9 +122,9 @@ def test_instance_defaults():
     assert tuple(_.name for _ in el.path) == (None,)
     assert el.parent == None
     assert el.root == el
-    assert el.flattened_name() == ''
+    assert el.flattened_name() == ""
     assert el.value == None
-    assert el.u == ''
+    assert el.u == ""
 
 
 def test_abstract():
@@ -132,23 +134,23 @@ def test_abstract():
     with pytest.raises(NotImplementedError):
         element.set_flat(())
     with pytest.raises(NotImplementedError):
-        element.find_one('foo')
+        element.find_one("foo")
 
 
 def test_message_buckets():
     el = Element()
 
-    el.add_error('error')
-    assert el.errors == ['error']
-    el.add_error('error')
-    assert el.errors == ['error']
-    el.add_error('error2')
-    assert el.errors == ['error', 'error2']
+    el.add_error("error")
+    assert el.errors == ["error"]
+    el.add_error("error")
+    assert el.errors == ["error"]
+    el.add_error("error2")
+    assert el.errors == ["error", "error2"]
 
-    el.add_warning('warning')
-    assert el.warnings == ['warning']
-    el.add_warning('warning')
-    assert el.warnings == ['warning']
+    el.add_warning("warning")
+    assert el.warnings == ["warning"]
+    el.add_warning("warning")
+    assert el.warnings == ["warning"]
 
 
 def test_validation():
@@ -159,21 +161,36 @@ def test_validation():
     all_ok = lambda item, data: SkipAll
     all_not_ok = lambda item, data: SkipAllFalse
 
-    for res, validators in ((True, (ok,)),
-                            (True, (ok, ok)),
-                            (True, (skip,)),
-                            (True, (skip, not_ok)),
-                            (True, (ok, skip, not_ok)),
-                            (True, (all_ok,)),
-                            (True, (all_ok, not_ok)),
-                            (False, (none,)),
-                            (False, (ok, none)),
-                            (False, (not_ok,)),
-                            (False, (ok, not_ok,)),
-                            (False, (ok, not_ok, ok,)),
-                            (False, (all_not_ok,)),
-                            (False, (ok, all_not_ok, ok))):
-        el = Element(validators=validators, validates_down='validators')
+    for res, validators in (
+        (True, (ok,)),
+        (True, (ok, ok)),
+        (True, (skip,)),
+        (True, (skip, not_ok)),
+        (True, (ok, skip, not_ok)),
+        (True, (all_ok,)),
+        (True, (all_ok, not_ok)),
+        (False, (none,)),
+        (False, (ok, none)),
+        (False, (not_ok,)),
+        (
+            False,
+            (
+                ok,
+                not_ok,
+            ),
+        ),
+        (
+            False,
+            (
+                ok,
+                not_ok,
+                ok,
+            ),
+        ),
+        (False, (all_not_ok,)),
+        (False, (ok, all_not_ok, ok)),
+    ):
+        el = Element(validators=validators, validates_down="validators")
         valid = el.validate()
         assert valid == res
         assert bool(valid) is res
@@ -185,7 +202,8 @@ def test_validation():
     def got_element(item, data):
         assert item is element, repr(item)
         return True
-    element = Element(validators=(got_element,), validates_down='validators')
+
+    element = Element(validators=(got_element,), validates_down="validators")
     assert element.validate()
 
 
@@ -203,7 +221,7 @@ def test_validator_return():
 
         __nonzero__ = __bool__
 
-    Validatable = Element.using(validates_down='validators')
+    Validatable = Element.using(validates_down="validators")
 
     # mostly we care about allowing None for False
     true = lambda *a: True
@@ -235,18 +253,18 @@ def test_default_value():
     el = Element()
     assert el.default_value is None
 
-    el = Element(default='abc')
-    assert el.default_value == 'abc'
+    el = Element(default="abc")
+    assert el.default_value == "abc"
 
-    el = Element(default_factory=lambda x: 'def')
-    assert el.default_value == 'def'
+    el = Element(default_factory=lambda x: "def")
+    assert el.default_value == "def"
 
-    el = Element(default='ghi', default_factory=lambda x: 'jkl')
-    assert el.default_value == 'jkl'
+    el = Element(default="ghi", default_factory=lambda x: "jkl")
+    assert el.default_value == "jkl"
 
     # a default_factory may reference el.default
-    el = Element(default='mno', default_factory=lambda x: x.default)
-    assert el.default_value == 'mno'
+    el = Element(default="mno", default_factory=lambda x: x.default)
+    assert el.default_value == "mno"
 
 
 def test_xml_helpers():
@@ -255,4 +273,4 @@ def test_xml_helpers():
     el.u = '<foo\t&\r\n"bar">'
 
     assert el.x == '&lt;foo\t&amp;\r\n"bar"&gt;'
-    assert el.xa == '&lt;foo&#9;&amp;&#13;&#10;&quot;bar&quot;&gt;'
+    assert el.xa == "&lt;foo&#9;&amp;&#13;&#10;&quot;bar&quot;&gt;"

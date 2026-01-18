@@ -4,12 +4,11 @@ from flatland.out.generic import Markup
 import pytest
 from tests.markup._util import render_genshi as render, need
 
-
 TemplateSyntaxError = None
-schema = String.named('element').using(default='val')
+schema = String.named("element").using(default="val")
 
 
-@need('genshi')
+@need("genshi")
 def setup_module():
     global TemplateSyntaxError
     from genshi.template.base import TemplateSyntaxError
@@ -17,30 +16,31 @@ def setup_module():
 
 def test_version_sensor():
     from flatland.out import genshi
-    template = 'not a Genshi 0.6+ template'
+
+    template = "not a Genshi 0.6+ template"
     with pytest.raises(RuntimeError):
         genshi.setup(template)
 
 
 def test_bogus_tags():
     for snippet in [
-        '<form:auto-name/>',
-        '<form:auto-value/>',
-        '<form:auto-domid/>',
-        '<form:auto-for/>',
-        '<form:auto-tabindex/>',
-        ]:
+        "<form:auto-name/>",
+        "<form:auto-value/>",
+        "<form:auto-domid/>",
+        "<form:auto-for/>",
+        "<form:auto-tabindex/>",
+    ]:
         with pytest.raises(TemplateSyntaxError):
-            render(snippet, 'xml', schema)
+            render(snippet, "xml", schema)
 
 
 def test_bogus_elements():
     for snippet in [
         '<div form:with="snacks" />',
         '<div form:set="snacks" />',
-        ]:
+    ]:
         with pytest.raises(TemplateSyntaxError):
-            render(snippet, 'xml', schema)
+            render(snippet, "xml", schema)
 
 
 def test_directive_ordering():
@@ -55,7 +55,7 @@ def test_directive_ordering():
   <input name="element" value="" />
 </form>"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, "xhtml", schema)
     assert rendered == expected
 
 
@@ -74,14 +74,17 @@ def test_attribute_interpolation():
 <input type="checkbox" value="val" name="element" checked="checked" />
 <input type="checkbox" value="val" name="element" checked="checked" />"""
 
-    rendered = render(markup, 'xhtml', schema.from_defaults,
-                      ON='on',
-                      N='n',
-                      VAL=Markup('val'),
-                      V='v',
-                      A='a',
-                      L='l',
-                      )
+    rendered = render(
+        markup,
+        "xhtml",
+        schema.from_defaults,
+        ON="on",
+        N="n",
+        VAL=Markup("val"),
+        V="v",
+        A="a",
+        L="l",
+    )
     assert rendered == expected
 
 
@@ -91,7 +94,7 @@ def test_pruned_tag():
 """
     expected = ""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, "xhtml", schema)
     assert rendered == expected
 
 
@@ -106,7 +109,7 @@ def test_attributes_preserved():
   <input xyzzy:blat="pow" class="abc" name="element" value="" />
 </div>"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, "xhtml", schema)
     assert rendered == expected
 
 
@@ -117,7 +120,7 @@ def test_attribute_removal():
     expected = """\
 <input type="checkbox" value="xyzzy" name="element" />"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, "xhtml", schema)
     assert rendered == expected
 
 
@@ -138,7 +141,7 @@ def test_stream_preserved():
 <button name="element" value=""><b>lumpy.</b></button>
 <button name="element" value="">flat.</button>"""
 
-    rendered = render(markup, 'xhtml', schema)
+    rendered = render(markup, "xhtml", schema)
     assert rendered == expected
 
 
@@ -186,8 +189,8 @@ def test_tortured_select():
   </option>
 </select>"""
 
-    factory = schema.using(default='hit').from_defaults
-    rendered = render(markup, 'xhtml', factory)
+    factory = schema.using(default="hit").from_defaults
+    rendered = render(markup, "xhtml", factory)
     if rendered != expected:
         print("\n" + __name__)
         print("Expected:\n" + expected)

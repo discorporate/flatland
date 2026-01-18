@@ -1,6 +1,8 @@
 """Network address and URL validation."""
+
 from flatland._compat import PY2
 import re
+
 if PY2:
     import urlparse
 else:
@@ -59,53 +61,51 @@ class IsEmail(Validator):
 
     """
 
-    invalid = N_('%(label)s is not a valid email address.')
+    invalid = N_("%(label)s is not a valid email address.")
 
     non_local = True
 
     local_part_pattern = None
 
-    domain_pattern = re.compile(r'^(?:[a-z0-9\-]+\.)*[a-z0-9\-]+$',
-                                re.IGNORECASE)
+    domain_pattern = re.compile(r"^(?:[a-z0-9\-]+\.)*[a-z0-9\-]+$", re.IGNORECASE)
 
     def validate(self, element, state):
         addr = element.value
-        if addr.count('@') != 1:
-            return self.note_error(element, state, 'invalid')
+        if addr.count("@") != 1:
+            return self.note_error(element, state, "invalid")
 
-        local_part, domain = addr.split('@')
+        local_part, domain = addr.split("@")
         if not local_part or local_part.isspace():
-            return self.note_error(element, state, 'invalid')
+            return self.note_error(element, state, "invalid")
 
         # optional local part validation
-        if (self.local_part_pattern and
-            not self.local_part_pattern.match(local_part)):
-            return self.note_error(element, state, 'invalid')
+        if self.local_part_pattern and not self.local_part_pattern.match(local_part):
+            return self.note_error(element, state, "invalid")
 
         try:
             # convert domain to ascii
-            domain = domain.encode('idna').decode('ascii')
+            domain = domain.encode("idna").decode("ascii")
         except UnicodeError:
-            return self.note_error(element, state, 'invalid')
+            return self.note_error(element, state, "invalid")
 
         if len(domain) > 253:
-            return self.note_error(element, state, 'invalid')
+            return self.note_error(element, state, "invalid")
 
         if not self.domain_pattern.match(domain):
-            return self.note_error(element, state, 'invalid')
+            return self.note_error(element, state, "invalid")
 
-        labels = domain.split('.')
+        labels = domain.split(".")
         if len(labels) == 1 and self.non_local:
-            return self.note_error(element, state, 'invalid')
+            return self.note_error(element, state, "invalid")
 
         if not all(len(label) < 64 for label in labels):
-            return self.note_error(element, state, 'invalid')
+            return self.note_error(element, state, "invalid")
 
         return True
 
 
 # ordered generic URL part names according to urlparse
-_url_parts = ['scheme', 'netloc', 'path', 'params', 'query', 'fragment']
+_url_parts = ["scheme", "netloc", "path", "params", "query", "fragment"]
 
 
 class URLValidator(Validator):
@@ -156,33 +156,33 @@ class URLValidator(Validator):
 
     """
 
-    bad_format = N_('%(label)s is not a valid URL.')
-    blocked_scheme = N_('%(label)s is not a valid URL.')
-    blocked_part = N_('%(label)s is not a valid URL.')
+    bad_format = N_("%(label)s is not a valid URL.")
+    blocked_scheme = N_("%(label)s is not a valid URL.")
+    blocked_part = N_("%(label)s is not a valid URL.")
 
-    allowed_schemes = ('*',)
+    allowed_schemes = ("*",)
     allowed_parts = set(_url_parts)
     urlparse = urlparse
 
     def validate(self, element, state):
         if element.value is None:
-            return self.note_error(element, state, 'bad_format')
+            return self.note_error(element, state, "bad_format")
 
         try:
             url = self.urlparse.urlparse(element.value.strip())
         except Exception:
-            return self.note_error(element, state, 'bad_format')
+            return self.note_error(element, state, "bad_format")
 
         scheme_name = identifier_transform(url.scheme)
-        if scheme_name == '':
-            return self.note_error(element, state, 'blocked_scheme')
-        elif self.allowed_schemes != ('*',):
+        if scheme_name == "":
+            return self.note_error(element, state, "blocked_scheme")
+        elif self.allowed_schemes != ("*",):
             if scheme_name not in self.allowed_schemes:
-                return self.note_error(element, state, 'blocked_scheme')
+                return self.note_error(element, state, "blocked_scheme")
 
         for part in _url_parts:
-            if (part not in self.allowed_parts and getattr(url, part) != ''):
-                return self.note_error(element, state, 'blocked_part')
+            if part not in self.allowed_parts and getattr(url, part) != "":
+                return self.note_error(element, state, "blocked_part")
         return True
 
 
@@ -242,13 +242,22 @@ class HTTPURLValidator(Validator):
 
     """
 
-    bad_format = N_('%(label)s is not a valid URL.')
-    required_part = N_('%(label)s is not a valid URL.')
-    forbidden_part = N_('%(label)s is not a valid URL.')
+    bad_format = N_("%(label)s is not a valid URL.")
+    required_part = N_("%(label)s is not a valid URL.")
+    forbidden_part = N_("%(label)s is not a valid URL.")
 
-    all_parts = ('scheme', 'username', 'password', 'hostname', 'port',
-                 'path', 'params', 'query', 'fragment')
-    required_parts = dict(scheme=('http', 'https'), hostname=True)
+    all_parts = (
+        "scheme",
+        "username",
+        "password",
+        "hostname",
+        "port",
+        "path",
+        "params",
+        "query",
+        "fragment",
+    )
+    required_parts = dict(scheme=("http", "https"), hostname=True)
     forbidden_parts = dict(username=True, password=True)
     urlparse = urlparse
 
@@ -261,24 +270,24 @@ class HTTPURLValidator(Validator):
         for part in self.all_parts:
             try:
                 value = getattr(parsed, part)
-                if part == 'port':
+                if part == "port":
                     value = None if value is None else text_transform(value)
             except ValueError:
-                return self.note_error(element, state, 'bad_format')
+                return self.note_error(element, state, "bad_format")
             required = self.required_parts.get(part)
             if required is True:
                 if value is None:
-                    return self.note_error(element, state, 'required_part')
+                    return self.note_error(element, state, "required_part")
             elif required:
                 if value not in required:
-                    return self.note_error(element, state, 'required_part')
+                    return self.note_error(element, state, "required_part")
             forbidden = self.forbidden_parts.get(part)
             if forbidden is True:
                 if value:
-                    return self.note_error(element, state, 'forbidden_part')
+                    return self.note_error(element, state, "forbidden_part")
             elif forbidden:
                 if value in forbidden:
-                    return self.note_error(element, state, 'forbidden_part')
+                    return self.note_error(element, state, "forbidden_part")
         return True
 
 
@@ -313,9 +322,9 @@ class URLCanonicalizer(Validator):
 
     """
 
-    bad_format = N_('%(label)s is not a valid URL.')
+    bad_format = N_("%(label)s is not a valid URL.")
 
-    discard_parts = 'fragment',
+    discard_parts = ("fragment",)
     urlparse = urlparse
 
     def validate(self, element, state):
@@ -324,13 +333,13 @@ class URLCanonicalizer(Validator):
         try:
             url = self.urlparse.urlparse(element.value)
         except Exception:
-            return self.note_error(element, state, 'bad_format')
+            return self.note_error(element, state, "bad_format")
 
         url = list(url)
         for part in self.discard_parts:
             idx = _url_parts.index(part)
             current = url[idx]
-            url[idx] = '' if current is not None else None
+            url[idx] = "" if current is not None else None
 
         element.value = self.urlparse.urlunparse(url)
         return True

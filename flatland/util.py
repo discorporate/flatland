@@ -1,9 +1,10 @@
 import re
 import string
 import sys
+
 try:
     import threading
-except ImportError:                                           # pragma:nocover
+except ImportError:  # pragma:nocover
     import dummy_threading as threading
 
 from flatland._compat import PY2, text_type
@@ -11,13 +12,13 @@ from flatland._compat import PY2, text_type
 
 def decode_repr(x):
     """create a unicode string representation (as a unicode string)
-       for py2 and py3 that looks the same: u'example'
+    for py2 and py3 that looks the same: u'example'
     """
     r = repr(x)
     if PY2:
-        return r.decode('raw_unicode_escape')
+        return r.decode("raw_unicode_escape")
     else:
-        return 'u' + r
+        return "u" + r
 
 
 # derived from ASPN Cookbook (#36302)
@@ -72,8 +73,11 @@ class assignable_property:
         try:
             del instance.__dict__[self.name]
         except KeyError:
-            raise AttributeError("{!r} object has no overriden attribute {!r}".format(
-                type(instance).__name__, self.name))
+            raise AttributeError(
+                "{!r} object has no overriden attribute {!r}".format(
+                    type(instance).__name__, self.name
+                )
+            )
 
 
 class assignable_class_property:
@@ -113,8 +117,11 @@ class assignable_class_property:
         try:
             del instance.__dict__[self.name]
         except KeyError:
-            raise AttributeError("{!r} object has no overridden attribute {!r}".format(
-                type(instance).__name__, self.name))
+            raise AttributeError(
+                "{!r} object has no overridden attribute {!r}".format(
+                    type(instance).__name__, self.name
+                )
+            )
 
 
 class class_cloner:
@@ -139,12 +146,11 @@ class class_cloner:
                 return instance.__dict__[self.name]
             except KeyError:
                 raise AttributeError(self.name)
-        members = {'__doc__': getattr(cls, '__doc__', '')}
+        members = {"__doc__": getattr(cls, "__doc__", "")}
         try:
-            members['__module__'] = \
-              sys._getframe(1).f_globals['__name__']
+            members["__module__"] = sys._getframe(1).f_globals["__name__"]
         except (AttributeError, KeyError, TypeError):  # pragma: nocover
-            members['__module__'] = cls.__module__
+            members["__module__"] = cls.__module__
         clone = type(cls.__name__, (cls,), members)
         return self.cloner.__get__(None, clone)
 
@@ -155,8 +161,11 @@ class class_cloner:
         try:
             del instance.__dict__[self.name]
         except KeyError:
-            raise AttributeError("{!r} object has no attribute {!r}".format(
-                type(instance).__name__, self.name))
+            raise AttributeError(
+                "{!r} object has no attribute {!r}".format(
+                    type(instance).__name__, self.name
+                )
+            )
 
 
 class as_mapping:
@@ -167,7 +176,7 @@ class as_mapping:
 
     """
 
-    __slots__ = 'target',
+    __slots__ = ("target",)
 
     def __init__(self, target):
         self.target = target
@@ -175,7 +184,7 @@ class as_mapping:
     def __getitem__(self, item):
         try:
             if PY2 and isinstance(item, text_type):
-                return getattr(self.target, item.encode('ascii'))
+                return getattr(self.target, item.encode("ascii"))
             return getattr(self.target, item)
         except (AttributeError, UnicodeError):
             raise KeyError(item)
@@ -183,7 +192,7 @@ class as_mapping:
     def __contains__(self, item):
         if PY2 and isinstance(item, text_type):
             try:
-                return hasattr(self.target, item.encode('ascii'))
+                return hasattr(self.target, item.encode("ascii"))
             except UnicodeError:
                 return False
         return hasattr(self.target, item)
@@ -207,9 +216,9 @@ def re_ucompile(pattern, flags=0):
     return re.compile(pattern, flags | re.UNICODE)
 
 
-_alphanum = set(text_type(string.digits +
-                          string.ascii_lowercase +
-                          string.ascii_uppercase))
+_alphanum = set(
+    text_type(string.digits + string.ascii_lowercase + string.ascii_uppercase)
+)
 
 
 def re_uescape(pattern):
@@ -221,7 +230,7 @@ def re_uescape(pattern):
                 mutable[idx] = "\\000"
             else:
                 mutable[idx] = "\\" + char
-    return ''.join(mutable)
+    return "".join(mutable)
 
 
 def to_pairs(dictlike):
@@ -231,11 +240,11 @@ def to_pairs(dictlike):
     "dictlike".
 
     """
-    if hasattr(dictlike, 'iteritems'):
+    if hasattr(dictlike, "iteritems"):
         return dictlike.iteritems()
-    elif hasattr(dictlike, 'keys'):
+    elif hasattr(dictlike, "keys"):
         return ((key, dictlike[key]) for key in dictlike.keys())
-    elif hasattr(dictlike, '_asdict'): # namedtuple interface
+    elif hasattr(dictlike, "_asdict"):  # namedtuple interface
         return dictlike._asdict().iteritems()
     else:
         return ((key, value) for key, value in dictlike)
@@ -268,7 +277,7 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
 
     """
     if include and omit:
-        raise TypeError('received include and omit, specify only one')
+        raise TypeError("received include and omit, specify only one")
 
     include = set(include) if include else False
     omit = set(omit) if omit else False
@@ -300,6 +309,7 @@ class Maybe:
         elif other is False:
             return False
         return NotImplemented
+
     __rand__ = __and__
 
     def __or__(self, other):
@@ -308,6 +318,7 @@ class Maybe:
         elif other is True:
             return True
         return NotImplemented
+
     __ror__ = __or__
 
     def not_(self, other):
@@ -341,18 +352,20 @@ class Maybe:
     __nonzero__ = __bool__
 
     def __str__(self):
-        return 'Maybe'
+        return "Maybe"
+
     __repr__ = __str__
 
 
 Maybe = Maybe()
 
 
-def named_int_factory(name, value, doc=''):
+def named_int_factory(name, value, doc=""):
     """Return a unique integer *value* with a str() and repr() of *name*."""
     report_name = lambda self: name
-    cls = type(name, (int,), dict(
-        __doc__=doc, __str__=report_name, __repr__=report_name))
+    cls = type(
+        name, (int,), dict(__doc__=doc, __str__=report_name, __repr__=report_name)
+    )
     return cls(value)
 
 
@@ -364,16 +377,16 @@ def autodocument_from_superclasses(cls):
     undocumented = []
     for name, attribute in cls.__dict__.items():
         # is it a method on the class that is locally undocumented?
-        if hasattr(attribute, '__call__') and not attribute.__doc__:
+        if hasattr(attribute, "__call__") and not attribute.__doc__:
             # don't muck with builtins
-            if not hasattr(attribute, '__module__'):
+            if not hasattr(attribute, "__module__"):
                 continue
             # find docs on a superclass
             for supercls in cls.__bases__:
                 try:
                     superdoc = getattr(supercls, name).__doc__
                     if superdoc:
-                        setattr(attribute, '__doc__', superdoc)
+                        setattr(attribute, "__doc__", superdoc)
                         break
                 except (AttributeError, TypeError):
                     pass
@@ -393,7 +406,9 @@ class _symbol:
 
     def __repr__(self):
         return self.name
-_symbol.__name__ = 'symbol'
+
+
+_symbol.__name__ = "symbol"
 
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
@@ -411,6 +426,7 @@ class symbol:
     Repeated calls of symbol('name') will all return the same instance.
 
     """
+
     symbols = {}
     _lock = threading.Lock()
 
@@ -425,4 +441,4 @@ class symbol:
             symbol._lock.release()
 
 
-Unspecified = symbol('Unspecified')
+Unspecified = symbol("Unspecified")

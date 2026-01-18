@@ -4,7 +4,7 @@ from flatland.schema.base import Slot, Unset
 from flatland.schema.containers import (
     _evaluate_dict_strict_policy,
     _evaluate_dict_subset_policy,
-    )
+)
 from flatland.util import to_pairs
 from .base import N_, P_, Validator
 
@@ -83,7 +83,7 @@ class NotDuplicated(Validator):
     """
 
     # TRANSLATORS: NotDuplicated.failure
-    failure = N_('%(label)s may not be repeated within %(container_label)s.')
+    failure = N_("%(label)s may not be repeated within %(container_label)s.")
 
     comparator = operator.eq
 
@@ -91,9 +91,8 @@ class NotDuplicated(Validator):
         if element.parent is None:
             raise TypeError(
                 "%s validator must be applied to a child of a Container "
-                "type; %s has no parent." % (
-                    type(self).__name__,
-                    element.name))
+                "type; %s has no parent." % (type(self).__name__, element.name)
+            )
         container = element.parent
         if isinstance(container, Slot):
             container = container.parent
@@ -107,8 +106,12 @@ class NotDuplicated(Validator):
                 valid = False
         if not valid:
             return self.note_error(
-                element, state, 'failure',
-                position=position, container_label=container.label)
+                element,
+                state,
+                "failure",
+                position=position,
+                container_label=container.label,
+            )
         return True
 
 
@@ -145,14 +148,16 @@ class HasAtLeast(Validator):
     minimum = 1
 
     # TRANSLATORS: HasAtLeast.failure
-    failure = P_("%(label)s must contain at least one %(child_label)s",
-                 "%(label)s must contain at least %(minimum)s "
-                 "%(child_label)ss",
-                 'minimum')
+    failure = P_(
+        "%(label)s must contain at least one %(child_label)s",
+        "%(label)s must contain at least %(minimum)s " "%(child_label)ss",
+        "minimum",
+    )
 
     def validate(self, element, state):
-        assert hasattr(element, 'member_schema'), (
-            'container-length validator is only applicable to sequence types.')
+        assert hasattr(
+            element, "member_schema"
+        ), "container-length validator is only applicable to sequence types."
 
         # stupid edge case
         if not self.minimum:
@@ -160,8 +165,7 @@ class HasAtLeast(Validator):
 
         if element.value is None or len(element.value) < self.minimum:
             child_label = element.member_schema.label
-            return self.note_error(element, state, 'failure',
-                                   child_label=child_label)
+            return self.note_error(element, state, "failure", child_label=child_label)
         return True
 
 
@@ -198,19 +202,20 @@ class HasAtMost(Validator):
     maximum = 1
 
     # TRANSLATORS: HasAtMost.failure
-    failure = P_("%(label)s must contain at most one %(child_label)s",
-                 "%(label)s must contain at most %(maximum)s "
-                 "%(child_label)ss",
-                 'maximum')
+    failure = P_(
+        "%(label)s must contain at most one %(child_label)s",
+        "%(label)s must contain at most %(maximum)s " "%(child_label)ss",
+        "maximum",
+    )
 
     def validate(self, element, state):
-        assert hasattr(element, 'member_schema'), (
-            'container-length validator is only applicable to sequence types.')
+        assert hasattr(
+            element, "member_schema"
+        ), "container-length validator is only applicable to sequence types."
 
         if element.value and len(element.value) > self.maximum:
             child_label = element.member_schema.label
-            return self.note_error(element, state, 'failure',
-                                   child_label=child_label)
+            return self.note_error(element, state, "failure", child_label=child_label)
         return True
 
 
@@ -264,35 +269,41 @@ class HasBetween(Validator):
     maximum = 1
 
     # TRANSLATORS: HasBetween.range
-    range = P_("%(label)s must contain at least %(minimum)s and at most "
-               "%(maximum)s %(child_label)s",
-               "%(label)s must contain at least %(minimum)s and at most "
-               "%(maximum)s %(child_label)ss",
-               'maximum')
+    range = P_(
+        "%(label)s must contain at least %(minimum)s and at most "
+        "%(maximum)s %(child_label)s",
+        "%(label)s must contain at least %(minimum)s and at most "
+        "%(maximum)s %(child_label)ss",
+        "maximum",
+    )
 
     # TRANSLATORS: HasBetween.exact
-    exact = P_("%(label)s must contain exactly one %(child_label)s",
-               "%(label)s must contain exactly %(minimum)s %(child_label)ss",
-               'minimum')
+    exact = P_(
+        "%(label)s must contain exactly one %(child_label)s",
+        "%(label)s must contain exactly %(minimum)s %(child_label)ss",
+        "minimum",
+    )
 
     def __init__(self, **kw):
         Validator.__init__(self, **kw)
         if not self.maximum >= self.minimum >= 0:
-            raise TypeError("Nonsensical minimum & maximum values (%r, %r)" %
-                            (self.minimum, self.maximum))
+            raise TypeError(
+                "Nonsensical minimum & maximum values (%r, %r)"
+                % (self.minimum, self.maximum)
+            )
 
     def validate(self, element, state):
-        assert hasattr(element, 'member_schema'), (
-            'container-length validator is only applicable to sequence types.')
+        assert hasattr(
+            element, "member_schema"
+        ), "container-length validator is only applicable to sequence types."
 
         length = len(element.value) if element.value is not None else 0
         if self.minimum <= length <= self.maximum:
             return True
 
-        message = 'exact' if self.minimum == self.maximum else 'range'
+        message = "exact" if self.minimum == self.maximum else "range"
         child_label = element.member_schema.label
-        return self.note_error(element, state, message,
-                               child_label=child_label)
+        return self.note_error(element, state, message, child_label=child_label)
 
 
 class SetWithKnownFields(Validator):
@@ -365,9 +376,11 @@ class SetWithKnownFields(Validator):
     unexpected = N_("%(label)s may not contain %(unexpected)s")
 
     def validate(self, element, state):
-        if (element.raw is Unset or
-            element.raw is None or  # perverse case
-            hasattr(element.raw, 'next')):
+        if (
+            element.raw is Unset
+            or element.raw is None  # perverse case
+            or hasattr(element.raw, "next")
+        ):
             return True
 
         try:
@@ -379,10 +392,10 @@ class SetWithKnownFields(Validator):
         unexpected = _evaluate_dict_subset_policy(element, set_with)
         if not unexpected:
             return True
-        n_unex, unex = len(unexpected), ', '.join(sorted(unexpected))
-        return self.note_error(element, state, 'unexpected',
-                               unexpected=unex,
-                               n_unexpected=n_unex)
+        n_unex, unex = len(unexpected), ", ".join(sorted(unexpected))
+        return self.note_error(
+            element, state, "unexpected", unexpected=unex, n_unexpected=n_unex
+        )
 
 
 class SetWithAllFields(Validator):
@@ -456,13 +469,14 @@ class SetWithAllFields(Validator):
     missing = N_("%(label)s must contain %(missing)s")
 
     # TRANSLATORS: SetWithAllFields.both
-    both = N_('%(label)s must contain %(missing)s '
-              'and not contain %(unexpected)s')
+    both = N_("%(label)s must contain %(missing)s " "and not contain %(unexpected)s")
 
     def validate(self, element, state):
-        if (element.raw is Unset or
-            element.raw is None or  # perverse case
-            hasattr(element.raw, 'next')):
+        if (
+            element.raw is Unset
+            or element.raw is None  # perverse case
+            or hasattr(element.raw, "next")
+        ):
             return True
 
         try:
@@ -475,17 +489,21 @@ class SetWithAllFields(Validator):
         if not missing and not unexpected:
             return True
         elif missing and unexpected:
-            message = 'both'
+            message = "both"
         elif missing:
-            message = 'missing'
+            message = "missing"
         else:
-            message = 'unexpected'
+            message = "unexpected"
 
-        n_miss, miss = len(missing), ', '.join(sorted(missing))
-        n_unex, unex = len(unexpected), ', '.join(sorted(unexpected))
+        n_miss, miss = len(missing), ", ".join(sorted(missing))
+        n_unex, unex = len(unexpected), ", ".join(sorted(unexpected))
 
-        return self.note_error(element, state, message,
-                               n_missing=n_miss,
-                               missing=miss,
-                               n_unexpected=n_unex,
-                               unexpected=unex)
+        return self.note_error(
+            element,
+            state,
+            message,
+            n_missing=n_miss,
+            missing=miss,
+            n_unexpected=n_unex,
+            unexpected=unex,
+        )

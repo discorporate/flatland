@@ -10,7 +10,7 @@ from flatland._compat import (
     bytestring_type,
     text_type,
     xrange,
-    )
+)
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -20,21 +20,20 @@ from flatland.util import (
     re_uescape,
     to_pairs,
     decode_repr,
-    )
+)
 from flatland.signals import element_set
 from .base import Element, Unevaluated, Slot, validate_element
 from .scalars import Scalar
 
-
 __all__ = (
-    'Array',
-    'Container',
-    'Dict',
-    'List',
-    'Mapping',
-    'MultiValue',
-    'Sequence',
-    )
+    "Array",
+    "Container",
+    "Dict",
+    "List",
+    "Mapping",
+    "MultiValue",
+    "Sequence",
+)
 
 
 class Container(Element):
@@ -54,9 +53,9 @@ class Container(Element):
 
     """
 
-    validates_down = 'descent_validators'
+    validates_down = "descent_validators"
 
-    validates_up = 'validators'
+    validates_up = "validators"
 
     descent_validators = ()
     """.. TODO:: doc descent_validators"""
@@ -75,8 +74,8 @@ class Container(Element):
             if isinstance(validator, type):
                 raise TypeError(
                     "Validator %r is a type, not a callable or instance of a"
-                    "validator class.  Did you mean %r()?" % (
-                        validator, validator))
+                    "validator class.  Did you mean %r()?" % (validator, validator)
+                )
         cls.descent_validators = list(validators)
         return cls
 
@@ -92,11 +91,12 @@ class Container(Element):
 
         :returns: a new class
         """
-        position = kw.pop('position', -1)
+        position = kw.pop("position", -1)
         if kw:
-            raise TypeError('including_validators() got an '
-                            'unexpected keyword argument %r' % (
-                                kw.popitem()[0]))
+            raise TypeError(
+                "including_validators() got an "
+                "unexpected keyword argument %r" % (kw.popitem()[0])
+            )
         mutable = list(cls.descent_validators)
         if position < 0:
             position = len(mutable) + 1 + position
@@ -162,8 +162,7 @@ class Sequence(Container, list):
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, value, **kw)
         if not self.member_schema:
-            raise TypeError("Invalid schema: %r has no member_schema" %
-                            type(self))
+            raise TypeError("Invalid schema: %r has no member_schema" % type(self))
 
     @class_cloner
     def of(cls, *schema):
@@ -204,8 +203,9 @@ class Sequence(Container, list):
         """
         for field in schema:
             if isinstance(field, Element):
-                raise TypeError("'of' must be initialized with types, got "
-                                "instance %r" % field)
+                raise TypeError(
+                    "'of' must be initialized with types, got " "instance %r" % field
+                )
         if not schema:
             raise TypeError("One or more Element classes is required")
         elif len(schema) == 1:
@@ -382,10 +382,10 @@ class Sequence(Container, list):
 
     @property
     def u(self):
-        return '[%s]' % ', '.join(
-            element.u if isinstance(element, Container)
-                      else decode_repr(element.u)
-            for element in self.children)
+        return "[%s]" % ", ".join(
+            element.u if isinstance(element, Container) else decode_repr(element.u)
+            for element in self.children
+        )
 
 
 class ListSlot(Container, Slot):
@@ -415,7 +415,7 @@ class ListSlot(Container, Slot):
         return self.element.value
 
     def __repr__(self):
-        return f'<ListSlot[{self.name!r}] for {self.element!r}>'
+        return f"<ListSlot[{self.name!r}] for {self.element!r}>"
 
 
 class List(Sequence):
@@ -460,10 +460,8 @@ class List(Sequence):
         new_idx = len(self)
         name = str(new_idx)
         if not isinstance(name, text_type):
-            name = name.decode('ascii')
-        return self.slot_type(name=name,
-                              parent=self,
-                              element=self._as_element(value))
+            name = name.decode("ascii")
+        return self.slot_type(name=name, parent=self, element=self._as_element(value))
 
     @property
     def _slots(self):
@@ -538,7 +536,7 @@ class List(Sequence):
             # don't trigger naive unicode coercion (for test suite)
             name = str(idx)
             if not isinstance(name, text_type):
-                name = name.decode('ascii')
+                name = name.decode("ascii")
             slot.name = name
 
     @property
@@ -552,17 +550,20 @@ class List(Sequence):
             return
 
         if self.name:
-            regex = re.compile('^{}(\\d+)(?:{}|$)'.format(
-                re_uescape(self.name + sep), re_uescape(sep)), re.UNICODE)
+            regex = re.compile(
+                "^{}(\\d+)(?:{}|$)".format(
+                    re_uescape(self.name + sep), re_uescape(sep)
+                ),
+                re.UNICODE,
+            )
         else:
-            regex = re.compile('^(\\d+)(?:%s|$)' % (
-                re_uescape(sep)), re.UNICODE)
+            regex = re.compile("^(\\d+)(?:%s|$)" % (re_uescape(sep)), re.UNICODE)
 
         indexes = defaultdict(list)
         prune = self.prune_empty
 
         for key, value in pairs:
-            if value == '' and prune:
+            if value == "" and prune:
                 continue
             m = regex.match(key)
             if not m:
@@ -574,7 +575,7 @@ class List(Sequence):
                 # aren't valid data for us.
                 pass
             else:
-                child_key = key[len(m.group(0)):] or None
+                child_key = key[len(m.group(0)) :] or None
                 indexes[index].append((child_key, value))
 
         if not indexes:
@@ -651,33 +652,36 @@ class Array(Sequence):
 
         # TODO: some complexity snuck in below with the thought of supporting
         # arrays of containers.  they're *not* working yet.
-        assert not issubclass(self.member_schema, Container), \
-               "Flattened Arrays are only supported for scalar child types."
+        assert not issubclass(
+            self.member_schema, Container
+        ), "Flattened Arrays are only supported for scalar child types."
 
         if not self.name:
-            child_prefix = child_name or ''
+            child_prefix = child_name or ""
             for key, value in pairs:
-                if prune and value == '' and key == child_prefix:
+                if prune and value == "" and key == child_prefix:
                     continue
-                if key == '':
+                if key == "":
                     key = None
                 if child_name and key != child_name:
                     continue
                 member = self.member_schema.from_flat([(key, value)])
                 self.append(member)
         else:
-            regex = re.compile('^({}(?:{}|$))'.format(
-                re_uescape(self.name), re_uescape(sep)), re.UNICODE)
+            regex = re.compile(
+                "^({}(?:{}|$))".format(re_uescape(self.name), re_uescape(sep)),
+                re.UNICODE,
+            )
             for key, value in pairs:
                 m = regex.match(key)
                 if not m:
                     continue
-                remainder = key[m.end():] or None
+                remainder = key[m.end() :] or None
                 if child_name and not remainder:
                     continue
                 elif remainder and not child_name:
                     continue
-                elif prune and value == '' and remainder == child_name:
+                elif prune and value == "" and remainder == child_name:
                     continue
                 member = self.member_schema.from_flat([(remainder, value)])
                 self.append(member)
@@ -701,7 +705,7 @@ class MultiValue(Array, Scalar):
     def u(self):
         """The .u of the first item in the sequence, or u''."""
         if not self:
-            return ''
+            return ""
         else:
             return self[0].u
 
@@ -745,51 +749,54 @@ class Mapping(Container, dict):
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, **kw)
         if not self.field_schema:
-            raise TypeError("%r dictionary type has no fields defined" % (
-                type(self).__name__))
+            raise TypeError(
+                "%r dictionary type has no fields defined" % (type(self).__name__)
+            )
         self._reset()
         if value is not Unspecified:
             self.set(value)
 
     def __setitem__(self, key, value):
         if not key in self:
-            raise TypeError('May not set unknown key %r on %s %r' %
-                            (key, type(self).__name__, self.name))
+            raise TypeError(
+                "May not set unknown key %r on %s %r"
+                % (key, type(self).__name__, self.name)
+            )
         self[key].set(value)
 
     def __delitem__(self, key):
         # this may be overly pedantic
         if key not in self:
             raise KeyError(key)
-        raise TypeError('%s keys are immutable.' % type(self).__name__)
+        raise TypeError("%s keys are immutable." % type(self).__name__)
 
     def may_contain(self, key):
         """Return True if the element schema allows a field named **key**."""
         return key in self
 
     def clear(self):
-        raise TypeError('%s keys are immutable.' % type(self).__name__)
+        raise TypeError("%s keys are immutable." % type(self).__name__)
 
     def _reset(self):
         """Place blank children in all fields."""
         for member_schema in self.field_schema:
             key = member_schema.name
-            dict.__setitem__(
-                self, key, member_schema(parent=self))
+            dict.__setitem__(self, key, member_schema(parent=self))
 
     def popitem(self):
-        raise TypeError('%s keys are immutable.' % type(self).__name__)
+        raise TypeError("%s keys are immutable." % type(self).__name__)
 
     def pop(self, key):
         if key not in self:
             raise KeyError(key)
-        raise TypeError('%s keys are immutable.' % type(self).__name__)
+        raise TypeError("%s keys are immutable." % type(self).__name__)
 
     def update(self, *dictish, **kwargs):
         r"""Update with keys from dict-like *\*dictish* and *\*\*kwargs*"""
         if len(dictish) > 1:
             raise TypeError(
-                "update expected at most 1 arguments, got %s" % len(dictish))
+                "update expected at most 1 arguments, got %s" % len(dictish)
+            )
         elif dictish:
             for key, value in to_pairs(dictish[0]):
                 self[key] = value
@@ -798,13 +805,15 @@ class Mapping(Container, dict):
 
     def setdefault(self, key, default=None):
         # The key will always either be present or not creatable.
-        raise TypeError('%s keys are immutable.' % type(self).__name__)
+        raise TypeError("%s keys are immutable." % type(self).__name__)
 
     def get(self, key, default=None):
         if key not in self:
             raise KeyError(
-                'immutable {} {} schema does not contain key {!r}.'.format(
-                    type(self).__name__, self.name, key))
+                "immutable {} {} schema does not contain key {!r}.".format(
+                    type(self).__name__, self.name, key
+                )
+            )
         # default will never be used.
         return self[key]
 
@@ -824,16 +833,19 @@ class Mapping(Container, dict):
         for key, value in pairs:
             if not self.may_contain(key):
                 raise KeyError(
-                    '{} {!r} schema does not allow key {!r}'.format(
-                        type(self).__name__, self.name, key))
+                    "{} {!r} schema does not allow key {!r}".format(
+                        type(self).__name__, self.name, key
+                    )
+                )
             converted &= self[key].set(value)
             seen.add(key)
         required = set(iterkeys(self))
         if seen != required:
             missing = required - seen
             raise TypeError(
-                'all keys required for a set() operation, missing %s.' % (
-                    ','.join(repr(key) for key in missing)))
+                "all keys required for a set() operation, missing %s."
+                % (",".join(repr(key) for key in missing))
+            )
         element_set.send(self, adapted=converted)
         return converted
 
@@ -882,12 +894,11 @@ class Mapping(Container, dict):
     @property
     def u(self):
         """A string repr of the element."""
-        pairs = ((key, value.u if isinstance(value, Container)
-                               else decode_repr(value.u))
-                  for key, value in iteritems(self))
-        return '{%s}' % ', '.join(
-            f"{decode_repr(k)}: {v}"
-            for k, v in pairs)
+        pairs = (
+            (key, value.u if isinstance(value, Container) else decode_repr(value.u))
+            for key, value in iteritems(self)
+        )
+        return "{%s}" % ", ".join(f"{decode_repr(k)}: {v}" for k, v in pairs)
 
     @property
     def value(self):
@@ -919,7 +930,7 @@ class Mapping(Container, dict):
 class Dict(Mapping, dict):
     """A mapping Container with named members."""
 
-    policy = 'subset'
+    policy = "subset"
     """Deprecated.  One of 'strict', 'subset' or 'duck'.  Default 'subset'.
 
     Operates as :class:`~flatland.validation.containers.SetWithAllFields`
@@ -937,8 +948,9 @@ class Dict(Mapping, dict):
         # TODO: maybe accept **kw?
         for field in fields:
             if isinstance(field, Element):
-                raise TypeError("'of' must be initialized with types, got "
-                                "instance %r" % field)
+                raise TypeError(
+                    "'of' must be initialized with types, got " "instance %r" % field
+                )
 
         unique_names = {field.name for field in fields}
         # TODO: ensure these are types, not instances
@@ -947,9 +959,8 @@ class Dict(Mapping, dict):
             dupes = [name for name in unique_names if names.count(name) > 1]
             raise TypeError(
                 "All fields in a %s must have unique names. "
-                "Duplicates of: %s " % (
-                    cls.__name__,
-                    ', '.join(repr(f) for f in dupes)))
+                "Duplicates of: %s " % (cls.__name__, ", ".join(repr(f) for f in dupes))
+            )
 
         cls.field_schema = fields
         return cls
@@ -990,42 +1001,46 @@ class Dict(Mapping, dict):
 
         if policy is None:
             policy = self.policy
-        if policy not in ('strict', 'subset', 'duck', None):
-            raise RuntimeError("Unknown {} policy {!r}".format(
-                self.__class__.__name__, policy))
+        if policy not in ("strict", "subset", "duck", None):
+            raise RuntimeError(
+                "Unknown {} policy {!r}".format(self.__class__.__name__, policy)
+            )
 
-        if policy == 'strict':
+        if policy == "strict":
             missing, extra = _evaluate_dict_strict_policy(self, pairs)
             if missing and extra:
                 raise KeyError(
-                    'Strict %s %r schema does not allow keys %r and '
-                    'requires keys %r' % (
-                        self.__class__.__name__, self.name,
-                        list(extra), list(missing)))
+                    "Strict %s %r schema does not allow keys %r and "
+                    "requires keys %r"
+                    % (self.__class__.__name__, self.name, list(extra), list(missing))
+                )
             elif missing:
                 # match previous logic's exception type here
                 raise TypeError(
-                    'Strict {} {!r} schema requires keys {!r}'.format(
-                        self.__class__.__name__, self.name,
-                        list(missing)))
+                    "Strict {} {!r} schema requires keys {!r}".format(
+                        self.__class__.__name__, self.name, list(missing)
+                    )
+                )
             elif extra:
                 raise KeyError(
-                    'Strict {} {!r} schema does not allow keys {!r}'.format(
-                        self.__class__.__name__, self.name,
-                        list(extra)))
-        elif policy == 'subset':
+                    "Strict {} {!r} schema does not allow keys {!r}".format(
+                        self.__class__.__name__, self.name, list(extra)
+                    )
+                )
+        elif policy == "subset":
             mismatch = _evaluate_dict_subset_policy(self, pairs)
             if mismatch:
                 raise KeyError(
-                    'Subset {} {!r} schema does not allow keys {!r}'.format(
-                        self.__class__.__name__, self.name,
-                        list(mismatch)))
+                    "Subset {} {!r} schema does not allow keys {!r}".format(
+                        self.__class__.__name__, self.name, list(mismatch)
+                    )
+                )
 
         fields = self.field_schema_mapping
         converted = True
         for key, value in pairs:
             if PY2 and isinstance(key, bytestring_type):
-                key = key.decode('ascii', 'replace')
+                key = key.decode("ascii", "replace")
             if key not in fields:
                 continue
             if dict.__contains__(self, key):
@@ -1097,25 +1112,24 @@ class Dict(Mapping, dict):
         attributes = fields.copy()
         if rename:
             rename = list(to_pairs(rename))
-            attributes.update(key for key, value in rename
-                                  if value in attributes)
+            attributes.update(key for key, value in rename if value in attributes)
         if omit:
             omit = list(omit)
             attributes.difference_update(omit)
 
-        possible = ((attr, getattr(obj, attr))
-                    for attr in sorted(attributes)
-                    if hasattr(obj, attr))
+        possible = (
+            (attr, getattr(obj, attr))
+            for attr in sorted(attributes)
+            if hasattr(obj, attr)
+        )
 
-        sliced = keyslice_pairs(possible, include=include,
-                                omit=omit, rename=rename)
-        final = {key: value
-                     for key, value in sliced
-                     if key in fields}
+        sliced = keyslice_pairs(possible, include=include, omit=omit, rename=rename)
+        final = {key: value for key, value in sliced if key in fields}
         self.set(final)
 
-    def update_object(self, obj, include=None, omit=None, rename=None,
-                      key=identifier_transform):
+    def update_object(
+        self, obj, include=None, omit=None, rename=None, key=identifier_transform
+    ):
         """Update an object's attributes using the element's values.
 
         Produces a :meth:`slice` using *include*, *omit*, *rename* and
@@ -1131,13 +1145,10 @@ class Dict(Mapping, dict):
 
     def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a ``dict`` containing a subset of the element's values."""
-        pairs = ((key, element.value)
-                 for key, element in sorted(iteritems(self)))
-        sliced = keyslice_pairs(pairs,
-                                include=include,
-                                omit=omit,
-                                rename=rename,
-                                key=key)
+        pairs = ((key, element.value) for key, element in sorted(iteritems(self)))
+        sliced = keyslice_pairs(
+            pairs, include=include, omit=omit, rename=rename, key=key
+        )
         return dict(sliced)
 
 
@@ -1170,15 +1181,16 @@ class SparseDict(Dict):
             key = member_schema.name
             if self.minimum_fields is None or member_schema.optional:
                 continue
-            dict.__setitem__(
-                self, key, member_schema(parent=self))
+            dict.__setitem__(self, key, member_schema(parent=self))
 
     def __setitem__(self, key, value):
         schema = self._field_schema_for(key)
         if not dict.__contains__(self, key):
             if schema is None:
-                raise TypeError('May not set unknown key %r on %s %r' %
-                                (key, type(self).__name__, self.name))
+                raise TypeError(
+                    "May not set unknown key %r on %s %r"
+                    % (key, type(self).__name__, self.name)
+                )
             elif isinstance(value, schema):
                 value.parent = self
                 dict.__setitem__(self, key, value)
@@ -1198,8 +1210,9 @@ class SparseDict(Dict):
             except KeyError:
                 if not self.may_contain(key):
                     raise TypeError(
-                        'May not request del for unknown key %r on %s %r' %
-                        (key, type(self).__name__, self.name))
+                        "May not request del for unknown key %r on %s %r"
+                        % (key, type(self).__name__, self.name)
+                    )
                 raise
         if key in self:
             optional = self[key].optional
@@ -1207,12 +1220,15 @@ class SparseDict(Dict):
             schema = self._field_schema_for(key)
             if schema is None:
                 raise TypeError(
-                    'May not request del for unknown key %r on %s %r' %
-                    (key, type(self).__name__, self.name))
+                    "May not request del for unknown key %r on %s %r"
+                    % (key, type(self).__name__, self.name)
+                )
             optional = schema.optional
         if not optional:
-            raise TypeError('May not delete required key %r on %s %r' %
-                            (key, type(self).__name__, self.name))
+            raise TypeError(
+                "May not delete required key %r on %s %r"
+                % (key, type(self).__name__, self.name)
+            )
         dict.__delitem__(self, key)
 
     def clear(self):
@@ -1224,15 +1240,18 @@ class SparseDict(Dict):
     def pop(self, key):
         if key not in self:
             raise KeyError(key)
-        if self.minimum_fields == 'required' and not self[key].optional:
-            raise TypeError('May not pop required key %r on %s %r' %
-                            (key, type(self).__name__, self.name))
+        if self.minimum_fields == "required" and not self[key].optional:
+            raise TypeError(
+                "May not pop required key %r on %s %r"
+                % (key, type(self).__name__, self.name)
+            )
         return dict.pop(self, key)
 
     def setdefault(self, key, default=None):
         if not self.may_contain(key):
-            raise TypeError('Key %r not allowed in %s %r' %
-                            (key, type(self).__name__, self.name))
+            raise TypeError(
+                "Key %r not allowed in %s %r" % (key, type(self).__name__, self.name)
+            )
 
         if key in self:
             child = self[key]
@@ -1255,22 +1274,23 @@ class SparseDict(Dict):
             self.set(default)
         elif self.minimum_fields is None:
             self._reset()
-        elif self.minimum_fields == 'required':
+        elif self.minimum_fields == "required":
             self._reset()
             for schema in self.field_schema:
                 if schema.optional:
                     continue
                 self[schema.name] = schema.from_defaults()
         else:
-            raise RuntimeError("Unknown minimum_fields setting %r" %
-                               (self.minimum_fields,))
+            raise RuntimeError(
+                "Unknown minimum_fields setting %r" % (self.minimum_fields,)
+            )
 
 
 def _textset(iterable):
     values = set()
     for value in iterable:
         if PY2 and isinstance(value, bytestring_type):
-            value = value.decode('ascii', 'replace')
+            value = value.decode("ascii", "replace")
         values.add(value)
     return values
 

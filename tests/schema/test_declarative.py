@@ -2,7 +2,7 @@ from flatland import (
     Schema,
     Integer,
     String,
-    )
+)
 
 from tests._util import requires_unicode_coercion
 
@@ -13,7 +13,7 @@ def test_from_object():
     class Obj:
 
         def __init__(self, **kw):
-            for (k, v) in kw.items():
+            for k, v in kw.items():
                 setattr(self, k, v)
 
     class Point(Schema):
@@ -28,33 +28,33 @@ def test_from_object():
 
     assert from_obj(Obj()) == dict(x=None, y=None)
 
-    assert from_obj(Obj(x='x!')) == dict(x='x!', y=None)
-    assert from_obj(Obj(x='x!', y='y!')) == dict(x='x!', y='y!')
-    assert from_obj(Obj(x='x!', z='z!')) == dict(x='x!', y=None)
+    assert from_obj(Obj(x="x!")) == dict(x="x!", y=None)
+    assert from_obj(Obj(x="x!", y="y!")) == dict(x="x!", y="y!")
+    assert from_obj(Obj(x="x!", z="z!")) == dict(x="x!", y=None)
 
-    assert from_obj(Obj(x='x!', y='y!'), include=['x']) == dict(x='x!', y=None)
-    assert from_obj(Obj(x='x!', y='y!'), omit=['y']) == dict(x='x!', y=None)
+    assert from_obj(Obj(x="x!", y="y!"), include=["x"]) == dict(x="x!", y=None)
+    assert from_obj(Obj(x="x!", y="y!"), omit=["y"]) == dict(x="x!", y=None)
 
-    assert from_obj(Obj(x='x!', z='z!'), rename={'z': 'y'}) == dict(x='x!', y='z!')
+    assert from_obj(Obj(x="x!", z="z!"), rename={"z": "y"}) == dict(x="x!", y="z!")
 
-    assert from_obj(Obj(x='x!', z='z!'), rename={'z': 'x'}) == dict(x='z!', y=None)
+    assert from_obj(Obj(x="x!", z="z!"), rename={"z": "x"}) == dict(x="z!", y=None)
 
-    assert from_obj(Obj(x='x!', z='z!'), rename={'z': 'z'}) == dict(x='x!', y=None)
+    assert from_obj(Obj(x="x!", z="z!"), rename={"z": "z"}) == dict(x="x!", y=None)
 
-    assert from_obj(Obj(x='x!', z='z!'), rename={'x': 'z'}) == dict(x=None, y=None)
+    assert from_obj(Obj(x="x!", z="z!"), rename={"x": "z"}) == dict(x=None, y=None)
 
 
 def test_composition():
 
     class Inner(Schema):
-        sound = String.using(default='bleep')
+        sound = String.using(default="bleep")
 
     class Outer(Schema):
         the_in = Inner
-        way_out = String.using(default='mooooog')
+        way_out = String.using(default="mooooog")
 
-    unset = {'the_in': {'sound': None}, 'way_out': None}
-    wanted = {'the_in': {'sound': 'bleep'}, 'way_out': 'mooooog'}
+    unset = {"the_in": {"sound": None}, "way_out": None}
+    wanted = {"the_in": {"sound": "bleep"}, "way_out": "mooooog"}
 
     el = Outer.from_defaults()
     assert el.value == wanted
@@ -73,16 +73,16 @@ def test_inheritance_straight():
         base_member = String
 
     assert len(Base.field_schema) == 1
-    assert list(Base().keys()) == ['base_member']
+    assert list(Base().keys()) == ["base_member"]
 
     class Sub(Base):
         added_member = String
 
     assert len(Base.field_schema) == 1
-    assert list(Base().keys()) == ['base_member']
+    assert list(Base().keys()) == ["base_member"]
 
     assert len(Sub.field_schema) == 2
-    assert set(Sub().keys()) == {'base_member', 'added_member'}
+    assert set(Sub().keys()) == {"base_member", "added_member"}
 
 
 @requires_unicode_coercion
@@ -102,41 +102,41 @@ def test_inheritance_diamond():
 
     for cls in AB1, BA1:
         assert len(cls.field_schema) == 2
-        assert set(cls().keys()) == {'a_member', 'b_member'}
+        assert set(cls().keys()) == {"a_member", "b_member"}
 
     class AB2(A, B):
         ab_member = String
 
     assert len(AB2.field_schema) == 3
-    assert set(AB2().keys()) == {'a_member', 'b_member', 'ab_member'}
+    assert set(AB2().keys()) == {"a_member", "b_member", "ab_member"}
 
     class AB3(A, B):
         a_member = Integer
 
     assert len(AB3.field_schema) == 2
-    assert isinstance(AB3()['a_member'], Integer)
+    assert isinstance(AB3()["a_member"], Integer)
 
     class BA2(B, A):
         a_member = Integer
         b_member = Integer
 
     assert len(BA2.field_schema) == 2
-    assert isinstance(BA2()['a_member'], Integer)
-    assert isinstance(BA2()['b_member'], Integer)
+    assert isinstance(BA2()["a_member"], Integer)
+    assert isinstance(BA2()["b_member"], Integer)
 
     class BA3(B, A):
-        field_schema = [Integer.named('b_member')]
+        field_schema = [Integer.named("b_member")]
 
         a_member = Integer
 
     assert len(BA3.field_schema) == 2
-    assert isinstance(BA3()['a_member'], Integer)
-    assert isinstance(BA3()['b_member'], Integer)
+    assert isinstance(BA3()["a_member"], Integer)
+    assert isinstance(BA3()["b_member"], Integer)
 
     class BA4(B, A):
-        field_schema = [Integer.named('ab_member')]
+        field_schema = [Integer.named("ab_member")]
 
         ab_member = String
 
     assert len(BA4.field_schema) == 3
-    assert isinstance(BA4()['ab_member'], String)
+    assert isinstance(BA4()["ab_member"], String)
