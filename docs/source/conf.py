@@ -33,8 +33,8 @@ autodoc_member_order = 'bysource'
 
 
 intersphinx_mapping = {
-    'http://docs.python.org/': None,
-    'http://pythonhosted.org/blinker/': None,
+    'python': ('https://docs.python.org/3/', None),
+    'blinker': ('https://blinker.readthedocs.io/en/stable/', None),
 }
 
 
