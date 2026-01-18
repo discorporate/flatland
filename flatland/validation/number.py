@@ -4,17 +4,17 @@ from .base import N_, Validator
 class Luhn10(Validator):
     """True if a numeric value passes luhn10 checksum validation."""
 
-    invalid = N_('The %(label)s was not entered correctly.')
+    invalid = N_("The %(label)s was not entered correctly.")
 
     def validate(self, element, state):
         num = element.value
         if num is None:
-            return self.note_error(element, state, 'invalid')
+            return self.note_error(element, state, "invalid")
 
         if luhn10_check(num):
             return True
 
-        return self.note_error(element, state, 'invalid')
+        return self.note_error(element, state, "invalid")
 
 
 def luhn10_check(number):

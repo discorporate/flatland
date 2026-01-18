@@ -4,15 +4,14 @@ from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
-
-_default_settings = {'ordered_attributes': True}
-_static_attribute_order = ['type', 'name', 'value']
+_default_settings = {"ordered_attributes": True}
+_static_attribute_order = ["type", "name", "value"]
 
 
 class Generator(Context):
     """General XML/HTML tag generator"""
 
-    def __init__(self, markup='xhtml', **settings):
+    def __init__(self, markup="xhtml", **settings):
         """Create a generator.
 
         Accepts any :ref:`markupsettings`, as well as the following:
@@ -25,9 +24,9 @@ class Generator(Context):
 
         """
         Context.__init__(self)
-        if markup == 'html':
+        if markup == "html":
             self.xml = False
-        elif markup in ('xhtml', 'xml'):
+        elif markup in ("xhtml", "xml"):
             self.xml = True
         else:
             raise TypeError("Unknown markup type %r" % markup)
@@ -45,7 +44,7 @@ class Generator(Context):
 
         """
         self.push(**settings)
-        return self['markup_wrapper']('')
+        return self["markup_wrapper"]("")
 
     def end(self):
         """End a :ref:`markupsettings` context.
@@ -56,7 +55,7 @@ class Generator(Context):
         if len(self._frames) == 2:
             raise RuntimeError("end() without matching begin()")
         self.pop()
-        return self['markup_wrapper']('')
+        return self["markup_wrapper"]("")
 
     def set(self, **settings):
         r"""Change the :ref:`markupsettings` in effect.
@@ -69,14 +68,13 @@ class Generator(Context):
 
         for key, value in settings.items():
             if PY2:
-                key = key.decode('ascii')
+                key = key.decode("ascii")
             if key not in self:
-                raise TypeError(
-                    "%r is not a valid argument." % key)
-            if key.startswith('auto_'):
+                raise TypeError("%r is not a valid argument." % key)
+            if key.startswith("auto_"):
                 value = parse_trool(value)
             self[key] = value
-        return self['markup_wrapper']('')
+        return self["markup_wrapper"]("")
 
     @property
     def form(self):
@@ -89,7 +87,7 @@ class Generator(Context):
         If provided with a bind, form tags can generate the *name* attribute.
 
         """
-        return self._tag('form', False, True)
+        return self._tag("form", False, True)
 
     @property
     def input(self):
@@ -103,7 +101,7 @@ class Generator(Context):
         and *id* attributes.  Input tags support *tabindex* attributes.
 
         """
-        return self._tag('input', True)
+        return self._tag("input", True)
 
     @property
     def textarea(self):
@@ -120,7 +118,7 @@ class Generator(Context):
         :meth:`~Tag.open` and :meth:`~Tag.close` method of the returned tag.
 
         """
-        return self._tag('textarea', False, True)
+        return self._tag("textarea", False, True)
 
     @property
     def button(self):
@@ -134,7 +132,7 @@ class Generator(Context):
         and *id* attributes.  Button tags support *tabindex* attributes.
 
         """
-        return self._tag('button')
+        return self._tag("button")
 
     @property
     def select(self):
@@ -148,7 +146,7 @@ class Generator(Context):
         attributes.  Select tags support *tabindex* attributes.
 
         """
-        return self._tag('select', False, True)
+        return self._tag("select", False, True)
 
     @property
     def option(self):
@@ -167,7 +165,7 @@ class Generator(Context):
            print(generator.option.close())
 
         """
-        return self._tag('option', False, True)
+        return self._tag("option", False, True)
 
     @property
     def label(self):
@@ -182,7 +180,7 @@ class Generator(Context):
         :attr:`~flatland.Element.label`, if present.
 
         """
-        return self._tag('label')
+        return self._tag("label")
 
     def tag(self, tagname, bind=None, **attributes):
         r"""Generate any tag.
@@ -227,8 +225,7 @@ class Tag:
 
     """
 
-    __slots__ = ('tagname', 'contents', '_context',
-                 '_html_dangle', '_always_paired')
+    __slots__ = ("tagname", "contents", "_context", "_html_dangle", "_always_paired")
 
     def __init__(self, tagname, context, dangle, paired):
         self.tagname = tagname
@@ -246,7 +243,7 @@ class Tag:
         """
         if self not in self._context._tags[self.tagname]:
             self._context._tags[self.tagname].append(self)
-        return self._markup(self._open(bind, attributes) + '>')
+        return self._markup(self._open(bind, attributes) + ">")
 
     def close(self):
         """Return the closing half of the tag, e.g. ``</p>``."""
@@ -258,34 +255,32 @@ class Tag:
 
     def _open(self, bind, kwargs):
         """Return a ``'<partial'`` opener tag with no terminator."""
-        contents = kwargs.pop('contents', None)
+        contents = kwargs.pop("contents", None)
         attributes = _transform_keys(kwargs)
         tagname = self.tagname
-        new_contents = transform(
-            tagname, attributes, contents, self._context, bind)
+        new_contents = transform(tagname, attributes, contents, self._context, bind)
 
         if not new_contents:
-            new_contents = ''
-        elif hasattr(new_contents, '__html__'):
+            new_contents = ""
+        elif hasattr(new_contents, "__html__"):
             new_contents = _unpack(new_contents)
         self.contents = self._markup(new_contents)
 
-        if self._context['ordered_attributes']:
+        if self._context["ordered_attributes"]:
             pairs = sorted(attributes.items(), key=_attribute_sort_key)
         else:
             pairs = iteritems(attributes)
-        guts = ' '.join(f'{k}="{_attribute_escape(v)}"'
-                         for k, v in pairs)
+        guts = " ".join(f'{k}="{_attribute_escape(v)}"' for k, v in pairs)
         if guts:
-            return '<' + tagname + ' ' + guts
+            return "<" + tagname + " " + guts
         else:
-            return '<' + tagname
+            return "<" + tagname
 
     def _close(self):
-        return '</' + self.tagname + '>'
+        return "</" + self.tagname + ">"
 
     def _markup(self, string):
-        return self._context['markup_wrapper'](string)
+        return self._context["markup_wrapper"](string)
 
     def __call__(self, bind=None, **attributes):
         """Return a complete, closed markup string."""
@@ -294,12 +289,12 @@ class Tag:
         if not contents:
             if not self._always_paired:
                 if self._context.xml:
-                    return self._markup(header + ' />')
+                    return self._markup(header + " />")
                 elif self._html_dangle:
-                    return self._markup(header + '>')
-        if hasattr(contents, '__html__'):
+                    return self._markup(header + ">")
+        if hasattr(contents, "__html__"):
             contents = _unpack(contents)
-        return self._markup(header + '>' + contents + self._close())
+        return self._markup(header + ">" + contents + self._close())
 
     def __html__(self):
         return self()
@@ -307,23 +302,24 @@ class Tag:
 
 def _attribute_escape(string):
     if not string:
-        return ''
-    elif hasattr(string, '__html__'):
+        return ""
+    elif hasattr(string, "__html__"):
         return _unpack(string)
     else:
-        return string. \
-               replace('&', '&amp;'). \
-               replace('<', '&lt;'). \
-               replace('>', '&gt;'). \
-               replace('"', '&quot;')
+        return (
+            string.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+        )
 
 
 def _transform_keys(d):
     rekeyed = {}
     for key, value in d.items():
         if PY2:
-            key = key.decode('ascii')
-        key = key.rstrip('_')
+            key = key.decode("ascii")
+        key = key.rstrip("_")
         rekeyed[key] = value
     return rekeyed
 

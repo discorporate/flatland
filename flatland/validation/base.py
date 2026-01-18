@@ -1,14 +1,14 @@
 """Base functionality for fancy validation."""
+
 from operator import attrgetter
 
 from flatland._compat import getattr_py2, hasattr_py2, iteritems, setattr_py2
 from flatland.schema.util import find_i18n_function
 
-
 N_ = lambda translatable: translatable
 P_ = lambda *translatable: translatable
-_ugettext_finder = attrgetter('ugettext')
-_ungettext_finder = attrgetter('ungettext')
+_ugettext_finder = attrgetter("ugettext")
+_ungettext_finder = attrgetter("ungettext")
 
 
 class Validator:
@@ -25,8 +25,11 @@ class Validator:
             if hasattr_py2(cls, attr):
                 setattr_py2(self, attr, value)
             else:
-                raise TypeError("{} has no attribute {!r}, can not override.".format(
-                    cls.__name__, attr))
+                raise TypeError(
+                    "{} has no attribute {!r}, can not override.".format(
+                        cls.__name__, attr
+                    )
+                )
 
     def __call__(self, element, state):
         """Adapts Validator to the Element.validate callable interface."""
@@ -107,8 +110,7 @@ class Validator:
         """
         message = message or getattr_py2(self, key)
         if message:
-            element.add_error(
-                self.expand_message(element, state, message, **info))
+            element.add_error(self.expand_message(element, state, message, **info))
         return False
 
     def note_warning(self, element, state, key=None, message=None, **info):
@@ -143,8 +145,7 @@ class Validator:
         """
         message = message or getattr_py2(self, key)
         if message:
-            element.add_warning(
-                self.expand_message(element, state, message, **info))
+            element.add_warning(self.expand_message(element, state, message, **info))
         return False
 
     def find_transformer(self, type, element, state, message):
@@ -183,15 +184,15 @@ class Validator:
         """
         if hasattr_py2(state, type):
             return getattr_py2(state, type)
-        if hasattr(state, '__getitem__'):
+        if hasattr(state, "__getitem__"):
             try:
                 return state[type]
             except KeyError:
                 pass
 
-        if type == 'ugettext':
+        if type == "ugettext":
             finder = _ugettext_finder
-        elif type == 'ungettext':
+        elif type == "ungettext":
             finder = _ungettext_finder
         else:
             raise RuntimeError("Unknown transformation %r" % type)
@@ -228,15 +229,14 @@ class Validator:
         if callable(message):
             message = message(element, state)
 
-        ugettext = self.find_transformer('ugettext', element, state, message)
+        ugettext = self.find_transformer("ugettext", element, state, message)
 
         format_map = as_format_mapping(
-            extra_format_args, state, self, element,
-            transform=ugettext)
+            extra_format_args, state, self, element, transform=ugettext
+        )
 
         if isinstance(message, tuple):
-            ungettext = self.find_transformer(
-                'ungettext', element, state, message)
+            ungettext = self.find_transformer("ungettext", element, state, message)
 
             single, plural, n_key = message
             try:
@@ -271,20 +271,20 @@ class as_format_mapping:
 
     """
 
-    __slots__ = 'targets', 'transform'
+    __slots__ = "targets", "transform"
 
     def __init__(self, *targets, **kw):
         self.targets = [t for t in targets if t is not None]
-        self.transform = kw.pop('transform', None)
+        self.transform = kw.pop("transform", None)
         if kw:
-            raise TypeError('unexpected keyword argument')
+            raise TypeError("unexpected keyword argument")
 
     def __getitem__(self, item):
         __hopeless_morass_of_unicode_hell__ = True
 
         for target in self.targets:
             # try target[item] first
-            if hasattr(target, '__getitem__'):
+            if hasattr(target, "__getitem__"):
                 try:
                     value = target[item]
                     break

@@ -3,8 +3,7 @@ from weakref import WeakKeyDictionary
 from flatland._compat import iteritems
 from flatland.util import symbol
 
-
-Deleted = symbol('deleted')
+Deleted = symbol("deleted")
 
 
 class DictLike:
@@ -58,7 +57,7 @@ class DictLike:
 
 
 class _TypeLookup(DictLike):
-    __slots__ = 'base', 'map', 'descriptor_id'
+    __slots__ = "base", "map", "descriptor_id"
 
     def __init__(self, cls, descriptor):
         self.base = cls
@@ -117,7 +116,7 @@ class _TypeLookup(DictLike):
 
     def _frames(self):
         for cls in self.base.__mro__:
-            member = cls.__dict__.get('properties')
+            member = cls.__dict__.get("properties")
             if cls not in self.map:
                 if member is None or id(member) != self.descriptor_id:
                     continue
@@ -132,8 +131,8 @@ class _TypeLookup(DictLike):
             return self.map[self.base]
         except KeyError:
             pass
-        if 'properties' in self.base.__dict__:
-            member = self.base.__dict__['properties']
+        if "properties" in self.base.__dict__:
+            member = self.base.__dict__["properties"]
             if id(member) == self.descriptor_id:
                 return self.map.setdefault(self.base, member.initial_set)
         return self.map.setdefault(self.base, {})
@@ -144,16 +143,16 @@ class local_storage(dict):
 
 
 class _InstanceLookup(DictLike):
-    __slots__ = 'local', 'class_lookup'
+    __slots__ = "local", "class_lookup"
 
     def __init__(self, instance, class_lookup):
         try:
-            local = instance.__dict__.setdefault('properties', local_storage())
+            local = instance.__dict__.setdefault("properties", local_storage())
         except AttributeError:
             # Descriptor not supported for slots types.
             raise AttributeError(
-                "%s object has no attribute 'properties'" % (
-                    instance.__class__))
+                "%s object has no attribute 'properties'" % (instance.__class__)
+            )
         self.local = local
         self.class_lookup = class_lookup
 
@@ -221,7 +220,7 @@ class Properties:
         if instance is None:
             return class_lookup
         try:
-            local = instance.__dict__['properties']
+            local = instance.__dict__["properties"]
         except (KeyError, AttributeError):
             pass
         else:
@@ -232,4 +231,4 @@ class Properties:
         return _InstanceLookup(instance, class_lookup)
 
     def __set__(self, instance, value):
-        instance.__dict__['properties'] = value
+        instance.__dict__["properties"] = value

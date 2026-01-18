@@ -12,44 +12,59 @@ from flatland.util import (
     class_cloner,
     named_int_factory,
     symbol,
-    )
+)
 
-
-__all__ = 'Element'
+__all__ = "Element"
 
 NoneType = type(None)
-Root = symbol('Root')
-NotEmpty = symbol('NotEmpty')
-Unset = symbol('Unset')
+Root = symbol("Root")
+NotEmpty = symbol("NotEmpty")
+Unset = symbol("Unset")
 
-Skip = named_int_factory('Skip', True, doc="""\
+Skip = named_int_factory(
+    "Skip",
+    True,
+    doc="""\
 Abort validation of the element & mark as valid.
-""")
+""",
+)
 
-SkipAll = named_int_factory('SkipAll', True, doc="""\
+SkipAll = named_int_factory(
+    "SkipAll",
+    True,
+    doc="""\
 Abort validation of the element and its children & mark as valid.
 
 The :attr:`~Element.valid` of child elements will not be changed by skipping.
 Unless otherwise set, the child elements will retain the default value
 (:obj:`Unevaluated`).  Only meaningful during a decent validation.  Functions
 as :obj:`Skip` on upward validation.
-""")
+""",
+)
 
-SkipAllFalse = named_int_factory('SkipAllFalse', False, doc="""\
+SkipAllFalse = named_int_factory(
+    "SkipAllFalse",
+    False,
+    doc="""\
 Aborts validation of the element and its children & mark as invalid.
 
 The :attr:`~Element.valid` of child elements will not be changed by skipping.
 Unless otherwise set, the child elements will retain the default value
 (:obj:`Unevaluated`). Only meaningful during a decent validation.  Functions
 as ``False`` on upward validation.
-""")
+""",
+)
 
-Unevaluated = named_int_factory('Unevaluated', True, doc="""\
+Unevaluated = named_int_factory(
+    "Unevaluated",
+    True,
+    doc="""\
 A psuedo-boolean representing a presumptively valid state.
 
 Assigned to newly created elements that have never been evaluated by
 :meth:`Element.validate`.  Evaluates to true.
-""")
+""",
+)
 
 
 class Element:
@@ -104,7 +119,7 @@ class Element:
     raw = Unset
     """The element's raw, unadapted value from input."""
 
-    u = ''
+    u = ""
     """A string representation of the element's value.
 
     As in :attr:`value`, writing directly to this attribute should be
@@ -121,7 +136,7 @@ class Element:
     validates_up = None
 
     def __init__(self, value=Unspecified, **kw):
-        self.parent = kw.pop('parent', None)
+        self.parent = kw.pop("parent", None)
 
         self.valid = Unevaluated
         self.errors = []
@@ -129,8 +144,8 @@ class Element:
 
         # FIXME This (and 'using') should also do descent_validators
         # via lookup - or don't copy at all
-        if 'validators' in kw:
-            kw['validators'] = list(kw['validators'])
+        if "validators" in kw:
+            kw["validators"] = list(kw["validators"])
 
         for attribute, override in kw.items():
             if hasattr(self, attribute):
@@ -138,8 +153,9 @@ class Element:
             else:
                 raise TypeError(
                     "%r is an invalid keyword argument: not a known "
-                    "argument or an overridable class property of %s" % (
-                        attribute, type(self).__name__))
+                    "argument or an overridable class property of %s"
+                    % (attribute, type(self).__name__)
+                )
 
         if value is not Unspecified:
             self.set(value)
@@ -169,12 +185,12 @@ class Element:
         # TODO: See TODO in __init__
         # TODO: take this from 'validates_up' and 'validates_down',
         #       don't hardcode validators
-        if 'validators' in overrides:
-            overrides['validators'] = list(overrides['validators'])
+        if "validators" in overrides:
+            overrides["validators"] = list(overrides["validators"])
 
-        if 'properties' in overrides:
-            if not isinstance(overrides['properties'], Properties):
-                overrides['properties'] = Properties(overrides['properties'])
+        if "properties" in overrides:
+            if not isinstance(overrides["properties"], Properties):
+                overrides["properties"] = Properties(overrides["properties"])
 
         for attribute, value in iteritems(overrides):
             # TODO: must make better
@@ -185,8 +201,9 @@ class Element:
                 continue
             raise TypeError(
                 "%r is an invalid keyword argument: not a known "
-                "argument or an overridable class property of %s" % (
-                    attribute, cls.__name__))
+                "argument or an overridable class property of %s"
+                % (attribute, cls.__name__)
+            )
         return cls
 
     @class_cloner
@@ -204,8 +221,8 @@ class Element:
             if isinstance(validator, type):
                 raise TypeError(
                     "Validator %r is a type, not a callable or instance of a"
-                    "validator class.  Did you mean %r()?" % (
-                        validator, validator))
+                    "validator class.  Did you mean %r()?" % (validator, validator)
+                )
         cls.validators = list(validators)
         return cls
 
@@ -221,11 +238,12 @@ class Element:
 
         :returns: a new class
         """
-        position = kw.pop('position', -1)
+        position = kw.pop("position", -1)
         if kw:
-            raise TypeError('including_validators() got an '
-                            'unexpected keyword argument %r' % (
-                                kw.popitem()[0]))
+            raise TypeError(
+                "including_validators() got an "
+                "unexpected keyword argument %r" % (kw.popitem()[0])
+            )
         mutable = list(cls.validators)
         if position < 0:
             position = len(mutable) + 1 + position
@@ -328,6 +346,7 @@ class Element:
         self.valid = value
         for element in self.all_children:
             element.valid = value
+
     all_valid = property(_get_all_valid, _set_all_valid)
     del _get_all_valid, _set_all_valid
 
@@ -407,7 +426,7 @@ class Element:
 
         """
         if self.parent is None:
-            return '/'
+            return "/"
 
         children_of_root = reversed(list(self.parents)[:-1])
 
@@ -428,7 +447,7 @@ class Element:
                 mask = None
                 continue
             parts.append(element.name)
-        return '/' + '/'.join(parts)
+        return "/" + "/".join(parts)
 
     def find(self, path, single=False, strict=True):
         """Find child elements by string path.
@@ -482,9 +501,11 @@ class Element:
         elif not results:
             return None
         elif len(results) > 1 and strict:
-            display_path = repr(path).lstrip('u')
-            raise LookupError("Path %s matched multiple elements; single "
-                              "result expected." % display_path)
+            display_path = repr(path).lstrip("u")
+            raise LookupError(
+                "Path %s matched multiple elements; single "
+                "result expected." % display_path
+            )
         else:
             return results[0]
 
@@ -510,7 +531,7 @@ class Element:
         if message not in self.warnings:
             self.warnings.append(message)
 
-    def flattened_name(self, sep='_'):
+    def flattened_name(self, sep="_"):
         """Return the element's complete flattened name as a string.
 
         Joins this element's :attr:`path` with *sep* and returns the fully
@@ -530,11 +551,9 @@ class Element:
           u'addresses_0_address'
 
         """
-        return sep.join(parent.name
-                        for parent in self.path
-                        if parent.name is not None)
+        return sep.join(parent.name for parent in self.path if parent.name is not None)
 
-    def flatten(self, sep='_', value=operator.attrgetter('u')):
+    def flatten(self, sep="_", value=operator.attrgetter("u")):
         """Export an element hierarchy as a flat sequence of key, value pairs.
 
         :arg sep: a string, will join together element names.
@@ -579,9 +598,11 @@ class Element:
         else:
             pairs = []
         if self.children_flattenable:
-            pairs.extend((e.flattened_name(sep), value(e))
-                         for e in self.all_children
-                         if e.flattenable)
+            pairs.extend(
+                (e.flattened_name(sep), value(e))
+                for e in self.all_children
+                if e.flattenable
+            )
         return pairs
 
     def set(self, obj):
@@ -626,7 +647,7 @@ class Element:
         """
         raise NotImplementedError()
 
-    def set_flat(self, pairs, sep='_'):
+    def set_flat(self, pairs, sep="_"):
         """Set element values from pairs, expanding the element tree as needed.
 
         Given a sequence of name/value tuples or a dict, build out a
@@ -634,7 +655,7 @@ class Element:
 
         """
         self.raw = Unset
-        if hasattr(pairs, 'items'):
+        if hasattr(pairs, "items"):
             pairs = pairs.items()
 
         return self._set_flat(list(pairs), sep)
@@ -649,7 +670,7 @@ class Element:
     @property
     def is_empty(self):
         """True if the element has no value."""
-        return True if (self.value is None and self.u == '') else False
+        return True if (self.value is None and self.u == "") else False
 
     def validate(self, state=None, recurse=True):
         """Assess the validity of this element and its children.
@@ -753,23 +774,23 @@ class Element:
     @property
     def x(self):
         """Sugar, the XML-escaped value of :attr:`.u`."""
-        return (self.u.replace('&', '&amp;').
-                       replace('>', '&gt;').
-                       replace('<', '&lt;'))
+        return self.u.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;")
 
     @property
     def xa(self):
         """Sugar, the XML-attribute-escaped quoted value of :attr:`.u`."""
-        return (self.u.replace('&', '&amp;').
-                       replace('>', '&gt;').
-                       replace('<', '&lt;').
-                       replace('"', '&quot;').
-                       replace('\n', '&#10;').
-                       replace('\r', '&#13;').
-                       replace('\t', '&#9;'))
+        return (
+            self.u.replace("&", "&amp;")
+            .replace(">", "&gt;")
+            .replace("<", "&lt;")
+            .replace('"', "&quot;")
+            .replace("\n", "&#10;")
+            .replace("\r", "&#13;")
+            .replace("\t", "&#9;")
+        )
 
     def __hash__(self):
-        raise TypeError('%s object is unhashable', self.__class__.__name__)
+        raise TypeError("%s object is unhashable", self.__class__.__name__)
 
 
 class Slot:
@@ -802,13 +823,13 @@ def validate_element(element, state, validators):
         valid = not element.is_empty
         if validator_validated.receivers:
             validator_validated.send(
-                NotEmpty, element=element, state=state, result=valid)
+                NotEmpty, element=element, state=state, result=valid
+            )
         return valid
     for fn in validators:
         valid = fn(element, state)
         if validator_validated.receivers:
-            validator_validated.send(
-                fn, element=element, state=state, result=valid)
+            validator_validated.send(fn, element=element, state=state, result=valid)
         if valid is None:
             return False
         elif valid is Skip:

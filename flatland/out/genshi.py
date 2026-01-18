@@ -7,7 +7,7 @@ from genshi.template.base import (
     SUB,
     TemplateSyntaxError,
     _eval_expr,
-    )
+)
 from genshi.template.eval import Expression
 from genshi.template.directives import Directive
 from genshi.template.interpolation import interpolate
@@ -15,17 +15,23 @@ from genshi.template.interpolation import interpolate
 from flatland._compat import bytestring_type, iteritems, text_type
 from flatland.out.generic import _unpack, transform, Context
 
+__all__ = ("setup",)
 
-__all__ = ('setup',)
+NS = Namespace("http://ns.discorporate.us/flatland/genshi")
 
-NS = Namespace('http://ns.discorporate.us/flatland/genshi')
-
-_static_attribute_order = ['type', 'name', 'value']
+_static_attribute_order = ["type", "name", "value"]
 
 _to_context = {}
-for key in ('auto-name', 'auto-value', 'auto-domid', 'auto-for',
-            'auto-tabindex', 'auto-filter', 'domid-format'):
-    _to_context[key] = key.replace('-', '_')
+for key in (
+    "auto-name",
+    "auto-value",
+    "auto-domid",
+    "auto-for",
+    "auto-tabindex",
+    "auto-filter",
+    "domid-format",
+):
+    _to_context[key] = key.replace("-", "_")
 
 _bind_qname = NS.bind
 
@@ -36,9 +42,8 @@ def setup(template):
     :param template: a `Template` instance
     """
 
-    if not hasattr(template, 'add_directives'):
-        raise RuntimeError("{}.setup requires Genshi 0.6 or higher.".format(
-            __name__))
+    if not hasattr(template, "add_directives"):
+        raise RuntimeError(f"{__name__}.setup requires Genshi 0.6 or higher.")
     template.add_directives(NS, FlatlandElements())
 
 
@@ -64,19 +69,19 @@ class EvaluatedLast(Directive):
 
 class TagOnly(EvaluatedLast):
     _name = None
-    __slots__ = ('attributes',)
+    __slots__ = ("attributes",)
 
     @classmethod
     def attach(cls, template, stream, value, namespaces, pos):
         if type(value) is not dict:
             raise TemplateSyntaxError(
                 "The %r directive must be an element" % cls._name,
-                template.filepath, *pos[1:])
-        return super().attach(
-            template, stream, value, namespaces, pos)
+                template.filepath,
+                *pos[1:],
+            )
+        return super().attach(template, stream, value, namespaces, pos)
 
-    def __init__(self, value, template=None, namespaces=None,
-                 lineno=-1, offset=-1):
+    def __init__(self, value, template=None, namespaces=None, lineno=-1, offset=-1):
         Directive.__init__(self, None, template, namespaces, lineno, offset)
         self.attributes = value
 
@@ -89,24 +94,23 @@ class AttributeOnly(EvaluatedLast):
     def attach(cls, template, stream, value, namespaces, pos):
         if type(value) is dict:
             raise TemplateSyntaxError(
-                ("The %r directive may only be used as a "
-                 "tag attribute" % cls._name),
-                template.filepath, *pos[1:])
-        return super().attach(
-            template, stream, value, namespaces, pos)
+                ("The %r directive may only be used as a " "tag attribute" % cls._name),
+                template.filepath,
+                *pos[1:],
+            )
+        return super().attach(template, stream, value, namespaces, pos)
 
 
 class ControlAttribute(AttributeOnly):
-    __slots__ = ('raw_value')
+    __slots__ = "raw_value"
 
-    def __init__(self, value, template=None, namespaces=None,
-                 lineno=-1, offset=-1):
+    def __init__(self, value, template=None, namespaces=None, lineno=-1, offset=-1):
         Directive.__init__(self, None, template, namespaces, lineno, offset)
 
         # allow interpolation inside control attributes
         raw_value = list(interpolate(value, lineno=lineno, offset=offset))
         if all(kind is TEXT for (kind, _, _) in raw_value):
-            self.raw_value = ''.join(event[1] for event in raw_value)
+            self.raw_value = "".join(event[1] for event in raw_value)
         else:
             self.raw_value = raw_value
 
@@ -131,48 +135,54 @@ class ControlAttribute(AttributeOnly):
                 else:
                     value = _eval_expr(value, ctxt, vars)
                     parts.append(text_type(value))
-            final_value = ''.join(parts)
+            final_value = "".join(parts)
         mapping[_to_context.get(self._name, self._name)] = final_value
 
 
 class AutoName(ControlAttribute):
-    _name = 'auto-name'
+    _name = "auto-name"
     __slots__ = ()
 
 
 class AutoValue(ControlAttribute):
-    _name = 'auto-value'
+    _name = "auto-value"
     __slots__ = ()
 
 
 class AutoDomID(ControlAttribute):
-    _name = 'auto-domid'
+    _name = "auto-domid"
     __slots__ = ()
 
 
 class AutoFor(ControlAttribute):
-    _name = 'auto-for'
+    _name = "auto-for"
     __slots__ = ()
 
 
 class AutoTabindex(ControlAttribute):
-    _name = 'auto-tabindex'
+    _name = "auto-tabindex"
     __slots__ = ()
 
 
 class AutoFilter(ControlAttribute):
-    _name = 'auto-filter'
+    _name = "auto-filter"
     __slots__ = ()
 
 
 class Binding(AttributeOnly):
-    _name = 'bind'
-    __slots__ = ('bind',)
+    _name = "bind"
+    __slots__ = ("bind",)
 
-    def __init__(self, attributes, template=None, namespaces=None,
-                 lineno=-1, offset=-1, bind=None):
-        AttributeOnly.__init__(self, attributes, template, namespaces,
-                               lineno, offset)
+    def __init__(
+        self,
+        attributes,
+        template=None,
+        namespaces=None,
+        lineno=-1,
+        offset=-1,
+        bind=None,
+    ):
+        AttributeOnly.__init__(self, attributes, template, namespaces, lineno, offset)
         self.bind = bind
 
     def process(self, stream, directives, ctxt, vars):
@@ -188,34 +198,33 @@ class Binding(AttributeOnly):
 class RenderContextManipulator(TagOnly):
     __slots__ = ()
 
-    def __init__(self, attributes, template=None, namespaces=None,
-                 lineno=-1, offset=-1):
+    def __init__(
+        self, attributes, template=None, namespaces=None, lineno=-1, offset=-1
+    ):
         transformed = {}
         for key, value in attributes.items():
             key = _to_context.get(key, key)
-            if key == 'tabindex':
+            if key == "tabindex":
                 value = int(value)
             transformed[key] = value
-        TagOnly.__init__(self, transformed, template, namespaces,
-                         lineno, offset)
+        TagOnly.__init__(self, transformed, template, namespaces, lineno, offset)
 
 
 class With(RenderContextManipulator):
-    _name = 'with'
+    _name = "with"
     __slots__ = ()
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt['flatland_render_context']
+            render_context = ctxt["flatland_render_context"]
         except KeyError:
-            ctxt['flatland_render_context'] = render_context = Context()
+            ctxt["flatland_render_context"] = render_context = Context()
 
-        if 'filters' not in self.attributes:
+        if "filters" not in self.attributes:
             attrs = self.attributes
         else:
             attrs = self.attributes.copy()
-            attrs['filters'] = _eval_expr(Expression(attrs['filters']),
-                                          ctxt, vars)
+            attrs["filters"] = _eval_expr(Expression(attrs["filters"]), ctxt, vars)
 
         render_context.push()
         render_context.update(attrs)
@@ -225,14 +234,14 @@ class With(RenderContextManipulator):
 
 
 class Set(RenderContextManipulator):
-    _name = 'set'
+    _name = "set"
     __slots__ = ()
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt['flatland_render_context']
+            render_context = ctxt["flatland_render_context"]
         except KeyError:
-            ctxt['flatland_render_context'] = render_context = Context()
+            ctxt["flatland_render_context"] = render_context = Context()
         render_context.update(self.attributes)
         assert not directives
         return stream
@@ -243,16 +252,16 @@ class FlatlandElements(DirectiveFactory):
     NAMESPACE = NS
 
     directives = [
-        ('with', With),
-        ('set', Set),
-        ('bind', Binding),
-        ('auto-name', AutoName),
-        ('auto-value', AutoValue),
-        ('auto-domid', AutoDomID),
-        ('auto-for', AutoFor),
-        ('auto-tabindex', AutoTabindex),
-        ('auto-filter', AutoFilter),
-        ]
+        ("with", With),
+        ("set", Set),
+        ("bind", Binding),
+        ("auto-name", AutoName),
+        ("auto-value", AutoValue),
+        ("auto-domid", AutoDomID),
+        ("auto-for", AutoFor),
+        ("auto-tabindex", AutoTabindex),
+        ("auto-filter", AutoFilter),
+    ]
 
 
 def _rewrite_stream(stream, directives, ctxt, vars, bind):
@@ -278,12 +287,13 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
             mutable_attrs[qname.localname] = value
 
     try:
-        render_context = ctxt['flatland_render_context']
+        render_context = ctxt["flatland_render_context"]
     except KeyError:
-        ctxt['flatland_render_context'] = render_context = Context()
+        ctxt["flatland_render_context"] = render_context = Context()
 
-    new_contents = transform(tagname.localname, mutable_attrs, contents,
-                             render_context, bind)
+    new_contents = transform(
+        tagname.localname, mutable_attrs, contents, render_context, bind
+    )
 
     if new_contents is None:
         new_contents = ()
@@ -301,11 +311,11 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
         attrs -= qname
 
     stream[0] = (kind, (tagname, attrs), pos)
-    if new_contents and tagname.localname == 'select' and bind is not None:
+    if new_contents and tagname.localname == "select" and bind is not None:
         if tagname.namespace:
             sub_tag = Namespace(tagname.namespace).option
         else:  # pragma: nocover
-            sub_tag = QName('option')
+            sub_tag = QName("option")
         new_contents = _bind_unbound_tags(new_contents, sub_tag, bind)
     if new_contents:
         stream[1:-1] = new_contents
@@ -345,11 +355,10 @@ def _bind_unbound_tags(stream, qname, bind):
                     stack += 1
                 elif event[0] is END and event[1] == qname:
                     stack -= 1
-            substream = [head] + list(
-                _bind_unbound_tags(substream, qname, bind))
+            substream = [head] + list(_bind_unbound_tags(substream, qname, bind))
             # attaching the directive is sufficient; don't need to fabricate
             # a form:bind="" attribute
-            yield SUB, ([Binding('', bind=bind)], substream), pos
+            yield SUB, ([Binding("", bind=bind)], substream), pos
         else:
             yield kind, data, pos
 
@@ -362,22 +371,22 @@ def _simplify_stream(stream, ctxt, vars):
             parts.append(data)
         elif kind is EXPR:
             value = _eval_expr(data, ctxt, vars)
-            if hasattr(value, '__html__'):
+            if hasattr(value, "__html__"):
                 value = _unpack(value)
-            if hasattr(value, '__next__') or hasattr(value, 'next'):
-                while hasattr(value, '__next__') or hasattr(value, 'next'):
+            if hasattr(value, "__next__") or hasattr(value, "next"):
+                while hasattr(value, "__next__") or hasattr(value, "next"):
                     value = list(value)
                     value = _simplify_stream(value, ctxt, vars)
                 if not isinstance(value, text_type):
-                    stream[idx:idx + 1] = value
+                    stream[idx : idx + 1] = value
                     return stream
                 else:
                     stream[idx] = (TEXT, value, pos)
             elif isinstance(value, bytestring_type):
-                value = value.decode('utf8', 'replace')
+                value = value.decode("utf8", "replace")
             elif not isinstance(value, text_type):
                 value = text_type(value)
             parts.append(value)
         else:
             return stream
-    return ''.join(parts)
+    return "".join(parts)

@@ -6,35 +6,35 @@ from flatland._compat import (
     identifier_transform,
     string_types,
     with_metaclass,
-    )
+)
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
     Unspecified,
     autodocument_from_superclasses,
     threading,
-    )
+)
 from .containers import Array, Mapping
 from .scalars import Date, Integer, Scalar, String
 
-
 __all__ = [
-    'Compound',
-    'DateYYYYMMDD',
-    'JoinedString',
-    ]
+    "Compound",
+    "DateYYYYMMDD",
+    "JoinedString",
+]
 
 
 class _MetaCompound(type):
-    """Adds a class-level initialization hook """
+    """Adds a class-level initialization hook"""
 
     _lock = threading.RLock()
 
     def __new__(self, name, bases, members):
-        members['_compound_prepared'] = False
-        if '__compound_init__' in members:
-            members['__compound_init__'] = \
-              _wrap_compound_init(members['__compound_init__'])
+        members["_compound_prepared"] = False
+        if "__compound_init__" in members:
+            members["__compound_init__"] = _wrap_compound_init(
+                members["__compound_init__"]
+            )
         return type.__new__(self, name, bases, members)
 
     def __call__(cls, value=Unspecified, **kw):
@@ -53,12 +53,12 @@ class _MetaCompound(type):
             # this new configuration.
             cls = cls.using(**overrides)
             cls.__compound_init__()
-        elif not cls.__dict__.get('_compound_prepared'):
+        elif not cls.__dict__.get("_compound_prepared"):
             # If this class hasn't been prepared yet, prepare it.
             lock = cls._lock
             lock.acquire()
             try:
-                if not cls.__dict__.get('_compound_prepared'):
+                if not cls.__dict__.get("_compound_prepared"):
                     cls.__compound_init__()
             finally:
                 lock.release()
@@ -206,8 +206,9 @@ class Compound(with_metaclass(_MetaCompound, Mapping, Scalar)):
         try:
             return Scalar.__repr__(self)
         except Exception as exc:
-            return '<{} {!r}; value raised {}>'.format(
-                type(self).__name__, self.name, type(exc).__name__)
+            return "<{} {!r}; value raised {}>".format(
+                type(self).__name__, self.name, type(exc).__name__
+            )
 
     @property
     def is_empty(self):
@@ -227,28 +228,28 @@ class DateYYYYMMDD(Compound, Date):
         optional = cls.optional
 
         if len(fields) == 0:
-            fields.append(Integer.named('year').using(format='%04i',
-                                                       optional=optional))
+            fields.append(Integer.named("year").using(format="%04i", optional=optional))
         if len(fields) == 1:
-            fields.append(Integer.named('month').using(format='%02i',
-                                                        optional=optional))
+            fields.append(
+                Integer.named("month").using(format="%02i", optional=optional)
+            )
         if len(fields) == 2:
-            fields.append(Integer.named('day').using(format='%02i',
-                                                      optional=optional))
+            fields.append(Integer.named("day").using(format="%02i", optional=optional))
 
         cls.field_schema = fields
 
     def compose(self):
         try:
-            data = {label: self[child_schema.name].value
-                         for label, child_schema
-                         in zip(self.used, self.field_schema)}
+            data = {
+                label: self[child_schema.name].value
+                for label, child_schema in zip(self.used, self.field_schema)
+            }
             as_str = self.format % data
             value = Date.adapt(self, as_str)
 
             return as_str, value
         except (AdaptationError, TypeError):
-            return '', None
+            return "", None
 
     def explode(self, value):
         try:
@@ -256,7 +257,8 @@ class DateYYYYMMDD(Compound, Date):
 
             for attrib, child_schema in zip(self.used, self.field_schema):
                 self[child_schema.name].set(
-                    getattr(value, identifier_transform(attrib)))
+                    getattr(value, identifier_transform(attrib))
+                )
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:
                 self[child_schema.name].set(None)
@@ -283,10 +285,11 @@ class JoinedString(Array, String):
     with :meth:`set_flat`.  JoinedStrings run validation after their children.
 
     """
+
     #: The string used to join children's :attr:`u` representations.  Will
     #: also be used to split incoming strings, unless :attr:`separator_regex`
     #: is also defined.
-    separator = ','
+    separator = ","
 
     #: Optional, a regular expression, used preferentially to split an
     #: incoming separated value into components.  Used in combination with

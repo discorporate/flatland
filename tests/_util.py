@@ -1,4 +1,5 @@
 """Test suite helpers."""
+
 import codecs
 from contextlib import contextmanager
 from functools import wraps
@@ -7,14 +8,18 @@ import sys
 
 from flatland._compat import long_type, text_type
 
-
-__all__ = ['asciistr', 'fails',
-           'requires_unicode_coercion', 'udict', 'unicode_coercion_available']
+__all__ = [
+    "asciistr",
+    "fails",
+    "requires_unicode_coercion",
+    "udict",
+    "unicode_coercion_available",
+]
 
 
 # acts like 'str', but safe to use when tests are running with
 # sys.getdefaultencoding() == 'nocoercion'.
-_ascii_codec = codecs.getencoder('ascii')
+_ascii_codec = codecs.getencoder("ascii")
 asciistr = lambda s: _ascii_codec(s)[0]
 # acts like naive unicode() on simple types like int
 textstr = lambda o: text_type(str(o))
@@ -24,6 +29,7 @@ _coercion_override = None
 
 def fails(reason):
     """Mark a test case as expected to fail for *reason*."""
+
     def decorator(fn):
         @wraps(fn)
         def decorated(*args, **kw):
@@ -35,7 +41,9 @@ def fails(reason):
                 pass  # ok
             else:
                 raise AssertionError("Unexpected success.")
+
         return decorated
+
     return decorator
 
 
@@ -51,13 +59,13 @@ def udict(*dictionary, **kwargs):
 
 
 def unicode_coercion_available():
-    return sys.getdefaultencoding() != 'nocoercion'
+    return sys.getdefaultencoding() != "nocoercion"
 
 
 def requires_unicode_coercion(fn):
     @wraps(fn)
     def decorated(*args, **kw):
-        if sys.getdefaultencoding() != 'nocoercion':
+        if sys.getdefaultencoding() != "nocoercion":
             return fn(*args, **kw)
         try:
             fn(*args, **kw)
@@ -66,6 +74,7 @@ def requires_unicode_coercion(fn):
             return
         else:
             raise AssertionError("Test did not trigger expected UnicodeError.")
+
     return decorated
 
 
@@ -89,25 +98,24 @@ def _allowed_coercion(input):
 
     try:
         caller = stack()[2]
-        if '__hopeless_morass_of_unicode_hell__' in caller[0].f_locals:
+        if "__hopeless_morass_of_unicode_hell__" in caller[0].f_locals:
             return True
 
         calling_path = caller[1]
-        if '/' in calling_path:
-            calling_file = calling_path.rsplit('/', 1)[1]
+        if "/" in calling_path:
+            calling_file = calling_path.rsplit("/", 1)[1]
         else:
             calling_file = calling_path
 
-        if calling_file in ('sre_parse.py', 'decimal.py', 'urlparse.py'):
+        if calling_file in ("sre_parse.py", "decimal.py", "urlparse.py"):
             return True
-        elif '/_pytest/' in calling_path:
+        elif "/_pytest/" in calling_path:
             return True
-        elif 'genshi' in calling_path and 'out/genshi' not in calling_path:
+        elif "genshi" in calling_path and "out/genshi" not in calling_path:
             # OMG slow on genshi 0.5.2
             return True
         # this does lots of expected '%s' formatting e.g. unicode(2)
-        elif ('flatland/validation' in calling_path and
-              caller[3] == 'expand_message'):
+        elif "flatland/validation" in calling_path and caller[3] == "expand_message":
             return True
         return False
     finally:
@@ -116,12 +124,12 @@ def _allowed_coercion(input):
 
 class NoCoercionCodec(codecs.Codec):
 
-    def encode(self, input, errors='string'):
+    def encode(self, input, errors="string"):
         if _allowed_coercion(input):
             return codecs.ascii_encode(input, errors)
         raise UnicodeError("encoding coercion blocked")
 
-    def decode(self, input, errors='strict'):
+    def decode(self, input, errors="strict"):
         if _allowed_coercion(input):
             return codecs.ascii_decode(input, errors)
         raise UnicodeError("encoding coercion blocked")
@@ -153,14 +161,14 @@ class _StreamReader(NoCoercionCodec, codecs.StreamReader):
 
 def enable_coercion_blocker():
     registration = lambda name: codecs.CodecInfo(
-        name='nocoercion',
+        name="nocoercion",
         encode=NoCoercionCodec().encode,
         decode=NoCoercionCodec().decode,
         incrementalencoder=_IncrementalEncoder,
         incrementaldecoder=_IncrementalDecoder,
         streamwriter=_StreamWriter,
         streamreader=_StreamReader,
-        )
+    )
     codecs.register(registration)
     reload(sys)
     sys.setdefaultencoding("nocoercion")

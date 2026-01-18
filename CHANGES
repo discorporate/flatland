@@ -5,8 +5,8 @@ Changes
 Release 1.0.0 (not released yet)
 --------------------------------
 
-- drop support for Python < 3.9
-- run pyupgrade --py39-plus to modernize syntax
+- drop support for Python < 3.10
+- run pyupgrade --py310-plus to modernize syntax
 - migrate to pyproject.toml, remove setup.py and tox.ini
 - use SPDX license identifier
 - replace Travis CI with GitHub Actions CI
