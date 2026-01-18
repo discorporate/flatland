@@ -13,7 +13,8 @@ from flatland.validation import (
     SetWithKnownFields,
     )
 
-from tests._util import assert_raises, unicode_coercion_allowed
+from tests._util import unicode_coercion_allowed
+import pytest
 
 
 def valid_of_children(element):
@@ -34,7 +35,8 @@ def test_no_duplicates_message():
 
 def test_no_duplicates_context():
     el = String(validators=[NotDuplicated()])
-    assert_raises(TypeError, el.validate)
+    with pytest.raises(TypeError):
+        el.validate()
 
 
 def test_no_duplicates_comparator():

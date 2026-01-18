@@ -3,7 +3,7 @@ from flatland import (
     String,
     )
 
-from tests._util import eq_
+
 
 
 def test_dict():
@@ -64,5 +64,4 @@ def test_path():
         Dict.named(u'dict').of(String.named(u'dict_element')))
     element = schema()
 
-    eq_(list(element.find_one([u'dict', u'dict_element']).path),
-        [element, element[u'dict'], element[u'dict'][u'dict_element']])
+    assert list(element.find_one([u'dict', u'dict_element']).path) == [element, element[u'dict'], element[u'dict'][u'dict_element']]

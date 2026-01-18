@@ -547,7 +547,7 @@ class MapEqual(Validator):
     transform = lambda el: el
 
     def __init__(self, *field_paths, **kw):
-        """Construct a MapEqual.
+        r"""Construct a MapEqual.
 
         :param \*field_paths: a sequence of 2 or more elements names or paths.
 

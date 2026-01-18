@@ -16,7 +16,7 @@ from flatland.schema.paths import (
     pathexpr,
     tokenize,
     )
-from tests._util import assert_raises
+import pytest
 
 
 def _tokenizes_as(path, expected):
@@ -63,7 +63,7 @@ def test_tokenize():
         (u'[1:8:2]', [sl(slice(1, 8, 2))]),
         ]
     for path, expected in _tokencases:
-        yield _tokenizes_as, path, expected
+        _tokenizes_as(path, expected)
 
 
 def test_tokenize_escapes():
@@ -80,7 +80,7 @@ def test_tokenize_escapes():
         (u'foo\\/', [name(u'foo/')]),
         ]
     for path, expected in _tokencases:
-        yield _tokenizes_as, path, expected
+        _tokenizes_as(path, expected)
 
 
 class Mixed(Schema):
@@ -160,7 +160,7 @@ def test_evaluation():
         (el, u'dt1/./year', [today.year]),
         ]
     for element, path, expected in _finders:
-        yield _finds, element, path, expected
+        _finds(element, path, expected)
 
 
 def test_find_strict_loose():
@@ -173,7 +173,8 @@ def test_find_strict_loose():
         ]
 
     for element, path in _cases:
-        assert_raises(LookupError, element.find, path)
+        with pytest.raises(LookupError):
+            element.find(path)
 
         found = element.find(path, strict=False)
         assert not found

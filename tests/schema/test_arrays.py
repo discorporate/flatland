@@ -6,7 +6,8 @@ from flatland import (
     String,
     )
 
-from tests._util import eq_, assert_raises
+import pytest
+from tests._util import udict
 
 
 def test_set_flat_pruned():
@@ -17,15 +18,15 @@ def test_set_flat_pruned():
     for schema in Array.of(sub), Array.of(sub).using(prune_empty=True):
         el = schema.from_flat(pairs)
 
-        eq_(len(el), len(wanted))
-        eq_(el.value, wanted)
+        assert len(el) == len(wanted)
+        assert el.value == wanted
 
 
 def _assert_array_set_flat(schema, pairs, bogus=[]):
     el = schema.from_flat(pairs + bogus)
-    eq_(len(el), len(pairs))
-    eq_(el.value, list(pair[1] for pair in pairs))
-    eq_(el.flatten(), pairs)
+    assert len(el) == len(pairs)
+    assert el.value == list(pair[1] for pair in pairs)
+    assert el.flatten() == pairs
 
 
 def test_set_flat_unpruned():
@@ -69,7 +70,8 @@ def test_set_flat_fully_anonymous_array():
 def test_set_flat_anonymous_dict():
     schema = Array.of(Dict.of(String.named(u'x')))
     pairs = [(u'x', u'abc'), (u'x', u'def')]
-    assert_raises(AssertionError, schema.from_flat, pairs)
+    with pytest.raises(AssertionError):
+        schema.from_flat(pairs)
 
 
 def test_set():
@@ -102,24 +104,24 @@ def test_set_default():
     schema = Array.of(String).using(default=[u'x', u'y'])
     el = schema()
 
-    eq_(el.value, [])
+    assert el.value == []
     el.set_default()
-    eq_(el.value, [u'x', u'y'])
+    assert el.value == [u'x', u'y']
 
     el.append(u'z')
-    eq_(el.value, [u'x', u'y', u'z'])
+    assert el.value == [u'x', u'y', u'z']
     el.set_default()
-    eq_(el.value, [u'x', u'y'])
+    assert el.value == [u'x', u'y']
 
     defaulted_child = String.using(default='not triggered')
     schema = Array.of(defaulted_child).using(default=[u'x'])
 
     el = schema.from_defaults()
-    eq_(el.value, [u'x'])
+    assert el.value == [u'x']
 
     schema = Array.of(String.using(default=u'x'))
     el = schema.from_defaults()
-    eq_(el.value, [])
+    assert el.value == []
 
 
 def test_mutation():
@@ -146,63 +148,66 @@ def test_mutation():
 
     el.extend(u'bcdefg')
 
-    eq_(el.value[0:4], [u'a', u'b', u'c', u'd'])
+    assert el.value[0:4] == [u'a', u'b', u'c', u'd']
     assert el[2].parent is el
 
     del el[0]
-    eq_(el.value[0:4], [u'b', u'c', u'd', u'e'])
+    assert el.value[0:4] == [u'b', u'c', u'd', u'e']
 
     del el[0:4]
-    eq_(el.value, [u'f', u'g'])
+    assert el.value == [u'f', u'g']
 
     el.pop()
-    eq_(el.value, [u'f'])
-    eq_(el[0].u, u'f')
-    eq_(el.u, "[u'f']")
+    assert el.value == [u'f']
+    assert el[0].u == u'f'
+    assert el.u == "[u'f']"
 
     del el[:]
-    eq_(list(el), [])
-    eq_(el.value, [])
-    eq_(el.u, u'[]')
+    assert list(el) == []
+    assert el.value == []
+    assert el.u == u'[]'
 
     el[:] = u'abc'
-    eq_(el.value, [u'a', u'b', u'c'])
+    assert el.value == [u'a', u'b', u'c']
     assert el[1].parent is el
 
     el.insert(1, u'z')
-    eq_(el.value, [u'a', u'z', u'b', u'c'])
+    assert el.value == [u'a', u'z', u'b', u'c']
     assert el[1].parent is el
 
     def assign():
         el.u = u'z'
-    assert_raises(AttributeError, assign)
-    eq_(el.value, [u'a', u'z', u'b', u'c'])
+    with pytest.raises(AttributeError):
+        assign()
+    assert el.value == [u'a', u'z', u'b', u'c']
 
     def assign2():
         el.value = u'abc'
     del el[:]
-    assert_raises(AttributeError, assign2)
-    eq_(el.value, [])
+    with pytest.raises(AttributeError):
+        assign2()
+    assert el.value == []
 
 
 def test_find():
     schema = Array.of(String.named(u's'))
     element = schema(u'abc')
-    eq_(list(element.value), [u'a', u'b', u'c'])
+    assert list(element.value) == [u'a', u'b', u'c']
 
-    eq_(element.find_one(u'0').value, u'a')
-    eq_(element.find_one(u'2').value, u'c')
-    assert_raises(LookupError, element.find_one, u'a')
+    assert element.find_one(u'0').value == u'a'
+    assert element.find_one(u'2').value == u'c'
+    with pytest.raises(LookupError):
+        element.find_one(u'a')
 
 
 def test_multivalue_set():
     schema = MultiValue.of(Integer)
     el = schema()
 
-    eq_(el.value, None)
-    eq_(el.u, u'')
-    eq_(list(el), [])
-    eq_(len(el), 0)
+    assert el.value == None
+    assert el.u == u''
+    assert list(el) == []
+    assert len(el) == 0
     assert not el
 
     assert not el.set(0)
@@ -212,14 +217,14 @@ def test_multivalue_set():
     assert not el.value
 
     assert el.set([0])
-    eq_(el.value, 0)
-    eq_(el.u, u'0')
+    assert el.value == 0
+    assert el.u == u'0'
     assert len(el) == 1
     assert el
 
     el = schema([0, 1])
-    eq_(el.value, 0)
-    eq_(el.u, u'0')
+    assert el.value == 0
+    assert el.u == u'0'
     assert len(el) == 2
     assert el
 
@@ -228,36 +233,36 @@ def test_multivalue_mutation():
     schema = MultiValue.of(Integer)
     el = schema()
 
-    eq_(el.value, None)
-    eq_(el.u, u'')
-    eq_(list(el), [])
-    eq_(len(el), 0)
+    assert el.value == None
+    assert el.u == u''
+    assert list(el) == []
+    assert len(el) == 0
     assert not el
 
     el.set([1, 2])
-    eq_(el.value, 1)
-    eq_(el.u, u'1')
-    eq_(len(el), 2)
+    assert el.value == 1
+    assert el.u == u'1'
+    assert len(el) == 2
     assert el
 
     el.insert(0, 0)
-    eq_(el.value, 0)
-    eq_(el.u, u'0')
-    eq_(len(el), 3)
+    assert el.value == 0
+    assert el.u == u'0'
+    assert len(el) == 3
 
     el[0].set(9)
-    eq_(el.value, 9)
-    eq_(el.u, u'9')
-    eq_([child.value for child in el], [9, 1, 2])
-    eq_(len(el), 3)
+    assert el.value == 9
+    assert el.u == u'9'
+    assert [child.value for child in el] == [9, 1, 2]
+    assert len(el) == 3
 
 
 def _assert_multivalue_set_flat(schema, pairs, bogus=[]):
     el = schema.from_flat(pairs + bogus)
-    eq_(len(el), len(pairs))
-    eq_(el.value, pairs[0][1])
-    eq_(list(e.value for e in el), list(pair[1] for pair in pairs))
-    eq_(el.flatten(), pairs)
+    assert len(el) == len(pairs)
+    assert el.value == pairs[0][1]
+    assert list(e.value for e in el) == list(pair[1] for pair in pairs)
+    assert el.flatten() == pairs
 
 
 def test_multivalue_set_flat_unpruned():
@@ -302,10 +307,10 @@ def test_multivalue_roundtrip():
     schema = MultiValue.of(String.named(u's'))
     data = [u'abc', u'def']
     el = schema(data)
-    eq_([e.value for e in el], data)
+    assert [e.value for e in el] == data
 
     flat = el.flatten()
-    eq_(flat, [(u's', u'abc'), (u's', u'def')])
+    assert flat == [(u's', u'abc'), (u's', u'def')]
     restored = schema.from_flat(flat)
-    eq_(restored.value, u'abc')
-    eq_([e.value for e in restored], data)
+    assert restored.value == u'abc'
+    assert [e.value for e in restored] == data

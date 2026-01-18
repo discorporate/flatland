@@ -3,8 +3,7 @@ from flatland import (
     Integer,
     Ref,
     )
-
-from tests._util import assert_raises
+import pytest
 
 
 def test_binops():
@@ -63,7 +62,8 @@ def test_not_writable():
                      Ref.named(u'aux').to(u'../main').using(writable=False))
 
     el = schema()
-    assert_raises(TypeError, el[u'aux'].set, 6)
+    with pytest.raises(TypeError):
+        el[u'aux'].set(6)
 
 
 def test_dereference_twice():

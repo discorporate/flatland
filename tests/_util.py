@@ -5,13 +5,12 @@ from functools import wraps
 from inspect import stack
 import sys
 
-from nose.tools import eq_, assert_raises, raises
-
 from flatland._compat import long_type, text_type
 
 
-__all__ = ['asciistr', 'assert_raises', 'eq_', 'raises', 'fails',
+__all__ = ['asciistr', 'fails',
            'requires_unicode_coercion', 'udict', 'unicode_coercion_available']
+
 
 # acts like 'str', but safe to use when tests are running with
 # sys.getdefaultencoding() == 'nocoercion'.
@@ -101,7 +100,7 @@ def _allowed_coercion(input):
 
         if calling_file in ('sre_parse.py', 'decimal.py', 'urlparse.py'):
             return True
-        elif '/nose/' in calling_path:
+        elif '/_pytest/' in calling_path:
             return True
         elif 'genshi' in calling_path and 'out/genshi' not in calling_path:
             # OMG slow on genshi 0.5.2

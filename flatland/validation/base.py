@@ -15,7 +15,7 @@ class Validator(object):
     """Base class for fancy validators."""
 
     def __init__(self, **kw):
-        """Construct a validator.
+        r"""Construct a validator.
 
         :param \*\*kw: override any extant class attribute on this instance.
 
@@ -50,7 +50,7 @@ class Validator(object):
         return False
 
     def note_error(self, element, state, key=None, message=None, **info):
-        """Record a validation error message on an element.
+        r"""Record a validation error message on an element.
 
         :param element:
           An :class:`~flatland.schema.base.Element` instance.
@@ -112,7 +112,7 @@ class Validator(object):
         return False
 
     def note_warning(self, element, state, key=None, message=None, **info):
-        """Record a validation warning message on an element.
+        r"""Record a validation warning message on an element.
 
         :param element:
           An :class:`~flatland.schema.base.Element` instance.
@@ -198,7 +198,7 @@ class Validator(object):
         return find_i18n_function(element, finder)
 
     def expand_message(self, element, state, message, **extra_format_args):
-        """Apply formatting to a validation message.
+        r"""Apply formatting to a validation message.
 
         :param element:
           an :class:`~flatland.schema.base.Element` instance.

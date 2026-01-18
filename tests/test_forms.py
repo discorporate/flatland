@@ -12,7 +12,7 @@ from flatland import (
     String,
     )
 
-from tests._util import eq_
+
 
 
 REQUEST_DATA = ((u'abc', u'123'),
@@ -38,14 +38,14 @@ class SimpleForm1(Schema):
 
 def test_straight_parse():
     form = SimpleForm1.from_flat(REQUEST_DATA)
-    eq_(set(form.flatten()), set(((u'fname', u'FN'),
+    assert set(form.flatten()) == set(((u'fname', u'FN'),
                                   (u'surname', u'SN'),
-                                  (u'age', u'99'))))
+                                  (u'age', u'99')))
 
-    eq_(form.value, dict(fname=u'FN',
+    assert form.value == dict(fname=u'FN',
                          surname=u'SN',
                          age=99,
-                         snacks=[]))
+                         snacks=[])
 
 
 def test_namespaced_parse():
@@ -63,14 +63,13 @@ def test_namespaced_parse():
     for form in (load(lambda f: f.set_flat(REQUEST_DATA)),
                  load(lambda f: f.set(output))):
 
-        eq_(set(form.flatten()),
-            set(((u'ns_fname', u'ns_FN'),
+        assert set(form.flatten()) == set(((u'ns_fname', u'ns_FN'),
                  (u'ns_surname', u'ns_SN'),
                  (u'ns_age', u'23'),
                  (u'ns_snacks_0_name', u'cheez'),
                  (u'ns_snacks_1_name', u'chipz'),
-                 (u'ns_snacks_2_name', u'chimp'))))
-        eq_(form.value, output)
+                 (u'ns_snacks_2_name', u'chimp')))
+        assert form.value == output
 
 
 def test_default_behavior():
@@ -80,21 +79,21 @@ def test_default_behavior():
         surname = String
 
     form = SimpleForm2()
-    eq_(form[u'fname'].value, None)
-    eq_(form[u'surname'].value, None)
+    assert form[u'fname'].value == None
+    assert form[u'surname'].value == None
 
     form = SimpleForm2.from_defaults()
-    eq_(form[u'fname'].value, u'FN')
-    eq_(form[u'surname'].value, None)
+    assert form[u'fname'].value == u'FN'
+    assert form[u'surname'].value == None
 
     class DictForm(Schema):
         dict = Dict.of(String.named(u'fname').using(default=u'FN'),
                        String.named(u'surname'))
 
     form = DictForm()
-    eq_(form.find_one(u'dict/fname').value, None)
-    eq_(form.find_one(u'dict/surname').value, None)
+    assert form.find_one(u'dict/fname').value == None
+    assert form.find_one(u'dict/surname').value == None
 
     form = DictForm.from_defaults()
-    eq_(form.find_one(u'dict/fname').value, u'FN')
-    eq_(form.find_one(u'dict/surname').value, None)
+    assert form.find_one(u'dict/fname').value == u'FN'
+    assert form.find_one(u'dict/surname').value == None

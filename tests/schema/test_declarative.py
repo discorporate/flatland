@@ -4,7 +4,7 @@ from flatland import (
     String,
     )
 
-from tests._util import eq_, requires_unicode_coercion
+from tests._util import requires_unicode_coercion
 
 
 @requires_unicode_coercion
@@ -22,32 +22,26 @@ def test_from_object():
 
     from_obj = lambda obj, **kw: Point.from_object(obj, **kw).value
 
-    eq_(from_obj(None), dict(x=None, y=None))
-    eq_(from_obj([]), dict(x=None, y=None))
-    eq_(from_obj(123), dict(x=None, y=None))
+    assert from_obj(None) == dict(x=None, y=None)
+    assert from_obj([]) == dict(x=None, y=None)
+    assert from_obj(123) == dict(x=None, y=None)
 
-    eq_(from_obj(Obj()), dict(x=None, y=None))
+    assert from_obj(Obj()) == dict(x=None, y=None)
 
-    eq_(from_obj(Obj(x='x!')), dict(x='x!', y=None))
-    eq_(from_obj(Obj(x='x!', y='y!')), dict(x='x!', y='y!'))
-    eq_(from_obj(Obj(x='x!', z='z!')), dict(x='x!', y=None))
+    assert from_obj(Obj(x='x!')) == dict(x='x!', y=None)
+    assert from_obj(Obj(x='x!', y='y!')) == dict(x='x!', y='y!')
+    assert from_obj(Obj(x='x!', z='z!')) == dict(x='x!', y=None)
 
-    eq_(from_obj(Obj(x='x!', y='y!'), include=['x']),
-        dict(x='x!', y=None))
-    eq_(from_obj(Obj(x='x!', y='y!'), omit=['y']),
-        dict(x='x!', y=None))
+    assert from_obj(Obj(x='x!', y='y!'), include=['x']) == dict(x='x!', y=None)
+    assert from_obj(Obj(x='x!', y='y!'), omit=['y']) == dict(x='x!', y=None)
 
-    eq_(from_obj(Obj(x='x!', z='z!'), rename={'z': 'y'}),
-        dict(x='x!', y='z!'))
+    assert from_obj(Obj(x='x!', z='z!'), rename={'z': 'y'}) == dict(x='x!', y='z!')
 
-    eq_(from_obj(Obj(x='x!', z='z!'), rename={'z': 'x'}),
-        dict(x='z!', y=None))
+    assert from_obj(Obj(x='x!', z='z!'), rename={'z': 'x'}) == dict(x='z!', y=None)
 
-    eq_(from_obj(Obj(x='x!', z='z!'), rename={'z': 'z'}),
-        dict(x='x!', y=None))
+    assert from_obj(Obj(x='x!', z='z!'), rename={'z': 'z'}) == dict(x='x!', y=None)
 
-    eq_(from_obj(Obj(x='x!', z='z!'), rename={'x': 'z'}),
-        dict(x=None, y=None))
+    assert from_obj(Obj(x='x!', z='z!'), rename={'x': 'z'}) == dict(x=None, y=None)
 
 
 def test_composition():
@@ -63,13 +57,13 @@ def test_composition():
     wanted = {'the_in': {'sound': 'bleep'}, 'way_out': 'mooooog'}
 
     el = Outer.from_defaults()
-    eq_(el.value, wanted)
+    assert el.value == wanted
 
     el = Outer()
-    eq_(el.value, unset)
+    assert el.value == unset
 
     el.set(wanted)
-    eq_(el.value, wanted)
+    assert el.value == wanted
 
 
 @requires_unicode_coercion
