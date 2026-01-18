@@ -372,6 +372,7 @@ def _simplify_stream(stream, ctxt, vars):
                     value = _simplify_stream(value, ctxt, vars)
                 if not isinstance(value, text_type):
                     stream[idx:idx + 1] = value
+                    return stream
                 else:
                     stream[idx] = (TEXT, value, pos)
             elif isinstance(value, bytestring_type):
