@@ -1,3 +1,5 @@
 tox
+nose
 babel
 Sphinx
+Genshi
