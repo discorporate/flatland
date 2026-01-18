@@ -4,5 +4,5 @@
 (cd docs/source && make html)
 (cd docs/source && make text)
 
-python setup.py sdist
+python -m build
 
