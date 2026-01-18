@@ -41,11 +41,11 @@ requires-python = ">=3.10"
 Homepage = "https://github.com/discorporate/flatland/"
 
 [tool.setuptools]
-packages = { find = { exclude = ["tests*", "tests"] } }
+packages = { find = { where = ["src"], exclude = ["tests*", "tests"] } }
 include-package-data = true
 
 [tool.setuptools_scm]
-write_to = "flatland/_version.py"
+write_to = "src/flatland/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,5 +1,5 @@
 SOURCES=$(shell find flatland -name '*.py')
-I18N=flatland/i18n
+I18N=src/flatland/i18n
 
 
 $(I18N)/flatland.pot: $(SOURCES)
