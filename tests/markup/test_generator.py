@@ -1,33 +1,46 @@
 from flatland import String
 from flatland.out.markup import Generator
 
-from tests.markup._util import markup_test
+import pytest
+
+@pytest.fixture
+def schema():
+    return String.named('field1').using(default='val').from_defaults
 
 
-schema = String.named('field1').using(default='val').from_defaults
+@pytest.fixture
+def el(schema):
+    if schema is not None:
+        return schema()
 
 
-@markup_test('html', schema)
-def test_input_html(gen, el):
-    """<input type="text" name="field1" value="val">"""
-    return gen.input(type='text', bind=el)
+@pytest.fixture
+def xmlgen():
+    return Generator(markup='xml')
 
 
-@markup_test('xml', schema)
-def test_input_xml(gen, el):
-    """<input type="text" name="field1" value="val" />"""
-    return gen.input(type='text', bind=el)
+@pytest.fixture(params=['markupsafe', 'flatland.out.generic'])
+def markup_impl(request):
+    mod = pytest.importorskip(request.param)
+    return mod.Markup
 
 
-@markup_test('xml', schema)
-def test_input_open(gen, el):
-    """<input type="text" name="field1" value="val">"""
-    return gen.input.open(type='text', bind=el)
+@pytest.mark.parametrize('markup,expected', [
+    ('html', """<input type="text" name="field1" value="val">"""),
+    ('xml', """<input type="text" name="field1" value="val" />"""),
+])
+def test_input_html(markup, expected, schema, el):
+    generator = Generator(markup=markup)
+    got = generator.input(type='text', bind=el)
+
+    assert hasattr(got, '__html__')
+    got = got.strip()
+
+    assert expected == got
 
 
-def test_detached_reuse():
+def test_detached_reuse(el):
     gen = Generator('xml')
-    el = schema()
 
     tag = gen.textarea
     output_a = tag.open(el)
@@ -46,66 +59,37 @@ def test_detached_reuse():
     tag.close()
 
 
-@markup_test('xml', schema)
-def test_input_close(gen, el):
+def test_input_close(el, xmlgen):
     """</input>"""
-    return gen.input.close()
+    xmlgen.input(type='text', bind=el)
+    assert xmlgen.input.close() == """</input>"""
 
 
-@markup_test('xml', schema)
-def test_textarea_escaped(gen, el):
-    '''<textarea name="field1">"&lt;quoted &amp; escaped&gt;"</textarea>'''
+def test_textarea_escaped(xmlgen, el):
+    el.set('"<quoted & escaped>"')
+    xmlgen.input(type='text', bind=el)
+    assert (xmlgen.textarea(el) == '''<textarea name="field1">"&lt;'''
+                                   '''quoted &amp; escaped&gt;"</textarea>''')
+
+
+def test_textarea_contents(xmlgen, el):
+    xmlgen.textarea.open(el)
+    assert xmlgen.textarea.contents == """val"""
+
+
+def test_textarea_escaped_contents(xmlgen, el):
     bind = el
     bind.set('"<quoted & escaped>"')
-    return gen.textarea(bind)
+    xmlgen.textarea.open(bind)
+    assert xmlgen.textarea.contents == '''"&lt;quoted &amp; escaped&gt;"'''
 
 
-@markup_test('xml', schema)
-def test_textarea_contents(gen, el):
-    """val"""
-    gen.textarea.open(el)
-    return gen.textarea.contents
+def test_textarea_explicit_contents(xmlgen, el):
+    xmlgen.textarea.open(el, contents='xyzzy')
+    assert xmlgen.textarea.contents == """xyzzy"""
 
 
-@markup_test('xml', schema)
-def test_textarea_escaped_contents(gen, el):
-    '''"&lt;quoted &amp; escaped&gt;"'''
-    bind = el
-    bind.set('"<quoted & escaped>"')
-    gen.textarea.open(bind)
-    return gen.textarea.contents
-
-
-@markup_test('xml', schema)
-def test_textarea_explicit_contents(gen, el):
-    """xyzzy"""
-    gen.textarea.open(el, contents='xyzzy')
-    return gen.textarea.contents
-
-
-def test_Markup_concatenation():
-    from flatland.out.generic import Markup as Markup
-    implementations = [Markup]
-    try:
-        from jinja2 import Markup
-        implementations.append(Markup)
-    except ImportError:
-        pass
-    try:
-        from markupsafe import Markup
-        implementations.append(Markup)
-    except ImportError:
-        pass
-
-    for impl in implementations:
-        _generate_markup_test(impl)(impl.__module__ + '.Markup')
-
-
-def _generate_markup_test(impl):
-    def test(gen, el):
-        """<label><x></label>"""
-        gen['markup_wrapper'] = impl
-        return gen.label(contents=impl('<x>'))
-
-    wrapper = lambda label: markup_test('xml', schema)(test)
-    return wrapper
+def test(xmlgen, el, markup_impl):
+    xmlgen['markup_wrapper'] = markup_impl
+    expected = """<label><x></label>"""
+    assert xmlgen.label(contents=markup_impl('<x>')) == expected
