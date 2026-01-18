@@ -49,7 +49,7 @@ class Context:
     def __setitem__(self, key, value):
         if key not in self:
             raise KeyError(
-                "{!r} not permitted in this {}".format(key, self.__class__.__name__)
+                f"{key!r} not permitted in this {self.__class__.__name__}"
             )
         self._frames[-1][key] = value
 

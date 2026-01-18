@@ -669,7 +669,7 @@ class Array(Sequence):
                 self.append(member)
         else:
             regex = re.compile(
-                "^({}(?:{}|$))".format(re_uescape(self.name), re_uescape(sep)),
+                f"^({re_uescape(self.name)}(?:{re_uescape(sep)}|$))",
                 re.UNICODE,
             )
             for key, value in pairs:
@@ -1003,7 +1003,7 @@ class Dict(Mapping, dict):
             policy = self.policy
         if policy not in ("strict", "subset", "duck", None):
             raise RuntimeError(
-                "Unknown {} policy {!r}".format(self.__class__.__name__, policy)
+                f"Unknown {self.__class__.__name__} policy {policy!r}"
             )
 
         if policy == "strict":
@@ -1250,7 +1250,7 @@ class SparseDict(Dict):
     def setdefault(self, key, default=None):
         if not self.may_contain(key):
             raise TypeError(
-                "Key %r not allowed in %s %r" % (key, type(self).__name__, self.name)
+                "Key {!r} not allowed in {} {!r}".format(key, type(self).__name__, self.name)
             )
 
         if key in self:
@@ -1282,7 +1282,7 @@ class SparseDict(Dict):
                 self[schema.name] = schema.from_defaults()
         else:
             raise RuntimeError(
-                "Unknown minimum_fields setting %r" % (self.minimum_fields,)
+                "Unknown minimum_fields setting {!r}".format(self.minimum_fields)
             )
 
 

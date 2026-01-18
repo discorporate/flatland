@@ -43,7 +43,7 @@ def setup(template):
     """
 
     if not hasattr(template, "add_directives"):
-        raise RuntimeError("{}.setup requires Genshi 0.6 or higher.".format(__name__))
+        raise RuntimeError(f"{__name__}.setup requires Genshi 0.6 or higher.")
     template.add_directives(NS, FlatlandElements())
 
 
