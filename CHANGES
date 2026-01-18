@@ -2,6 +2,20 @@ Changes
 =======
 
 
+Release 1.0.0 (not released yet)
+--------------------------------
+
+- drop support for Python < 3.9
+- run pyupgrade --py39-plus to modernize syntax
+- migrate to pyproject.toml, remove setup.py and tox.ini
+- use SPDX license identifier
+- replace Travis CI with GitHub Actions CI
+- replace `nose` with `pytest`
+- out/genshi: fix `_simplify_stream`
+- convert some docstrings to raw strings
+- update intersphinx mapping
+
+
 Release 0.9.1 (2019-07-26)
 --------------------------
 
