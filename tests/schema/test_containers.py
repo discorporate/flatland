@@ -9,7 +9,7 @@ from flatland import (
     Unevaluated,
     )
 from flatland.schema.base import Root
-from tests._util import eq_, assert_raises
+from tests._util import assert_raises
 
 
 def test_dsl_of():
@@ -25,35 +25,35 @@ def test_dsl_of():
 
 def test_dsl_descent_validated_by():
     s = Sequence.using(descent_validators=(123, 456))
-    eq_(s.descent_validators, (123, 456))
+    assert s.descent_validators == (123, 456)
 
     s = Sequence.descent_validated_by(123, 456)
-    eq_(s.descent_validators, [123, 456])
+    assert s.descent_validators == [123, 456]
 
     s = Sequence.using(descent_validators=(123, 456)).descent_validated_by(789)
-    eq_(s.descent_validators, [789])
+    assert s.descent_validators == [789]
 
     assert_raises(TypeError, Sequence.descent_validated_by, int)
 
 
 def test_dsl_including_descent_validators():
     base = Sequence.descent_validated_by(1, 2, 3)
-    eq_(base.descent_validators, [1, 2, 3])
+    assert base.descent_validators == [1, 2, 3]
 
     s = base.including_descent_validators(4, 5, 6)
-    eq_(s.descent_validators, [1, 2, 3, 4, 5, 6])
+    assert s.descent_validators == [1, 2, 3, 4, 5, 6]
 
     s = base.including_descent_validators(4, 5, 6, position=0)
-    eq_(s.descent_validators, [4, 5, 6, 1, 2, 3])
+    assert s.descent_validators == [4, 5, 6, 1, 2, 3]
 
     s = base.including_descent_validators(4, 5, 6, position=1)
-    eq_(s.descent_validators, [1, 4, 5, 6, 2, 3])
+    assert s.descent_validators == [1, 4, 5, 6, 2, 3]
 
     s = base.including_descent_validators(4, 5, 6, position=-2)
-    eq_(s.descent_validators, [1, 2, 4, 5, 6, 3])
+    assert s.descent_validators == [1, 2, 4, 5, 6, 3]
 
     s = Sequence.including_descent_validators(1)
-    eq_(s.descent_validators, [1])
+    assert s.descent_validators == [1]
 
 
 def test_simple_validation_shortcircuit():
@@ -91,7 +91,7 @@ class TestContainerValidation(object):
         el = schema()
 
         assert not el.validate()
-        eq_(self.canary, ['1'])
+        assert self.canary == ['1']
         assert el.valid
         assert not el.all_valid
 
@@ -100,7 +100,7 @@ class TestContainerValidation(object):
             descent_validators=[self.validator('1', True)])
         el = schema()
         assert not el.validate()
-        eq_(self.canary, ['1'])
+        assert self.canary == ['1']
         assert el.valid
         assert not el.all_valid
 
@@ -110,7 +110,7 @@ class TestContainerValidation(object):
             validators=[self.validator('2', True)])
         el = schema()
         assert not el.validate()
-        eq_(self.canary, ['1', '2'])
+        assert self.canary == ['1', '2']
         assert el.valid
         assert not el.all_valid
 
@@ -120,7 +120,7 @@ class TestContainerValidation(object):
             validators=[self.validator('2', True)])
         el = schema()
         assert not el.validate()
-        eq_(self.canary, ['1', '2'])
+        assert self.canary == ['1', '2']
         assert not el.valid
         assert not el.all_valid
 
@@ -133,7 +133,7 @@ class TestContainerValidation(object):
                 validators=[self.validator('3', True)]))
         el = schema()
         assert el.validate()
-        eq_(self.canary, ['1', '2', '3'])
+        assert self.canary == ['1', '2', '3']
         assert el.valid
         assert el.all_valid
 
@@ -146,7 +146,7 @@ class TestContainerValidation(object):
                 validators=[self.validator('3', True)]))
         el = schema()
         assert el.validate()
-        eq_(self.canary, ['1', '3'])
+        assert self.canary == ['1', '3']
         assert el.valid
         assert el.all_valid
 
@@ -159,7 +159,7 @@ class TestContainerValidation(object):
                   validators=[self.validator('3', True)]))
         el = schema()
         assert not el.validate()
-        eq_(self.canary, ['1', '3'])
+        assert self.canary == ['1', '3']
         assert not el.valid
         assert not el.all_valid
         assert el[u'i'].valid is Unevaluated
@@ -173,7 +173,7 @@ class TestContainerValidation(object):
                 validators=[self.validator('3', SkipAll)]))
         el = schema()
         assert el.validate()
-        eq_(self.canary, ['1', '2', '3'])
+        assert self.canary == ['1', '2', '3']
         assert el.valid
         assert el.all_valid
 

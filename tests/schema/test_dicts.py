@@ -13,7 +13,6 @@ from flatland.util import Unspecified, keyslice_pairs
 from tests._util import (
     asciistr,
     assert_raises,
-    eq_,
     udict,
     unicode_coercion_available,
     )
@@ -45,19 +44,18 @@ def test_dict_reads():
     el[u'x'].set(u'10')
     el[u'y'].set(u'20')
 
-    eq_(el[u'x'].value, 10)
-    eq_(el[u'y'].value, 20)
+    assert el[u'x'].value == 10
+    assert el[u'y'].value == 20
 
     # the values are unhashable Elements, so this is a little painful
     assert set(el.keys()) == set(u'xy')
-    eq_(set([(u'x', 10), (u'y', 20)]),
-        set([(_[0], _[1].value) for _ in el.items()]))
-    eq_(set([10, 20]), set([_.value for _ in el.values()]))
+    assert set([(u'x', 10), (u'y', 20)]) == set([(_[0], _[1].value) for _ in el.items()])
+    assert set([10, 20]) == set([_.value for _ in el.values()])
 
-    eq_(el.get(u'x').value, 10)
+    assert el.get(u'x').value == 10
     el[u'x'] = None
-    eq_(el.get(u'x').value, None)
-    eq_(el.get(u'x', 'default is never used').value, None)
+    assert el.get(u'x').value == None
+    assert el.get(u'x', 'default is never used').value == None
 
     assert_raises(KeyError, el.get, u'z')
     assert_raises(KeyError, el.get, u'z', 'even with a default')
@@ -135,35 +133,35 @@ class DictSetTest(object):
         wanted = {u'x': None, u'y': None}
 
         el = self.new_element()
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el.set({})
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el = self.new_element(value={})
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el = self.new_element(value=iter(()))
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el = self.new_element(value=())
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
     def test_empty_set_flat(self):
         el = self.new_element()
         el.set_flat(())
-        eq_(el.value, {u'x': None, u'y': None})
+        assert el.value == {u'x': None, u'y': None}
 
     def test_half_set(self):
         wanted = {u'x': 123, u'y': None}
 
         el = self.new_element()
         el.set({u'x': 123})
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el = self.new_element()
         el.set([(u'x', 123)])
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
     def test_half_set_flat(self):
         wanted = {u'x': 123, u'y': None}
@@ -171,25 +169,25 @@ class DictSetTest(object):
         pairs = ((u's_x', u'123'),)
         el = self.new_element()
         el.set_flat(pairs)
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
     def test_full_set(self):
         wanted = {u'x': 101, u'y': 102}
 
         el = self.new_element()
         el.set(wanted)
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el = self.new_element()
         el.set(udict(x=101, y=102))
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el = self.new_element()
         el.set([(u'x', 101), (u'y', 102)])
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
         el = self.new_element(value=wanted)
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
     def test_full_set_flat(self):
         wanted = {u'x': 101, u'y': 102}
@@ -197,7 +195,7 @@ class DictSetTest(object):
 
         el = self.new_element()
         el.set_flat(pairs)
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
     def test_scalar_set_flat(self):
         wanted = {u'x': None, u'y': None}
@@ -212,7 +210,7 @@ class DictSetTest(object):
 
         el.set = setter.__get__(el, type(el))
         el.set_flat(pairs)
-        eq_(el.value, wanted)
+        assert el.value == wanted
         assert canary == []
 
     def test_over_set(self):
@@ -228,7 +226,7 @@ class DictSetTest(object):
         pairs = ((u's_x', u'123'), (u's_z', u'nope'))
         el = self.new_element()
         el.set_flat(pairs)
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
     def test_total_miss(self):
         miss = {u'z': 3}
@@ -242,7 +240,7 @@ class DictSetTest(object):
 
         el = self.new_element()
         el.set_flat(pairs)
-        eq_(el.value, {u'x': None, u'y': None})
+        assert el.value == {u'x': None, u'y': None}
 
     def test_set_return(self):
         el = self.new_element()
@@ -258,7 +256,7 @@ class DictSetTest(object):
 
         el = schema()
         el.set_default()
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
     def test_set_default_from_children(self):
         el = self.new_element()
@@ -270,7 +268,7 @@ class DictSetTest(object):
             u'y': self.y_default if self.y_default is not Unspecified
                                  else None,
             }
-        eq_(el.value, wanted)
+        assert el.value == wanted
 
 
 class TestEmptyDictSet(DictSetTest):
@@ -358,16 +356,16 @@ def test_nested_dict_as_unicode():
         Integer.named(u'x').using(default=10)))
     el = schema.from_defaults()
 
-    eq_(el.value, {u'd': {u'x': 10}})
-    eq_(el.u, u"{u'd': {u'x': u'10'}}")
+    assert el.value == {u'd': {u'x': 10}}
+    assert el.u == u"{u'd': {u'x': u'10'}}"
 
 
 def test_nested_unicode_dict_as_unicode():
     schema = Dict.of(Dict.named(u'd').of(
         String.named(u'x').using(default=u'\u2308\u2309')))
     el = schema.from_defaults()
-    eq_(el.value, {u'd': {u'x': u'\u2308\u2309'}})
-    eq_(el.u, u"{u'd': {u'x': u'\u2308\u2309'}}")
+    assert el.value == {u'd': {u'x': u'\u2308\u2309'}}
+    assert el.u == u"{u'd': {u'x': u'\u2308\u2309'}}"
 
 
 def test_dict_find():
@@ -425,9 +423,8 @@ def test_slice():
         sliced = el.slice(**kw)
         wanted = dict(keyslice_pairs(el.value.items(), **kw))
 
-        eq_(sliced, wanted)
-        eq_(set(type(_) for _ in sliced.keys()),
-            set(type(_) for _ in wanted.keys()))
+        assert sliced == wanted
+        assert set(type(_) for _ in sliced.keys()) == set(type(_) for _ in wanted.keys())
 
     same_({u'x': u'X', u'y': u'Y'}, {})
     same_({u'x': u'X', u'y': u'Y'}, dict(key=asciistr))

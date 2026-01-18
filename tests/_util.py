@@ -9,15 +9,8 @@ import pytest
 from flatland._compat import long_type, text_type
 
 
-__all__ = ['asciistr', 'assert_raises', 'eq_', 'raises', 'fails',
+__all__ = ['asciistr', 'assert_raises', 'raises', 'fails',
            'requires_unicode_coercion', 'udict', 'unicode_coercion_available']
-
-def eq_(a, b, msg=None):
-    __tracebackhide__ = True
-    if msg:
-        assert a == b, msg
-    else:
-        assert a == b
 
 def assert_raises(exception, callable, *args, **kw):
     __tracebackhide__ = True

@@ -6,7 +6,7 @@ from flatland.validation import (
     Present,
     )
 
-from tests._util import eq_
+
 
 
 def test_validator_validated():
@@ -23,10 +23,10 @@ def test_validator_validated():
                                       NoLongerThan(5)])
     el = schema()
     assert not el.validate()
-    eq_(sentinel, [dict(sender=schema.validators[0],
+    assert sentinel == [dict(sender=schema.validators[0],
                         element=el,
                         state=None,
-                        result=False)])
+                        result=False)]
     del sentinel[:]
     el = schema(value='abcd')
     assert el.validate()
@@ -44,13 +44,13 @@ def test_validator_validated():
     del sentinel[:]
     el = s2()
     assert not el.validate()
-    eq_(sentinel, [dict(sender=NotEmpty, element=el,
-                        state=None, result=False)])
+    assert sentinel == [dict(sender=NotEmpty, element=el,
+                        state=None, result=False)]
 
     del sentinel[:]
     el = s2('squiznart')
     assert el.validate()
-    eq_(sentinel, [dict(sender=NotEmpty, element=el,
-                        state=None, result=True)])
+    assert sentinel == [dict(sender=NotEmpty, element=el,
+                        state=None, result=True)]
 
     signals.validator_validated._clear_state()

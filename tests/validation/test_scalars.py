@@ -22,7 +22,7 @@ from flatland.validation import (
     ValuesEqual,
     )
 
-from tests._util import eq_, unicode_coercion_allowed
+from tests._util import unicode_coercion_allowed
 
 
 def form(value):
@@ -146,7 +146,7 @@ def test_map_equal():
 
     el = form(dict(x=u'a', y=u'B'))
     assert not v.validate(el, None)
-    eq_(el.errors, [u'x/y'])
+    assert el.errors == [u'x/y']
 
 
 def test_values_equal_two():
@@ -156,11 +156,11 @@ def test_values_equal_two():
 
     el = form(dict(x=u'a', y=u'b', z=u'c'))
     assert not v.validate(el, None)
-    eq_(el.errors, [u'x and y do not match.'])
+    assert el.errors == [u'x and y do not match.']
 
     el = form(dict(x=u'a'))
     assert not v.validate(el, None)
-    eq_(el.errors, [u'x and y do not match.'])
+    assert el.errors == [u'x and y do not match.']
 
 
 def test_values_equal_three():
@@ -170,11 +170,11 @@ def test_values_equal_three():
 
     el = form(dict(x=u'a', y=u'b', z=u'c'))
     assert not v.validate(el, None)
-    eq_(el.errors, [u'x, y and z do not match.'])
+    assert el.errors == [u'x, y and z do not match.']
 
     el = form(dict(x=u'a'))
     assert not v.validate(el, None)
-    eq_(el.errors, [u'x, y and z do not match.'])
+    assert el.errors == [u'x, y and z do not match.']
 
 
 def test_values_equal_resolution():

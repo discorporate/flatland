@@ -12,7 +12,7 @@ from flatland import (
     element_set,
     )
 
-from tests._util import assert_raises, eq_, raises
+from tests._util import assert_raises, raises
 
 
 def test_compound_init_sequencing():
@@ -224,8 +224,7 @@ class TestDoubleField(object):
     def test_flatten(self):
         s = self.Double.named(u's')
         e = s(u'1x2')
-        eq_(set(e.flatten()),
-            set([(u's', u''), (u's_y', u''), (u's_x', u'')]))
+        assert set(e.flatten()) == set([(u's', u''), (u's_y', u''), (u's_x', u'')])
 
     def test_set(self):
         schema = self.Double.named(u's')
@@ -391,15 +390,15 @@ def test_compose_abstract_fixme():
 
 
 def assert_values_(el, top, x, y):
-    eq_(el.value, top)
-    eq_(el[u'x'].value, x)
-    eq_(el[u'y'].value, y)
+    assert el.value == top
+    assert el[u'x'].value == x
+    assert el[u'y'].value == y
 
 
 def assert_us_(el, top, x, y):
-    eq_(el.u, top)
-    eq_(el[u'x'].u, x)
-    eq_(el[u'y'].u, y)
+    assert el.u == top
+    assert el[u'x'].u == x
+    assert el[u'y'].u == y
 
 
 def test_sample_compound():

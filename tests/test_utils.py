@@ -1,5 +1,5 @@
 # portions of this file are derived from SQLAlchemy
-from tests._util import eq_, assert_raises
+from tests._util import assert_raises
 from flatland import util
 
 
@@ -87,7 +87,7 @@ def test_keyslice_pairs():
 
 def _keyslice_eq_(wanted, kw={}):
     got = list(util.keyslice_pairs(PAIRS, **kw))
-    eq_(wanted, got)
+    assert wanted == got
 
 
 def test_keyslice_include():

@@ -9,7 +9,7 @@ from flatland.validation import (
     )
 from flatland.validation.network import _url_parts
 
-from tests._util import eq_, unicode_coercion_allowed
+from tests._util import unicode_coercion_allowed
 
 
 def email(value):
@@ -82,19 +82,19 @@ def test_url_validator_schemes():
     v = URLValidator(allowed_schemes=(), blocked_scheme='X')
     el = scalar(u'http://me:you@there/path#fragment')
     assert not v.validate(el, None)
-    eq_(el.errors, [u'X'])
+    assert el.errors == [u'X']
 
     v = URLValidator(allowed_schemes=('https',), blocked_scheme='X')
     el = scalar(u'http://me:you@there/path#fragment')
     assert not v.validate(el, None)
-    eq_(el.errors, [u'X'])
+    assert el.errors == [u'X']
 
 
 def test_url_validator_parts():
     v = URLValidator(allowed_parts=(), blocked_part='X')
     el = scalar(u'http://me:you@there/path#fragment')
     assert not v.validate(el, None)
-    eq_(el.errors, [u'X'])
+    assert el.errors == [u'X']
 
     v = URLValidator(allowed_parts=_url_parts)
     el = scalar(u'http://me:you@there/path#fragment')
@@ -109,7 +109,7 @@ def test_url_validator_parts():
     v = URLValidator(allowed_parts=('scheme', 'netloc'), blocked_part='X')
     el = scalar(u'http://blarg/')
     assert not v.validate(el, None)
-    eq_(el.errors, [u'X'])
+    assert el.errors == [u'X']
 
 
 def test_http_validator_default():
@@ -120,11 +120,11 @@ def test_http_validator_default():
 
     el = scalar(u'http://phis:ing@there/path#fragment')
     not v.validate(el, None)
-    eq_(el.errors, [u'X'])
+    assert el.errors == [u'X']
 
     el = scalar('www.example.com')
     not v.validate(el, None)
-    eq_(el.errors, ['test is not a valid URL.'])
+    assert el.errors == ['test is not a valid URL.']
 
 
 def test_http_validator_schemes():
@@ -135,13 +135,13 @@ def test_http_validator_schemes():
 
     el = scalar(u'//there/path')
     assert not v.validate(el, None)
-    eq_(el.errors, ['test is not a valid URL.'])
+    assert el.errors == ['test is not a valid URL.']
 
     v = HTTPURLValidator(required_parts=dict(scheme=(u'https', u''),
                                              hostname=True))
     el = scalar(u'http://there/path')
     assert not v.validate(el, None)
-    eq_(el.errors, [u'test is not a valid URL.'])
+    assert el.errors == [u'test is not a valid URL.']
 
     el = scalar(u'https://there/path')
     assert v.validate(el, None)
@@ -154,38 +154,38 @@ def test_http_validator_schemes():
 def test_url_canonicalizer_default():
     v = URLCanonicalizer()
     el = scalar(u'http://localhost/#foo')
-    eq_(el.value, u'http://localhost/#foo')
+    assert el.value == u'http://localhost/#foo'
 
     assert v.validate(el, None)
-    eq_(el.value, u'http://localhost/')
+    assert el.value == u'http://localhost/'
     assert not el.errors
 
 
 def test_url_canonicalizer_want_none():
     v = URLCanonicalizer(discard_parts=_url_parts)
     el = scalar(u'http://me:you@there/path#fragment')
-    eq_(el.value, u'http://me:you@there/path#fragment')
+    assert el.value == u'http://me:you@there/path#fragment'
 
     assert v.validate(el, None)
-    eq_(el.value, u'')
+    assert el.value == u''
     assert not el.errors
 
 
 def test_url_canonicalizer_want_one():
     v = URLCanonicalizer(discard_parts=_url_parts[1:])
     el = scalar(u'http://me:you@there/path#fragment')
-    eq_(el.value, u'http://me:you@there/path#fragment')
+    assert el.value == u'http://me:you@there/path#fragment'
 
     assert v.validate(el, None)
-    eq_(el.value, u'http://')
+    assert el.value == u'http://'
     assert not el.errors
 
 
 def test_url_canonicalizer_want_all():
     v = URLCanonicalizer(discard_parts=())
     el = scalar(u'http://me:you@there/path#fragment')
-    eq_(el.value, u'http://me:you@there/path#fragment')
+    assert el.value == u'http://me:you@there/path#fragment'
 
     assert v.validate(el, None)
-    eq_(el.value, u'http://me:you@there/path#fragment')
+    assert el.value == u'http://me:you@there/path#fragment'
     assert not el.errors

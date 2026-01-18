@@ -7,7 +7,7 @@ from flatland import (
     )
 from flatland._compat import xrange
 
-from tests._util import assert_raises, eq_, requires_unicode_coercion
+from tests._util import assert_raises, requires_unicode_coercion
 
 
 def test_cloning():
@@ -21,13 +21,13 @@ def test_cloning():
 def test_naming():
     for arg in (u'unicode', 'sysencoding', None):
         schema = Element.named(arg)
-        eq_(schema.name, arg)
-        eq_(schema.label, arg)
+        assert schema.name == arg
+        assert schema.label == arg
 
     for arg in (u'unicode', 'sysencoding', None):
         schema = Element.named(arg).using(label=u'fleem')
-        eq_(schema.name, arg)
-        eq_(schema.label, u'fleem')
+        assert schema.name == arg
+        assert schema.label == u'fleem'
 
 
 def test_validators():
@@ -37,46 +37,46 @@ def test_validators():
 
     # argument is transformed into a list copy
     el = Element(validators=(123, 456))
-    eq_(el.validators, [123, 456])
+    assert el.validators == [123, 456]
 
     el = Element(validators=xrange(3))
-    eq_(el.validators, list(xrange(3)))
+    assert el.validators == list(xrange(3))
 
     schema = Element.using(validators=xrange(3))
-    eq_(schema.validators, list(xrange(3)))
+    assert schema.validators == list(xrange(3))
 
 
 def test_dsl_validated_by():
     s = Element.using(validators=(123, 456))
-    eq_(s.validators, [123, 456])
+    assert s.validators == [123, 456]
 
     s = Element.validated_by(123, 456)
-    eq_(s.validators, [123, 456])
+    assert s.validators == [123, 456]
 
     s = Element.using(validators=(123, 456)).validated_by(789)
-    eq_(s.validators, [789])
+    assert s.validators == [789]
 
     assert_raises(TypeError, Element.validated_by, int)
 
 
 def test_dsl_including_validators():
     base = Element.validated_by(1, 2, 3)
-    eq_(base.validators, [1, 2, 3])
+    assert base.validators == [1, 2, 3]
 
     s = base.including_validators(4, 5, 6)
-    eq_(s.validators, [1, 2, 3, 4, 5, 6])
+    assert s.validators == [1, 2, 3, 4, 5, 6]
 
     s = base.including_validators(4, 5, 6, position=0)
-    eq_(s.validators, [4, 5, 6, 1, 2, 3])
+    assert s.validators == [4, 5, 6, 1, 2, 3]
 
     s = base.including_validators(4, 5, 6, position=1)
-    eq_(s.validators, [1, 4, 5, 6, 2, 3])
+    assert s.validators == [1, 4, 5, 6, 2, 3]
 
     s = base.including_validators(4, 5, 6, position=-2)
-    eq_(s.validators, [1, 2, 4, 5, 6, 3])
+    assert s.validators == [1, 2, 4, 5, 6, 3]
 
     s = Element.including_validators(1)
-    eq_(s.validators, [1])
+    assert s.validators == [1]
 
 
 def test_optional():
@@ -105,22 +105,22 @@ def test_label():
 def test_instance_defaults():
     el = Element()
 
-    eq_(el.name, None)
-    eq_(el.label, None)
-    eq_(el.optional, False)
-    eq_(el.default, None)
-    eq_(el.default_factory, None)
-    eq_(el.default_value, None)
-    eq_(el.validators, ())
-    eq_(el.valid, Unevaluated)
-    eq_(el.errors, [])
-    eq_(el.warnings, [])
-    eq_(tuple(_.name for _ in el.path), (None,))
-    eq_(el.parent, None)
-    eq_(el.root, el)
-    eq_(el.flattened_name(), u'')
-    eq_(el.value, None)
-    eq_(el.u, u'')
+    assert el.name == None
+    assert el.label == None
+    assert el.optional == False
+    assert el.default == None
+    assert el.default_factory == None
+    assert el.default_value == None
+    assert el.validators == ()
+    assert el.valid == Unevaluated
+    assert el.errors == []
+    assert el.warnings == []
+    assert tuple(_.name for _ in el.path) == (None,)
+    assert el.parent == None
+    assert el.root == el
+    assert el.flattened_name() == u''
+    assert el.value == None
+    assert el.u == u''
 
 
 def test_abstract():
@@ -135,16 +135,16 @@ def test_message_buckets():
     el = Element()
 
     el.add_error('error')
-    eq_(el.errors, ['error'])
+    assert el.errors == ['error']
     el.add_error('error')
-    eq_(el.errors, ['error'])
+    assert el.errors == ['error']
     el.add_error('error2')
-    eq_(el.errors, ['error', 'error2'])
+    assert el.errors == ['error', 'error2']
 
     el.add_warning('warning')
-    eq_(el.warnings, ['warning'])
+    assert el.warnings == ['warning']
     el.add_warning('warning')
-    eq_(el.warnings, ['warning'])
+    assert el.warnings == ['warning']
 
 
 def test_validation():
