@@ -1,4 +1,3 @@
-# -*- coding: utf-8; fill-column: 78 -*-
 import re
 import string
 import sys
@@ -22,7 +21,7 @@ def decode_repr(x):
 
 
 # derived from ASPN Cookbook (#36302)
-class lazy_property(object):
+class lazy_property:
     """An @property that is only calculated once.
 
     The results of the decorated function are stored in the instance
@@ -42,7 +41,7 @@ class lazy_property(object):
         return value
 
 
-class assignable_property(object):
+class assignable_property:
     """A @property, computed by default but assignable on a per-instance basis.
 
     Similar to ``property``, except that the attribute may be assigned to and
@@ -73,11 +72,11 @@ class assignable_property(object):
         try:
             del instance.__dict__[self.name]
         except KeyError:
-            raise AttributeError("%r object has no overriden attribute %r" % (
+            raise AttributeError("{!r} object has no overriden attribute {!r}".format(
                 type(instance).__name__, self.name))
 
 
-class assignable_class_property(object):
+class assignable_class_property:
     """A read/write property for access on a class or an instance.
 
     Similar to :class:`assignable_property`, except that access as a class
@@ -114,11 +113,11 @@ class assignable_class_property(object):
         try:
             del instance.__dict__[self.name]
         except KeyError:
-            raise AttributeError("%r object has no overridden attribute %r" % (
+            raise AttributeError("{!r} object has no overridden attribute {!r}".format(
                 type(instance).__name__, self.name))
 
 
-class class_cloner(object):
+class class_cloner:
     """A class-copying ``classmethod``.
 
     Calls the decorated method as a classmethod, passing a copy of the class.
@@ -156,11 +155,11 @@ class class_cloner(object):
         try:
             del instance.__dict__[self.name]
         except KeyError:
-            raise AttributeError("%r object has no attribute %r" % (
+            raise AttributeError("{!r} object has no attribute {!r}".format(
                 type(instance).__name__, self.name))
 
 
-class as_mapping(object):
+class as_mapping:
     """Provide a mapping view of an instance.
 
     Similar to vars(), but effective on extension types and will invoke
@@ -218,11 +217,11 @@ def re_uescape(pattern):
     mutable = list(pattern)
     for idx, char in enumerate(pattern):
         if char not in _alphanum:
-            if char == u"\000":
-                mutable[idx] = u"\\000"
+            if char == "\000":
+                mutable[idx] = "\\000"
             else:
-                mutable[idx] = u"\\" + char
-    return u''.join(mutable)
+                mutable[idx] = "\\" + char
+    return ''.join(mutable)
 
 
 def to_pairs(dictlike):
@@ -292,7 +291,7 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
         yield key, value
 
 
-class Maybe(object):
+class Maybe:
     """A ternary logic value, bitwise-comparable to bools"""
 
     def __and__(self, other):
@@ -382,7 +381,7 @@ def autodocument_from_superclasses(cls):
 
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
-class _symbol(object):
+class _symbol:
 
     def __init__(self, name):
         """Construct a new named symbol."""
@@ -398,7 +397,7 @@ _symbol.__name__ = 'symbol'
 
 
 # derived from SQLAlchemy (http://www.sqlalchemy.org/); MIT License
-class symbol(object):
+class symbol:
     """A constant symbol.
 
     >>> symbol('foo') is symbol('foo')

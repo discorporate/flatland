@@ -53,7 +53,7 @@ def alternate_expectation(backend, string):
     return decorator
 
 
-class desired_output(object):
+class desired_output:
 
     def __init__(self, language, schema, **kw):
         self.language = language
@@ -189,19 +189,19 @@ def _render_genshi(markup, language, schema, **kw):
     output = template.generate(**kw).render(language)
 
     # strip div wrapper off
-    got = output[output.index(u'\n') + 1:output.rindex(u'\n')]
+    got = output[output.index('\n') + 1:output.rindex('\n')]
     got = got.strip()
 
     return got
 
 
 def _wrap_with_xmlns(template, language):
-    wrapped = u'<div '
-    if language == u'xhtml':
-        wrapped += u'xmlns="http://www.w3.org/1999/xhtml" '
+    wrapped = '<div '
+    if language == 'xhtml':
+        wrapped += 'xmlns="http://www.w3.org/1999/xhtml" '
     wrapped += (
-        u'xmlns:form="http://ns.discorporate.us/flatland/genshi" ' +
-        u'xmlns:py="http://genshi.edgewall.org/">\n' +
+        'xmlns:form="http://ns.discorporate.us/flatland/genshi" ' +
+        'xmlns:py="http://genshi.edgewall.org/">\n' +
         template +
-        u'\n</div>')
+        '\n</div>')
     return wrapped

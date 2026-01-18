@@ -1,4 +1,3 @@
-# -*- coding: utf-8; fill-column: 78 -*-
 from collections import defaultdict
 import re
 
@@ -383,7 +382,7 @@ class Sequence(Container, list):
 
     @property
     def u(self):
-        return u'[%s]' % u', '.join(
+        return '[%s]' % ', '.join(
             element.u if isinstance(element, Container)
                       else decode_repr(element.u)
             for element in self.children)
@@ -416,7 +415,7 @@ class ListSlot(Container, Slot):
         return self.element.value
 
     def __repr__(self):
-        return '<ListSlot[%r] for %r>' % (self.name, self.element)
+        return f'<ListSlot[{self.name!r}] for {self.element!r}>'
 
 
 class List(Sequence):
@@ -553,17 +552,17 @@ class List(Sequence):
             return
 
         if self.name:
-            regex = re.compile(u'^%s(\\d+)(?:%s|$)' % (
+            regex = re.compile('^{}(\\d+)(?:{}|$)'.format(
                 re_uescape(self.name + sep), re_uescape(sep)), re.UNICODE)
         else:
-            regex = re.compile(u'^(\\d+)(?:%s|$)' % (
+            regex = re.compile('^(\\d+)(?:%s|$)' % (
                 re_uescape(sep)), re.UNICODE)
 
         indexes = defaultdict(list)
         prune = self.prune_empty
 
         for key, value in pairs:
-            if value == u'' and prune:
+            if value == '' and prune:
                 continue
             m = regex.match(key)
             if not m:
@@ -656,18 +655,18 @@ class Array(Sequence):
                "Flattened Arrays are only supported for scalar child types."
 
         if not self.name:
-            child_prefix = child_name or u''
+            child_prefix = child_name or ''
             for key, value in pairs:
-                if prune and value == u'' and key == child_prefix:
+                if prune and value == '' and key == child_prefix:
                     continue
-                if key == u'':
+                if key == '':
                     key = None
                 if child_name and key != child_name:
                     continue
                 member = self.member_schema.from_flat([(key, value)])
                 self.append(member)
         else:
-            regex = re.compile(u'^(%s(?:%s|$))' % (
+            regex = re.compile('^({}(?:{}|$))'.format(
                 re_uescape(self.name), re_uescape(sep)), re.UNICODE)
             for key, value in pairs:
                 m = regex.match(key)
@@ -676,7 +675,7 @@ class Array(Sequence):
                 remainder = key[m.end():] or None
                 if child_name and not remainder:
                     continue
-                elif prune and value == u'' and remainder == child_name:
+                elif prune and value == '' and remainder == child_name:
                     continue
                 member = self.member_schema.from_flat([(remainder, value)])
                 self.append(member)
@@ -700,7 +699,7 @@ class MultiValue(Array, Scalar):
     def u(self):
         """The .u of the first item in the sequence, or u''."""
         if not self:
-            return u''
+            return ''
         else:
             return self[0].u
 
@@ -802,7 +801,7 @@ class Mapping(Container, dict):
     def get(self, key, default=None):
         if key not in self:
             raise KeyError(
-                'immutable %s %s schema does not contain key %r.' % (
+                'immutable {} {} schema does not contain key {!r}.'.format(
                     type(self).__name__, self.name, key))
         # default will never be used.
         return self[key]
@@ -823,7 +822,7 @@ class Mapping(Container, dict):
         for key, value in pairs:
             if not self.may_contain(key):
                 raise KeyError(
-                    '%s %r schema does not allow key %r' % (
+                    '{} {!r} schema does not allow key {!r}'.format(
                         type(self).__name__, self.name, key))
             converted &= self[key].set(value)
             seen.add(key)
@@ -884,14 +883,14 @@ class Mapping(Container, dict):
         pairs = ((key, value.u if isinstance(value, Container)
                                else decode_repr(value.u))
                   for key, value in iteritems(self))
-        return u'{%s}' % u', '.join(
-            u"%s: %s" % (decode_repr(k), v)
+        return '{%s}' % ', '.join(
+            f"{decode_repr(k)}: {v}"
             for k, v in pairs)
 
     @property
     def value(self):
         """The element as a regular Python dictionary."""
-        return dict((key, value.value) for key, value in iteritems(self))
+        return {key: value.value for key, value in iteritems(self)}
 
     @property
     def is_empty(self):
@@ -905,7 +904,7 @@ class Mapping(Container, dict):
             field_schema = instance.field_schema
         else:
             field_schema = cls.field_schema
-        return dict((schema.name, schema) for schema in field_schema)
+        return {schema.name: schema for schema in field_schema}
 
     def _field_schema_for(self, key):
         """Return the schema for field ``*key* or None."""
@@ -939,7 +938,7 @@ class Dict(Mapping, dict):
                 raise TypeError("'of' must be initialized with types, got "
                                 "instance %r" % field)
 
-        unique_names = set(field.name for field in fields)
+        unique_names = {field.name for field in fields}
         # TODO: ensure these are types, not instances
         if len(unique_names) != len(fields):
             names = [field.name for field in fields]
@@ -990,7 +989,7 @@ class Dict(Mapping, dict):
         if policy is None:
             policy = self.policy
         if policy not in ('strict', 'subset', 'duck', None):
-            raise RuntimeError("Unknown %s policy %r" % (
+            raise RuntimeError("Unknown {} policy {!r}".format(
                 self.__class__.__name__, policy))
 
         if policy == 'strict':
@@ -1004,19 +1003,19 @@ class Dict(Mapping, dict):
             elif missing:
                 # match previous logic's exception type here
                 raise TypeError(
-                    'Strict %s %r schema requires keys %r' % (
+                    'Strict {} {!r} schema requires keys {!r}'.format(
                         self.__class__.__name__, self.name,
                         list(missing)))
             elif extra:
                 raise KeyError(
-                    'Strict %s %r schema does not allow keys %r' % (
+                    'Strict {} {!r} schema does not allow keys {!r}'.format(
                         self.__class__.__name__, self.name,
                         list(extra)))
         elif policy == 'subset':
             mismatch = _evaluate_dict_subset_policy(self, pairs)
             if mismatch:
                 raise KeyError(
-                    'Subset %s %r schema does not allow keys %r' % (
+                    'Subset {} {!r} schema does not allow keys {!r}'.format(
                         self.__class__.__name__, self.name,
                         list(mismatch)))
 
@@ -1108,9 +1107,9 @@ class Dict(Mapping, dict):
 
         sliced = keyslice_pairs(possible, include=include,
                                 omit=omit, rename=rename)
-        final = dict((key, value)
+        final = {key: value
                      for key, value in sliced
-                     if key in fields)
+                     if key in fields}
         self.set(final)
 
     def update_object(self, obj, include=None, omit=None, rename=None,

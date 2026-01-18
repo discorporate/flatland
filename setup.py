@@ -1,26 +1,7 @@
-import os
-import sys
+from setuptools import setup, find_packages
 
-if sys.version_info < (2, 7):
-    print("Python 2.7.x is required.")
-    sys.exit(1)
-
-try:
-    from setuptools import setup, find_packages
-    extra_setup = dict(
-        include_package_data=True,
-        zip_safe=True,
-        )
-except ImportError:
-    from distutils.core import setup
-    extra_setup = {}
-    def find_packages(exclude=()):
-        return [w[0].replace('/', '.')
-                for w in os.walk('flatland')
-                if '__init__.py' in w[2]]
-
-
-long_desc = open('README').read()
+with open('README') as f:
+    long_desc = f.read()
 
 setup(name="flatland",
       packages=find_packages(exclude=['tests.*', 'tests']),
@@ -29,22 +10,22 @@ setup(name="flatland",
       description='HTML form management and validation',
       keywords='schema validation data web form forms roundtrip',
       long_description=long_desc,
-      license='MIT License',
+      license='MIT',
+      license_files=['LICENSE'],
       url='https://github.com/discorporate/flatland/',
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Web Environment',
                    'Intended Audience :: Developers',
-                   'License :: OSI Approved :: MIT License',
                    'Natural Language :: English',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python',
-                   'Programming Language :: Python :: 2',
-                   'Programming Language :: Python :: 2.7',
                    'Programming Language :: Python :: 3',
-                   'Programming Language :: Python :: 3.4',
-                   'Programming Language :: Python :: 3.5',
-                   'Programming Language :: Python :: 3.6',
-                   'Programming Language :: Python :: 3.7',
+                   'Programming Language :: Python :: 3.9',
+                   'Programming Language :: Python :: 3.10',
+                   'Programming Language :: Python :: 3.11',
+                   'Programming Language :: Python :: 3.12',
+                   'Programming Language :: Python :: 3.13',
+                   'Programming Language :: Python :: 3.14',
                    'Topic :: Internet :: WWW/HTTP :: WSGI',
                    'Topic :: Software Development :: Libraries'],
       use_scm_version={
@@ -56,4 +37,7 @@ setup(name="flatland",
       install_requires=[
           'blinker',
       ],
-      **extra_setup)
+      python_requires='>=3.9',
+      include_package_data=True,
+      zip_safe=True,
+)

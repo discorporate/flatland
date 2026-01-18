@@ -12,7 +12,7 @@ from tests._util import requires_unicode_coercion
 
 
 def test_cloning():
-    new_element = Element.named(u'x')
+    new_element = Element.named('x')
     assert isinstance(new_element, type)
     assert new_element.__module__ != Element.__module__
     assert 'test_base' in new_element.__module__
@@ -20,15 +20,15 @@ def test_cloning():
 
 @requires_unicode_coercion
 def test_naming():
-    for arg in (u'unicode', 'sysencoding', None):
+    for arg in ('unicode', 'sysencoding', None):
         schema = Element.named(arg)
         assert schema.name == arg
         assert schema.label == arg
 
-    for arg in (u'unicode', 'sysencoding', None):
-        schema = Element.named(arg).using(label=u'fleem')
+    for arg in ('unicode', 'sysencoding', None):
+        schema = Element.named(arg).using(label='fleem')
         assert schema.name == arg
-        assert schema.label == u'fleem'
+        assert schema.label == 'fleem'
 
 
 def test_validators():
@@ -95,13 +95,13 @@ def test_optional():
 
 def test_label():
     # .label fallback to .name works for instances and classes
-    for item in Element.named(u'x'), Element.named(u'x')(), Element(name=u'x'):
-        assert item.label == u'x'
+    for item in Element.named('x'), Element.named('x')(), Element(name='x'):
+        assert item.label == 'x'
 
-    for item in (Element.using(name=u'x', label=u'L'),
-                 Element.using(name=u'x', label=u'L')(),
-                 Element(name=u'x', label=u'L')):
-        assert item.label == u'L'
+    for item in (Element.using(name='x', label='L'),
+                 Element.using(name='x', label='L')(),
+                 Element(name='x', label='L')):
+        assert item.label == 'L'
 
 
 def test_instance_defaults():
@@ -120,9 +120,9 @@ def test_instance_defaults():
     assert tuple(_.name for _ in el.path) == (None,)
     assert el.parent == None
     assert el.root == el
-    assert el.flattened_name() == u''
+    assert el.flattened_name() == ''
     assert el.value == None
-    assert el.u == u''
+    assert el.u == ''
 
 
 def test_abstract():
@@ -132,7 +132,7 @@ def test_abstract():
     with pytest.raises(NotImplementedError):
         element.set_flat(())
     with pytest.raises(NotImplementedError):
-        element.find_one(u'foo')
+        element.find_one('foo')
 
 
 def test_message_buckets():
@@ -192,7 +192,7 @@ def test_validation():
 def test_validator_return():
     # Validator returns can be bool, int or None.
 
-    class Bool(object):
+    class Bool:
         """A truthy object that does not implement __and__"""
 
         def __init__(self, val):
@@ -252,7 +252,7 @@ def test_default_value():
 def test_xml_helpers():
     el = Element()
 
-    el.u = u'<foo\t&\r\n"bar">'
+    el.u = '<foo\t&\r\n"bar">'
 
-    assert el.x == u'&lt;foo\t&amp;\r\n"bar"&gt;'
-    assert el.xa == u'&lt;foo&#9;&amp;&#13;&#10;&quot;bar&quot;&gt;'
+    assert el.x == '&lt;foo\t&amp;\r\n"bar"&gt;'
+    assert el.xa == '&lt;foo&#9;&amp;&#13;&#10;&quot;bar&quot;&gt;'

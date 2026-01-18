@@ -1,4 +1,3 @@
-from __future__ import with_statement
 import datetime
 import decimal
 
@@ -25,7 +24,7 @@ from tests._util import requires_unicode_coercion
 def test_scalar_abstract():
     el = Scalar()
     with pytest.raises(NotImplementedError):
-        el.set(u'blagga')
+        el.set('blagga')
 
 
 def test_scalar_assignments_are_independent():
@@ -33,15 +32,15 @@ def test_scalar_assignments_are_independent():
 
     assert not element.u
     assert not element.value
-    element.u = u'abc'
+    element.u = 'abc'
     assert element.value is None
 
     element = Scalar()
     assert not element.u
     assert not element.value
-    element.value = u'abc'
-    assert element.u == u''
-    assert element.value == u'abc'
+    element.value = 'abc'
+    assert element.u == ''
+    assert element.value == 'abc'
 
 
 def test_scalar_set_flat():
@@ -51,40 +50,40 @@ def test_scalar_set_flat():
         def adapt(self, value):
             return value
 
-    data = ((u'a', u'1'),
-            (u'b', u'2'),
-            (u'a', u'3'))
+    data = (('a', '1'),
+            ('b', '2'),
+            ('a', '3'))
 
     def element_for(name):
         element = SimpleScalar(name=name)
         element.set_flat(data)
         return element
 
-    assert element_for(u'a').value == u'1'
-    assert element_for(u'a').raw == u'1'
-    assert element_for(u'b').value == u'2'
-    assert element_for(u'b').raw == u'2'
-    assert element_for(u'c').value == None
-    assert element_for(u'c').raw == Unset
+    assert element_for('a').value == '1'
+    assert element_for('a').raw == '1'
+    assert element_for('b').value == '2'
+    assert element_for('b').raw == '2'
+    assert element_for('c').value == None
+    assert element_for('c').raw == Unset
 
 
 def test_string():
-    for value, expected in ((u'abc', u'abc'), ('abc', u'abc'), (123, u'123'),
-                            (u'abc ', u'abc'), (' abc ', u'abc')):
+    for value, expected in (('abc', 'abc'), ('abc', 'abc'), (123, '123'),
+                            ('abc ', 'abc'), (' abc ', 'abc')):
         for element in String(), String(strip=True):
             element.set(value)
             assert element.u == expected
             assert element.__unicode__() == expected
             assert element.value == expected
 
-    for value, expected in ((u'abc ', u'abc '), (' abc ', u' abc ')):
+    for value, expected in (('abc ', 'abc '), (' abc ', ' abc ')):
         element = String(value, strip=False)
         assert element.u == expected
         assert element.__unicode__() == expected
         assert element.value == expected
 
-    for value, expected_value, expected_unicode in ((u'', u'', u''),
-                                                    (None, None, u'')):
+    for value, expected_value, expected_unicode in (('', '', ''),
+                                                    (None, None, '')):
         element = String(value)
         assert element.u == expected_unicode
         assert element.__unicode__() == expected_unicode
@@ -92,10 +91,10 @@ def test_string():
 
 
 def test_string_is_empty():
-    element = String(u'')
+    element = String('')
     assert element.is_empty
 
-    element = String(u'foo')
+    element = String('foo')
     assert not element.is_empty
 
 
@@ -118,15 +117,15 @@ coerced_validate_element_set = requires_unicode_coercion(validate_element_set)
 def test_scalar_set():
     # a variety of scalar set() failure cases, shoved through Integer
     for spec in (
-        (None,       None, u'', {}, True),
-        ([],         None, u'[]'),
+        (None,       None, '', {}, True),
+        ([],         None, '[]'),
         ):
         validate_element_set(Integer, *spec)
 
     if PY2:
         # TODO: test below fails on py3 and it is unclear what it is about.
         for spec in (
-            ('\xef\xf0', None, u'\ufffd\ufffd'),
+            ('\xef\xf0', None, '\ufffd\ufffd'),
             ):
             coerced_validate_element_set(Integer, *spec)
 
@@ -138,130 +137,130 @@ def test_scalar_set_signal():
     Integer(0)
     with element_set.connected_to(sentinel):
         Integer(1)
-        Integer(u'bogus')
+        Integer('bogus')
 
     assert len(data) == 2
     assert data[0][0].value == 1
     assert data[0][1] is True
 
-    assert data[1][0].raw == u'bogus'
+    assert data[1][0].raw == 'bogus'
     assert data[1][1] is False
 
 
 def test_integer():
-    for spec in ((u'123',    123,  u'123'),
-                 (u' 123 ',  123,  u'123'),
-                 (u'xyz',    None, u'xyz'),
-                 (u'xyz123', None, u'xyz123'),
-                 (u'123xyz', None, u'123xyz'),
-                 (u'123.0',  None, u'123.0'),
-                 (u'+123',   123,  u'123'),
-                 (u'-123',   -123, u'-123'),
-                 (u' +123 ', 123,  u'123'),
-                 (u' -123 ', -123, u'-123'),
-                 (u'+123',   123,  u'123', dict(signed=False)),
-                 (u'-123',   None, u'-123', dict(signed=False)),
-                 (123,       123,  u'123'),
-                 (None,      None, u'', {}, True),
-                 (-123,      None, u'-123', dict(signed=False)),
+    for spec in (('123',    123,  '123'),
+                 (' 123 ',  123,  '123'),
+                 ('xyz',    None, 'xyz'),
+                 ('xyz123', None, 'xyz123'),
+                 ('123xyz', None, '123xyz'),
+                 ('123.0',  None, '123.0'),
+                 ('+123',   123,  '123'),
+                 ('-123',   -123, '-123'),
+                 (' +123 ', 123,  '123'),
+                 (' -123 ', -123, '-123'),
+                 ('+123',   123,  '123', dict(signed=False)),
+                 ('-123',   None, '-123', dict(signed=False)),
+                 (123,       123,  '123'),
+                 (None,      None, '', {}, True),
+                 (-123,      None, '-123', dict(signed=False)),
                  ):
         validate_element_set(Integer, *spec)
 
 
 def test_long():
     L = long_type
-    for spec in ((u'123',    L(123),  u'123'),
-                 (u' 123 ',  L(123),  u'123'),
-                 (u'xyz',    None,    u'xyz'),
-                 (u'xyz123', None,    u'xyz123'),
-                 (u'123xyz', None,    u'123xyz'),
-                 (u'123.0',  None,    u'123.0'),
-                 (u'+123',   L(123),  u'123'),
-                 (u'-123',   L(-123), u'-123'),
-                 (u' +123 ', L(123),  u'123'),
-                 (u' -123 ', L(-123), u'-123'),
-                 (u'+123',   L(123),  u'123', dict(signed=False)),
-                 (u'-123',   None,    u'-123', dict(signed=False)),
-                 (None,      None,    u'', {}, True)):
+    for spec in (('123',    L(123),  '123'),
+                 (' 123 ',  L(123),  '123'),
+                 ('xyz',    None,    'xyz'),
+                 ('xyz123', None,    'xyz123'),
+                 ('123xyz', None,    '123xyz'),
+                 ('123.0',  None,    '123.0'),
+                 ('+123',   L(123),  '123'),
+                 ('-123',   L(-123), '-123'),
+                 (' +123 ', L(123),  '123'),
+                 (' -123 ', L(-123), '-123'),
+                 ('+123',   L(123),  '123', dict(signed=False)),
+                 ('-123',   None,    '-123', dict(signed=False)),
+                 (None,      None,    '', {}, True)):
         validate_element_set(Long, *spec)
 
 
 def test_float():
-    for spec in ((u'123',    123.0,  u'123.000000'),
-                 (u' 123 ',  123.0,  u'123.000000'),
-                 (u'xyz',    None,   u'xyz'),
-                 (u'xyz123', None,   u'xyz123'),
-                 (u'123xyz', None,   u'123xyz'),
-                 (u'123.0',  123.0,  u'123.000000'),
-                 (u'+123',   123.0,  u'123.000000'),
-                 (u'-123',   -123.0, u'-123.000000'),
-                 (u' +123 ', 123.0,  u'123.000000'),
-                 (u' -123 ', -123.0, u'-123.000000'),
-                 (u'+123',   123.0,  u'123.000000', dict(signed=False)),
-                 (u'-123',   None,   u'-123', dict(signed=False)),
-                 (None,      None,   u'', {}, True)):
+    for spec in (('123',    123.0,  '123.000000'),
+                 (' 123 ',  123.0,  '123.000000'),
+                 ('xyz',    None,   'xyz'),
+                 ('xyz123', None,   'xyz123'),
+                 ('123xyz', None,   '123xyz'),
+                 ('123.0',  123.0,  '123.000000'),
+                 ('+123',   123.0,  '123.000000'),
+                 ('-123',   -123.0, '-123.000000'),
+                 (' +123 ', 123.0,  '123.000000'),
+                 (' -123 ', -123.0, '-123.000000'),
+                 ('+123',   123.0,  '123.000000', dict(signed=False)),
+                 ('-123',   None,   '-123', dict(signed=False)),
+                 (None,      None,   '', {}, True)):
         validate_element_set(Float, *spec)
 
     class TwoDigitFloat(Float):
-        format = u'%0.2f'
+        format = '%0.2f'
 
-    for spec in ((u'123',     123.0,   u'123.00'),
-                 (u' 123 ',   123.0,   u'123.00'),
-                 (u'xyz',     None,    u'xyz'),
-                 (u'xyz123',  None,    u'xyz123'),
-                 (u'123xyz',  None,    u'123xyz'),
-                 (u'123.0',   123.0,   u'123.00'),
-                 (u'123.00',  123.0,   u'123.00'),
-                 (u'123.005', 123.005, u'123.00'),
-                 (None,       None,    u'', {}, True)):
+    for spec in (('123',     123.0,   '123.00'),
+                 (' 123 ',   123.0,   '123.00'),
+                 ('xyz',     None,    'xyz'),
+                 ('xyz123',  None,    'xyz123'),
+                 ('123xyz',  None,    '123xyz'),
+                 ('123.0',   123.0,   '123.00'),
+                 ('123.00',  123.0,   '123.00'),
+                 ('123.005', 123.005, '123.00'),
+                 (None,       None,    '', {}, True)):
         validate_element_set(TwoDigitFloat, *spec)
 
 
 def test_decimal():
     d = decimal.Decimal
-    for spec in ((u'123',    d('123'),   u'123.000000'),
-                 (u' 123 ',  d('123'),   u'123.000000'),
-                 (u'xyz',    None,       u'xyz'),
-                 (u'xyz123', None,       u'xyz123'),
-                 (u'123xyz', None,       u'123xyz'),
-                 (u'123.0',  d('123.0'), u'123.000000'),
-                 (u'+123',   d('123'),   u'123.000000'),
-                 (u'-123',   d('-123'), u'-123.000000'),
-                 (u' +123 ', d('123'),   u'123.000000'),
-                 (u' -123 ', d('-123'),  u'-123.000000'),
-                 (123,       d('123'),   u'123.000000'),
-                 (-123,      d('-123'),  u'-123.000000'),
-                 (d(123),    d('123'),   u'123.000000'),
-                 (d(-123),   d('-123'),  u'-123.000000'),
-                 (u'+123',   d('123'),   u'123.000000', dict(signed=False)),
-                 (u'-123',   None,       u'-123', dict(signed=False)),
-                 (None,      None,       u'', {}, True)):
+    for spec in (('123',    d('123'),   '123.000000'),
+                 (' 123 ',  d('123'),   '123.000000'),
+                 ('xyz',    None,       'xyz'),
+                 ('xyz123', None,       'xyz123'),
+                 ('123xyz', None,       '123xyz'),
+                 ('123.0',  d('123.0'), '123.000000'),
+                 ('+123',   d('123'),   '123.000000'),
+                 ('-123',   d('-123'), '-123.000000'),
+                 (' +123 ', d('123'),   '123.000000'),
+                 (' -123 ', d('-123'),  '-123.000000'),
+                 (123,       d('123'),   '123.000000'),
+                 (-123,      d('-123'),  '-123.000000'),
+                 (d(123),    d('123'),   '123.000000'),
+                 (d(-123),   d('-123'),  '-123.000000'),
+                 ('+123',   d('123'),   '123.000000', dict(signed=False)),
+                 ('-123',   None,       '-123', dict(signed=False)),
+                 (None,      None,       '', {}, True)):
         validate_element_set(Decimal, *spec)
 
-    TwoDigitDecimal = Decimal.using(format=u'%0.2f')
+    TwoDigitDecimal = Decimal.using(format='%0.2f')
 
-    for spec in ((u'123',     d('123.0'),   u'123.00'),
-                 (u' 123 ',   d('123.0'),   u'123.00'),
-                 (u'12.34',   d('12.34'),   u'12.34'),
-                 (u'12.3456', d('12.3456'), u'12.35')):
+    for spec in (('123',     d('123.0'),   '123.00'),
+                 (' 123 ',   d('123.0'),   '123.00'),
+                 ('12.34',   d('12.34'),   '12.34'),
+                 ('12.3456', d('12.3456'), '12.35')):
         validate_element_set(TwoDigitDecimal, *spec)
 
 
 def test_boolean():
     for ok in Boolean.true_synonyms:
-        validate_element_set(Boolean, ok, True, u'1')
-        validate_element_set(Boolean, ok, True, u'baz', dict(true=u'baz'))
+        validate_element_set(Boolean, ok, True, '1')
+        validate_element_set(Boolean, ok, True, 'baz', dict(true='baz'))
 
     for not_ok in Boolean.false_synonyms:
-        validate_element_set(Boolean, not_ok, False, u'')
-        validate_element_set(Boolean, not_ok, False, u'quux',
-                             dict(false=u'quux'))
+        validate_element_set(Boolean, not_ok, False, '')
+        validate_element_set(Boolean, not_ok, False, 'quux',
+                             dict(false='quux'))
 
-    for bogus in u'abc', u'1.0', u'0.0', u'None':
+    for bogus in 'abc', '1.0', '0.0', 'None':
         validate_element_set(Boolean, bogus, None, bogus)
 
     for coercable in {}, 0:
-        validate_element_set(Boolean, coercable, False, u'')
+        validate_element_set(Boolean, coercable, False, '')
 
 
 def test_scalar_set_default():
@@ -281,33 +280,33 @@ def test_scalar_set_default():
 def test_date():
     t = datetime.date
     for spec in (
-        (u'2009-10-10',   t(2009, 10, 10), u'2009-10-10'),
-        (u'2010-08-02',   t(2010, 8, 2), u'2010-08-02'),
-        (u' 2010-08-02 ', t(2010, 8, 2), u'2010-08-02'),
-        (u' 2010-08-02 ', None, u' 2010-08-02 ', dict(strip=False)),
-        (u'2011-8-2',     None, u'2011-8-2'),
-        (u'blagga',       None, u'blagga'),
-        (None,            None, u'', {}, True)):
+        ('2009-10-10',   t(2009, 10, 10), '2009-10-10'),
+        ('2010-08-02',   t(2010, 8, 2), '2010-08-02'),
+        (' 2010-08-02 ', t(2010, 8, 2), '2010-08-02'),
+        (' 2010-08-02 ', None, ' 2010-08-02 ', dict(strip=False)),
+        ('2011-8-2',     None, '2011-8-2'),
+        ('blagga',       None, 'blagga'),
+        (None,            None, '', {}, True)):
         validate_element_set(Date, *spec)
 
 
 def test_time():
     t = datetime.time
     for spec in (
-        (u'08:09:10', t(8, 9, 10),  u'08:09:10'),
-        (u'23:24:25', t(23, 24, 25), u'23:24:25'),
-        (u'24:25:26', None,          u'24:25:26'),
-        (u'bogus',    None,          u'bogus'),
-        (None,        None,          u'',         {}, True)):
+        ('08:09:10', t(8, 9, 10),  '08:09:10'),
+        ('23:24:25', t(23, 24, 25), '23:24:25'),
+        ('24:25:26', None,          '24:25:26'),
+        ('bogus',    None,          'bogus'),
+        (None,        None,          '',         {}, True)):
         validate_element_set(Time, *spec)
 
 
 def test_datetime():
     t = datetime.datetime
     for spec in (
-        (u'2009-10-10 08:09:10', t(2009, 10, 10, 8, 9, 10),
-         u'2009-10-10 08:09:10'),
-        (u'2010-08-02 25:26:27', None, u'2010-08-02 25:26:27'),
-        (u'2010-13-22 09:09:09', None, u'2010-13-22 09:09:09'),
-        (None,                   None, u'', {}, True)):
+        ('2009-10-10 08:09:10', t(2009, 10, 10, 8, 9, 10),
+         '2009-10-10 08:09:10'),
+        ('2010-08-02 25:26:27', None, '2010-08-02 25:26:27'),
+        ('2010-13-22 09:09:09', None, '2010-13-22 09:09:09'),
+        (None,                   None, '', {}, True)):
         validate_element_set(DateTime, *spec)

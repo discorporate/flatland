@@ -1,4 +1,3 @@
-# -*- coding: utf-8; fill-column: 78 -*-
 import datetime
 import decimal
 import re
@@ -83,14 +82,14 @@ class Scalar(Element):
             self.value = None  # could not be adapted
             # but, still try to textify it
             if obj is None:
-                self.u = u''
+                self.u = ''
             elif isinstance(obj, text_type):
                 self.u = obj
             else:
                 try:
                     self.u = text_transform(obj)
                 except TypeError:
-                    self.u = u''
+                    self.u = ''
                 except UnicodeDecodeError:
                     self.u = text_type(obj, errors='replace')
             element_set.send(self, adapted=False)
@@ -99,7 +98,7 @@ class Scalar(Element):
         # stringify it, possibly storing what we received verbatim or a
         # normalized version of it.
         if obj is None:
-            self.u = u''
+            self.u = ''
         else:
             self.u = self.serialize(obj)
         element_set.send(self, adapted=True)
@@ -157,7 +156,7 @@ class Scalar(Element):
         return self.u
 
     def __repr__(self):
-        return '<%s %r; value=%r>' % (
+        return '<{} {!r}; value={!r}>'.format(
             type(self).__name__, self.name, self.value)
 
 
@@ -196,7 +195,7 @@ class String(Scalar):
 
         """
         if value is None:
-            return u''
+            return ''
         if not isinstance(value, text_type):
             value = text_transform(value)
 
@@ -208,7 +207,7 @@ class String(Scalar):
     @property
     def is_empty(self):
         """True if the String is missing or has no value."""
-        return True if (not self.value and self.u == u'') else False
+        return True if (not self.value and self.u == '') else False
 
 
 class Number(Scalar):
@@ -225,7 +224,7 @@ class Number(Scalar):
     signed = True
     """If true, allow negative numbers.  Default ``True``."""
 
-    format = u'%s'
+    format = '%s'
     """The ``text`` serialization format."""
 
     def adapt(self, value):
@@ -273,7 +272,7 @@ class Integer(Number):
     type_ = int
     """``int``"""
 
-    format = u'%i'
+    format = '%i'
     """``u'%i'``"""
 
 
@@ -283,7 +282,7 @@ class Long(Number):
     type_ = long_type
     """``long``, or ``int`` on Python 3."""
 
-    format = u'%i'
+    format = '%i'
     """``u'%i'``"""
 
 
@@ -293,7 +292,7 @@ class Float(Number):
     type_ = float
     """``float``"""
 
-    format = u'%f'
+    format = '%f'
     """``u'%f'``"""
 
 
@@ -303,26 +302,26 @@ class Decimal(Number):
     type_ = decimal.Decimal
     """``decimal.Decimal``"""
 
-    format = u'%f'
+    format = '%f'
     """``u'%f'``"""
 
 
 class Boolean(Scalar):
     """Element type for Python's ``bool``."""
 
-    true = u'1'
+    true = '1'
     """The text serialization for ``True``: ``u'1'``."""
 
-    true_synonyms = (u'on', u'true', u'True', u'1')
+    true_synonyms = ('on', 'true', 'True', '1')
     """A sequence of acceptable string equivalents for True.
 
     Defaults to ``(u'on', u'true', u'True', u'1')``
     """
 
-    false = u''
+    false = ''
     """The text serialization for ``False``: ``u''``."""
 
-    false_synonyms = (u'off', u'false', u'False', u'0', u'')
+    false_synonyms = ('off', 'false', 'False', '0', '')
     """A sequence of acceptable string equivalents for False.
 
     Defaults to ``(u'off', u'false', u'False', u'0', u'')``
@@ -518,11 +517,11 @@ class DateTime(Temporal):
 
     type_ = datetime.datetime
     regex = re.compile(
-        u'^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2}) '
-        u'(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
-    format = (u'%(year)04i-%(month)02i-%(day)02i '
-              u'%(hour)02i:%(minute)02i:%(second)02i')
-    used = (u'year', u'month', u'day', u'hour', u'minute', u'second')
+        '^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2}) '
+        '(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
+    format = ('%(year)04i-%(month)02i-%(day)02i '
+              '%(hour)02i:%(minute)02i:%(second)02i')
+    used = ('year', 'month', 'day', 'hour', 'minute', 'second')
 
 
 class Date(Temporal):
@@ -534,9 +533,9 @@ class Date(Temporal):
 
     type_ = datetime.date
     regex = re.compile(
-        u'^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2})$')
-    format = u'%(year)04i-%(month)02i-%(day)02i'
-    used = (u'year', u'month', u'day')
+        '^(?P<year>\\d{4})-(?P<month>\\d{2})-(?P<day>\\d{2})$')
+    format = '%(year)04i-%(month)02i-%(day)02i'
+    used = ('year', 'month', 'day')
 
 
 class Time(Temporal):
@@ -548,9 +547,9 @@ class Time(Temporal):
 
     type_ = datetime.time
     regex = re.compile(
-        u'^(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
-    format = u'%(hour)02i:%(minute)02i:%(second)02i'
-    used = (u'hour', u'minute', u'second')
+        '^(?P<hour>\\d{2}):(?P<minute>\\d{2}):(?P<second>\\d{2})$')
+    format = '%(hour)02i:%(minute)02i:%(second)02i'
+    used = ('hour', 'minute', 'second')
 
 
 class Ref(Scalar):
@@ -587,7 +586,7 @@ class Ref(Scalar):
         elif self.writable:
             self.target.u = ustr
         else:
-            raise TypeError(u'Ref "%s" is not writable.' % self.name)
+            raise TypeError('Ref "%s" is not writable.' % self.name)
 
     u = property(_get_u, _set_u)
     del _get_u, _set_u
@@ -602,7 +601,7 @@ class Ref(Scalar):
         elif self.writable:
             self.target.value = value
         else:
-            raise TypeError(u'Ref "%s" is not writable.' % self.name)
+            raise TypeError('Ref "%s" is not writable.' % self.name)
 
     value = property(_get_value, _set_value)
     del _get_value, _set_value

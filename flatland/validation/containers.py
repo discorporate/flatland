@@ -1,4 +1,3 @@
-# -*- coding: utf-8; fill-column: 78 -*-
 import operator
 
 from flatland.schema.base import Slot, Unset
@@ -84,7 +83,7 @@ class NotDuplicated(Validator):
     """
 
     # TRANSLATORS: NotDuplicated.failure
-    failure = N_(u'%(label)s may not be repeated within %(container_label)s.')
+    failure = N_('%(label)s may not be repeated within %(container_label)s.')
 
     comparator = operator.eq
 
@@ -363,7 +362,7 @@ class SetWithKnownFields(Validator):
     """
 
     # TRANSLATORS: SetWithKnownFields.unexpected
-    unexpected = N_(u"%(label)s may not contain %(unexpected)s")
+    unexpected = N_("%(label)s may not contain %(unexpected)s")
 
     def validate(self, element, state):
         if (element.raw is Unset or
@@ -380,7 +379,7 @@ class SetWithKnownFields(Validator):
         unexpected = _evaluate_dict_subset_policy(element, set_with)
         if not unexpected:
             return True
-        n_unex, unex = len(unexpected), u', '.join(sorted(unexpected))
+        n_unex, unex = len(unexpected), ', '.join(sorted(unexpected))
         return self.note_error(element, state, 'unexpected',
                                unexpected=unex,
                                n_unexpected=n_unex)
@@ -451,10 +450,10 @@ class SetWithAllFields(Validator):
     """
 
     # TRANSLATORS: SetWithAllFields.unexpected
-    unexpected = N_(u"%(label)s may not contain %(unexpected)s")
+    unexpected = N_("%(label)s may not contain %(unexpected)s")
 
     # TRANSLATORS: SetWithAllFields.missing
-    missing = N_(u"%(label)s must contain %(missing)s")
+    missing = N_("%(label)s must contain %(missing)s")
 
     # TRANSLATORS: SetWithAllFields.both
     both = N_('%(label)s must contain %(missing)s '
@@ -482,8 +481,8 @@ class SetWithAllFields(Validator):
         else:
             message = 'unexpected'
 
-        n_miss, miss = len(missing), u', '.join(sorted(missing))
-        n_unex, unex = len(unexpected), u', '.join(sorted(unexpected))
+        n_miss, miss = len(missing), ', '.join(sorted(missing))
+        n_unex, unex = len(unexpected), ', '.join(sorted(unexpected))
 
         return self.note_error(element, state, message,
                                n_missing=n_miss,

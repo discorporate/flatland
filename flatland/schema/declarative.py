@@ -1,4 +1,3 @@
-# -*- coding: utf-8; fill-column: 78 -*-
 """Class attribute-style declarative schema construction."""
 from flatland._compat import PY2, with_metaclass
 from .base import Element
@@ -55,7 +54,7 @@ class _MetaSchema(type):
         return type.__new__(self, class_name, bases, members)
 
 
-class _ElementCollection(object):
+class _ElementCollection:
     """Internal helper collection for calculating Schema field inheritance."""
 
     def __init__(self):

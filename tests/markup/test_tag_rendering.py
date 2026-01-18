@@ -4,16 +4,16 @@ from tests.markup._util import desired_output
 
 
 def scalar_schema():
-    schema = String.named(u'scalar')
-    return schema(u'abc')
+    schema = String.named('scalar')
+    return schema('abc')
 
 
 def multivalue_schema():
-    schema = Array.named(u'multi').of(String)
-    return schema([u'abc', u'xyz'])
+    schema = Array.named('multi').of(String)
+    return schema(['abc', 'xyz'])
 
 
-@desired_output(u'xhtml', scalar_schema)
+@desired_output('xhtml', scalar_schema)
 def select():
     """
 <select name="scalar">
@@ -41,15 +41,15 @@ def test_select_genshi():
 def test_select_markup(gen, el):
     output = []
     output += [gen.select.open(el)]
-    output += [gen.option(el, value=u'abc')]
-    output += [gen.option(el, value=u'def', contents=u'DEF')]
-    output += [gen.option(el, contents=u'abc')]
-    output += [gen.option(el, value=u'abc', contents=u'abc')]
+    output += [gen.option(el, value='abc')]
+    output += [gen.option(el, value='def', contents='DEF')]
+    output += [gen.option(el, contents='abc')]
+    output += [gen.option(el, value='abc', contents='abc')]
     output += [gen.select.close()]
-    return u'\n'.join(output)
+    return '\n'.join(output)
 
 
-@desired_output(u'xhtml', multivalue_schema)
+@desired_output('xhtml', multivalue_schema)
 def multiselect():
     """
 <select name="multi" multiple="multiple">
@@ -74,9 +74,9 @@ def test_multiselect_genshi():
 @multiselect.markup
 def test_multiselect_markup(gen, el):
     output = []
-    output += [gen.select.open(el, multiple=u'multiple')]
-    output += [gen.option(el, value=u'abc')]
-    output += [gen.option(el, value=u'def', contents=u'DEF')]
-    output += [gen.option(el, contents=u'xyz')]
+    output += [gen.select.open(el, multiple='multiple')]
+    output += [gen.option(el, value='abc')]
+    output += [gen.option(el, value='def', contents='DEF')]
+    output += [gen.option(el, contents='xyz')]
     output += [gen.select.close()]
-    return u'\n'.join(output)
+    return '\n'.join(output)

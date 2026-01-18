@@ -1,5 +1,5 @@
-project = u'flatland'
-copyright = u'2008-2018, the flatland authors and contributors'
+project = 'flatland'
+copyright = '2008-2018, the flatland authors and contributors'
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

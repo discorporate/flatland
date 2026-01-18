@@ -6,7 +6,7 @@ from flatland import util
 def test_lazy_property():
     poison = False
 
-    class Foo(object):
+    class Foo:
 
         @util.lazy_property
         def squiznart(self):
@@ -32,7 +32,7 @@ def test_lazy_property():
 
 def test_as_mapping():
 
-    class Foo(object):
+    class Foo:
         clazz = 'c'
 
         def __init__(self):
@@ -61,7 +61,7 @@ def test_to_pairs():
     assert list(to_pairs(iter(wanted))) == wanted
     assert sorted(to_pairs(dict(wanted))) == wanted
 
-    class Duck(object):
+    class Duck:
 
         def keys(self):
             return dict(wanted).keys()

@@ -20,7 +20,7 @@ def transform(tagname, attributes, contents, context, bind):
     return contents
 
 
-class Context(object):
+class Context:
     """A stacked key/value mapping."""
 
     # These methods are public but undocumented.  For friendly, user-facing
@@ -49,7 +49,7 @@ class Context(object):
 
     def __setitem__(self, key, value):
         if key not in self:
-            raise KeyError("%r not permitted in this %s" % (
+            raise KeyError("{!r} not permitted in this {}".format(
                 key, self.__class__.__name__))
         self._frames[-1][key] = value
 
@@ -71,7 +71,7 @@ class Context(object):
             self[key] = value
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self._frames[-1])
+        return f"{self.__class__.__name__}({self._frames[-1]!r})"
 
 
 class Markup(text_type):
@@ -83,7 +83,7 @@ class Markup(text_type):
     def __html__(self):
         return self
 
-_default_context[u'markup_wrapper'] = Markup
+_default_context['markup_wrapper'] = Markup
 
 
 def transformer(name, tags):
@@ -101,10 +101,10 @@ def defaults(data):
     return decorator
 
 
-@transformer(u'name', (u'input', u'button', u'select', u'textarea', u'form'))
-@defaults({u'auto_name': True})
+@transformer('name', ('input', 'button', 'select', 'textarea', 'form'))
+@defaults({'auto_name': True})
 def transform_name(tagname, attributes, contents, context, bind):
-    proceed, forced = _pop_toggle(u'auto_name', attributes, context)
+    proceed, forced = _pop_toggle('auto_name', attributes, context)
     if not proceed or bind is None:
         return contents
 
@@ -112,56 +112,56 @@ def transform_name(tagname, attributes, contents, context, bind):
     if not bound_name:
         return contents
 
-    current = attributes.get(u'name', None)
-    if forced or current is None and tagname in _auto_tags[u'name']:
-        attributes[u'name'] = bound_name
+    current = attributes.get('name', None)
+    if forced or current is None and tagname in _auto_tags['name']:
+        attributes['name'] = bound_name
     return contents
 
 
-@transformer(u'value', (u'button', u'input', u'option', u'textarea'))
-@defaults({u'auto_value': True})
+@transformer('value', ('button', 'input', 'option', 'textarea'))
+@defaults({'auto_value': True})
 def transform_value(tagname, attributes, contents, context, bind):
-    proceed, forced = _pop_toggle(u'auto_value', attributes, context)
+    proceed, forced = _pop_toggle('auto_value', attributes, context)
     # Abort on unbound tags.
     if not proceed or bind is None:
         return contents
 
-    if not forced and tagname not in _auto_tags[u'value']:
+    if not forced and tagname not in _auto_tags['value']:
         return contents
 
-    if tagname == u'input':
-        subtype = attributes.get(u'type', u'')
-        if subtype in (u'radio', u'checkbox'):
-            if subtype == u'checkbox':
-                current = attributes.get(u'value')
+    if tagname == 'input':
+        subtype = attributes.get('type', '')
+        if subtype in ('radio', 'checkbox'):
+            if subtype == 'checkbox':
+                current = attributes.get('value')
                 if current is None and isinstance(bind, Boolean):
-                    attributes[u'value'] = current = bind.true
+                    attributes['value'] = current = bind.true
             else:
-                current = attributes.get(u'value', u'')
+                current = attributes.get('value', '')
 
             if isinstance(bind, Array):
                 toggle = current in bind
             else:
                 toggle = current == bind.u
             if toggle:
-                attributes[u'checked'] = u'checked'
+                attributes['checked'] = 'checked'
             else:
-                attributes.pop(u'checked', None)
-        elif subtype in (u'password', u'file', u'image'):
+                attributes.pop('checked', None)
+        elif subtype in ('password', 'file', 'image'):
             if forced:
-                attributes[u'value'] = bind.u
+                attributes['value'] = bind.u
         else:
-            current = attributes.get(u'value')
+            current = attributes.get('value')
             if current is None or forced:
-                attributes[u'value'] = bind.u
-    elif tagname == u'option':
-        current = attributes.get(u'value')
+                attributes['value'] = bind.u
+    elif tagname == 'option':
+        current = attributes.get('value')
         if current is not None:
             value = current
         elif isinstance(contents, text_type):
             value = contents.strip()
         elif contents is None:
-            value = u''
+            value = ''
         else:
             value = contents
         if isinstance(bind, Array):
@@ -169,74 +169,74 @@ def transform_value(tagname, attributes, contents, context, bind):
         else:
             toggle = bind.u == value
         if toggle:
-            attributes[u'selected'] = u'selected'
+            attributes['selected'] = 'selected'
         else:
-            attributes.pop(u'selected', None)
-    elif tagname == u'textarea':
+            attributes.pop('selected', None)
+    elif tagname == 'textarea':
         if contents is None or forced:
-            return context[u'markup_wrapper'](_markup_escape(bind.u))
+            return context['markup_wrapper'](_markup_escape(bind.u))
     else:
-        current = attributes.get(u'value')
+        current = attributes.get('value')
         if current is None or forced:
-            attributes[u'value'] = bind.u
+            attributes['value'] = bind.u
     return contents
 
 
-@transformer(u'id', (u'input', u'button', u'select', u'textarea'))
-@defaults({u'auto_domid': False, u'domid_format': u'f_%s'})
+@transformer('id', ('input', 'button', 'select', 'textarea'))
+@defaults({'auto_domid': False, 'domid_format': 'f_%s'})
 def transform_domid(tagname, attributes, contents, context, bind):
-    proceed, forced = _pop_toggle(u'auto_domid', attributes, context)
+    proceed, forced = _pop_toggle('auto_domid', attributes, context)
     if not proceed:
         return contents
 
-    current = attributes.get(u'id')
-    if forced or current is None and tagname in _auto_tags[u'id']:
+    current = attributes.get('id')
+    if forced or current is None and tagname in _auto_tags['id']:
         raw_id = _generate_raw_domid(tagname, attributes, bind)
         if raw_id:
-            fmt = context[u'domid_format']
-            attributes[u'id'] = fmt % raw_id
+            fmt = context['domid_format']
+            attributes['id'] = fmt % raw_id
     return contents
 
 
-@transformer(u'for', (u'label',))
-@defaults({u'auto_for': False})
+@transformer('for', ('label',))
+@defaults({'auto_for': False})
 def transform_for(tagname, attributes, contents, context, bind):
-    proceed, forced = _pop_toggle(u'auto_for', attributes, context)
+    proceed, forced = _pop_toggle('auto_for', attributes, context)
     if not proceed or bind is None:
         return contents
 
-    current = attributes.get(u'for')
-    if forced or current is None and tagname in _auto_tags[u'for']:
+    current = attributes.get('for')
+    if forced or current is None and tagname in _auto_tags['for']:
         raw_id = _generate_raw_domid(tagname, attributes, bind)
         if raw_id:
-            fmt = context[u'domid_format']
-            attributes[u'for'] = fmt % raw_id
+            fmt = context['domid_format']
+            attributes['for'] = fmt % raw_id
     return contents
 
 
-@transformer(u'tabindex', (u'input', u'button', u'select', u'textarea'))
-@defaults({u'auto_tabindex': False, u'tabindex': 0})
+@transformer('tabindex', ('input', 'button', 'select', 'textarea'))
+@defaults({'auto_tabindex': False, 'tabindex': 0})
 def transform_tabindex(tagname, attributes, contents, context, bind):
-    proceed, forced = _pop_toggle(u'auto_tabindex', attributes, context)
+    proceed, forced = _pop_toggle('auto_tabindex', attributes, context)
     if not proceed:
         return contents
 
-    tabindex = context[u'tabindex']
+    tabindex = context['tabindex']
     if tabindex == 0:
         return contents
 
-    current = attributes.get(u'tabindex')
-    if forced or current is None and tagname in _auto_tags[u'tabindex']:
-        attributes[u'tabindex'] = text_type(str((tabindex)))
+    current = attributes.get('tabindex')
+    if forced or current is None and tagname in _auto_tags['tabindex']:
+        attributes['tabindex'] = text_type(str(tabindex))
         if tabindex > 0:
-            context[u'tabindex'] = tabindex + 1
+            context['tabindex'] = tabindex + 1
     return contents
 
 
-@defaults({u'auto_filter': False, u'filters': ()})
+@defaults({'auto_filter': False, 'filters': ()})
 def transform_filters(tagname, attributes, contents, context, bind):
-    proceed, forced = _pop_toggle(u'auto_filter', attributes, context)
-    filters = context[u'filters']
+    proceed, forced = _pop_toggle('auto_filter', attributes, context)
+    filters = context['filters']
 
     if not proceed:
         return contents
@@ -278,16 +278,16 @@ def _generate_raw_domid(tagname, attributes, bind):
     if bind is not None:
         basis = bind.flattened_name()
     else:
-        basis = attributes.get(u'name')
+        basis = attributes.get('name')
     if not basis:
         return
 
     # add the value="" to CHECKBOX and RADIO to produce a unique ID
-    if (tagname == u'input' and
-        attributes.get(u'type') in (u'checkbox', u'radio')):
-        suffix = _sanitize_domid_suffix(attributes.get(u'value', u''))
+    if (tagname == 'input' and
+        attributes.get('type') in ('checkbox', 'radio')):
+        suffix = _sanitize_domid_suffix(attributes.get('value', ''))
         if suffix:
-            basis += u'_' + suffix
+            basis += '_' + suffix
     return basis
 
 
@@ -300,7 +300,7 @@ def _sanitize_domid_suffix(string):
 
     """
     # as this is suffix only, no need to test string[0] for validity
-    return _id_invalid_re.sub(u'', string)
+    return _id_invalid_re.sub('', string)
 
 
 def _unpack(html_string):
@@ -313,11 +313,11 @@ def _unpack(html_string):
 
 def _markup_escape(string):
     if not string:
-        return u''
+        return ''
     elif hasattr(string, '__html__'):
         return _unpack(string)
     else:
         return string. \
-               replace(u'&', u'&amp;'). \
-               replace(u'<', u'&lt;'). \
-               replace(u'>', u'&gt;')
+               replace('&', '&amp;'). \
+               replace('<', '&lt;'). \
+               replace('>', '&gt;')

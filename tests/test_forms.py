@@ -15,18 +15,18 @@ from flatland import (
 
 
 
-REQUEST_DATA = ((u'abc', u'123'),
-                (u'surname', u'SN'),
-                (u'xjioj', u'1232'),
-                (u'age', u'99'),
-                (u'fname', u'FN'),
-                (u'ns_fname', u'ns_FN'),
-                (u'ns_surname', u'ns_SN'),
-                (u'ns_snacks_0_name', u'cheez'),
-                (u'ns_snacks_1_name', u'chipz'),
-                (u'ns_snacks_2_name', u'chimp'),
-                (u'ns_squiznart', u'xyyzy'),
-                (u'ns_age', u'23'))
+REQUEST_DATA = (('abc', '123'),
+                ('surname', 'SN'),
+                ('xjioj', '1232'),
+                ('age', '99'),
+                ('fname', 'FN'),
+                ('ns_fname', 'ns_FN'),
+                ('ns_surname', 'ns_SN'),
+                ('ns_snacks_0_name', 'cheez'),
+                ('ns_snacks_1_name', 'chipz'),
+                ('ns_snacks_2_name', 'chimp'),
+                ('ns_squiznart', 'xyyzy'),
+                ('ns_age', '23'))
 
 
 class SimpleForm1(Schema):
@@ -38,12 +38,12 @@ class SimpleForm1(Schema):
 
 def test_straight_parse():
     form = SimpleForm1.from_flat(REQUEST_DATA)
-    assert set(form.flatten()) == set(((u'fname', u'FN'),
-                                  (u'surname', u'SN'),
-                                  (u'age', u'99')))
+    assert set(form.flatten()) == {('fname', 'FN'),
+                                  ('surname', 'SN'),
+                                  ('age', '99')}
 
-    assert form.value == dict(fname=u'FN',
-                         surname=u'SN',
+    assert form.value == dict(fname='FN',
+                         surname='SN',
                          age=99,
                          snacks=[])
 
@@ -51,49 +51,49 @@ def test_straight_parse():
 def test_namespaced_parse():
 
     def load(fn):
-        form = SimpleForm1.from_defaults(name=u'ns')
+        form = SimpleForm1.from_defaults(name='ns')
         fn(form)
         return form
 
-    output = dict(fname=u'ns_FN',
-                  surname=u'ns_SN',
+    output = dict(fname='ns_FN',
+                  surname='ns_SN',
                   age=23,
-                  snacks=[u'cheez', u'chipz', u'chimp'])
+                  snacks=['cheez', 'chipz', 'chimp'])
 
     for form in (load(lambda f: f.set_flat(REQUEST_DATA)),
                  load(lambda f: f.set(output))):
 
-        assert set(form.flatten()) == set(((u'ns_fname', u'ns_FN'),
-                 (u'ns_surname', u'ns_SN'),
-                 (u'ns_age', u'23'),
-                 (u'ns_snacks_0_name', u'cheez'),
-                 (u'ns_snacks_1_name', u'chipz'),
-                 (u'ns_snacks_2_name', u'chimp')))
+        assert set(form.flatten()) == {('ns_fname', 'ns_FN'),
+                 ('ns_surname', 'ns_SN'),
+                 ('ns_age', '23'),
+                 ('ns_snacks_0_name', 'cheez'),
+                 ('ns_snacks_1_name', 'chipz'),
+                 ('ns_snacks_2_name', 'chimp')}
         assert form.value == output
 
 
 def test_default_behavior():
 
     class SimpleForm2(Schema):
-        fname = String.using(default=u'FN')
+        fname = String.using(default='FN')
         surname = String
 
     form = SimpleForm2()
-    assert form[u'fname'].value == None
-    assert form[u'surname'].value == None
+    assert form['fname'].value == None
+    assert form['surname'].value == None
 
     form = SimpleForm2.from_defaults()
-    assert form[u'fname'].value == u'FN'
-    assert form[u'surname'].value == None
+    assert form['fname'].value == 'FN'
+    assert form['surname'].value == None
 
     class DictForm(Schema):
-        dict = Dict.of(String.named(u'fname').using(default=u'FN'),
-                       String.named(u'surname'))
+        dict = Dict.of(String.named('fname').using(default='FN'),
+                       String.named('surname'))
 
     form = DictForm()
-    assert form.find_one(u'dict/fname').value == None
-    assert form.find_one(u'dict/surname').value == None
+    assert form.find_one('dict/fname').value == None
+    assert form.find_one('dict/surname').value == None
 
     form = DictForm.from_defaults()
-    assert form.find_one(u'dict/fname').value == u'FN'
-    assert form.find_one(u'dict/surname').value == None
+    assert form.find_one('dict/fname').value == 'FN'
+    assert form.find_one('dict/surname').value == None

@@ -1,4 +1,3 @@
-# -*- coding: utf-8; fill-column: 78 -*-
 """Network address and URL validation."""
 from flatland._compat import PY2
 import re
@@ -60,7 +59,7 @@ class IsEmail(Validator):
 
     """
 
-    invalid = N_(u'%(label)s is not a valid email address.')
+    invalid = N_('%(label)s is not a valid email address.')
 
     non_local = True
 
@@ -71,10 +70,10 @@ class IsEmail(Validator):
 
     def validate(self, element, state):
         addr = element.value
-        if addr.count(u'@') != 1:
+        if addr.count('@') != 1:
             return self.note_error(element, state, 'invalid')
 
-        local_part, domain = addr.split(u'@')
+        local_part, domain = addr.split('@')
         if not local_part or local_part.isspace():
             return self.note_error(element, state, 'invalid')
 
@@ -157,9 +156,9 @@ class URLValidator(Validator):
 
     """
 
-    bad_format = N_(u'%(label)s is not a valid URL.')
-    blocked_scheme = N_(u'%(label)s is not a valid URL.')
-    blocked_part = N_(u'%(label)s is not a valid URL.')
+    bad_format = N_('%(label)s is not a valid URL.')
+    blocked_scheme = N_('%(label)s is not a valid URL.')
+    blocked_part = N_('%(label)s is not a valid URL.')
 
     allowed_schemes = ('*',)
     allowed_parts = set(_url_parts)
@@ -243,9 +242,9 @@ class HTTPURLValidator(Validator):
 
     """
 
-    bad_format = N_(u'%(label)s is not a valid URL.')
-    required_part = N_(u'%(label)s is not a valid URL.')
-    forbidden_part = N_(u'%(label)s is not a valid URL.')
+    bad_format = N_('%(label)s is not a valid URL.')
+    required_part = N_('%(label)s is not a valid URL.')
+    forbidden_part = N_('%(label)s is not a valid URL.')
 
     all_parts = ('scheme', 'username', 'password', 'hostname', 'port',
                  'path', 'params', 'query', 'fragment')
@@ -314,7 +313,7 @@ class URLCanonicalizer(Validator):
 
     """
 
-    bad_format = N_(u'%(label)s is not a valid URL.')
+    bad_format = N_('%(label)s is not a valid URL.')
 
     discard_parts = 'fragment',
     urlparse = urlparse

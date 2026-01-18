@@ -1,4 +1,3 @@
-from __future__ import with_statement
 import datetime
 import re
 
@@ -42,7 +41,7 @@ def test_compound_init_sequencing2():
     canary = []
 
     class MyCompound(Compound):
-        field_schema = [String.named(u'x')]
+        field_schema = [String.named('x')]
 
         def __compound_init__(cls):
             assert isinstance(cls, type)
@@ -58,18 +57,18 @@ def test_compound_init_sequencing2():
     assert canary == [MyCompound]
 
     # manual configuration doesn't trigger it
-    MyCompound.name = u'set by hand'
+    MyCompound.name = 'set by hand'
     element = MyCompound()
     assert canary == [MyCompound]
 
     # a clone of the class will trigger it
-    MyCompound2 = MyCompound.named(u'something')
+    MyCompound2 = MyCompound.named('something')
     element = MyCompound2()
     assert canary == [MyCompound, MyCompound2]
     assert MyCompound2.__dict__['_compound_prepared']
 
     # instance-level configuration will also
-    element = MyCompound2(name=u'instance')
+    element = MyCompound2(name='instance')
     assert type(element) is not MyCompound2
     assert isinstance(element, MyCompound2)
     assert canary == [MyCompound, MyCompound2, type(element)]
@@ -78,7 +77,7 @@ def test_compound_init_sequencing2():
     del canary[:]
 
     # it can be run by hand
-    MyCompound4 = MyCompound.named(u'somethingelse')
+    MyCompound4 = MyCompound.named('somethingelse')
     assert not MyCompound4.__dict__.get('_compound_prepared')
 
     MyCompound4.__compound_init__()
@@ -91,7 +90,7 @@ def test_compound_init_sequencing2():
     assert canary == [MyCompound4]
 
     class MyCompound5(Compound):
-        field_schema = [String.named(u'x')]
+        field_schema = [String.named('x')]
 
         @classmethod
         def __compound_init__(cls):
@@ -106,7 +105,7 @@ def test_compound_init_sequencing2():
 def test_compound_snarfs_override_init_keywords():
 
     class MyCompound(Compound):
-        field_schema = [String.named(u'x')]
+        field_schema = [String.named('x')]
         attr = 'value'
 
         def __init__(self, value='sentinel', abc=1):
@@ -131,8 +130,8 @@ def test_compound_metaclass_calls_new():
     canary = []
 
     class MyCompound(Compound):
-        name = u'abc'
-        field_schema = [String.named(u'x')]
+        name = 'abc'
+        field_schema = [String.named('x')]
 
         def __new__(cls, *args, **kw):
             canary.append('new')
@@ -147,8 +146,8 @@ def test_compound_metaclass_calls_new():
     del canary[:]
 
     class AltNewReturn(Compound):
-        name = u'abc'
-        field_schema = [String.named(u'x')]
+        name = 'abc'
+        field_schema = [String.named('x')]
 
         def __new__(cls, *args, **kw):
             canary.append('new')
@@ -162,21 +161,21 @@ def test_compound_metaclass_calls_new():
     assert canary == ['new']
 
 
-class TestDoubleField(object):
+class TestDoubleField:
 
     def setup_method(self):
 
         class Double(Compound):
 
-            field_schema = [Integer.named(u'x'), Integer.named(u'y')]
+            field_schema = [Integer.named('x'), Integer.named('y')]
 
             def compose(self):
-                ex, ey = self.get(u'x'), self.get(u'y')
+                ex, ey = self.get('x'), self.get('y')
                 ux, uy = ex.u, ey.u
                 if ex.u and ey.u:
-                    string = u"%sx%s" % (ex.u, ey.u)
+                    string = f"{ex.u}x{ey.u}"
                 else:
-                    string = u''
+                    string = ''
 
                 if ex.value is not None and ey.value is not None:
                     value = (ex.value, ey.value)
@@ -186,89 +185,89 @@ class TestDoubleField(object):
                 return string, value
 
             def explode(self, value):
-                if value == u'boom':
+                if value == 'boom':
                     raise AttributeError('boom')
-                if value == u'return-none':
+                if value == 'return-none':
                     return
                 try:
                     x, y = value
                 except (TypeError, ValueError):
                     return False
                 res = True
-                res &= self[u'x'].set(x)
-                res &= self[u'y'].set(y)
+                res &= self['x'].set(x)
+                res &= self['y'].set(y)
                 return res
 
         self.Double = Double
 
     def test_from_flat(self):
-        s = self.Double.named(u's')
+        s = self.Double.named('s')
 
         e = s.from_flat({})
         assert_values_(e, None, None, None)
-        assert_us_(e, u'', u'', u'')
+        assert_us_(e, '', '', '')
 
-        e = s.from_flat({u's': u'1x2'})
+        e = s.from_flat({'s': '1x2'})
         assert_values_(e, None, None, None)
-        assert_us_(e, u'', u'', u'')
+        assert_us_(e, '', '', '')
 
-        e = s.from_flat({u's_x': u'1'})
+        e = s.from_flat({'s_x': '1'})
         assert_values_(e, None, 1, None)
-        assert_us_(e, u'', u'1', u'')
+        assert_us_(e, '', '1', '')
 
-        e = s.from_flat({u's_x': u'1', u's_y': u'2'})
+        e = s.from_flat({'s_x': '1', 's_y': '2'})
         assert_values_(e, (1, 2), 1, 2)
-        assert_us_(e, u'1x2', u'1', u'2')
+        assert_us_(e, '1x2', '1', '2')
 
-        e = s.from_flat({u's_x': u'1', u's_y': u'2', u's': u'5x5'})
+        e = s.from_flat({'s_x': '1', 's_y': '2', 's': '5x5'})
         assert_values_(e, (1, 2), 1, 2)
-        assert_us_(e, u'1x2', u'1', u'2')
+        assert_us_(e, '1x2', '1', '2')
 
     def test_flatten(self):
-        s = self.Double.named(u's')
-        e = s(u'1x2')
-        assert set(e.flatten()) == set([(u's', u''), (u's_y', u''), (u's_x', u'')])
+        s = self.Double.named('s')
+        e = s('1x2')
+        assert set(e.flatten()) == {('s', ''), ('s_y', ''), ('s_x', '')}
 
     def test_set(self):
-        schema = self.Double.named(u's')
+        schema = self.Double.named('s')
 
         e = schema()
         assert not e.set({})
         assert_values_(e, None, None, None)
-        assert_us_(e, u'', u'', u'')
+        assert_us_(e, '', '', '')
 
         # return-none and boom should get moved to their own test
         e = schema()
-        assert e.set(u'return-none')
+        assert e.set('return-none')
         assert_values_(e, None, None, None)
-        assert_us_(e, u'', u'', u'')
+        assert_us_(e, '', '', '')
 
         e = schema()
-        assert not e.set(u'boom')
+        assert not e.set('boom')
         assert_values_(e, None, None, None)
-        assert_us_(e, u'', u'', u'')
+        assert_us_(e, '', '', '')
 
         e = schema()
-        assert not e.set(u'4x5')
+        assert not e.set('4x5')
         assert_values_(e, None, None, None)
-        assert_us_(e, u'', u'', u'')
+        assert_us_(e, '', '', '')
 
         e = schema()
         assert e.set((4, 5))
         assert_values_(e, (4, 5), 4, 5)
-        assert_us_(e, u'4x5', u'4', u'5')
+        assert_us_(e, '4x5', '4', '5')
 
     def test_element_set(self):
         data = []
         sentinel = lambda sender, adapted: data.append((sender, adapted))
 
-        schema = self.Double.named(u's')
+        schema = self.Double.named('s')
 
         schema((0, 0))
         with element_set.connected_to(sentinel):
             schema((1, 1))
-            schema((2, u'bad child'))
-            schema(u'bad root')
+            schema((2, 'bad child'))
+            schema('bad root')
 
         assert len(data) == 7
 
@@ -278,80 +277,80 @@ class TestDoubleField(object):
 
         # 2, 'bad child'
         assert data[3][1] is True
-        assert data[4][0].raw == u'bad child'
+        assert data[4][0].raw == 'bad child'
         assert data[4][1] is False
         assert data[5][1] is False
 
         # u'bad root
-        assert data[6][0].raw == u'bad root'
+        assert data[6][0].raw == 'bad root'
         assert data[6][1] is False
 
     def test_set_default(self):
-        s = self.Double.named(u's').using(default=(4, 5))
+        s = self.Double.named('s').using(default=(4, 5))
         el = s()
         assert_values_(el, None, None, None)
-        assert_us_(el, u'', u'', u'')
+        assert_us_(el, '', '', '')
 
         el.set_default()
         assert_values_(el, (4, 5), 4, 5)
-        assert_us_(el, u'4x5', u'4', u'5')
+        assert_us_(el, '4x5', '4', '5')
 
     def test_set_default_from_children(self):
-        schema = self.Double.named(u's')
+        schema = self.Double.named('s')
 
-        fields = dict((field.name, field) for field in schema.field_schema)
-        fields[u'x'].default = 4
-        fields[u'y'].default = 5
+        fields = {field.name: field for field in schema.field_schema}
+        fields['x'].default = 4
+        fields['y'].default = 5
 
         el = schema()
         assert_values_(el, None, None, None)
-        assert_us_(el, u'', u'', u'')
+        assert_us_(el, '', '', '')
 
         el.set_default()
         assert_values_(el, (4, 5), 4, 5)
-        assert_us_(el, u'4x5', u'4', u'5')
+        assert_us_(el, '4x5', '4', '5')
 
     def test_update(self):
-        s = self.Double.named(u's')
+        s = self.Double.named('s')
 
         e = s((4, 5))
         assert_values_(e, (4, 5), 4, 5)
-        assert_us_(e, u'4x5', u'4', u'5')
+        assert_us_(e, '4x5', '4', '5')
 
-        e[u'x'].set(6)
+        e['x'].set(6)
         assert_values_(e, (6, 5), 6, 5)
-        assert_us_(e, u'6x5', u'6', u'5')
+        assert_us_(e, '6x5', '6', '5')
 
         e.set((7, 8))
         assert_values_(e, (7, 8), 7, 8)
-        assert_us_(e, u'7x8', u'7', u'8')
+        assert_us_(e, '7x8', '7', '8')
 
     def test_explode_does_not_require_typechecks(self):
-        s = self.Double.named(u's')
+        s = self.Double.named('s')
 
         e = s((4, 5))
         assert_values_(e, (4, 5), 4, 5)
-        assert_us_(e, u'4x5', u'4', u'5')
+        assert_us_(e, '4x5', '4', '5')
 
-        e.set((7, u'blagga'))
+        e.set((7, 'blagga'))
         assert_values_(e, None, 7, None)
-        assert_us_(e, u'7xblagga', u'7', u'blagga')
+        assert_us_(e, '7xblagga', '7', 'blagga')
 
     def test_value_assignement(self):
-        s = self.Double.named(u's')
+        s = self.Double.named('s')
 
         e = s()
         e.value = (1, 2)
         assert_values_(e, (1, 2), 1, 2)
-        assert_us_(e, u'1x2', u'1', u'2')
+        assert_us_(e, '1x2', '1', '2')
 
         e = s()
-        e.u = u"1x2"
+        e.u = "1x2"
         assert_values_(e, None, None, None)
-        assert_us_(e, u'', u'', u'')
+        assert_us_(e, '', '', '')
 
     def test_repr(self):
-        s = self.Double.named(u's')
+        s = self.Double.named('s')
         e = s()
         assert repr(e)
 
@@ -364,20 +363,20 @@ class TestDoubleField(object):
 
 def test_repr_always_safe():
     # use the abstract class to emulate a subclass with broken compose.
-    broken_impl = Compound.using(field_schema=[String.named(u'y')])
+    broken_impl = Compound.using(field_schema=[String.named('y')])
     e = broken_impl()
     assert repr(e)
 
 
 def test_explode_abstract():
-    schema = Compound.using(field_schema=[String.named(u'y')])
+    schema = Compound.using(field_schema=[String.named('y')])
     el = schema()
     with pytest.raises(NotImplementedError):
-        el.set(u'x')
+        el.set('x')
 
 
 def test_compose_abstract():
-    schema = Compound.using(field_schema=[String.named(u'y')])
+    schema = Compound.using(field_schema=[String.named('y')])
     el = schema()
     with pytest.raises(NotImplementedError):
         el.value
@@ -386,80 +385,80 @@ def test_compose_abstract():
 def test_compose_abstract_fixme():
     # really it'd be nice if serialize simply wasn't inherited. would
     # have to rejigger the hierarchy, not sure its worth it.
-    schema = Compound.using(field_schema=[String.named(u'y')])
+    schema = Compound.using(field_schema=[String.named('y')])
     el = schema()
     with pytest.raises(TypeError):
-        schema.serialize(el, u'abc')
+        schema.serialize(el, 'abc')
 
 
 def assert_values_(el, top, x, y):
     assert el.value == top
-    assert el[u'x'].value == x
-    assert el[u'y'].value == y
+    assert el['x'].value == x
+    assert el['y'].value == y
 
 
 def assert_us_(el, top, x, y):
     assert el.u == top
-    assert el[u'x'].u == x
-    assert el[u'y'].u == y
+    assert el['x'].u == x
+    assert el['y'].u == y
 
 
 def test_sample_compound():
-    s = DateYYYYMMDD.named(u's')
+    s = DateYYYYMMDD.named('s')
     s.__compound_init__()
 
     assert ([field.name for field in s.field_schema] ==
-            [u'year', u'month', u'day'])
+            ['year', 'month', 'day'])
 
     e = s()
     assert e.value is None
-    assert e[u'year'].value is None
-    assert e.find_one(u'year').value is None
+    assert e['year'].value is None
+    assert e.find_one('year').value is None
 
     when = datetime.date(2000, 10, 1)
     e.set(when)
     assert e.value == when
-    assert e.find_one(u'year').value == 2000
-    assert e.find_one(u'day').value == 1
-    assert e.u == u'2000-10-01'
-    assert e.find_one(u'day').u == u'01'
+    assert e.find_one('year').value == 2000
+    assert e.find_one('day').value == 1
+    assert e.u == '2000-10-01'
+    assert e.find_one('day').u == '01'
 
-    e.find_one(u'day').set(5)
+    e.find_one('day').set(5)
     assert e.value == datetime.date(2000, 10, 5)
-    assert e.find_one(u'day').value == 5
-    assert e.u == u'2000-10-05'
+    assert e.find_one('day').value == 5
+    assert e.u == '2000-10-05'
 
     e = s()
     e.set(None)
     assert e.value is None
-    assert e.u == u''
-    assert e[u'year'].value is None
-    assert e.find_one(u'year').value is None
+    assert e.u == ''
+    assert e['year'].value is None
+    assert e.find_one('year').value is None
 
     e = s()
-    e.set(u'snaggle')
+    e.set('snaggle')
     assert e.value is None
-    assert e.u == u''
-    assert e[u'year'].value is None
-    assert e.find_one(u'year').value is None
+    assert e.u == ''
+    assert e['year'].value is None
+    assert e.find_one('year').value is None
 
 
 def test_compound_optional():
 
-    required = Dict.of(DateYYYYMMDD.named(u's').using(optional=False))
+    required = Dict.of(DateYYYYMMDD.named('s').using(optional=False))
 
     f = required.from_defaults()
-    assert not f.find_one(u's/year').optional
-    assert not f.find_one(u's/month').optional
-    assert not f.find_one(u's/day').optional
+    assert not f.find_one('s/year').optional
+    assert not f.find_one('s/month').optional
+    assert not f.find_one('s/day').optional
     assert not f.validate()
 
-    optional = Dict.of(DateYYYYMMDD.named(u's').using(optional=True))
+    optional = Dict.of(DateYYYYMMDD.named('s').using(optional=True))
 
     f = optional.from_defaults()
-    assert f.find_one(u's/year').optional
-    assert f.find_one(u's/month').optional
-    assert f.find_one(u's/day').optional
+    assert f.find_one('s/year').optional
+    assert f.find_one('s/month').optional
+    assert f.find_one('s/day').optional
     assert f.validate()
 
 
@@ -467,52 +466,52 @@ def test_compound_is_empty():
     element = DateYYYYMMDD()
     assert element.is_empty
 
-    element.find_one(u'year').set(1979)
+    element.find_one('year').set(1979)
     assert not element.is_empty
 
 
 def test_joined_string():
-    el = JoinedString(u'abc')
-    assert el.value == u'abc'
-    assert [child.value for child in el] == [u'abc']
+    el = JoinedString('abc')
+    assert el.value == 'abc'
+    assert [child.value for child in el] == ['abc']
 
-    el = JoinedString(u'abc,def')
-    assert el.value == u'abc,def'
-    assert [child.value for child in el] == [u'abc', u'def']
+    el = JoinedString('abc,def')
+    assert el.value == 'abc,def'
+    assert [child.value for child in el] == ['abc', 'def']
 
-    el = JoinedString([u'abc', u'def'])
-    assert el.value == u'abc,def'
-    assert [child.value for child in el] == [u'abc', u'def']
+    el = JoinedString(['abc', 'def'])
+    assert el.value == 'abc,def'
+    assert [child.value for child in el] == ['abc', 'def']
 
-    el = JoinedString(u' abc,,ghi ')
-    assert el.value == u'abc,ghi'
-    assert [child.value for child in el] == [u'abc', u'ghi']
+    el = JoinedString(' abc,,ghi ')
+    assert el.value == 'abc,ghi'
+    assert [child.value for child in el] == ['abc', 'ghi']
 
-    el = JoinedString(u'abc,,ghi', prune_empty=False)
-    assert el.value == u'abc,,ghi'
-    assert [child.value for child in el] == [u'abc', u'', u'ghi']
+    el = JoinedString('abc,,ghi', prune_empty=False)
+    assert el.value == 'abc,,ghi'
+    assert [child.value for child in el] == ['abc', '', 'ghi']
 
     # The child (String) strips by default
-    el = JoinedString(u' abc ,, ghi ', strip=False)
-    assert el.value == u'abc,ghi'
-    assert [child.value for child in el] == [u'abc', u'ghi']
+    el = JoinedString(' abc ,, ghi ', strip=False)
+    assert el.value == 'abc,ghi'
+    assert [child.value for child in el] == ['abc', 'ghi']
 
     # Try with a non-stripping String
-    el = JoinedString(u' abc ,, ghi ',
+    el = JoinedString(' abc ,, ghi ',
                       strip=False,
                       member_schema=String.using(strip=False))
-    assert el.value == u' abc , ghi '
-    assert [child.value for child in el] == [u' abc ', u' ghi ']
+    assert el.value == ' abc , ghi '
+    assert [child.value for child in el] == [' abc ', ' ghi ']
 
 
 def test_joined_string_flat():
-    schema = JoinedString.named(u'js').of(Integer)
+    schema = JoinedString.named('js').of(Integer)
 
     for set_value, flat_value in [
-        ([1], (u'js', u'1')),
-        (u'1', (u'js', u'1')),
-        ([1, 2, 3], (u'js', u'1,2,3')),
-        (u'1,2,3', (u'js', u'1,2,3'))]:
+        ([1], ('js', '1')),
+        ('1', ('js', '1')),
+        ([1, 2, 3], ('js', '1,2,3')),
+        ('1,2,3', ('js', '1,2,3'))]:
         from_set = schema(set_value)
         assert from_set.flatten() == [flat_value]
         from_flat = schema.from_flat([flat_value])
@@ -522,27 +521,27 @@ def test_joined_string_flat():
 
 
 def test_joined_string_regex():
-    schema = JoinedString.using(separator=u', ',
+    schema = JoinedString.using(separator=', ',
                                 separator_regex=re.compile('X*,X*'))
-    el = schema(u'abc')
-    assert el.value == u'abc'
-    assert [child.value for child in el] == [u'abc']
+    el = schema('abc')
+    assert el.value == 'abc'
+    assert [child.value for child in el] == ['abc']
 
-    el = schema(u'abcX,Xdef')
-    assert el.value == u'abc, def'
-    assert [child.value for child in el] == [u'abc', u'def']
+    el = schema('abcX,Xdef')
+    assert el.value == 'abc, def'
+    assert [child.value for child in el] == ['abc', 'def']
 
 
 def test_joined_non_string():
     schema = JoinedString.using(member_schema=Integer)
-    el = schema(u'1')
-    assert el.value == u'1'
+    el = schema('1')
+    assert el.value == '1'
     assert [child.value for child in el] == [1]
 
-    el = schema(u'1, 2, 3')
-    assert el.value == u'1,2,3'
+    el = schema('1, 2, 3')
+    assert el.value == '1,2,3'
     assert [child.value for child in el] == [1, 2, 3]
 
     el = schema([1, 2, 3])
-    assert el.value == u'1,2,3'
+    assert el.value == '1,2,3'
     assert [child.value for child in el] == [1, 2, 3]

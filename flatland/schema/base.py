@@ -1,4 +1,3 @@
-# -*- coding: utf-8; fill-column: 78 -*-
 import collections
 import itertools
 import operator
@@ -53,7 +52,7 @@ Assigned to newly created elements that have never been evaluated by
 """)
 
 
-class Element(object):
+class Element:
     """Base class for form fields.
 
     A data node that stores a Python and a text value plus added state.
@@ -105,7 +104,7 @@ class Element(object):
     raw = Unset
     """The element's raw, unadapted value from input."""
 
-    u = u''
+    u = ''
     """A string representation of the element's value.
 
     As in :attr:`value`, writing directly to this attribute should be
@@ -362,7 +361,7 @@ class Element(object):
     def all_children(self):
         """An iterator of all child elements, breadth-first."""
 
-        seen, queue = set((id(self),)), collections.deque(self.children)
+        seen, queue = {id(self)}, collections.deque(self.children)
         while queue:
             element = queue.popleft()
             if id(element) in seen:
@@ -408,7 +407,7 @@ class Element(object):
 
         """
         if self.parent is None:
-            return u'/'
+            return '/'
 
         children_of_root = reversed(list(self.parents)[:-1])
 
@@ -429,7 +428,7 @@ class Element(object):
                 mask = None
                 continue
             parts.append(element.name)
-        return u'/' + u'/'.join(parts)
+        return '/' + '/'.join(parts)
 
     def find(self, path, single=False, strict=True):
         """Find child elements by string path.
@@ -511,7 +510,7 @@ class Element(object):
         if message not in self.warnings:
             self.warnings.append(message)
 
-    def flattened_name(self, sep=u'_'):
+    def flattened_name(self, sep='_'):
         """Return the element's complete flattened name as a string.
 
         Joins this element's :attr:`path` with *sep* and returns the fully
@@ -535,7 +534,7 @@ class Element(object):
                         for parent in self.path
                         if parent.name is not None)
 
-    def flatten(self, sep=u'_', value=operator.attrgetter('u')):
+    def flatten(self, sep='_', value=operator.attrgetter('u')):
         """Export an element hierarchy as a flat sequence of key, value pairs.
 
         :arg sep: a string, will join together element names.
@@ -627,7 +626,7 @@ class Element(object):
         """
         raise NotImplementedError()
 
-    def set_flat(self, pairs, sep=u'_'):
+    def set_flat(self, pairs, sep='_'):
         """Set element values from pairs, expanding the element tree as needed.
 
         Given a sequence of name/value tuples or a dict, build out a
@@ -650,7 +649,7 @@ class Element(object):
     @property
     def is_empty(self):
         """True if the element has no value."""
-        return True if (self.value is None and self.u == u'') else False
+        return True if (self.value is None and self.u == '') else False
 
     def validate(self, state=None, recurse=True):
         """Assess the validity of this element and its children.
@@ -754,26 +753,26 @@ class Element(object):
     @property
     def x(self):
         """Sugar, the XML-escaped value of :attr:`.u`."""
-        return (self.u.replace(u'&', u'&amp;').
-                       replace(u'>', u'&gt;').
-                       replace(u'<', u'&lt;'))
+        return (self.u.replace('&', '&amp;').
+                       replace('>', '&gt;').
+                       replace('<', '&lt;'))
 
     @property
     def xa(self):
         """Sugar, the XML-attribute-escaped quoted value of :attr:`.u`."""
-        return (self.u.replace(u'&', u'&amp;').
-                       replace(u'>', u'&gt;').
-                       replace(u'<', u'&lt;').
-                       replace(u'"', u'&quot;').
-                       replace(u'\n', u'&#10;').
-                       replace(u'\r', u'&#13;').
-                       replace(u'\t', u'&#9;'))
+        return (self.u.replace('&', '&amp;').
+                       replace('>', '&gt;').
+                       replace('<', '&lt;').
+                       replace('"', '&quot;').
+                       replace('\n', '&#10;').
+                       replace('\r', '&#13;').
+                       replace('\t', '&#9;'))
 
     def __hash__(self):
         raise TypeError('%s object is unhashable', self.__class__.__name__)
 
 
-class Slot(object):
+class Slot:
     """Marks a semi-visible Element-holding Element, like the 0 in list[0]."""
 
 
