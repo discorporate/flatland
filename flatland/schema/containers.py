@@ -675,6 +675,8 @@ class Array(Sequence):
                 remainder = key[m.end():] or None
                 if child_name and not remainder:
                     continue
+                elif remainder and not child_name:
+                    continue
                 elif prune and value == '' and remainder == child_name:
                     continue
                 member = self.member_schema.from_flat([(remainder, value)])

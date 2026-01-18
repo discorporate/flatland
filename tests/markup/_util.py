@@ -116,47 +116,6 @@ class desired_output:
         return decorator
 
 
-def markup_test(markup='xml', schema=None):
-    """Turn a function into a Generator markup test.
-
-    Desired output is read from the docstring.  The function is passed a
-    generator and an Element and is expected to return output matching the
-    docstring.
-
-    """
-    def decorator(fn):
-        expected = fn.__doc__.strip()
-        if isinstance(expected, bytestring_type):
-            expected = expected.decode('utf8')
-
-        def test():
-            from flatland.out.markup import Generator
-
-            expected = fn.__doc__.strip()
-            if isinstance(expected, bytestring_type):
-                expected = expected.decode('utf8')
-
-            generator = Generator(markup=markup)
-            if schema is not None:
-                el = schema()
-            else:
-                el = None
-            got = fn(generator, el)
-            assert hasattr(got, '__html__')
-
-            got = got.strip()
-            if expected != got:
-                print("\n" + fn.__name__)
-                print("Expected:\n" + expected)
-                print("Got:\n" + got)
-            assert expected == got
-        test.__name__ = fn.__name__
-        test.__doc__ = fn.__doc__
-        test.__module__ = fn.__module__
-        return test
-    return decorator
-
-
 def render_genshi(markup, language, schema, wrap=True, **context):
     if wrap:
         markup = _wrap_with_xmlns(markup, language)
