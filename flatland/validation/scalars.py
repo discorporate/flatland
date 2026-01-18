@@ -17,10 +17,10 @@ class Present(Validator):
 
     """
 
-    missing = N_(u'%(label)s may not be blank.')
+    missing = N_('%(label)s may not be blank.')
 
     def validate(self, element, state):
-        if element.u == u'':
+        if element.u == '':
             return self.note_error(element, state, 'missing')
         return True
 
@@ -36,7 +36,7 @@ class IsTrue(Validator):
 
     """
 
-    false = N_(u'%(label)s must be True.')
+    false = N_('%(label)s must be True.')
 
     def validate(self, element, state):
         if not bool(element.value):
@@ -55,7 +55,7 @@ class IsFalse(Validator):
 
     """
 
-    true = N_(u'%(label)s must be False.')
+    true = N_('%(label)s must be False.')
 
     def validate(self, element, state):
         if bool(element.value):
@@ -90,7 +90,7 @@ class ValueIn(Validator):
 
     """
 
-    fail = N_(u'%(value)s is not a valid value for %(label)s.')
+    fail = N_('%(value)s is not a valid value for %(label)s.')
 
     valid_options = ()
 
@@ -127,7 +127,7 @@ class Converted(Validator):
 
     """
 
-    incorrect = N_(u'%(label)s is not correct.')
+    incorrect = N_('%(label)s is not correct.')
 
     def validate(self, element, state):
         if element.value is not None:
@@ -168,7 +168,7 @@ class ShorterThan(Validator):
 
     """
 
-    exceeded = N_(u'%(label)s may not exceed %(maxlength)s characters.')
+    exceeded = N_('%(label)s may not exceed %(maxlength)s characters.')
 
     maxlength = 0
 
@@ -217,7 +217,7 @@ class LongerThan(Validator):
 
     """
 
-    short = N_(u'%(label)s must be at least %(minlength)s characters.')
+    short = N_('%(label)s must be at least %(minlength)s characters.')
 
     minlength = 0
 
@@ -272,8 +272,8 @@ class LengthBetween(Validator):
 
     """
 
-    breached = N_(u'%(label)s must be between %(minlength)s and '
-                  u'%(maxlength)s characters long.')
+    breached = N_('%(label)s must be between %(minlength)s and '
+                  '%(maxlength)s characters long.')
 
     minlength = 0
     maxlength = 0
@@ -318,7 +318,7 @@ class ValueLessThan(Validator):
 
     """
 
-    failure = N_(u'%(label)s must be less than %(boundary)s.')
+    failure = N_('%(label)s must be less than %(boundary)s.')
 
     def __init__(self, boundary, **kw):
         Validator.__init__(self, **kw)
@@ -356,7 +356,7 @@ class ValueAtMost(Validator):
 
     """
 
-    failure = N_(u'%(label)s must be less than or equal to %(maximum)s.')
+    failure = N_('%(label)s must be less than or equal to %(maximum)s.')
 
     def __init__(self, maximum, **kw):
         Validator.__init__(self, **kw)
@@ -394,7 +394,7 @@ class ValueGreaterThan(Validator):
 
     """
 
-    failure = N_(u'%(label)s must be greater than %(boundary)s.')
+    failure = N_('%(label)s must be greater than %(boundary)s.')
 
     def __init__(self, boundary, **kw):
         Validator.__init__(self, **kw)
@@ -432,7 +432,7 @@ class ValueAtLeast(Validator):
 
     """
 
-    failure = N_(u'%(label)s must be greater than or equal to %(minimum)s.')
+    failure = N_('%(label)s must be greater than or equal to %(minimum)s.')
 
     def __init__(self, minimum, **kw):
         Validator.__init__(self, **kw)
@@ -488,10 +488,10 @@ class ValueBetween(Validator):
 
     """
 
-    failure_inclusive = N_(u'%(label)s must be in the range %(minimum)s '
-                           u'to %(maximum)s.')
-    failure_exclusive = N_(u'%(label)s must be greater than %(minimum)s '
-                           u'and less than %(maximum)s.')
+    failure_inclusive = N_('%(label)s must be in the range %(minimum)s '
+                           'to %(maximum)s.')
+    failure_exclusive = N_('%(label)s must be greater than %(minimum)s '
+                           'and less than %(maximum)s.')
 
     inclusive = True
 
@@ -541,7 +541,7 @@ class MapEqual(Validator):
 
     """
 
-    unequal = N_(u'%(labels)s and %(last_label)s do not match.')
+    unequal = N_('%(labels)s and %(last_label)s do not match.')
 
     field_paths = ()
     transform = lambda el: el
@@ -567,7 +567,7 @@ class MapEqual(Validator):
         sample = fn(elements[0])
         if all(fn(el) == sample for el in elements[1:]):
             return True
-        labels = u', '.join(el.label for el in elements[:-1])
+        labels = ', '.join(el.label for el in elements[:-1])
         last_label = elements[-1].label
         return self.note_error(element, state, 'unequal',
                                labels=labels, last_label=last_label)

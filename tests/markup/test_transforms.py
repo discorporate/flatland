@@ -1,4 +1,3 @@
-#! -*- coding: utf-8 -*-
 from flatland import Array, Boolean, Integer
 from flatland.out import generic
 from flatland.out.generic import Context
@@ -8,9 +7,9 @@ from tests._util import unicode_coercion_allowed, textstr
 
 Unspecified = object()
 Unique = object()
-schema = Integer.named(u'number')
-boolean_schema = Boolean.named(u'bool')
-partial_anon_schema = Array.named(u'array').of(Integer)
+schema = Integer.named('number')
+boolean_schema = Boolean.named('bool')
+partial_anon_schema = Array.named('array').of(Integer)
 full_anon_schema = Array.of(Integer)
 
 
@@ -44,7 +43,7 @@ def assert_transform(fn, tagname, given, expected,
         assert type(got_key) is type(expected_key)
 
 
-class _TestAttributeTransform(object):
+class _TestAttributeTransform:
     attribute = NotImplemented
     applied_value = NotImplemented
     control_attribute = NotImplemented
@@ -100,20 +99,20 @@ class _TestAttributeTransform(object):
     def test_unknown_tag(self):
         given = {}
         expected = {}
-        self.assert_transform(given, expected, tagname=u'xyzzy')
+        self.assert_transform(given, expected, tagname='xyzzy')
 
     def test_unknown_tag_existing_value_unchanged(self):
-        given = {self.attribute: u'existing'}
-        expected = {self.attribute: u'existing'}
-        self.assert_transform(given, expected, tagname=u'xyzzy')
+        given = {self.attribute: 'existing'}
+        expected = {self.attribute: 'existing'}
+        self.assert_transform(given, expected, tagname='xyzzy')
 
     def test_existing_value_unchanged(self):
-        given = {self.attribute: u'local'}
-        expected = {self.attribute: u'local'}
+        given = {self.attribute: 'local'}
+        expected = {self.attribute: 'local'}
         self.assert_transform(given, expected)
 
     def test_existing_value_force_changed(self):
-        given = {self.attribute: u'local', self.control_attribute: u'on'}
+        given = {self.attribute: 'local', self.control_attribute: 'on'}
         expected = {self.attribute: self.applied_value}
         self.assert_transform(given, expected)
 
@@ -134,7 +133,7 @@ class _TestAttributeTransform(object):
         expected = {}
         context = self._context({self.control_attribute: True})
         self.assert_transform(given, expected,
-                              context=context, tagname=u'xyzzy')
+                              context=context, tagname='xyzzy')
 
     def test_context_auto(self):
         given = {}
@@ -145,7 +144,7 @@ class _TestAttributeTransform(object):
             expected = {}
         else:
             raise AssertionError()
-        context = self._context({self.control_attribute: u'auto'})
+        context = self._context({self.control_attribute: 'auto'})
         self.assert_transform(given, expected, context=context)
 
     def test_local_off(self):
@@ -160,7 +159,7 @@ class _TestAttributeTransform(object):
         self.assert_transform(given, expected, context=context)
 
     def test_local_auto(self):
-        given = {self.control_attribute: u'auto'}
+        given = {self.control_attribute: 'auto'}
         expected = {self.attribute: self.applied_value}
         context = self._context({self.control_attribute: True})
         self.assert_transform(given, expected, context=context)
@@ -180,272 +179,272 @@ class _TestAttributeTransform(object):
 
 
 class TestName(_TestAttributeTransform):
-    attribute = u'name'
-    control_attribute = u'auto_name'
-    applied_value = u'number'
+    attribute = 'name'
+    control_attribute = 'auto_name'
+    applied_value = 'number'
     transform = generic.transform_name
-    tagname = u'input'
+    tagname = 'input'
 
 
 # basic smoke test for context issues only
 class TestTextboxValue(_TestAttributeTransform):
-    attribute = u'value'
-    control_attribute = u'auto_value'
-    applied_value = u'123'
+    attribute = 'value'
+    control_attribute = 'auto_value'
+    applied_value = '123'
     transform = generic.transform_value
-    tagname = u'input'
-    skip_tags = [u'textarea', u'option']
+    tagname = 'input'
+    skip_tags = ['textarea', 'option']
 
 
 class TestButtonValue(_TestAttributeTransform):
-    attribute = u'value'
-    control_attribute = u'auto_value'
-    applied_value = u'123'
+    attribute = 'value'
+    control_attribute = 'auto_value'
+    applied_value = '123'
     transform = generic.transform_value
-    tagname = u'button'
-    skip_tags = [u'textarea', u'option']
+    tagname = 'button'
+    skip_tags = ['textarea', 'option']
 
 
 class TestDomID(_TestAttributeTransform):
-    attribute = u'id'
-    control_attribute = u'auto_domid'
-    applied_value = u'f_number'
+    attribute = 'id'
+    control_attribute = 'auto_domid'
+    applied_value = 'f_number'
     transform = generic.transform_domid
-    tagname = u'input'
+    tagname = 'input'
 
 
 class TestFor(_TestAttributeTransform):
-    attribute = u'for'
-    control_attribute = u'auto_for'
-    applied_value = u'f_number'
+    attribute = 'for'
+    control_attribute = 'auto_for'
+    applied_value = 'f_number'
     transform = generic.transform_for
-    tagname = u'label'
+    tagname = 'label'
 
 
 class TestTabindex(_TestAttributeTransform):
-    attribute = u'tabindex'
-    control_attribute = u'auto_tabindex'
-    applied_value = u'5'
+    attribute = 'tabindex'
+    control_attribute = 'auto_tabindex'
+    applied_value = '5'
     operates_on_unbound = True
     transform = generic.transform_tabindex
-    tagname = u'input'
-    base_context = {u'tabindex': 5}
+    tagname = 'input'
+    base_context = {'tabindex': 5}
 
 
 def test_name_anonymous_bind():
     bind = partial_anon_schema([123])[0]
     given = {}
-    expected = {u'name': u'array'}
+    expected = {'name': 'array'}
     assert_transform(generic.transform_name,
-                     u'input', given, expected, bind=bind)
+                     'input', given, expected, bind=bind)
 
     bind = full_anon_schema([123])[0]
     given = {}
     expected = {}
     assert_transform(generic.transform_name,
-                     u'input', given, expected, bind=bind)
+                     'input', given, expected, bind=bind)
 
 
 def test_contents_textarea():
     given = None
-    expected = u'123'
+    expected = '123'
     assert_bound_transform(generic.transform_value,
-                           u'textarea', {}, {},
+                           'textarea', {}, {},
                            contents=given, expected_contents=expected)
 
-    for given in u'existing_value', u'', generic.Markup(u'xyzzy'), []:
+    for given in 'existing_value', '', generic.Markup('xyzzy'), []:
         expected = given
         assert_bound_transform(generic.transform_value,
-                               u'textarea', {}, {},
+                               'textarea', {}, {},
                                contents=given, expected_contents=expected)
 
 
 def test_value_checkable():
     # check Scalar(..) and Array.of(..)
     for bind in schema(123), partial_anon_schema([123, 456]):
-        for type in u'checkbox', u'radio':
+        for type in 'checkbox', 'radio':
             given = {
-                u'type': type,
-                u'value': u'123',
+                'type': type,
+                'value': '123',
                 }
             expected = {
-                u'type': type,
-                u'value': u'123',
-                u'checked': u'checked',
+                'type': type,
+                'value': '123',
+                'checked': 'checked',
                 }
             assert_transform(generic.transform_value,
-                             u'input', given, expected, bind=bind)
+                             'input', given, expected, bind=bind)
 
             given = {
-                u'type': type,
-                u'value': u'999',
+                'type': type,
+                'value': '999',
                 }
             expected = {
-                u'type': type,
-                u'value': u'999',
+                'type': type,
+                'value': '999',
                 }
             assert_transform(generic.transform_value,
-                             u'input', given, expected, bind=bind)
+                             'input', given, expected, bind=bind)
 
             given = {
-                u'type': type,
-                u'value': u'999',
-                u'checked': u'checked',
+                'type': type,
+                'value': '999',
+                'checked': 'checked',
                 }
             expected = {
-                u'type': type,
-                u'value': u'999',
+                'type': type,
+                'value': '999',
                 }
             assert_transform(generic.transform_value,
-                             u'input', given, expected, bind=bind)
+                             'input', given, expected, bind=bind)
 
             given = {
-                u'type': type,
-                u'value': u'999',
-                u'checked': u'',
+                'type': type,
+                'value': '999',
+                'checked': '',
                 }
             expected = {
-                u'type': type,
-                u'value': u'999',
+                'type': type,
+                'value': '999',
                 }
             assert_transform(generic.transform_value,
-                             u'input', given, expected, bind=bind)
+                             'input', given, expected, bind=bind)
 
 
 def test_value_checkbox_boolean():
     bind = boolean_schema(True)
     given = {
-        u'type': u'checkbox',
+        'type': 'checkbox',
         }
     expected = {
-        u'type': u'checkbox',
-        u'value': u'1',
-        u'checked': u'checked',
+        'type': 'checkbox',
+        'value': '1',
+        'checked': 'checked',
         }
     assert_transform(generic.transform_value,
-                     u'input', given, expected, bind=bind)
+                     'input', given, expected, bind=bind)
 
     bind = boolean_schema(False)
     given = {
-        u'type': u'checkbox',
+        'type': 'checkbox',
         }
     expected = {
-        u'type': u'checkbox',
-        u'value': u'1',
+        'type': 'checkbox',
+        'value': '1',
         }
     assert_transform(generic.transform_value,
-                     u'input', given, expected, bind=bind)
+                     'input', given, expected, bind=bind)
 
     bind = boolean_schema(True)
     given = {
-        u'type': u'checkbox',
-        u'value': u'2',
+        'type': 'checkbox',
+        'value': '2',
         }
     expected = {
-        u'type': u'checkbox',
-        u'value': u'2',
+        'type': 'checkbox',
+        'value': '2',
         }
     assert_transform(generic.transform_value,
-                     u'input', given, expected, bind=bind)
+                     'input', given, expected, bind=bind)
 
 
 def test_value_omitted():
     bind = schema(123)
 
-    for type in u'password', u'file', u'image':
+    for type in 'password', 'file', 'image':
         given = {
-            u'type': type,
+            'type': type,
             }
         expected = {
-            u'type': type,
+            'type': type,
             }
         assert_transform(generic.transform_value,
-                         u'input', given, expected, bind=bind)
+                         'input', given, expected, bind=bind)
         given = {
-            u'type': type,
-            u'value': u'999',
+            'type': type,
+            'value': '999',
             }
         expected = {
-            u'type': type,
-            u'value': u'999',
+            'type': type,
+            'value': '999',
             }
         assert_transform(generic.transform_value,
-                         u'input', given, expected, bind=bind)
+                         'input', given, expected, bind=bind)
         given = {
-            u'type': type,
-            u'auto_value': True,
+            'type': type,
+            'auto_value': True,
             }
         expected = {
-            u'type': type,
-            u'value': u'123',
+            'type': type,
+            'value': '123',
             }
         assert_transform(generic.transform_value,
-                         u'input', given, expected, bind=bind)
+                         'input', given, expected, bind=bind)
 
         given = {
-            u'type': type,
-            u'auto_value': True,
-            u'value': u'999',
+            'type': type,
+            'auto_value': True,
+            'value': '999',
             }
         expected = {
-            u'type': type,
-            u'value': u'123',
+            'type': type,
+            'value': '123',
             }
         assert_transform(generic.transform_value,
-                         u'input', given, expected, bind=bind)
+                         'input', given, expected, bind=bind)
 
 
 def test_value_option():
  # check Scalar(..) and Array.of(..)
     for bind in schema(123), partial_anon_schema([123, 456]):
         given = {
-            u'value': u'123',
+            'value': '123',
             }
         expected = {
-            u'value': u'123',
-            u'selected': u'selected',
+            'value': '123',
+            'selected': 'selected',
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind)
+                         'option', given, expected, bind=bind)
 
         given = {
-            u'value': u'999',
+            'value': '999',
             }
         expected = {
-            u'value': u'999',
+            'value': '999',
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind)
+                         'option', given, expected, bind=bind)
 
-        contents = expected_contents = u'123'
+        contents = expected_contents = '123'
         given = {
             }
         expected = {
-            u'selected': u'selected',
+            'selected': 'selected',
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind,
+                         'option', given, expected, bind=bind,
                          contents=contents,
                          expected_contents=expected_contents)
 
-        contents = expected_contents = u'    123     '
+        contents = expected_contents = '    123     '
         given = {
             }
         expected = {
-            u'selected': u'selected',
+            'selected': 'selected',
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind,
+                         'option', given, expected, bind=bind,
                          contents=contents,
                          expected_contents=expected_contents)
 
-        contents = expected_contents = u'999'
+        contents = expected_contents = '999'
         given = {
             }
         expected = {
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind,
+                         'option', given, expected, bind=bind,
                          contents=contents,
                          expected_contents=expected_contents)
 
@@ -455,7 +454,7 @@ def test_value_option():
         expected = {
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind,
+                         'option', given, expected, bind=bind,
                          contents=contents,
                          expected_contents=expected_contents)
 
@@ -466,197 +465,197 @@ def test_value_option():
             expected = {
                 }
             assert_transform(generic.transform_value,
-                             u'option', given, expected, bind=bind)
+                             'option', given, expected, bind=bind)
 
-        contents = expected_contents = u'123'
+        contents = expected_contents = '123'
         given = {
-            u'value': u'999',
+            'value': '999',
             }
         expected = {
-            u'value': u'999',
+            'value': '999',
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind,
+                         'option', given, expected, bind=bind,
                          contents=contents,
                          expected_contents=expected_contents)
 
         given = {
-            u'value': u'999',
-            u'selected': u'selected',
+            'value': '999',
+            'selected': 'selected',
             }
         expected = {
-            u'value': u'999',
+            'value': '999',
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind)
+                         'option', given, expected, bind=bind)
 
         given = {
-            u'value': u'999',
-            u'selected': u'',
+            'value': '999',
+            'selected': '',
             }
         expected = {
-            u'value': u'999',
+            'value': '999',
             }
         assert_transform(generic.transform_value,
-                         u'option', given, expected, bind=bind)
+                         'option', given, expected, bind=bind)
 
 
 def test_domid_checkable_array():
     bind = partial_anon_schema([123, 456])
     context = Context()
-    context[u'auto_domid'] = True
+    context['auto_domid'] = True
 
     assert_ = lambda given, expected: assert_transform(
-        generic.transform_domid, u'input', given, expected,
+        generic.transform_domid, 'input', given, expected,
         context=context, bind=bind)
 
-    for type in u'radio', u'checkbox':
+    for type in 'radio', 'checkbox':
         given = {
-            u'type': u'radio',
-            u'value': u'xxx',
+            'type': 'radio',
+            'value': 'xxx',
             }
         expected = {
-            u'type': u'radio',
-            u'value': u'xxx',
-            u'id': u'f_array_xxx',
+            'type': 'radio',
+            'value': 'xxx',
+            'id': 'f_array_xxx',
             }
         assert_(given, expected)
 
         given = {
-            u'type': u'radio',
+            'type': 'radio',
             }
         expected = {
-            u'type': u'radio',
-            u'id': u'f_array',
+            'type': 'radio',
+            'id': 'f_array',
             }
         assert_(given, expected)
 
         given = {
-            u'type': u'radio',
-            u'value': u'Ḑộộḏ!',
+            'type': 'radio',
+            'value': 'Ḑộộḏ!',
             }
         expected = {
-            u'type': u'radio',
-            u'value': u'Ḑộộḏ!',
-            u'id': u'f_array',
+            'type': 'radio',
+            'value': 'Ḑộộḏ!',
+            'id': 'f_array',
             }
         assert_(given, expected)
 
         given = {
-            u'type': u'radio',
-            u'value': u'Ḑộộḏ! yo',
+            'type': 'radio',
+            'value': 'Ḑộộḏ! yo',
             }
         expected = {
-            u'type': u'radio',
-            u'value': u'Ḑộộḏ! yo',
-            u'id': u'f_array_yo',
+            'type': 'radio',
+            'value': 'Ḑộộḏ! yo',
+            'id': 'f_array_yo',
             }
         assert_(given, expected)
 
 
 def test_domid_checkable_scalar():
     context = Context()
-    context[u'auto_domid'] = True
+    context['auto_domid'] = True
 
-    for type in u'radio', u'checkbox':
+    for type in 'radio', 'checkbox':
         given = {
-            u'type': u'radio',
-            u'value': u'xxx',
+            'type': 'radio',
+            'value': 'xxx',
             }
         expected = {
-            u'type': u'radio',
-            u'value': u'xxx',
-            u'id': u'f_number_xxx',
+            'type': 'radio',
+            'value': 'xxx',
+            'id': 'f_number_xxx',
             }
         assert_bound_transform(generic.transform_domid,
-                               u'input', given, expected, context=context)
+                               'input', given, expected, context=context)
 
 
 def test_domid_anonymous_bind():
     bind = partial_anon_schema([123])[0]
-    given = {u'auto_domid': True}
-    expected = {u'id': u'f_array'}
+    given = {'auto_domid': True}
+    expected = {'id': 'f_array'}
     assert_transform(generic.transform_domid,
-                     u'input', given, expected, bind=bind)
+                     'input', given, expected, bind=bind)
 
     bind = full_anon_schema([123])[0]
-    given = {u'auto_domid': True}
+    given = {'auto_domid': True}
     expected = {}
     assert_transform(generic.transform_domid,
-                     u'input', given, expected, bind=bind)
+                     'input', given, expected, bind=bind)
 
 
 def test_domid_unbound_naming():
-    given = {u'name': u'unbound',
-             u'auto_domid': u'on'}
-    expected = {u'id': u'f_unbound', u'name': u'unbound'}
+    given = {'name': 'unbound',
+             'auto_domid': 'on'}
+    expected = {'id': 'f_unbound', 'name': 'unbound'}
     assert_unbound_transform(generic.transform_domid,
-                             u'input', given, expected)
+                             'input', given, expected)
 
 
 def test_domid_custom_formatting():
     context = Context()
-    context[u'domid_format'] = u'--%s--'
-    given = {u'auto_domid': u'on'}
-    expected = {u'id': u'--number--'}
+    context['domid_format'] = '--%s--'
+    given = {'auto_domid': 'on'}
+    expected = {'id': '--number--'}
     assert_bound_transform(generic.transform_domid,
-                           u'input', given, expected, context=context)
+                           'input', given, expected, context=context)
 
 
 def test_for_anonymous_bind():
     bind = partial_anon_schema([123])[0]
-    given = {u'auto_for': True}
-    expected = {u'for': u'f_array'}
+    given = {'auto_for': True}
+    expected = {'for': 'f_array'}
     assert_transform(generic.transform_for,
-                     u'label', given, expected, bind=bind)
+                     'label', given, expected, bind=bind)
 
     bind = full_anon_schema([123])[0]
-    given = {u'auto_for': True}
+    given = {'auto_for': True}
     expected = {}
     assert_transform(generic.transform_for,
-                     u'label', given, expected, bind=bind)
+                     'label', given, expected, bind=bind)
 
 
 def test_tabindex_stop_numbers():
-    given = {u'auto_tabindex': u'on'}
+    given = {'auto_tabindex': 'on'}
 
     for stop_num in -1, -2:
         context = Context()
-        context[u'tabindex'] = stop_num
-        expected = {u'tabindex': textstr(stop_num)}
+        context['tabindex'] = stop_num
+        expected = {'tabindex': textstr(stop_num)}
         assert_bound_transform(generic.transform_tabindex,
-                               u'input', given, expected, context=context)
+                               'input', given, expected, context=context)
         assert_unbound_transform(generic.transform_tabindex,
-                                 u'input', given, expected, context=context)
-        assert context[u'tabindex'] == stop_num
+                                 'input', given, expected, context=context)
+        assert context['tabindex'] == stop_num
 
 
 def test_tabindex_zero():
     given = {}
     context = Context()
-    context[u'auto_tabindex'] = True
-    context[u'tabindex'] = 0
+    context['auto_tabindex'] = True
+    context['tabindex'] = 0
 
     expected = {}
     assert_unbound_transform(generic.transform_tabindex,
-                             u'input', given, expected, context=context)
+                             'input', given, expected, context=context)
 
 
 def test_tabindex_increment():
     given = {}
     context = Context()
-    context[u'auto_tabindex'] = True
-    context[u'tabindex'] = 1
+    context['auto_tabindex'] = True
+    context['tabindex'] = 1
 
-    expected = {u'tabindex': u'1'}
+    expected = {'tabindex': '1'}
     assert_unbound_transform(generic.transform_tabindex,
-                             u'input', given, expected, context=context)
+                             'input', given, expected, context=context)
 
-    expected = {u'tabindex': u'2'}
+    expected = {'tabindex': '2'}
     assert_unbound_transform(generic.transform_tabindex,
-                             u'input', given, expected, context=context)
+                             'input', given, expected, context=context)
 
-    assert context[u'tabindex'] != 1
+    assert context['tabindex'] != 1
 
 
 def test_filter():
@@ -664,45 +663,45 @@ def test_filter():
     given = {}
 
     def filter1(tagname, attributes, contents, context, bind):
-        attributes[u'donut'] = u'xyzzy'
+        attributes['donut'] = 'xyzzy'
         return contents
 
     context = Context()
-    context[u'auto_filter'] = True
-    context[u'filters'] = [filter1]
+    context['auto_filter'] = True
+    context['filters'] = [filter1]
 
     expected = {
-        u'donut': u'xyzzy',
+        'donut': 'xyzzy',
         }
     assert_bound_transform(generic.transform_filters,
-                           u'div', given, expected, context=context)
+                           'div', given, expected, context=context)
 
     def filter2(tagname, attributes, contents, context, bind):
         return bind.label
 
     context = Context()
-    context[u'auto_filter'] = True
-    context[u'filters'] = [filter2, filter1]
-    contents = u'bbq'
-    expected_contents = u'number'
+    context['auto_filter'] = True
+    context['filters'] = [filter2, filter1]
+    contents = 'bbq'
+    expected_contents = 'number'
 
     expected = {
-        u'donut': u'xyzzy',
+        'donut': 'xyzzy',
         }
     assert_bound_transform(generic.transform_filters,
-                           u'div', given, expected, context=context,
+                           'div', given, expected, context=context,
                            contents=contents,
                            expected_contents=expected_contents)
 
     context = Context()
-    context[u'auto_filter'] = True
-    context[u'filters'] = ()
-    contents = u'bbq'
-    expected_contents = u'bbq'
+    context['auto_filter'] = True
+    context['filters'] = ()
+    contents = 'bbq'
+    expected_contents = 'bbq'
 
     expected = {}
     assert_bound_transform(generic.transform_filters,
-                           u'div', given, expected, context=context,
+                           'div', given, expected, context=context,
                            contents=contents,
                            expected_contents=expected_contents)
 
@@ -710,27 +709,27 @@ def test_filter():
 def test_filter_want():
 
     def filter1(tagname, attributes, contents, context, bind):
-        attributes[u'donut'] = u'xyzzy'
+        attributes['donut'] = 'xyzzy'
         return contents
 
-    filter1.tags = [u'div', u'input']
+    filter1.tags = ['div', 'input']
 
-    for tag in u'div', u'input':
+    for tag in 'div', 'input':
         context = Context()
-        context[u'auto_filter'] = True
-        context[u'filters'] = [filter1]
+        context['auto_filter'] = True
+        context['filters'] = [filter1]
         given = {}
         expected = {
-            u'donut': u'xyzzy',
+            'donut': 'xyzzy',
             }
         assert_bound_transform(generic.transform_filters,
                            tag, given, expected, context=context)
 
 
     context = Context()
-    context[u'auto_filter'] = True
-    context[u'filters'] = [filter1]
+    context['auto_filter'] = True
+    context['filters'] = [filter1]
     given = {}
     expected = {}
     assert_bound_transform(generic.transform_filters,
-                           u'horse', given, expected, context=context)
+                           'horse', given, expected, context=context)

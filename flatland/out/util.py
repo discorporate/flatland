@@ -2,9 +2,9 @@ from flatland._compat import bytestring_type
 from flatland.util import Maybe
 
 
-YES = (u'1', u'true', u'True', u't', u'on', u'yes')
-NO = (u'0', u'false', u'False', u'nil', u'off', u'no')
-MAYBE = (u'auto',)
+YES = ('1', 'true', 'True', 't', 'on', 'yes')
+NO = ('0', 'false', 'False', 'nil', 'off', 'no')
+MAYBE = ('auto',)
 
 
 def parse_trool(value):

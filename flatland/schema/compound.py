@@ -206,7 +206,7 @@ class Compound(with_metaclass(_MetaCompound, Mapping, Scalar)):
         try:
             return Scalar.__repr__(self)
         except Exception as exc:
-            return '<%s %r; value raised %s>' % (
+            return '<{} {!r}; value raised {}>'.format(
                 type(self).__name__, self.name, type(exc).__name__)
 
     @property
@@ -227,28 +227,28 @@ class DateYYYYMMDD(Compound, Date):
         optional = cls.optional
 
         if len(fields) == 0:
-            fields.append(Integer.named(u'year').using(format=u'%04i',
+            fields.append(Integer.named('year').using(format='%04i',
                                                        optional=optional))
         if len(fields) == 1:
-            fields.append(Integer.named(u'month').using(format=u'%02i',
+            fields.append(Integer.named('month').using(format='%02i',
                                                         optional=optional))
         if len(fields) == 2:
-            fields.append(Integer.named(u'day').using(format=u'%02i',
+            fields.append(Integer.named('day').using(format='%02i',
                                                       optional=optional))
 
         cls.field_schema = fields
 
     def compose(self):
         try:
-            data = dict([(label, self[child_schema.name].value)
+            data = {label: self[child_schema.name].value
                          for label, child_schema
-                         in zip(self.used, self.field_schema)])
+                         in zip(self.used, self.field_schema)}
             as_str = self.format % data
             value = Date.adapt(self, as_str)
 
             return as_str, value
         except (AdaptationError, TypeError):
-            return u'', None
+            return '', None
 
     def explode(self, value):
         try:
@@ -286,7 +286,7 @@ class JoinedString(Array, String):
     #: The string used to join children's :attr:`u` representations.  Will
     #: also be used to split incoming strings, unless :attr:`separator_regex`
     #: is also defined.
-    separator = u','
+    separator = ','
 
     #: Optional, a regular expression, used preferentially to split an
     #: incoming separated value into components.  Used in combination with

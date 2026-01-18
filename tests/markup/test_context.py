@@ -17,7 +17,7 @@ def test_read_write_known():
 def test_read_write_unknown():
     ctx = Context()
 
-    needle = u'xyzzy'
+    needle = 'xyzzy'
     assert needle not in _default_context.keys()
     assert needle not in ctx
     with pytest.raises(KeyError):
@@ -44,7 +44,7 @@ def test_push_known():
 def test_push_unknown():
     ctx = Context()
 
-    needle = u'xyzzy'
+    needle = 'xyzzy'
     needle_attribute = 'xyzzy'  # native text type
     assert needle not in _default_context.keys()
 
@@ -78,11 +78,11 @@ def test_update_known():
 
 def test_update_unknown():
     ctx = Context()
-    assert u'xyzzy' not in _default_context.keys()
+    assert 'xyzzy' not in _default_context.keys()
 
     with pytest.raises(KeyError):
         ctx.update(xyzzy=123)
-    assert u'xyzzy' not in ctx
+    assert 'xyzzy' not in ctx
 
 
 def test_update_bogus():

@@ -7,7 +7,7 @@ from flatland.util import symbol
 Deleted = symbol('deleted')
 
 
-class DictLike(object):
+class DictLike:
 
     def iteritems(self):  # pragma: nocover
         raise NotImplementedError
@@ -209,7 +209,7 @@ class _InstanceLookup(DictLike):
                     yield key, value
 
 
-class Properties(object):
+class Properties:
 
     def __init__(self, *iterable, **initial_set):
         simplified = dict(*iterable, **initial_set)

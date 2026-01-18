@@ -5,7 +5,7 @@ import pytest
 
 
 def test_empty():
-    class Base(object):
+    class Base:
         properties = Properties()
 
     assert not Base.properties
@@ -35,7 +35,7 @@ def test_empty():
 
 
 def test_dictlike():
-    class Base(object):
+    class Base:
         properties = Properties({'def': 456}, abc=123)
 
     props = Base.properties
@@ -69,7 +69,7 @@ def test_dictlike():
 
 
 def test_instance_population():
-    class Base(object):
+    class Base:
         properties = Properties()
 
     assert not Base.properties
@@ -94,7 +94,7 @@ def test_instance_population():
 
 
 def test_instance_overlay():
-    class Base(object):
+    class Base:
         properties = Properties()
 
     Base.properties['a'] = 1
@@ -143,7 +143,7 @@ def test_instance_overlay():
 
 def test_instance_member_assignment():
 
-    class Base(object):
+    class Base:
         properties = Properties(abc=123)
 
     b = Base()
@@ -158,7 +158,7 @@ def test_instance_member_assignment():
 
 
 def test_subclass_overlay():
-    class Base(object):
+    class Base:
         properties = Properties()
 
     class Middle(Base):
@@ -220,7 +220,7 @@ def test_subclass_overlay():
 
 
 def test_subclass_override():
-    class Base(object):
+    class Base:
         properties = Properties()
 
     class Middle(Base):
@@ -241,7 +241,7 @@ def test_subclass_override():
 
 
 def test_initialization():
-    class Base(object):
+    class Base:
         properties = Properties(abc=123)
 
     assert Base.properties == {'abc': 123}
@@ -253,7 +253,7 @@ def test_initialization():
 
 
 def test_perverse():
-    class Base(object):
+    class Base:
         properties = Properties()
 
     descriptor = Base.__dict__['properties']
@@ -262,7 +262,7 @@ def test_perverse():
     assert list(props._frames()) == []
 
     def unattached_properties():
-        class Unrelated(object):
+        class Unrelated:
             pass
 
         return descriptor.__get__(None, Unrelated)
@@ -275,7 +275,7 @@ def test_perverse():
         # noinspection PyStatementEffect
         lost2['abc']
 
-    class Broken(object):
+    class Broken:
         properties = 'something else'
 
     broken = descriptor.__get__(None, Broken)
@@ -288,7 +288,7 @@ def test_perverse():
 if PY2:
     def test_perverse_slots():
 
-        class Base(object):
+        class Base:
             __slots__ = 'properties',
             properties = Properties()
 

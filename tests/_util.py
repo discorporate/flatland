@@ -41,9 +41,9 @@ def fails(reason):
 
 def udict(*dictionary, **kwargs):
     "Return a dict with unicode keys. A stand-in for the dict constructor."
-    kwargs = dict((text_type(k), v) for k, v in kwargs.items())
+    kwargs = {text_type(k): v for k, v in kwargs.items()}
     if dictionary:
-        base = dict((text_type(k), v) for k, v in dictionary[0].items())
+        base = {text_type(k): v for k, v in dictionary[0].items()}
         base.update(kwargs)
         return base
     else:

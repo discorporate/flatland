@@ -11,7 +11,7 @@ _ugettext_finder = attrgetter('ugettext')
 _ungettext_finder = attrgetter('ungettext')
 
 
-class Validator(object):
+class Validator:
     """Base class for fancy validators."""
 
     def __init__(self, **kw):
@@ -25,7 +25,7 @@ class Validator(object):
             if hasattr_py2(cls, attr):
                 setattr_py2(self, attr, value)
             else:
-                raise TypeError("%s has no attribute %r, can not override." % (
+                raise TypeError("{} has no attribute {!r}, can not override.".format(
                     cls.__name__, attr))
 
     def __call__(self, element, state):
@@ -261,7 +261,7 @@ class Validator(object):
         return message % format_map
 
 
-class as_format_mapping(object):
+class as_format_mapping:
     """A unified, optionally transformed, mapping view over multiple instances.
 
     Allows regular instance attributes to be accessed by "%(attrname)s" in

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 from collections import deque
 
 from genshi.core import Namespace, QName, END, START, TEXT
@@ -19,14 +18,14 @@ from flatland.out.generic import _unpack, transform, Context
 
 __all__ = ('setup',)
 
-NS = Namespace(u'http://ns.discorporate.us/flatland/genshi')
+NS = Namespace('http://ns.discorporate.us/flatland/genshi')
 
-_static_attribute_order = [u'type', u'name', u'value']
+_static_attribute_order = ['type', 'name', 'value']
 
 _to_context = {}
-for key in (u'auto-name', u'auto-value', u'auto-domid', u'auto-for',
-            u'auto-tabindex', u'auto-filter', u'domid-format'):
-    _to_context[key] = key.replace(u'-', u'_')
+for key in ('auto-name', 'auto-value', 'auto-domid', 'auto-for',
+            'auto-tabindex', 'auto-filter', 'domid-format'):
+    _to_context[key] = key.replace('-', '_')
 
 _bind_qname = NS.bind
 
@@ -38,8 +37,8 @@ def setup(template):
     """
 
     if not hasattr(template, 'add_directives'):
-        raise RuntimeError("%s.setup requires Genshi 0.6 or higher." % (
-            __name__,))
+        raise RuntimeError("{}.setup requires Genshi 0.6 or higher.".format(
+            __name__))
     template.add_directives(NS, FlatlandElements())
 
 
@@ -73,7 +72,7 @@ class TagOnly(EvaluatedLast):
             raise TemplateSyntaxError(
                 "The %r directive must be an element" % cls._name,
                 template.filepath, *pos[1:])
-        return super(TagOnly, cls).attach(
+        return super().attach(
             template, stream, value, namespaces, pos)
 
     def __init__(self, value, template=None, namespaces=None,
@@ -93,7 +92,7 @@ class AttributeOnly(EvaluatedLast):
                 ("The %r directive may only be used as a "
                  "tag attribute" % cls._name),
                 template.filepath, *pos[1:])
-        return super(AttributeOnly, cls).attach(
+        return super().attach(
             template, stream, value, namespaces, pos)
 
 
@@ -107,7 +106,7 @@ class ControlAttribute(AttributeOnly):
         # allow interpolation inside control attributes
         raw_value = list(interpolate(value, lineno=lineno, offset=offset))
         if all(kind is TEXT for (kind, _, _) in raw_value):
-            self.raw_value = u''.join(event[1] for event in raw_value)
+            self.raw_value = ''.join(event[1] for event in raw_value)
         else:
             self.raw_value = raw_value
 
@@ -132,42 +131,42 @@ class ControlAttribute(AttributeOnly):
                 else:
                     value = _eval_expr(value, ctxt, vars)
                     parts.append(text_type(value))
-            final_value = u''.join(parts)
+            final_value = ''.join(parts)
         mapping[_to_context.get(self._name, self._name)] = final_value
 
 
 class AutoName(ControlAttribute):
-    _name = u'auto-name'
+    _name = 'auto-name'
     __slots__ = ()
 
 
 class AutoValue(ControlAttribute):
-    _name = u'auto-value'
+    _name = 'auto-value'
     __slots__ = ()
 
 
 class AutoDomID(ControlAttribute):
-    _name = u'auto-domid'
+    _name = 'auto-domid'
     __slots__ = ()
 
 
 class AutoFor(ControlAttribute):
-    _name = u'auto-for'
+    _name = 'auto-for'
     __slots__ = ()
 
 
 class AutoTabindex(ControlAttribute):
-    _name = u'auto-tabindex'
+    _name = 'auto-tabindex'
     __slots__ = ()
 
 
 class AutoFilter(ControlAttribute):
-    _name = u'auto-filter'
+    _name = 'auto-filter'
     __slots__ = ()
 
 
 class Binding(AttributeOnly):
-    _name = u'bind'
+    _name = 'bind'
     __slots__ = ('bind',)
 
     def __init__(self, attributes, template=None, namespaces=None,
@@ -194,7 +193,7 @@ class RenderContextManipulator(TagOnly):
         transformed = {}
         for key, value in attributes.items():
             key = _to_context.get(key, key)
-            if key == u'tabindex':
+            if key == 'tabindex':
                 value = int(value)
             transformed[key] = value
         TagOnly.__init__(self, transformed, template, namespaces,
@@ -202,39 +201,38 @@ class RenderContextManipulator(TagOnly):
 
 
 class With(RenderContextManipulator):
-    _name = u'with'
+    _name = 'with'
     __slots__ = ()
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt[u'flatland_render_context']
+            render_context = ctxt['flatland_render_context']
         except KeyError:
-            ctxt[u'flatland_render_context'] = render_context = Context()
+            ctxt['flatland_render_context'] = render_context = Context()
 
-        if u'filters' not in self.attributes:
+        if 'filters' not in self.attributes:
             attrs = self.attributes
         else:
             attrs = self.attributes.copy()
-            attrs[u'filters'] = _eval_expr(Expression(attrs[u'filters']),
+            attrs['filters'] = _eval_expr(Expression(attrs['filters']),
                                           ctxt, vars)
 
         render_context.push()
         render_context.update(attrs)
         assert not directives
-        for event in stream:
-            yield event
+        yield from stream
         render_context.pop()
 
 
 class Set(RenderContextManipulator):
-    _name = u'set'
+    _name = 'set'
     __slots__ = ()
 
     def process(self, stream, directives, ctxt, vars):
         try:
-            render_context = ctxt[u'flatland_render_context']
+            render_context = ctxt['flatland_render_context']
         except KeyError:
-            ctxt[u'flatland_render_context'] = render_context = Context()
+            ctxt['flatland_render_context'] = render_context = Context()
         render_context.update(self.attributes)
         assert not directives
         return stream
@@ -245,15 +243,15 @@ class FlatlandElements(DirectiveFactory):
     NAMESPACE = NS
 
     directives = [
-        (u'with', With),
-        (u'set', Set),
-        (u'bind', Binding),
-        (u'auto-name', AutoName),
-        (u'auto-value', AutoValue),
-        (u'auto-domid', AutoDomID),
-        (u'auto-for', AutoFor),
-        (u'auto-tabindex', AutoTabindex),
-        (u'auto-filter', AutoFilter),
+        ('with', With),
+        ('set', Set),
+        ('bind', Binding),
+        ('auto-name', AutoName),
+        ('auto-value', AutoValue),
+        ('auto-domid', AutoDomID),
+        ('auto-for', AutoFor),
+        ('auto-tabindex', AutoTabindex),
+        ('auto-filter', AutoFilter),
         ]
 
 
@@ -280,9 +278,9 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
             mutable_attrs[qname.localname] = value
 
     try:
-        render_context = ctxt[u'flatland_render_context']
+        render_context = ctxt['flatland_render_context']
     except KeyError:
-        ctxt[u'flatland_render_context'] = render_context = Context()
+        ctxt['flatland_render_context'] = render_context = Context()
 
     new_contents = transform(tagname.localname, mutable_attrs, contents,
                              render_context, bind)
@@ -303,11 +301,11 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
         attrs -= qname
 
     stream[0] = (kind, (tagname, attrs), pos)
-    if new_contents and tagname.localname == u'select' and bind is not None:
+    if new_contents and tagname.localname == 'select' and bind is not None:
         if tagname.namespace:
             sub_tag = Namespace(tagname.namespace).option
         else:  # pragma: nocover
-            sub_tag = QName(u'option')
+            sub_tag = QName('option')
         new_contents = _bind_unbound_tags(new_contents, sub_tag, bind)
     if new_contents:
         stream[1:-1] = new_contents
@@ -351,7 +349,7 @@ def _bind_unbound_tags(stream, qname, bind):
                 _bind_unbound_tags(substream, qname, bind))
             # attaching the directive is sufficient; don't need to fabricate
             # a form:bind="" attribute
-            yield SUB, ([Binding(u'', bind=bind)], substream), pos
+            yield SUB, ([Binding('', bind=bind)], substream), pos
         else:
             yield kind, data, pos
 
@@ -382,4 +380,4 @@ def _simplify_stream(stream, ctxt, vars):
             parts.append(value)
         else:
             return stream
-    return u''.join(parts)
+    return ''.join(parts)

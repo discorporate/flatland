@@ -1,33 +1,32 @@
-# -*- coding: utf-8 -*-
 from flatland import String
 from flatland.out.markup import Generator
 
 from tests.markup._util import markup_test
 
 
-schema = String.named(u'field1').using(default=u'val').from_defaults
+schema = String.named('field1').using(default='val').from_defaults
 
 
-@markup_test(u'html', schema)
+@markup_test('html', schema)
 def test_input_html(gen, el):
     """<input type="text" name="field1" value="val">"""
-    return gen.input(type=u'text', bind=el)
+    return gen.input(type='text', bind=el)
 
 
-@markup_test(u'xml', schema)
+@markup_test('xml', schema)
 def test_input_xml(gen, el):
     """<input type="text" name="field1" value="val" />"""
-    return gen.input(type=u'text', bind=el)
+    return gen.input(type='text', bind=el)
 
 
-@markup_test(u'xml', schema)
+@markup_test('xml', schema)
 def test_input_open(gen, el):
     """<input type="text" name="field1" value="val">"""
-    return gen.input.open(type=u'text', bind=el)
+    return gen.input.open(type='text', bind=el)
 
 
 def test_detached_reuse():
-    gen = Generator(u'xml')
+    gen = Generator('xml')
     el = schema()
 
     tag = gen.textarea
@@ -47,40 +46,40 @@ def test_detached_reuse():
     tag.close()
 
 
-@markup_test(u'xml', schema)
+@markup_test('xml', schema)
 def test_input_close(gen, el):
     """</input>"""
     return gen.input.close()
 
 
-@markup_test(u'xml', schema)
+@markup_test('xml', schema)
 def test_textarea_escaped(gen, el):
     '''<textarea name="field1">"&lt;quoted &amp; escaped&gt;"</textarea>'''
     bind = el
-    bind.set(u'"<quoted & escaped>"')
+    bind.set('"<quoted & escaped>"')
     return gen.textarea(bind)
 
 
-@markup_test(u'xml', schema)
+@markup_test('xml', schema)
 def test_textarea_contents(gen, el):
     """val"""
     gen.textarea.open(el)
     return gen.textarea.contents
 
 
-@markup_test(u'xml', schema)
+@markup_test('xml', schema)
 def test_textarea_escaped_contents(gen, el):
     '''"&lt;quoted &amp; escaped&gt;"'''
     bind = el
-    bind.set(u'"<quoted & escaped>"')
+    bind.set('"<quoted & escaped>"')
     gen.textarea.open(bind)
     return gen.textarea.contents
 
 
-@markup_test(u'xml', schema)
+@markup_test('xml', schema)
 def test_textarea_explicit_contents(gen, el):
     """xyzzy"""
-    gen.textarea.open(el, contents=u'xyzzy')
+    gen.textarea.open(el, contents='xyzzy')
     return gen.textarea.contents
 
 
@@ -105,8 +104,8 @@ def test_Markup_concatenation():
 def _generate_markup_test(impl):
     def test(gen, el):
         """<label><x></label>"""
-        gen[u'markup_wrapper'] = impl
-        return gen.label(contents=impl(u'<x>'))
+        gen['markup_wrapper'] = impl
+        return gen.label(contents=impl('<x>'))
 
-    wrapper = lambda label: markup_test(u'xml', schema)(test)
+    wrapper = lambda label: markup_test('xml', schema)(test)
     return wrapper

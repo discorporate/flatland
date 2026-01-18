@@ -44,7 +44,7 @@ def pathexpr(expr):
     elif isinstance(expr, text_type):
         pass
     elif hasattr(expr, '__iter__'):
-        expr = u'/'.join(expr)
+        expr = '/'.join(expr)
     try:
         return expression_cache[expr]
     except KeyError:
@@ -55,7 +55,7 @@ def pathexpr(expr):
             return compiled
 
 
-class PathExpression(object):
+class PathExpression:
 
     def __init__(self, expr):
         self.expr = expr
@@ -81,13 +81,13 @@ class PathExpression(object):
                     except (LookupError, TypeError):
                         if strict:
                             if el.name:
-                                type_ = '%s element %s' % (
+                                type_ = '{} element {}'.format(
                                     el.__class__.__name__, decode_repr(el.name))
                             else:
                                 type_ = 'Unnamed element %s' % (
                                     el.__class__.__name__)
                             raise LookupError(
-                                "%s has no child %s in expression %s" % (
+                                "{} has no child {} in expression {}".format(
                                     type_, decode_repr(data), decode_repr(self.expr)))
                         break
                 elif op is SLICE:
@@ -118,21 +118,21 @@ def tokenize(path):
     canonical = True
 
     for token, slice_spec in _tokenize_re.findall(path):
-        if token == u'/':
+        if token == '/':
             # '/foo' -> TOP, 'foo'
             if last is None:
                 tokens.append((TOP, None))
             # 'foo//' -> 'foo', None
-            elif last == u'/':
+            elif last == '/':
                 tokens.append((NAME, None))
 
         # . -> here
-        elif token == u'.':
+        elif token == '.':
             canonical = False
             tokens.append((HERE, None))
 
         # foo/../bar -> 'foo', up, 'bar'
-        elif token == u'..':
+        elif token == '..':
             canonical = False
             tokens.append((UP, None))
 
@@ -141,15 +141,15 @@ def tokenize(path):
             tokens.append(_parse_slice(slice_spec))
 
         # /foo/bar[quux]/ -> 'foo', 'bar[quux]'
-        elif token.startswith(u'[') and last_type is NAME:
+        elif token.startswith('[') and last_type is NAME:
             previous = tokens.pop()
-            last = last + _unescape_re.sub(u'\\1', token)
+            last = last + _unescape_re.sub('\\1', token)
             tokens.append((previous[0], last))
             continue
 
         # foo/bar/baz[bogus] -> 'foo', 'bar', 'baz[bogus]'
         else:
-            name = _unescape_re.sub(u'\\1', token)
+            name = _unescape_re.sub('\\1', token)
             tokens.append((NAME, name))
         last = token
         last_type = tokens[-1][0]
@@ -181,10 +181,10 @@ def _canonicalize(tokens):
 
 def _parse_slice(pattern):
     """Return a slice() instance for a string:slice:pattern."""
-    if pattern == u':' or pattern == u'::':
+    if pattern == ':' or pattern == '::':
         return (SLICE, slice(None))
-    elif u':' not in pattern:
-        if not pattern.startswith(u'-'):
+    elif ':' not in pattern:
+        if not pattern.startswith('-'):
             return (NAME, pattern)
         else:
             offset = int(pattern)
@@ -192,7 +192,7 @@ def _parse_slice(pattern):
                 return (SLICE, slice(offset, None))
             return (SLICE, slice(offset, offset + 1))
 
-    segs = pattern.split(u':', 2)
+    segs = pattern.split(':', 2)
     start = segs[0] and int(segs[0]) or 0
     stop = segs[1] and int(segs[1]) or None
 
