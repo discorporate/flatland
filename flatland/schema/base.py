@@ -160,7 +160,7 @@ class Element(object):
 
     @class_cloner
     def using(cls, **overrides):
-        """Return a class with attributes set from *\*\*overrides*.
+        r"""Return a class with attributes set from *\*\*overrides*.
 
         :param \*\*overrides: new values for any attributes already present on
           the class.  A ``TypeError`` is raised for unknown attributes.
@@ -192,7 +192,7 @@ class Element(object):
 
     @class_cloner
     def validated_by(cls, *validators):
-        """Return a class with validators set to *\*validators*.
+        r"""Return a class with validators set to *\*validators*.
 
         :param \*validators: one or more validator functions, replacing any
           validators present on the class.
@@ -212,7 +212,7 @@ class Element(object):
 
     @class_cloner
     def including_validators(cls, *validators, **kw):
-        """Return a class with additional *\*validators*.
+        r"""Return a class with additional *\*validators*.
 
         :param \*validators: one or more validator functions
 
@@ -236,7 +236,7 @@ class Element(object):
 
     @class_cloner
     def with_properties(cls, *iterable, **properties):
-        """Return a class with *\*\*properties* set.
+        r"""Return a class with *\*\*properties* set.
 
         :param: optional positional parameter, an iterable of property name /
           value pairs
@@ -252,7 +252,7 @@ class Element(object):
 
     @classmethod
     def from_flat(cls, pairs, **kw):
-        """Return a new element with its value initialized from *pairs*.
+        r"""Return a new element with its value initialized from *pairs*.
 
         :param \*\*kw: passed through to the :attr:`element_type`.
 
@@ -276,7 +276,7 @@ class Element(object):
 
     @classmethod
     def from_defaults(cls, **kw):
-        """Return a new element with its value initialized from field defaults.
+        r"""Return a new element with its value initialized from field defaults.
 
         :param \*\*kw: passed through to the :attr:`element_type`.
 

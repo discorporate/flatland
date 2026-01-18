@@ -432,7 +432,7 @@ class Enum(Constrained):
 
     @class_cloner
     def valued(cls, *enum_values):
-        """Return a class with ``valid_values`` = *enum_values*
+        r"""Return a class with ``valid_values`` = *enum_values*
 
         :param \*enum_values: zero or more values for :attr:`valid_values`.
         :returns: a new class

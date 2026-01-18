@@ -39,7 +39,7 @@ __all__ = (
 
 
 class Container(Element):
-    """Holds other schema items.
+    r"""Holds other schema items.
 
     Base class for elements that can contain other elements, such as
     :class:`List` and :class:`Dict`.
@@ -64,7 +64,7 @@ class Container(Element):
 
     @class_cloner
     def descent_validated_by(cls, *validators):
-        """Return a class with descent validators set to *\*validators*.
+        r"""Return a class with descent validators set to *\*validators*.
 
         :param \*validators: one or more validator functions, replacing any
           descent validators present on the class.
@@ -83,7 +83,7 @@ class Container(Element):
 
     @class_cloner
     def including_descent_validators(cls, *validators, **kw):
-        """Return a class with additional descent *\*validators*.
+        r"""Return a class with additional descent *\*validators*.
 
         :param \*validators: one or more validator functions
 
@@ -168,7 +168,7 @@ class Sequence(Container, list):
 
     @class_cloner
     def of(cls, *schema):
-        """Declare the class to hold a sequence of *\*schema*.
+        r"""Declare the class to hold a sequence of *\*schema*.
 
         :params \*schema: one or more `~flatland.schema.base.Element` classes
         :returns: *cls*
@@ -785,7 +785,7 @@ class Mapping(Container, dict):
         raise TypeError('%s keys are immutable.' % type(self).__name__)
 
     def update(self, *dictish, **kwargs):
-        """Update with keys from dict-like *\*dictish* and *\*\*kwargs*"""
+        r"""Update with keys from dict-like *\*dictish* and *\*\*kwargs*"""
         if len(dictish) > 1:
             raise TypeError(
                 "update expected at most 1 arguments, got %s" % len(dictish))
@@ -955,7 +955,7 @@ class Dict(Mapping, dict):
 
     @classmethod
     def from_object(cls, obj, include=None, omit=None, rename=None, **kw):
-        """Return an element initialized with an object's attributes.
+        r"""Return an element initialized with an object's attributes.
 
         :param obj: any object
         :param include: optional, an iterable of attribute names to pull from

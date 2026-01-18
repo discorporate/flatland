@@ -37,7 +37,7 @@ class Generator(Context):
         self.update(settings)
 
     def begin(self, **settings):
-        """Begin a new :ref:`markupsettings` context.
+        r"""Begin a new :ref:`markupsettings` context.
 
         Puts \*\*settings into effect until a matching :meth:`end` is called.
         Each setting specified will mask the current value, reverting when
@@ -59,7 +59,7 @@ class Generator(Context):
         return self[u'markup_wrapper'](u'')
 
     def set(self, **settings):
-        """Change the :ref:`markupsettings` in effect.
+        r"""Change the :ref:`markupsettings` in effect.
 
         Change the \*\*settings in the current scope.  Changes remain in
         effect until another :meth:`set` or a :meth:`end` ends the current
@@ -80,7 +80,7 @@ class Generator(Context):
 
     @property
     def form(self):
-        """Generate a ``<form/>`` tag.
+        r"""Generate a ``<form/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -93,7 +93,7 @@ class Generator(Context):
 
     @property
     def input(self):
-        """Generate an ``<input/>`` tag.
+        r"""Generate an ``<input/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -107,7 +107,7 @@ class Generator(Context):
 
     @property
     def textarea(self):
-        """Generate a ``<textarea/>`` tag.
+        r"""Generate a ``<textarea/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -124,7 +124,7 @@ class Generator(Context):
 
     @property
     def button(self):
-        """Generate a ``<button/>`` tag.
+        r"""Generate a ``<button/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -138,7 +138,7 @@ class Generator(Context):
 
     @property
     def select(self):
-        """Generate a ``<select/>`` tag.
+        r"""Generate a ``<select/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -152,7 +152,7 @@ class Generator(Context):
 
     @property
     def option(self):
-        """Generate an ``<option/>`` tag.
+        r"""Generate an ``<option/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -171,7 +171,7 @@ class Generator(Context):
 
     @property
     def label(self):
-        """Generate a ``<label/>`` tag.
+        r"""Generate a ``<label/>`` tag.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired XML/HTML attributes.
@@ -185,7 +185,7 @@ class Generator(Context):
         return self._tag(u'label')
 
     def tag(self, tagname, bind=None, **attributes):
-        """Generate any tag.
+        r"""Generate any tag.
 
         :param tagname: the name of the tag.
         :param bind: optional, a flatland element.
@@ -238,7 +238,7 @@ class Tag(object):
         self.contents = None
 
     def open(self, bind=None, **attributes):
-        """Return the opening half of the tag, e.g. ``<p>``.
+        r"""Return the opening half of the tag, e.g. ``<p>``.
 
         :param bind: optional, a flatland element.
         :param \*\*attributes: any desired tag attributes.
