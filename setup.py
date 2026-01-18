@@ -1,22 +1,7 @@
-import os
-import sys
+from setuptools import setup, find_packages
 
-try:
-    from setuptools import setup, find_packages
-    extra_setup = dict(
-        include_package_data=True,
-        zip_safe=True,
-        )
-except ImportError:
-    from distutils.core import setup
-    extra_setup = {}
-    def find_packages(exclude=()):
-        return [w[0].replace('/', '.')
-                for w in os.walk('flatland')
-                if '__init__.py' in w[2]]
-
-
-long_desc = open('README').read()
+with open('README') as f:
+    long_desc = f.read()
 
 setup(name="flatland",
       packages=find_packages(exclude=['tests.*', 'tests']),
@@ -53,4 +38,6 @@ setup(name="flatland",
           'blinker',
       ],
       python_requires='>=3.9',
-      **extra_setup)
+      include_package_data=True,
+      zip_safe=True,
+)
