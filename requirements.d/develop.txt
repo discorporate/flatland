@@ -5,3 +5,4 @@ Sphinx
 Genshi
 blinker
 build
+black==26.1.0
