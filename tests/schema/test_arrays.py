@@ -46,7 +46,7 @@ def test_set_flat_like_named():
 
 def test_set_flat_unnamed_child():
     pairs = [('s', 'abc'), ('s', 'def')]
-    bogus = [('', 'xxx')]
+    bogus = [('', 'xxx'), ('s_bar', '')]
     schema = Array.named('s').of(String)
 
     _assert_array_set_flat(schema, pairs, bogus)
