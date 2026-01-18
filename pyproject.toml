@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=78.1.1", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flatland"
+dynamic = ["version"]
+description = "HTML form management and validation"
+readme = "README"
+authors = [
+    { name = "Jason Kirtland", email = "jek@discorporate.us" }
+]
+maintainers = [
+    { name = "Thomas Waldmann", email = "tw@waldmann-edv.de" }
+]
+keywords = ["schema", "validation", "data", "web", "form", "forms", "roundtrip"]
+license = "MIT"
+license-files = ["LICENSE", "AUTHORS"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP :: WSGI",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "blinker",
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/discorporate/flatland/"
+
+[tool.setuptools]
+packages = { find = { exclude = ["tests*", "tests"] } }
+include-package-data = true
+
+[tool.setuptools_scm]
+write_to = "flatland/_version.py"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
