@@ -33,7 +33,7 @@ def assert_email_valid(value, kw={}):
 def test_email():
     for addr in (u'bob@noob.com', u'bob@noob.frizbit', u'#"$!+,,@noob.c',
                  u'bob@bob-bob.bob'):
-        yield assert_email_valid, addr
+        assert_email_valid(addr)
 
 
 def test_email_idna():
@@ -64,7 +64,7 @@ def test_email_bogus():
                  u'bob@%s.com' % c64,
                  u'bob@%s.%s.%s.%s.com' % (c63, c63, c63, c63),
                  u'foo.com', u'bob@bob_bob.com', u''):
-        yield assert_email_not_valid, addr
+        assert_email_not_valid(addr)
 
 
 def scalar(value):

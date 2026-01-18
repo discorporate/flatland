@@ -10,7 +10,7 @@ schema = String.named(u'element').using(default=u'val')
 
 
 @need('genshi')
-def setup():
+def setup_module():
     global TemplateSyntaxError
     from genshi.template.base import TemplateSyntaxError
 

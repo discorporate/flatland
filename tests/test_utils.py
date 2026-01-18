@@ -91,48 +91,48 @@ def _keyslice_eq_(wanted, kw={}):
 
 
 def test_keyslice_include():
-    yield _keyslice_eq_, PAIRS, dict(include=[])
-    yield _keyslice_eq_, [('a', 1)], dict(include=['a'])
-    yield _keyslice_eq_, [('a', 1), ('b', 2)], dict(include=['a', 'b'])
-    yield _keyslice_eq_, [('d', 4), ('d', 4), ('d', 5)], dict(include=['d'])
-    yield _keyslice_eq_, [('a', 1)], dict(include=['a', 'e'])
+    _keyslice_eq_(PAIRS, dict(include=[]))
+    _keyslice_eq_([('a', 1)], dict(include=['a']))
+    _keyslice_eq_([('a', 1), ('b', 2)], dict(include=['a', 'b']))
+    _keyslice_eq_([('d', 4), ('d', 4), ('d', 5)], dict(include=['d']))
+    _keyslice_eq_([('a', 1)], dict(include=['a', 'e']))
 
 
 def test_keyslice_omit():
-    yield _keyslice_eq_, PAIRS, dict(omit=[])
-    yield _keyslice_eq_, [('a', 1), ('b', 2), ('c', 3)], dict(omit=['d'])
-    yield _keyslice_eq_, [('a', 1), ('b', 2)], dict(omit=['c', 'd'])
-    yield _keyslice_eq_, [('a', 1), ('b', 2)], dict(omit=['c', 'd', 'e'])
-    yield _keyslice_eq_, [], dict(omit=['a', 'b', 'c', 'd'])
+    _keyslice_eq_(PAIRS, dict(omit=[]))
+    _keyslice_eq_([('a', 1), ('b', 2), ('c', 3)], dict(omit=['d']))
+    _keyslice_eq_([('a', 1), ('b', 2)], dict(omit=['c', 'd']))
+    _keyslice_eq_([('a', 1), ('b', 2)], dict(omit=['c', 'd', 'e']))
+    _keyslice_eq_([], dict(omit=['a', 'b', 'c', 'd']))
 
 
 def test_keyslice_rename():
     wanted = PAIRS[:3] + [('Z', 4), ('Z', 4), ('Z', 5)]
-    yield _keyslice_eq_, wanted, dict(rename={'d': 'Z'})
-    yield _keyslice_eq_, wanted, dict(rename=[('d', 'Z')])
-    yield _keyslice_eq_, wanted, dict(rename={'d': 'Z', 'e': 'Y'})
+    _keyslice_eq_(wanted, dict(rename={'d': 'Z'}))
+    _keyslice_eq_(wanted, dict(rename=[('d', 'Z')]))
+    _keyslice_eq_(wanted, dict(rename={'d': 'Z', 'e': 'Y'}))
 
     wanted = [('d', 1), ('c', 2), ('b', 3),
               ('a', 4), ('a', 4), ('a', 5)]
 
-    yield _keyslice_eq_, wanted, dict(rename=zip('abcddd', 'dcbaaa'))
+    _keyslice_eq_(wanted, dict(rename=zip('abcddd', 'dcbaaa')))
 
 
 def test_keyslice_key():
     wanted = [(int(k, 16), v) for k, v in PAIRS]
 
     keyfunc = lambda v: int(v, 16)
-    yield _keyslice_eq_, wanted, dict(key=keyfunc)
+    _keyslice_eq_(wanted, dict(key=keyfunc))
 
     wanted = wanted[:3] + [(0, 4), (0, 4), (0, 5)]
-    yield _keyslice_eq_, wanted, dict(key=keyfunc, rename={13: 0})
+    _keyslice_eq_(wanted, dict(key=keyfunc, rename={13: 0}))
 
 
 def test_keyslice_mixed():
     wanted = [('a', 1), ('X', 2)]
 
-    yield _keyslice_eq_, wanted, dict(rename={'b': 'X'}, include=['a'])
-    yield _keyslice_eq_, wanted, dict(rename={'b': 'X'}, omit=['b', 'c', 'd'])
+    _keyslice_eq_(wanted, dict(rename={'b': 'X'}, include=['a']))
+    _keyslice_eq_(wanted, dict(rename={'b': 'X'}, omit=['b', 'c', 'd']))
 
 
 def test_symbols():

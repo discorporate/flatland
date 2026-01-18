@@ -74,7 +74,7 @@ def test_simple_validation_shortcircuit():
 
 class TestContainerValidation(object):
 
-    def setup(self):
+    def setup_method(self):
         self.canary = []
 
     def validator(self, name, result):

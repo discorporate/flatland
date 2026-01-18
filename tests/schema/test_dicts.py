@@ -429,12 +429,12 @@ def test_slice():
         eq_(set(type(_) for _ in sliced.keys()),
             set(type(_) for _ in wanted.keys()))
 
-    yield same_, {u'x': u'X', u'y': u'Y'}, {}
-    yield same_, {u'x': u'X', u'y': u'Y'}, dict(key=asciistr)
-    yield same_, {u'x': u'X', u'y': u'Y'}, dict(include=[u'x'])
-    yield same_, {u'x': u'X', u'y': u'Y'}, dict(omit=[u'x'])
-    yield same_, {u'x': u'X', u'y': u'Y'}, dict(omit=[u'x'],
-                                                rename={u'y': u'z'})
+    same_({u'x': u'X', u'y': u'Y'}, {})
+    same_({u'x': u'X', u'y': u'Y'}, dict(key=asciistr))
+    same_({u'x': u'X', u'y': u'Y'}, dict(include=[u'x']))
+    same_({u'x': u'X', u'y': u'Y'}, dict(omit=[u'x']))
+    same_({u'x': u'X', u'y': u'Y'}, dict(omit=[u'x'],
+                                         rename={u'y': u'z'}))
 
 
 def test_sparsedict_key_mutability():

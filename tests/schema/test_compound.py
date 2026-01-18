@@ -161,7 +161,7 @@ def test_compound_metaclass_calls_new():
 
 class TestDoubleField(object):
 
-    def setup(self):
+    def setup_method(self):
 
         class Double(Compound):
 

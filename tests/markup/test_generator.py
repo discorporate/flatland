@@ -99,7 +99,7 @@ def test_Markup_concatenation():
         pass
 
     for impl in implementations:
-        yield _generate_markup_test(impl), impl.__module__ + '.Markup'
+        _generate_markup_test(impl)(impl.__module__ + '.Markup')
 
 
 def _generate_markup_test(impl):
@@ -108,5 +108,5 @@ def _generate_markup_test(impl):
         gen[u'markup_wrapper'] = impl
         return gen.label(contents=impl(u'<x>'))
 
-    wrapper = lambda label: markup_test(u'xml', schema)(test)()
+    wrapper = lambda label: markup_test(u'xml', schema)(test)
     return wrapper

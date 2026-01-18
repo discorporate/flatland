@@ -32,7 +32,7 @@ jobs:
 
     - name: Run tests
       run: |
-        nosetests -v
+        pytest -v
 
     - name: Run doctests
       run: |

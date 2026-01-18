@@ -2,7 +2,7 @@ from flatland import String
 from flatland._compat import PY2, iterkeys, itervalues
 from flatland.schema.properties import Properties
 
-from nose.tools import assert_raises
+from tests._util import eq_, assert_raises
 
 
 def test_empty():

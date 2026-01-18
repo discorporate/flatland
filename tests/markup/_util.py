@@ -1,6 +1,6 @@
 from functools import wraps
 
-from nose import SkipTest
+import pytest
 
 from flatland._compat import bytestring_type
 
@@ -36,7 +36,7 @@ def need(capability):
         @wraps(fn)
         def decorated(*args, **kw):
             if not have[capability]:
-                raise SkipTest
+                pytest.skip()
             return fn(*args, **kw)
         return decorated
     return decorator
@@ -80,10 +80,9 @@ class desired_output(object):
         def decorator(fn):
             markup = _wrap_with_xmlns(fn.__doc__, self.language)
             fn.__doc__ = None
-            @wraps(fn)
             def runner():
                 if not have['genshi']:
-                    raise SkipTest
+                    pytest.skip()
                 got = _render_genshi(markup, self.language, self.schema,
                                      **self.render_context)
                 expected = self.expectation_for('genshi')
@@ -92,13 +91,15 @@ class desired_output(object):
                     print("Expected:\n" + expected)
                     print("Got:\n" + got)
                 assert expected == got
+            runner.__name__ = fn.__name__
+            runner.__doc__ = fn.__doc__
+            runner.__module__ = fn.__module__
             return runner
         return decorator
 
     @property
     def markup(self):
         def decorator(fn):
-            @wraps(fn)
             def runner():
                 got = _render_markup_fn(fn, self.language, self.schema,
                                         **self.render_context)
@@ -108,6 +109,9 @@ class desired_output(object):
                     print("Expected:\n" + expected)
                     print("Got:\n" + got)
                 assert expected == got
+            runner.__name__ = fn.__name__
+            runner.__doc__ = fn.__doc__
+            runner.__module__ = fn.__module__
             return runner
         return decorator
 
@@ -125,9 +129,12 @@ def markup_test(markup='xml', schema=None):
         if isinstance(expected, bytestring_type):
             expected = expected.decode('utf8')
 
-        @wraps(fn)
         def test():
             from flatland.out.markup import Generator
+
+            expected = fn.__doc__.strip()
+            if isinstance(expected, bytestring_type):
+                expected = expected.decode('utf8')
 
             generator = Generator(markup=markup)
             if schema is not None:
@@ -143,6 +150,9 @@ def markup_test(markup='xml', schema=None):
                 print("Expected:\n" + expected)
                 print("Got:\n" + got)
             assert expected == got
+        test.__name__ = fn.__name__
+        test.__doc__ = fn.__doc__
+        test.__module__ = fn.__module__
         return test
     return decorator
 

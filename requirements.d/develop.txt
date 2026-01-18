@@ -1,5 +1,6 @@
 tox
-nose
+pytest
 babel
 Sphinx
 Genshi
+blinker

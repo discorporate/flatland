@@ -95,7 +95,7 @@ class _TestAttributeTransform(object):
         for tagname in generic._auto_tags[self.attribute]:
             if tagname in self.skip_tags:
                 continue
-            yield self.assert_transform, given, expected, None, tagname
+            self.assert_transform(given, expected, None, tagname)
 
     def test_unknown_tag(self):
         given = {}
