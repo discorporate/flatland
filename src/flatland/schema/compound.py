@@ -1,9 +1,6 @@
 from functools import wraps, reduce
 import operator
 
-from flatland._compat import (
-    with_metaclass,
-)
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -85,7 +82,7 @@ def _wrap_compound_init(fn):
     return classmethod(__compound_init__)
 
 
-class Compound(with_metaclass(_MetaCompound, Mapping, Scalar)):
+class Compound(Mapping, Scalar, metaclass=_MetaCompound):
     """A mapping container that acts like a scalar value.
 
     Compound fields are dictionary-like fields that can assemble a

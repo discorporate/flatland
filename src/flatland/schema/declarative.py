@@ -1,6 +1,5 @@
 """Class attribute-style declarative schema construction."""
 
-from flatland._compat import with_metaclass
 from .base import Element
 from .containers import Dict, SparseDict
 
@@ -77,7 +76,7 @@ class _ElementCollection:
             self.elements.append(field)
 
 
-class Schema(with_metaclass(_MetaSchema, Dict)):
+class Schema(Dict, metaclass=_MetaSchema):
     """A declarative collection of named elements.
 
     Schemas behave like |Dict|, but are defined with Python class syntax:
@@ -141,7 +140,7 @@ class Schema(with_metaclass(_MetaSchema, Dict)):
     """
 
 
-class SparseSchema(with_metaclass(_MetaSchema, SparseDict)):
+class SparseSchema(SparseDict, metaclass=_MetaSchema):
     """A sparse variant of `~flatland.schema.declarative.Schema`.
 
     Exactly as ``Schema``, but based upon
@@ -150,5 +149,5 @@ class SparseSchema(with_metaclass(_MetaSchema, SparseDict)):
     """
 
 
-class Form(with_metaclass(_MetaSchema, Dict)):
+class Form(Dict, metaclass=_MetaSchema):
     """An alias for Schema, for older flatland version compatibility."""
