@@ -5,16 +5,35 @@ Changes
 Release 1.0.0 (not released yet)
 --------------------------------
 
+Potentially breaking changes:
+
 - drop support for Python < 3.10
-- run pyupgrade --py310-plus to modernize syntax
+- remove u-prefix from unicode string literals (u'...' -> '...') -
+  besides code and docs changes, this affects also the output.
+- DictLike: use Python3 dict methods: .items(), .keys(), .values()
+
+Fixes:
+
+- out/genshi: fix `_simplify_stream`
+- cherry-pick `Array.set_flat` fix from `mbr/flatland0`
+- `SetWithKnownFields`: fix failing doctest, #25
+- `Sequence.prune_empty`: fix docstring, #23
+- `Dict`: improve exception handling, #6
+- suppress Genshi deprecation warnings, #67
+
+Other changes:
+
 - migrate to pyproject.toml, remove setup.py and tox.ini
 - use SPDX license identifier
-- replace Travis CI with GitHub Actions CI
-- replace `nose` with `pytest`
-- out/genshi: fix `_simplify_stream`
+- move code to `src/` layout, #19
+- use black for code formatting, #63
+- run pyupgrade --py310-plus to modernize syntax
+- replace Travis CI with GitHub Actions CI, #56
+- replace `nose` with `pytest`, #42
+- cherry-pick Markup generator tests from `mbr/flatland0`
 - convert some docstrings to raw strings
 - update intersphinx mapping
-
+- update i18n, #36
 
 Release 0.9.1 (2019-07-26)
 --------------------------
