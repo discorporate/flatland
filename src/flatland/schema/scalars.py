@@ -3,7 +3,6 @@ import decimal
 import re
 
 from flatland._compat import (
-    long_type,
     string_types,
     text_transform,
 )
@@ -274,10 +273,10 @@ class Integer(Number):
 
 
 class Long(Number):
-    """Element type for Python's long."""
+    """Element type for Python's integer."""
 
-    type_ = long_type
-    """``long``, or ``int`` on Python 3."""
+    type_ = int
+    """``int``"""
 
     format = "%i"
     """``u'%i'``"""

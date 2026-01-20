@@ -15,7 +15,6 @@ from flatland import (
     Unset,
     element_set,
 )
-from flatland._compat import long_type
 
 import pytest
 from tests._util import requires_unicode_coercion
@@ -168,7 +167,7 @@ def test_integer():
 
 
 def test_long():
-    L = long_type
+    L = int  # Python 3
     for spec in (
         ("123", L(123), "123"),
         (" 123 ", L(123), "123"),

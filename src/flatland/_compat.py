@@ -6,7 +6,6 @@ __all__ = [
     "iterkeys",
     "iteritems",
     "itervalues",
-    "long_type",
     "setattr_py2",
     "string_types",
     "with_metaclass",
@@ -15,7 +14,6 @@ __all__ = [
 
 import builtins
 
-long_type = int
 identifier_transform = lambda i: i
 text_transform = str
 getattr_py2 = getattr

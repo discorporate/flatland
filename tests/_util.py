@@ -6,8 +6,6 @@ from functools import wraps
 from inspect import stack
 import sys
 
-from flatland._compat import long_type
-
 __all__ = [
     "asciistr",
     "fails",
@@ -93,7 +91,7 @@ def _allowed_coercion(input):
     if _coercion_override:
         return True
     # TODO: this isn't hit anymore (buffer comes in). did it ever work?
-    if isinstance(input, (int, float, long_type, type(None))):
+    if isinstance(input, (int, float, type(None))):
         return True
 
     try:
