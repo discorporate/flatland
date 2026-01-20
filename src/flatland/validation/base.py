@@ -2,7 +2,7 @@
 
 from operator import attrgetter
 
-from flatland._compat import getattr_py2, hasattr_py2, iteritems, setattr_py2
+from flatland._compat import iteritems
 from flatland.schema.util import find_i18n_function
 
 N_ = lambda translatable: translatable
@@ -22,8 +22,8 @@ class Validator:
         """
         cls = type(self)
         for attr, value in iteritems(kw):
-            if hasattr_py2(cls, attr):
-                setattr_py2(self, attr, value)
+            if hasattr(cls, attr):
+                setattr(self, attr, value)
             else:
                 raise TypeError(
                     "{} has no attribute {!r}, can not override.".format(
@@ -108,7 +108,7 @@ class Validator:
           assert el.errors == ['Oh noes!']
 
         """
-        message = message or getattr_py2(self, key)
+        message = message or getattr(self, key)
         if message:
             element.add_error(self.expand_message(element, state, message, **info))
         return False
@@ -143,7 +143,7 @@ class Validator:
 
         Always returns False.
         """
-        message = message or getattr_py2(self, key)
+        message = message or getattr(self, key)
         if message:
             element.add_warning(self.expand_message(element, state, message, **info))
         return False
@@ -182,8 +182,8 @@ class Validator:
         5.  Otherwise return ``None``.
 
         """
-        if hasattr_py2(state, type):
-            return getattr_py2(state, type)
+        if hasattr(state, type):
+            return getattr(state, type)
         if hasattr(state, "__getitem__"):
             try:
                 return state[type]
@@ -292,7 +292,7 @@ class as_format_mapping:
                     pass
             # then target.item
             try:
-                value = getattr_py2(target, item)
+                value = getattr(target, item)
                 break
             except AttributeError:
                 pass

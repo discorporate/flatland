@@ -1,12 +1,9 @@
 __all__ = [
     "builtins",
-    "getattr_py2",
-    "hasattr_py2",
     "identifier_transform",
     "iterkeys",
     "iteritems",
     "itervalues",
-    "setattr_py2",
     "string_types",
     "with_metaclass",
     "xrange",
@@ -16,9 +13,6 @@ import builtins
 
 identifier_transform = lambda i: i
 text_transform = str
-getattr_py2 = getattr
-hasattr_py2 = hasattr
-setattr_py2 = setattr
 iterkeys = lambda d: iter(d.keys())
 itervalues = lambda d: iter(d.values())
 iteritems = lambda d: iter(d.items())
