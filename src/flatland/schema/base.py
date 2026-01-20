@@ -2,7 +2,7 @@ import collections
 import itertools
 import operator
 
-from flatland._compat import bytestring_type, iteritems, text_type
+from flatland._compat import iteritems
 from flatland.schema.paths import pathexpr
 from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
@@ -168,8 +168,8 @@ class Element:
         :returns: a new class
 
         """
-        if not isinstance(name, (text_type, NoneType)):
-            name = text_type(name)
+        if not isinstance(name, (str, NoneType)):
+            name = str(name)
         cls.name = name
         return cls
 

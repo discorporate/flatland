@@ -6,7 +6,7 @@ from functools import wraps
 from inspect import stack
 import sys
 
-from flatland._compat import long_type, text_type
+from flatland._compat import long_type
 
 __all__ = [
     "asciistr",
@@ -22,7 +22,7 @@ __all__ = [
 _ascii_codec = codecs.getencoder("ascii")
 asciistr = lambda s: _ascii_codec(s)[0]
 # acts like naive unicode() on simple types like int
-textstr = lambda o: text_type(str(o))
+textstr = lambda o: str(o)
 
 _coercion_override = None
 
@@ -49,9 +49,9 @@ def fails(reason):
 
 def udict(*dictionary, **kwargs):
     "Return a dict with unicode keys. A stand-in for the dict constructor."
-    kwargs = {text_type(k): v for k, v in kwargs.items()}
+    kwargs = {str(k): v for k, v in kwargs.items()}
     if dictionary:
-        base = {text_type(k): v for k, v in dictionary[0].items()}
+        base = {str(k): v for k, v in dictionary[0].items()}
         base.update(kwargs)
         return base
     else:

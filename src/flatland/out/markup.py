@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from flatland._compat import bytestring_type, iteritems, text_type
+from flatland._compat import iteritems
 from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
@@ -192,8 +192,8 @@ class Generator(Context):
         example, ``tag('input')`` is equivalent to ``input()``.
 
         """
-        if isinstance(tagname, bytestring_type):  # pragma: nocover
-            tagname = text_type(tagname)
+        if isinstance(tagname, bytes):  # pragma: nocover
+            tagname = str(tagname)
         tagname = tagname.lower()
         if bind is None and not attributes:
             return self._tag(tagname)

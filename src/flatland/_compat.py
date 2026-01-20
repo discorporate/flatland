@@ -1,6 +1,5 @@
 __all__ = [
     "builtins",
-    "bytestring_type",
     "getattr_py2",
     "hasattr_py2",
     "identifier_transform",
@@ -10,15 +9,12 @@ __all__ = [
     "long_type",
     "setattr_py2",
     "string_types",
-    "text_type",
     "with_metaclass",
     "xrange",
 ]
 
 import builtins
 
-text_type = str
-bytestring_type = bytes
 long_type = int
 identifier_transform = lambda i: i
 text_transform = str
@@ -30,7 +26,7 @@ itervalues = lambda d: iter(d.values())
 iteritems = lambda d: iter(d.items())
 xrange = range
 
-string_types = (bytestring_type, text_type)
+string_types = (bytes, str)
 
 
 def with_metaclass(meta, *bases):

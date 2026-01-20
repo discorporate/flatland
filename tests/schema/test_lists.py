@@ -5,7 +5,7 @@ from flatland import (
     Unset,
     element_set,
 )
-from flatland._compat import xrange, text_type
+from flatland._compat import xrange
 from flatland.schema.base import Unspecified
 
 
@@ -373,7 +373,7 @@ def test_mutation():
     def order_ok():
         slot_names = list(_.name for _ in el._slots)
         for idx, name in enumerate(slot_names):
-            assert name == text_type(str(idx))
+            assert name == str(idx)
 
     assert not el
     order_ok()

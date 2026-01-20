@@ -5,7 +5,6 @@ import re
 from flatland._compat import (
     long_type,
     string_types,
-    text_type,
     text_transform,
 )
 from flatland.exc import AdaptationError
@@ -82,7 +81,7 @@ class Scalar(Element):
             # but, still try to textify it
             if obj is None:
                 self.u = ""
-            elif isinstance(obj, text_type):
+            elif isinstance(obj, str):
                 self.u = obj
             else:
                 try:
@@ -90,7 +89,7 @@ class Scalar(Element):
                 except TypeError:
                     self.u = ""
                 except UnicodeDecodeError:
-                    self.u = text_type(obj, errors="replace")
+                    self.u = str(obj, errors="replace")
             element_set.send(self, adapted=False)
             return False
 
@@ -175,7 +174,7 @@ class String(Scalar):
         """
         if value is None:
             return None
-        if not isinstance(value, text_type):
+        if not isinstance(value, str):
             value = text_transform(value)
 
         if self.strip:
@@ -194,7 +193,7 @@ class String(Scalar):
         """
         if value is None:
             return ""
-        if not isinstance(value, text_type):
+        if not isinstance(value, str):
             value = text_transform(value)
 
         if self.strip:
@@ -337,7 +336,7 @@ class Boolean(Scalar):
         For non-text values, equivalent to ``bool(value)``.
 
         """
-        if not isinstance(value, text_type):
+        if not isinstance(value, str):
             return bool(value)
         elif value == self.true or value in self.true_synonyms:
             return True

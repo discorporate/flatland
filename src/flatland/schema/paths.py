@@ -1,6 +1,6 @@
 import re
 
-from flatland._compat import bytestring_type, text_type, xrange
+from flatland._compat import xrange
 from flatland.util import decode_repr, symbol
 
 __all__ = ["pathexpr"]
@@ -41,7 +41,7 @@ _unescape_re = re.compile(r"\\(/|\[|\]|\.)")
 def pathexpr(expr):
     if isinstance(expr, PathExpression):
         return expr
-    elif isinstance(expr, text_type):
+    elif isinstance(expr, str):
         pass
     elif hasattr(expr, "__iter__"):
         expr = "/".join(expr)

@@ -6,8 +6,6 @@ from flatland._compat import (
     iteritems,
     iterkeys,
     itervalues,
-    bytestring_type,
-    text_type,
     xrange,
 )
 from flatland.util import (
@@ -454,7 +452,7 @@ class List(Sequence):
         # detector isn't triggered
         new_idx = len(self)
         name = str(new_idx)
-        if not isinstance(name, text_type):
+        if not isinstance(name, str):
             name = name.decode("ascii")
         return self.slot_type(name=name, parent=self, element=self._as_element(value))
 
@@ -530,7 +528,7 @@ class List(Sequence):
         for idx, slot in enumerate(self._slots):
             # don't trigger naive unicode coercion (for test suite)
             name = str(idx)
-            if not isinstance(name, text_type):
+            if not isinstance(name, str):
                 name = name.decode("ascii")
             slot.name = name
 

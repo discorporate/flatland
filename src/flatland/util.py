@@ -7,8 +7,6 @@ try:
 except ImportError:  # pragma:nocover
     import dummy_threading as threading
 
-from flatland._compat import text_type
-
 
 def decode_repr(x):
     """create a unicode string representation (as a unicode string): u'example'"""
@@ -205,7 +203,7 @@ def re_ucompile(pattern, flags=0):
 
 
 _alphanum = set(
-    text_type(string.digits + string.ascii_lowercase + string.ascii_uppercase)
+    str(string.digits + string.ascii_lowercase + string.ascii_uppercase)
 )
 
 
