@@ -8,11 +8,6 @@ except ImportError:  # pragma:nocover
     import dummy_threading as threading
 
 
-def decode_repr(x):
-    """create a string representation: 'example'"""
-    return repr(x)
-
-
 # derived from ASPN Cookbook (#36302)
 class lazy_property:
     """An @property that is only calculated once.

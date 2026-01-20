@@ -9,7 +9,6 @@ from flatland.util import (
     keyslice_pairs,
     re_uescape,
     to_pairs,
-    decode_repr,
 )
 from flatland.signals import element_set
 from .base import Element, Unevaluated, Slot, validate_element
@@ -369,7 +368,7 @@ class Sequence(Container, list):
     @property
     def u(self):
         return "[%s]" % ", ".join(
-            element.u if isinstance(element, Container) else decode_repr(element.u)
+            element.u if isinstance(element, Container) else repr(element.u)
             for element in self.children
         )
 
@@ -875,10 +874,10 @@ class Mapping(Container, dict):
     def u(self):
         """A string repr of the element."""
         pairs = (
-            (key, value.u if isinstance(value, Container) else decode_repr(value.u))
+            (key, value.u if isinstance(value, Container) else repr(value.u))
             for key, value in self.items()
         )
-        return "{%s}" % ", ".join(f"{decode_repr(k)}: {v}" for k, v in pairs)
+        return "{%s}" % ", ".join(f"{repr(k)}: {v}" for k, v in pairs)
 
     @property
     def value(self):

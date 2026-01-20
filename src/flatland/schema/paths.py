@@ -1,6 +1,6 @@
 import re
 
-from flatland.util import decode_repr, symbol
+from flatland.util import symbol
 
 __all__ = ["pathexpr"]
 
@@ -81,13 +81,13 @@ class PathExpression:
                         if strict:
                             if el.name:
                                 type_ = "{} element {}".format(
-                                    el.__class__.__name__, decode_repr(el.name)
+                                    el.__class__.__name__, repr(el.name)
                                 )
                             else:
                                 type_ = "Unnamed element %s" % (el.__class__.__name__)
                             raise LookupError(
                                 "{} has no child {} in expression {}".format(
-                                    type_, decode_repr(data), decode_repr(self.expr)
+                                    type_, repr(data), repr(self.expr)
                                 )
                             )
                         break
