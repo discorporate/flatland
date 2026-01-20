@@ -7,23 +7,14 @@ Deleted = symbol("deleted")
 
 class DictLike:
 
-    def iteritems(self):  # pragma: nocover
+    def items(self):  # pragma: nocover
         raise NotImplementedError
 
-    def items(self):
-        return list(self.iteritems())
-
-    def iterkeys(self):
-        return (item[0] for item in self.iteritems())
-
     def keys(self):
-        return list(self.iterkeys())
-
-    def itervalues(self):
-        return (item[1] for item in self.iteritems())
+        return (item[0] for item in self.items())
 
     def values(self):
-        return list(self.itervalues())
+        return (item[1] for item in self.items())
 
     def get(self, key, default=None):
         try:
@@ -32,13 +23,13 @@ class DictLike:
             return default
 
     def copy(self):
-        return dict(self.iteritems())
+        return dict(self.items())
 
     def popitem(self):
         raise NotImplementedError
 
     def __contains__(self, key):
-        return key in self.iterkeys()
+        return key in self.keys()
 
     def __bool__(self):
         return bool(self.copy())
@@ -84,7 +75,7 @@ class _TypeLookup(DictLike):
 
     def clear(self):
         frame = self._base_frame
-        for key in self.iterkeys():
+        for key in self.keys():
             frame[key] = Deleted
 
     def pop(self, key, *default):
@@ -104,7 +95,7 @@ class _TypeLookup(DictLike):
         simplified = dict(*iterable, **values)
         self._base_frame.update(simplified)
 
-    def iteritems(self):
+    def items(self):
         seen = set()
         for frame in self._frames():
             for key, value in frame.items():
@@ -194,13 +185,13 @@ class _InstanceLookup(DictLike):
         simplified = dict(*iterable, **values)
         self.local.update(simplified)
 
-    def iteritems(self):
+    def items(self):
         seen = set()
         for key, value in self.local.items():
             seen.add(key)
             if value is not Deleted:
                 yield key, value
-        for key, value in self.class_lookup.iteritems():
+        for key, value in self.class_lookup.items():
             if key not in seen:
                 seen.add(key)
                 if value is not Deleted:  # pragma: nocover  (coverage bug)

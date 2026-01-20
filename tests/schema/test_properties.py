@@ -41,10 +41,8 @@ def test_dictlike():
     assert sorted(props.items()) == [("abc", 123), ("def", 456)]
 
     assert sorted(props.keys()) == ["abc", "def"]
-    assert sorted(props.iterkeys()) == ["abc", "def"]
 
     assert sorted(props.values()) == [123, 456]
-    assert sorted(props.itervalues()) == [123, 456]
 
     assert props.get("abc") == 123
     assert props.get("abc", "blah") == 123
