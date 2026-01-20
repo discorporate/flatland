@@ -1,6 +1,5 @@
 __all__ = [
     "builtins",
-    "identifier_transform",
     "iterkeys",
     "iteritems",
     "itervalues",
@@ -9,7 +8,6 @@ __all__ = [
 
 import builtins
 
-identifier_transform = lambda i: i
 iterkeys = lambda d: iter(d.keys())
 itervalues = lambda d: iter(d.values())
 iteritems = lambda d: iter(d.items())

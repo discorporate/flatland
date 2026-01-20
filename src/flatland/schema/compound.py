@@ -2,7 +2,6 @@ from functools import wraps, reduce
 import operator
 
 from flatland._compat import (
-    identifier_transform,
     with_metaclass,
 )
 from flatland.exc import AdaptationError
@@ -252,7 +251,7 @@ class DateYYYYMMDD(Compound, Date):
 
             for attrib, child_schema in zip(self.used, self.field_schema):
                 self[child_schema.name].set(
-                    getattr(value, identifier_transform(attrib))
+                    getattr(value, attrib)
                 )
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:

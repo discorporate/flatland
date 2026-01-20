@@ -2,7 +2,6 @@ from collections import defaultdict
 import re
 
 from flatland._compat import (
-    identifier_transform,
     iteritems,
     iterkeys,
     itervalues,
@@ -1122,7 +1121,7 @@ class Dict(Mapping, dict):
         self.set(final)
 
     def update_object(
-        self, obj, include=None, omit=None, rename=None, key=identifier_transform
+        self, obj, include=None, omit=None, rename=None, key=lambda x: x
     ):
         """Update an object's attributes using the element's values.
 
