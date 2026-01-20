@@ -168,7 +168,7 @@ class Sequence(Container, list):
           <class 'flatland.schema.scalars.String'>
           >>> el = Names(['Bob', 'Biff'])
           >>> el
-          [<String u'name'; value=u'Bob'>, <String u'name'; value=u'Biff'>]
+          [<String 'name'; value='Bob'>, <String 'name'; value='Biff'>]
 
         If more than one `~flatland.schema.base.Element` is specified in
         *\*schema*, an anonymous :class:`Dict` is created to hold them.
@@ -182,9 +182,9 @@ class Sequence(Container, list):
           >>> el = Points([dict(x=1, y=2)])
           >>> point = el[0]
           >>> point['x']
-          <Integer u'x'; value=1>
+          <Integer 'x'; value=1>
           >>> point['y']
-          <Integer u'y'; value=2>
+          <Integer 'y'; value=2>
 
         """
         for field in schema:
@@ -1085,11 +1085,11 @@ class Dict(Mapping, dict):
           >>> form = UserForm()
           >>> form.set_by_object(user)
           >>> form['login'].value
-          u'biff'
-          >>> form['password'] = u'new-password'
+          'biff'
+          >>> form['password'] = 'new-password'
           >>> form.update_object(user, omit=['verify_password'])
           >>> user.password
-          u'new-password'
+          'new-password'
           >>> user_keywords = form.slice(omit=['verify_password'], key=str)
           >>> sorted(user_keywords.keys())
           ['login', 'password']

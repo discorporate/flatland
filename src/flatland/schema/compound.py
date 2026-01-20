@@ -265,12 +265,12 @@ class JoinedString(Array, String):
       >>> from flatland import JoinedString
       >>> el = JoinedString(['x', 'y', 'z'])
       >>> el.value
-      u'x,y,z'
+      'x,y,z'
       >>> el2 = JoinedString('foo,bar')
       >>> el2[1].value
-      u'bar'
+      'bar'
       >>> el2.value
-      u'foo,bar'
+      'foo,bar'
 
     Only the joined representation is considered when flattening or restoring
     with :meth:`set_flat`.  JoinedStrings run validation after their children.
@@ -294,7 +294,7 @@ class JoinedString(Array, String):
     #:   ...                             separator_regex=re.compile('\s*,\s*'))
     #:   ...
     #:   >>> schema('a  ,  b,c,d').value
-    #:   u'a, b, c, d'
+    #:   'a, b, c, d'
     separator_regex = None
 
     #: The default child type is :class:`~flatland.schema.scalars.String`,

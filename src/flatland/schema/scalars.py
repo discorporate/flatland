@@ -64,7 +64,7 @@ class Scalar(Element):
         of ``None`` will be represented as ``u''`` in ``.u``.
 
         If adaptation fails, ``.value`` will be ``None`` and ``.u`` will
-        contain ``str(obj)`` (or unicode), or ``u''`` for none.
+        contain ``str(obj)``, or ``''`` for none.
 
         """
         self.raw = obj
@@ -116,7 +116,7 @@ class Scalar(Element):
         compatible type.
 
         This semi-abstract method is called by :meth:`set`.  The base
-        implementation returns ``str(obj)`` (or unicode).
+        implementation returns ``str(obj)``.
 
         """
         return str(obj)
@@ -244,9 +244,8 @@ class Number(Scalar):
     def serialize(self, value):
         """Generic numeric serialization.
 
-        :returns: Unicode text formatted with :attr:`format` or the
-          ``str()`` (or unicode) of *value* if *value* is not of
-          :attr:`type_`
+        :returns: Text formatted with :attr:`format` or the
+          ``str()`` of *value* if *value* is not of :attr:`type_`
 
         Converts *value* to a string using Python's string formatting function
         and the :attr:`format` as the template.  The *value* is provided to
@@ -265,7 +264,7 @@ class Integer(Number):
     """``int``"""
 
     format = "%i"
-    """``u'%i'``"""
+    """``'%i'``"""
 
 
 class Long(Number):
@@ -275,7 +274,7 @@ class Long(Number):
     """``int``"""
 
     format = "%i"
-    """``u'%i'``"""
+    """``'%i'``"""
 
 
 class Float(Number):
@@ -285,7 +284,7 @@ class Float(Number):
     """``float``"""
 
     format = "%f"
-    """``u'%f'``"""
+    """``'%f'``"""
 
 
 class Decimal(Number):
@@ -295,28 +294,28 @@ class Decimal(Number):
     """``decimal.Decimal``"""
 
     format = "%f"
-    """``u'%f'``"""
+    """``'%f'``"""
 
 
 class Boolean(Scalar):
     """Element type for Python's ``bool``."""
 
     true = "1"
-    """The text serialization for ``True``: ``u'1'``."""
+    """The text serialization for ``True``: ``'1'``."""
 
     true_synonyms = ("on", "true", "True", "1")
     """A sequence of acceptable string equivalents for True.
 
-    Defaults to ``(u'on', u'true', u'True', u'1')``
+    Defaults to ``('on', 'true', 'True', '1')``
     """
 
     false = ""
-    """The text serialization for ``False``: ``u''``."""
+    """The text serialization for ``False``: ``''``."""
 
     false_synonyms = ("off", "false", "False", "0", "")
     """A sequence of acceptable string equivalents for False.
 
-    Defaults to ``(u'off', u'false', u'False', u'0', u'')``
+    Defaults to ``('off', 'false', 'False', '0', '')``
     """
 
     def adapt(self, value):
@@ -370,11 +369,11 @@ class Constrained(Scalar):
       ...
       >>> schema = Constrained.using(child_type=Integer, valid_value=is_valid)
       >>> element = schema()
-      >>> element.set(u'2')
+      >>> element.set('2')
       True
       >>> element.value
       2
-      >>> element.set(u'5')
+      >>> element.set('5')
       False
       >>> element.value is None
       True
@@ -490,8 +489,7 @@ class Temporal(Scalar):
         """Serializes value to string.
 
         If *value* is an instance of :attr:`type`, formats it as described in
-        the attribute documentation.  Otherwise returns ``str(value)`` (or
-        unicode).
+        the attribute documentation.  Otherwise returns ``str(value)``.
 
         """
         if isinstance(value, self.type_):

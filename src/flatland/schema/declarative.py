@@ -101,7 +101,7 @@ class Schema(Dict, metaclass=_MetaSchema):
       ...
       >>> helloworld = HelloSchema()
       >>> sorted(helloworld.keys())
-      [u'hello', u'world']
+      ['hello', 'world']
 
     Schemas may embed other container fields and other schemas:
 
@@ -133,7 +133,7 @@ class Schema(Dict, metaclass=_MetaSchema):
       >>> hasattr(HelloSchema, 'hello')
       False
       >>> sorted([field.name for field in HelloSchema.field_schema])
-      [u'hello', u'world']
+      ['hello', 'world']
 
     The order of ``field_schema`` is undefined.
 

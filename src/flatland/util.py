@@ -9,9 +9,8 @@ except ImportError:  # pragma:nocover
 
 
 def decode_repr(x):
-    """create a unicode string representation (as a unicode string): u'example'"""
-    r = repr(x)
-    return "u" + r
+    """create a string representation: 'example'"""
+    return repr(x)
 
 
 # derived from ASPN Cookbook (#36302)
@@ -257,8 +256,8 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
 
     :param key: optional, a function of one argument that is used to extract a
         comparison key from the first item of each pair.  Similar to the
-        ``key`` parameter to Python's ``sort`` and ``sorted``.  Useful for
-        transforming unicode keys to bytestrings with ```key=str``, adding or
+        ``key`` parameter to Python's ``sort`` and ``sorted``.
+        Useful for transforming keys to other types ```key=type``, adding or
         removing prefixes en masse, etc.
 
     :returns: yields ``(key, value)`` pairs.

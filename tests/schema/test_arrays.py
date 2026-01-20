@@ -160,7 +160,7 @@ def test_mutation():
     el.pop()
     assert el.value == ["f"]
     assert el[0].u == "f"
-    assert el.u == "[u'f']"
+    assert el.u == "['f']"
 
     del el[:]
     assert list(el) == []

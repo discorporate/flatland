@@ -475,7 +475,7 @@ def test_slots():
 def test_u():
     schema = List.of(String)
     el = schema(["x", "x"])
-    assert el.u == "[u'x', u'x']"
+    assert el.u == "['x', 'x']"
 
 
 def test_value():

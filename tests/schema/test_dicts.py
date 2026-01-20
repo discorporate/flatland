@@ -371,7 +371,7 @@ def test_dict_as_unicode():
     schema = Dict.of(Integer.named("x"), Integer.named("y"))
     el = schema({"x": 1, "y": 2})
 
-    assert el.u in ("{u'x': u'1', u'y': u'2'}", "{u'y': u'2', u'x': u'1'}")
+    assert el.u in ("{'x': '1', 'y': '2'}", "{'y': '2', 'x': '1'}")
 
 
 def test_nested_dict_as_unicode():
@@ -379,7 +379,7 @@ def test_nested_dict_as_unicode():
     el = schema.from_defaults()
 
     assert el.value == {"d": {"x": 10}}
-    assert el.u == "{u'd': {u'x': u'10'}}"
+    assert el.u == "{'d': {'x': '10'}}"
 
 
 def test_nested_unicode_dict_as_unicode():
@@ -388,7 +388,7 @@ def test_nested_unicode_dict_as_unicode():
     )
     el = schema.from_defaults()
     assert el.value == {"d": {"x": "\u2308\u2309"}}
-    assert el.u == "{u'd': {u'x': u'\u2308\u2309'}}"
+    assert el.u == "{'d': {'x': '\u2308\u2309'}}"
 
 
 def test_dict_find():

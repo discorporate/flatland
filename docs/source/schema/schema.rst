@@ -15,7 +15,7 @@ types:
 .. testcode:: fso
 
   from flatland import Dict, String
-  SearchSchema = Dict.named('search').of(String.named(u'keywords'))
+  SearchSchema = Dict.named('search').of(String.named('keywords'))
 
 .. TODO:: FIXME UPDATE:
 
@@ -29,9 +29,9 @@ types:
 .. doctest:: fso
   :options: +ELLIPSIS
 
-  >>> form = SearchSchema({u'keywords': u'foo bar baz'})
+  >>> form = SearchSchema({'keywords': 'foo bar baz'})
   >>> form.value
-  {u'keywords': u'foo bar baz'}
+  {'keywords': 'foo bar baz'}
 
 .. TODO:: FIXME UPDATE:
 
@@ -42,10 +42,10 @@ types:
 
   >>> from flatland import List
   >>> ComposedSchema = Dict.of(SearchSchema,
-  ...                          List.named(u'many_searches').of(SearchSchema))
+  ...                          List.named('many_searches').of(SearchSchema))
   >>> form = ComposedSchema()
   >>> sorted(form.value.keys())
-  [u'many_searches', u'search']
+  ['many_searches', 'search']
 
 .. TODO:: FIXME UPDATE:
 
