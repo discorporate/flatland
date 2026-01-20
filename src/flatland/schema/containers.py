@@ -153,11 +153,7 @@ class Sequence(Container, list):
     """An :class:`~flatland.schema.base.Element` class for sequence members."""
 
     prune_empty = True
-    """If true, skip missing index numbers in :meth:`set_flat`. Default True.
-
-    See `Sequences`_ for more information.
-
-    """
+    """If true, skip missing index numbers in :meth:`set_flat`. Default True."""
 
     def __init__(self, value=Unspecified, **kw):
         Container.__init__(self, value, **kw)
