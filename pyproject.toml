@@ -49,6 +49,10 @@ write_to = "src/flatland/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    # Genshi 0.7.10 is not ready yet for Python 3.15 and spams quite some warnings.
+    "ignore:.*(Expression|Name|Constant|Call|BinOp)\\.__init__ missing 1 required positional argument.*:DeprecationWarning:genshi",
+]
 
 [tool.tox]
 env_list = ["py310", "py311", "py312", "py313", "py314"]
