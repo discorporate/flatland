@@ -331,19 +331,20 @@ class SetWithKnownFields(Validator):
 
     .. testcode::
 
-      #from flatland import Dict, Integer
-      #from flatland.validation import SetWithKnownFields
-      #
-      #schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
-      #              validated_by(SetWithKnownFields())
-      #schema.policy = None
-      #element = schema()
-      #
-      #element.set({'x': 123})
-      #assert element.validate()  # assertion error, issue #25, FIXME!
-      #
-      #element.set({'x': 123, 'z': 789})
-      #assert not element.validate()  # no assertion error, but maybe due to #25 also.
+      from flatland import Dict, Integer
+      from flatland.validation import SetWithKnownFields
+
+      Int = Integer.using(optional=True)
+      schema = Dict.of(Int.named('x'), Int.named('y')).\\
+                    validated_by(SetWithKnownFields())
+      schema.policy = None
+      element = schema()
+
+      element.set({'x': 123})
+      assert element.validate()
+
+      element.set({'x': 123, 'z': 789})
+      assert not element.validate()
 
     This validator collects the keys from :attr:`~flatland.Element.raw` and
     compares them to the allowed keys for the element.  Only elements in which
