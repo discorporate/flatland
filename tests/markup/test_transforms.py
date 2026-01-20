@@ -2,7 +2,6 @@ from flatland import Array, Boolean, Integer
 from flatland.out import generic
 from flatland.out.generic import Context
 
-
 Unspecified = object()
 Unique = object()
 schema = Integer.named("number")
@@ -478,9 +477,7 @@ def test_value_option():
         # This matches value = contents via a sentinel object
         given = {}
         expected = {}
-        assert_transform(
-            generic.transform_value, "option", given, expected, bind=bind
-        )
+        assert_transform(generic.transform_value, "option", given, expected, bind=bind)
 
         contents = expected_contents = "123"
         given = {

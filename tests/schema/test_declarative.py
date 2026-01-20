@@ -5,7 +5,6 @@ from flatland import (
 )
 
 
-
 def test_from_object():
 
     class Obj:

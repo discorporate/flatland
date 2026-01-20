@@ -196,9 +196,7 @@ def re_ucompile(pattern, flags=0):
     return re.compile(pattern, flags | re.UNICODE)
 
 
-_alphanum = set(
-    str(string.digits + string.ascii_lowercase + string.ascii_uppercase)
-)
+_alphanum = set(str(string.digits + string.ascii_lowercase + string.ascii_uppercase))
 
 
 def re_uescape(pattern):

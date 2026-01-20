@@ -247,9 +247,7 @@ class DateYYYYMMDD(Compound, Date):
             value = Date.adapt(self, value)
 
             for attrib, child_schema in zip(self.used, self.field_schema):
-                self[child_schema.name].set(
-                    getattr(value, attrib)
-                )
+                self[child_schema.name].set(getattr(value, attrib))
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:
                 self[child_schema.name].set(None)

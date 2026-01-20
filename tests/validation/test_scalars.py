@@ -23,7 +23,6 @@ from flatland.validation import (
 )
 
 
-
 def form(value):
 
     class Mixed(Schema):

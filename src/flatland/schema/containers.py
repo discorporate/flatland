@@ -985,9 +985,7 @@ class Dict(Mapping, dict):
         if policy is None:
             policy = self.policy
         if policy not in ("strict", "subset", "duck", None):
-            raise RuntimeError(
-                f"Unknown {self.__class__.__name__} policy {policy!r}"
-            )
+            raise RuntimeError(f"Unknown {self.__class__.__name__} policy {policy!r}")
 
         if policy == "strict":
             missing, extra = _evaluate_dict_strict_policy(self, pairs)
@@ -1108,9 +1106,7 @@ class Dict(Mapping, dict):
         final = {key: value for key, value in sliced if key in fields}
         self.set(final)
 
-    def update_object(
-        self, obj, include=None, omit=None, rename=None, key=lambda x: x
-    ):
+    def update_object(self, obj, include=None, omit=None, rename=None, key=lambda x: x):
         """Update an object's attributes using the element's values.
 
         Produces a :meth:`slice` using *include*, *omit*, *rename* and
@@ -1231,7 +1227,9 @@ class SparseDict(Dict):
     def setdefault(self, key, default=None):
         if not self.may_contain(key):
             raise TypeError(
-                "Key {!r} not allowed in {} {!r}".format(key, type(self).__name__, self.name)
+                "Key {!r} not allowed in {} {!r}".format(
+                    key, type(self).__name__, self.name
+                )
             )
 
         if key in self:

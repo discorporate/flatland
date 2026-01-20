@@ -10,7 +10,6 @@ from flatland.validation import (
 from flatland.validation.network import _url_parts
 
 
-
 def email(value):
     return String(value, name="email", strip=False)
 
