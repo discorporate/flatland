@@ -2,9 +2,6 @@ import datetime
 import decimal
 import re
 
-from flatland._compat import (
-    string_types,
-)
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -232,7 +229,7 @@ class Number(Scalar):
         """
         if value is None:
             return None
-        if isinstance(value, string_types):
+        if isinstance(value, (str, bytes)):
             value = value.strip()  # decimal.Decimal doesn't like whitespace
         try:
             native = self.type_(value)
@@ -475,7 +472,7 @@ class Temporal(Scalar):
             return value
         elif isinstance(value, self.type_):
             return value
-        elif isinstance(value, string_types):
+        elif isinstance(value, (str, bytes)):
             if self.strip:
                 value = value.strip()
             match = self.regex.match(value)

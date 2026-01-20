@@ -3,7 +3,6 @@ import operator
 
 from flatland._compat import (
     identifier_transform,
-    string_types,
     with_metaclass,
 )
 from flatland.exc import AdaptationError
@@ -314,7 +313,7 @@ class JoinedString(Array, String):
         self.raw = value
         if isinstance(value, (list, tuple)):
             values = value
-        elif not isinstance(value, string_types):
+        elif not isinstance(value, (str, bytes)):
             values = list(value)
         elif self.separator_regex:
             # a text regexp separator

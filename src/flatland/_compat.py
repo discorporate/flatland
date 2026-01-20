@@ -4,7 +4,6 @@ __all__ = [
     "iterkeys",
     "iteritems",
     "itervalues",
-    "string_types",
     "with_metaclass",
 ]
 
@@ -14,8 +13,6 @@ identifier_transform = lambda i: i
 iterkeys = lambda d: iter(d.keys())
 itervalues = lambda d: iter(d.values())
 iteritems = lambda d: iter(d.items())
-
-string_types = (bytes, str)
 
 
 def with_metaclass(meta, *bases):
