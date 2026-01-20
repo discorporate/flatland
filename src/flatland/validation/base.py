@@ -279,8 +279,6 @@ class as_format_mapping:
             raise TypeError("unexpected keyword argument")
 
     def __getitem__(self, item):
-        __hopeless_morass_of_unicode_hell__ = True
-
         for target in self.targets:
             # try target[item] first
             if hasattr(target, "__getitem__"):

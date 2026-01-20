@@ -13,7 +13,6 @@ from flatland.validation import (
     SetWithKnownFields,
 )
 
-from tests._util import unicode_coercion_allowed
 import pytest
 
 
@@ -54,23 +53,20 @@ def _test_no_duplicates(schema, a, b):
     el = schema([a, b, a])
     assert not el.validate()
     assert valid_of_children(el) == [True, True, False]
-    with unicode_coercion_allowed():
-        assert el[2].errors == [f"{label} {3}"]
+    assert el[2].errors == [f"{label} {3}"]
 
     el = schema([a, b, a, b])
     assert not el.validate()
     assert valid_of_children(el) == [True, True, False, False]
-    with unicode_coercion_allowed():
-        assert el[2].errors == [f"{label} {3}"]
-        assert el[3].errors == [f"{label} {4}"]
+    assert el[2].errors == [f"{label} {3}"]
+    assert el[3].errors == [f"{label} {4}"]
 
     el = schema([a, a, a, a])
     assert not el.validate()
     assert valid_of_children(el) == [True, False, False, False]
-    with unicode_coercion_allowed():
-        assert el[1].errors == [f"{label} {2}"]
-        assert el[2].errors == [f"{label} {3}"]
-        assert el[3].errors == [f"{label} {4}"]
+    assert el[1].errors == [f"{label} {2}"]
+    assert el[2].errors == [f"{label} {3}"]
+    assert el[3].errors == [f"{label} {4}"]
 
 
 def test_no_duplicates_list_scalar():

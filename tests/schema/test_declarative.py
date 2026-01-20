@@ -4,10 +4,8 @@ from flatland import (
     String,
 )
 
-from tests._util import requires_unicode_coercion
 
 
-@requires_unicode_coercion
 def test_from_object():
 
     class Obj:
@@ -66,7 +64,6 @@ def test_composition():
     assert el.value == wanted
 
 
-@requires_unicode_coercion
 def test_inheritance_straight():
 
     class Base(Schema):
@@ -85,7 +82,6 @@ def test_inheritance_straight():
     assert set(Sub().keys()) == {"base_member", "added_member"}
 
 
-@requires_unicode_coercion
 def test_inheritance_diamond():
 
     class A(Schema):

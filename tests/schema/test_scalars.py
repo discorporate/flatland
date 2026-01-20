@@ -17,7 +17,6 @@ from flatland import (
 )
 
 import pytest
-from tests._util import requires_unicode_coercion
 
 
 def test_scalar_abstract():
@@ -111,9 +110,6 @@ def validate_element_set(type_, raw, value, uni, schema_opts={}, set_return=None
     assert element.__bool__() == bool(uni and value)
 
 
-coerced_validate_element_set = requires_unicode_coercion(validate_element_set)
-
-
 def test_scalar_set():
     # a variety of scalar set() failure cases, shoved through Integer
     for spec in (
@@ -121,11 +117,6 @@ def test_scalar_set():
         ([], None, "[]"),
     ):
         validate_element_set(Integer, *spec)
-
-    # TODO: test below fails on py3 and it is unclear what it is about.
-    if False:
-        for spec in (("\xef\xf0", None, "\ufffd\ufffd"),):
-            coerced_validate_element_set(Integer, *spec)
 
 
 def test_scalar_set_signal():

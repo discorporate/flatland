@@ -7,7 +7,6 @@ from flatland import (
 )
 
 import pytest
-from tests._util import requires_unicode_coercion
 
 
 def test_cloning():
@@ -17,7 +16,6 @@ def test_cloning():
     assert "test_base" in new_element.__module__
 
 
-@requires_unicode_coercion
 def test_naming():
     for arg in ("unicode", "sysencoding", None):
         schema = Element.named(arg)

@@ -441,8 +441,6 @@ class List(Sequence):
 
     def _new_slot(self, value=Unspecified):
         """Wrap *value* in a Slot named as the element's index in the list."""
-        # avoid direct text_type() here so that test suite unicode coercion
-        # detector isn't triggered
         new_idx = len(self)
         name = str(new_idx)
         if not isinstance(name, str):
@@ -519,11 +517,7 @@ class List(Sequence):
 
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
-            # don't trigger naive unicode coercion (for test suite)
-            name = str(idx)
-            if not isinstance(name, str):
-                name = name.decode("ascii")
-            slot.name = name
+            slot.name = str(idx)
 
     @property
     def children(self):

@@ -9,7 +9,6 @@ from flatland.validation import (
 )
 from flatland.validation.network import _url_parts
 
-from tests._util import unicode_coercion_allowed
 
 
 def email(value):
@@ -41,8 +40,7 @@ def test_email():
 
 
 def test_email_idna():
-    with unicode_coercion_allowed():
-        assert_email_valid("bob@snow\u2603man.com")
+    assert_email_valid("bob@snow\u2603man.com")
 
 
 def test_email_non_local():

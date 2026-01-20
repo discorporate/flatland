@@ -10,9 +10,7 @@ from flatland.util import Unspecified, keyslice_pairs
 
 import pytest
 from tests._util import (
-    asciistr,
     udict,
-    unicode_coercion_available,
 )
 
 
@@ -78,11 +76,7 @@ def test_dict_update():
     def value_dict(element):
         return {k: v.value for k, v in element.items()}
 
-    try:
-        el.update(x=20, y=30)
-    except UnicodeError:
-        assert not unicode_coercion_available()
-        el.update(udict(x=20, y=30))
+    el.update(x=20, y=30)
     assert udict(x=20, y=30) == el.value
 
     el.update({"y": 40})
@@ -94,23 +88,16 @@ def test_dict_update():
     el.update((_, 100) for _ in "xy")
     assert udict(x=100, y=100) == el.value
 
-    try:
-        el.update([("x", 1)], y=2)
-        assert udict(x=1, y=2) == el.value
-    except UnicodeError:
-        assert not unicode_coercion_available()
+    el.update([("x", 1)], y=2)
+    assert udict(x=1, y=2) == el.value
 
-    try:
-        el.update([("x", 10), ("y", 10)], x=20, y=20)
-        assert udict(x=20, y=20) == el.value
-    except UnicodeError:
-        assert not unicode_coercion_available()
+    el.update([("x", 10), ("y", 10)], x=20, y=20)
+    assert udict(x=20, y=20) == el.value
 
-    if unicode_coercion_available():
-        with pytest.raises(TypeError):
-            el.update(z=1)
-        with pytest.raises(TypeError):
-            el.update(x=1, z=1)
+    with pytest.raises(TypeError):
+        el.update(z=1)
+    with pytest.raises(TypeError):
+        el.update(x=1, z=1)
     with pytest.raises(TypeError):
         el.update({"z": 1})
     with pytest.raises(TypeError):
@@ -448,7 +435,7 @@ def test_slice():
         assert {type(_) for _ in sliced.keys()} == {type(_) for _ in wanted.keys()}
 
     same_({"x": "X", "y": "Y"}, {})
-    same_({"x": "X", "y": "Y"}, dict(key=asciistr))
+    same_({"x": "X", "y": "Y"}, dict(key=lambda s: s.encode("ascii")))
     same_({"x": "X", "y": "Y"}, dict(include=["x"]))
     same_({"x": "X", "y": "Y"}, dict(omit=["x"]))
     same_({"x": "X", "y": "Y"}, dict(omit=["x"], rename={"y": "z"}))
