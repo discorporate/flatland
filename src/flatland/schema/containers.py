@@ -992,7 +992,11 @@ class Dict(Mapping, dict):
 
     def set(self, value, policy=None):
         self.raw = value
-        pairs = list(to_pairs(value))
+        try:
+            pairs = list(to_pairs(value))
+        except (TypeError, ValueError):
+            element_set.send(self, adapted=False)
+            return False
         self._reset()
 
         if policy is None:
