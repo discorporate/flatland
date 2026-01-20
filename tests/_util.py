@@ -2,7 +2,7 @@
 
 from functools import wraps
 
-__all__ = ["fails", "udict"]
+__all__ = ["fails"]
 
 
 def fails(reason):
@@ -24,13 +24,3 @@ def fails(reason):
 
     return decorator
 
-
-def udict(*dictionary, **kwargs):
-    "Return a dict with unicode keys. A stand-in for the dict constructor."
-    kwargs = {str(k): v for k, v in kwargs.items()}
-    if dictionary:
-        base = {str(k): v for k, v in dictionary[0].items()}
-        base.update(kwargs)
-        return base
-    else:
-        return kwargs

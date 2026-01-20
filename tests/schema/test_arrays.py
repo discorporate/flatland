@@ -7,7 +7,6 @@ from flatland import (
 )
 
 import pytest
-from tests._util import udict
 
 
 def test_set_flat_pruned():

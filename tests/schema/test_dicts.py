@@ -9,9 +9,7 @@ from flatland import (
 from flatland.util import Unspecified, keyslice_pairs
 
 import pytest
-from tests._util import (
-    udict,
-)
+from tests._util import fails
 
 
 def test_dict():
@@ -77,22 +75,22 @@ def test_dict_update():
         return {k: v.value for k, v in element.items()}
 
     el.update(x=20, y=30)
-    assert udict(x=20, y=30) == el.value
+    assert {"x": 20, "y": 30} == el.value
 
     el.update({"y": 40})
-    assert udict(x=20, y=40) == el.value
+    assert {"x": 20, "y": 40} == el.value
 
     el.update()
-    assert udict(x=20, y=40) == el.value
+    assert {"x": 20, "y": 40} == el.value
 
     el.update((_, 100) for _ in "xy")
-    assert udict(x=100, y=100) == el.value
+    assert {"x": 100, "y": 100} == el.value
 
     el.update([("x", 1)], y=2)
-    assert udict(x=1, y=2) == el.value
+    assert {"x": 1, "y": 2} == el.value
 
     el.update([("x", 10), ("y", 10)], x=20, y=20)
-    assert udict(x=20, y=20) == el.value
+    assert {"x": 20, "y": 20} == el.value
 
     with pytest.raises(TypeError):
         el.update(z=1)
@@ -184,7 +182,7 @@ class DictSetTest:
         assert el.value == wanted
 
         el = self.new_element()
-        el.set(udict(x=101, y=102))
+        el.set({"x": 101, "y": 102})
         assert el.value == wanted
 
         el = self.new_element()
