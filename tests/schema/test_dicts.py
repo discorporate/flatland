@@ -6,7 +6,6 @@ from flatland import (
     Unset,
     element_set,
 )
-from flatland._compat import iteritems
 from flatland.util import Unspecified, keyslice_pairs
 
 import pytest
@@ -77,7 +76,7 @@ def test_dict_update():
     el = schema()
 
     def value_dict(element):
-        return {k: v.value for k, v in iteritems(element)}
+        return {k: v.value for k, v in element.items()}
 
     try:
         el.update(x=20, y=30)

@@ -2,7 +2,6 @@ import collections
 import itertools
 import operator
 
-from flatland._compat import iteritems
 from flatland.schema.paths import pathexpr
 from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
@@ -192,7 +191,7 @@ class Element:
             if not isinstance(overrides["properties"], Properties):
                 overrides["properties"] = Properties(overrides["properties"])
 
-        for attribute, value in iteritems(overrides):
+        for attribute, value in overrides.items():
             # TODO: must make better
             if callable(value):
                 value = staticmethod(value)

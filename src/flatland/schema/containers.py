@@ -1,11 +1,6 @@
 from collections import defaultdict
 import re
 
-from flatland._compat import (
-    iteritems,
-    iterkeys,
-    itervalues,
-)
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -791,7 +786,7 @@ class Mapping(Container, dict):
         elif dictish:
             for key, value in to_pairs(dictish[0]):
                 self[key] = value
-        for key, value in iteritems(kwargs):
+        for key, value in kwargs.items():
             self[key] = value
 
     def setdefault(self, key, default=None):
@@ -811,7 +806,7 @@ class Mapping(Container, dict):
     @property
     def children(self):
         # order not guaranteed
-        return itervalues(self)
+        return self.values()
 
     def set(self, value):
         """.. TODO:: doc set()"""
@@ -830,7 +825,7 @@ class Mapping(Container, dict):
                 )
             converted &= self[key].set(value)
             seen.add(key)
-        required = set(iterkeys(self))
+        required = set(self.keys())
         if seen != required:
             missing = required - seen
             raise TypeError(
@@ -887,14 +882,14 @@ class Mapping(Container, dict):
         """A string repr of the element."""
         pairs = (
             (key, value.u if isinstance(value, Container) else decode_repr(value.u))
-            for key, value in iteritems(self)
+            for key, value in self.items()
         )
         return "{%s}" % ", ".join(f"{decode_repr(k)}: {v}" for k, v in pairs)
 
     @property
     def value(self):
         """The element as a regular Python dictionary."""
-        return {key: value.value for key, value in iteritems(self)}
+        return {key: value.value for key, value in self.items()}
 
     @property
     def is_empty(self):
@@ -1101,7 +1096,7 @@ class Dict(Mapping, dict):
           >>> new_user = User(**user_keywords)
 
         """
-        fields = set(iterkeys(self))
+        fields = set(self.keys())
         attributes = fields.copy()
         if rename:
             rename = list(to_pairs(rename))
@@ -1133,12 +1128,12 @@ class Dict(Mapping, dict):
 
         """
         data = self.slice(include=include, omit=omit, rename=rename, key=key)
-        for attribute, value in iteritems(data):
+        for attribute, value in data.items():
             setattr(obj, attribute, value)
 
     def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a ``dict`` containing a subset of the element's values."""
-        pairs = ((key, element.value) for key, element in sorted(iteritems(self)))
+        pairs = ((key, element.value) for key, element in sorted(self.items()))
         sliced = keyslice_pairs(
             pairs, include=include, omit=omit, rename=rename, key=key
         )
@@ -1257,7 +1252,7 @@ class SparseDict(Dict):
 
     @property
     def is_empty(self):
-        for _ in iterkeys(self):
+        for _ in self:
             return False
         return True
 

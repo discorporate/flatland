@@ -1,6 +1,5 @@
 from collections import defaultdict
 
-from flatland._compat import iteritems
 from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
@@ -267,7 +266,7 @@ class Tag:
         if self._context["ordered_attributes"]:
             pairs = sorted(attributes.items(), key=_attribute_sort_key)
         else:
-            pairs = iteritems(attributes)
+            pairs = attributes.items()
         guts = " ".join(f'{k}="{_attribute_escape(v)}"' for k, v in pairs)
         if guts:
             return "<" + tagname + " " + guts

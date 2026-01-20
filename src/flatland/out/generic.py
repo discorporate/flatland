@@ -1,6 +1,5 @@
 import re
 
-from flatland._compat import iteritems
 from flatland.out.util import parse_trool
 from flatland.schema import Array, Boolean
 from flatland.util import Maybe, to_pairs
@@ -65,7 +64,7 @@ class Context:
             source = to_pairs(iterable[0])
             for key, value in source:
                 self[key] = value
-        for key, value in iteritems(kwargs):
+        for key, value in kwargs.items():
             self[key] = value
 
     def __repr__(self):

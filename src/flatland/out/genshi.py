@@ -12,7 +12,6 @@ from genshi.template.eval import Expression
 from genshi.template.directives import Directive
 from genshi.template.interpolation import interpolate
 
-from flatland._compat import iteritems
 from flatland.out.generic import _unpack, transform, Context
 
 __all__ = ("setup",)
@@ -300,7 +299,7 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
     elif isinstance(new_contents, str):
         new_contents = [(TEXT, new_contents, (None, -1, -1))]
 
-    pairs = sorted(iteritems(mutable_attrs), key=_attribute_sort_key)
+    pairs = sorted(mutable_attrs.items(), key=_attribute_sort_key)
     for attribute_name, value in pairs:
         if attribute_name in existing_attributes:
             qname = existing_attributes.pop(attribute_name)

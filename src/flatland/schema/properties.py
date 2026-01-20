@@ -1,6 +1,5 @@
 from weakref import WeakKeyDictionary
 
-from flatland._compat import iteritems
 from flatland.util import symbol
 
 Deleted = symbol("deleted")
@@ -108,7 +107,7 @@ class _TypeLookup(DictLike):
     def iteritems(self):
         seen = set()
         for frame in self._frames():
-            for key, value in iteritems(frame):
+            for key, value in frame.items():
                 if key not in seen:
                     seen.add(key)
                     if value is not Deleted:
@@ -197,7 +196,7 @@ class _InstanceLookup(DictLike):
 
     def iteritems(self):
         seen = set()
-        for key, value in iteritems(self.local):
+        for key, value in self.local.items():
             seen.add(key)
             if value is not Deleted:
                 yield key, value

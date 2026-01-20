@@ -226,12 +226,14 @@ def to_pairs(dictlike):
     "dictlike".
 
     """
-    if hasattr(dictlike, "iteritems"):
+    if hasattr(dictlike, "items"):
+        return dictlike.items()
+    elif hasattr(dictlike, "iteritems"):
         return dictlike.iteritems()
     elif hasattr(dictlike, "keys"):
         return ((key, dictlike[key]) for key in dictlike.keys())
     elif hasattr(dictlike, "_asdict"):  # namedtuple interface
-        return dictlike._asdict().iteritems()
+        return dictlike._asdict().items()
     else:
         return ((key, value) for key, value in dictlike)
 
