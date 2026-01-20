@@ -6,7 +6,6 @@ __all__ = [
     "itervalues",
     "string_types",
     "with_metaclass",
-    "xrange",
 ]
 
 import builtins
@@ -15,7 +14,6 @@ identifier_transform = lambda i: i
 iterkeys = lambda d: iter(d.keys())
 itervalues = lambda d: iter(d.values())
 iteritems = lambda d: iter(d.items())
-xrange = range
 
 string_types = (bytes, str)
 

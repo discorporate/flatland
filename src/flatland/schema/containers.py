@@ -6,7 +6,6 @@ from flatland._compat import (
     iteritems,
     iterkeys,
     itervalues,
-    xrange,
 )
 from flatland.util import (
     Unspecified,
@@ -587,7 +586,7 @@ class List(Sequence):
         #           schema-configured maximum. flat + python indexes match.
         else:
             max_index = min(max(indexes) + 1, self.maximum_set_flat_members)
-            for index in xrange(0, max_index):
+            for index in range(0, max_index):
                 slot = self._new_slot()
                 list.append(self, slot)
                 flat = indexes.get(index, None)
@@ -614,7 +613,7 @@ class List(Sequence):
 
         del self[:]
         if isinstance(default, int):
-            for _ in xrange(0, default):
+            for _ in range(0, default):
                 slot = self._new_slot()
                 list.append(self, slot)
                 slot.element.set_default()

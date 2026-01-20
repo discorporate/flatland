@@ -5,7 +5,6 @@ from flatland import (
     Unset,
     element_set,
 )
-from flatland._compat import xrange
 from flatland.schema.base import Unspecified
 
 
@@ -272,7 +271,7 @@ def test_set():
     assert el.value == [0, 1, 2]
 
     el = schema()
-    assert el.set(xrange(3))
+    assert el.set(range(3))
     assert el.value == [0, 1, 2]
 
     el = schema([0, 1, 2])

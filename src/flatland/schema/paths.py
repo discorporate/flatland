@@ -1,6 +1,5 @@
 import re
 
-from flatland._compat import xrange
 from flatland.util import decode_repr, symbol
 
 __all__ = ["pathexpr"]
@@ -66,7 +65,7 @@ class PathExpression:
         contexts = [(self.ops, element)]
 
         for _ops, el in contexts:
-            for idx in xrange(len(_ops)):
+            for idx in range(len(_ops)):
                 op, data = _ops[idx]
                 if op is TOP:
                     el = el.root
