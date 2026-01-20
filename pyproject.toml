@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "flatland"
 dynamic = ["version"]
 description = "HTML form management and validation"
-readme = "README"
+readme = "README.rst"
 authors = [
     { name = "Jason Kirtland", email = "jek@discorporate.us" }
 ]
