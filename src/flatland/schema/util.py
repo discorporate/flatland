@@ -1,6 +1,6 @@
 import itertools
 
-from flatland._compat import builtins
+import builtins
 
 
 def element_ancestry(element):

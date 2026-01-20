@@ -1,12 +1,6 @@
 from functools import wraps, reduce
 import operator
 
-from flatland._compat import (
-    PY2,
-    identifier_transform,
-    string_types,
-    with_metaclass,
-)
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -77,10 +71,7 @@ class _MetaCompound(type):
 def _wrap_compound_init(fn):
     """Decorate __compound_init__ with a status setter & classmethod."""
     if isinstance(fn, classmethod):
-        if PY2:
-            fn = fn.__get__(str).__func__  # type doesn't matter here
-        else:
-            fn = fn.__func__
+        fn = fn.__func__
 
     @wraps(fn)
     def __compound_init__(cls):
@@ -91,7 +82,7 @@ def _wrap_compound_init(fn):
     return classmethod(__compound_init__)
 
 
-class Compound(with_metaclass(_MetaCompound, Mapping, Scalar)):
+class Compound(Mapping, Scalar, metaclass=_MetaCompound):
     """A mapping container that acts like a scalar value.
 
     Compound fields are dictionary-like fields that can assemble a
@@ -256,9 +247,7 @@ class DateYYYYMMDD(Compound, Date):
             value = Date.adapt(self, value)
 
             for attrib, child_schema in zip(self.used, self.field_schema):
-                self[child_schema.name].set(
-                    getattr(value, identifier_transform(attrib))
-                )
+                self[child_schema.name].set(getattr(value, attrib))
         except (AdaptationError, TypeError):
             for child_schema in self.field_schema:
                 self[child_schema.name].set(None)
@@ -274,12 +263,12 @@ class JoinedString(Array, String):
       >>> from flatland import JoinedString
       >>> el = JoinedString(['x', 'y', 'z'])
       >>> el.value
-      u'x,y,z'
+      'x,y,z'
       >>> el2 = JoinedString('foo,bar')
       >>> el2[1].value
-      u'bar'
+      'bar'
       >>> el2.value
-      u'foo,bar'
+      'foo,bar'
 
     Only the joined representation is considered when flattening or restoring
     with :meth:`set_flat`.  JoinedStrings run validation after their children.
@@ -303,7 +292,7 @@ class JoinedString(Array, String):
     #:   ...                             separator_regex=re.compile('\s*,\s*'))
     #:   ...
     #:   >>> schema('a  ,  b,c,d').value
-    #:   u'a, b, c, d'
+    #:   'a, b, c, d'
     separator_regex = None
 
     #: The default child type is :class:`~flatland.schema.scalars.String`,
@@ -318,7 +307,7 @@ class JoinedString(Array, String):
         self.raw = value
         if isinstance(value, (list, tuple)):
             values = value
-        elif not isinstance(value, string_types):
+        elif not isinstance(value, (str, bytes)):
             values = list(value)
         elif self.separator_regex:
             # a text regexp separator

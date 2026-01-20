@@ -2,8 +2,6 @@ from flatland import Array, Boolean, Integer
 from flatland.out import generic
 from flatland.out.generic import Context
 
-from tests._util import unicode_coercion_allowed, textstr
-
 Unspecified = object()
 Unique = object()
 schema = Integer.named("number")
@@ -477,12 +475,9 @@ def test_value_option():
         )
 
         # This matches value = contents via a sentinel object
-        with unicode_coercion_allowed():
-            given = {}
-            expected = {}
-            assert_transform(
-                generic.transform_value, "option", given, expected, bind=bind
-            )
+        given = {}
+        expected = {}
+        assert_transform(generic.transform_value, "option", given, expected, bind=bind)
 
         contents = expected_contents = "123"
         given = {
@@ -638,7 +633,7 @@ def test_tabindex_stop_numbers():
     for stop_num in -1, -2:
         context = Context()
         context["tabindex"] = stop_num
-        expected = {"tabindex": textstr(stop_num)}
+        expected = {"tabindex": str(stop_num)}
         assert_bound_transform(
             generic.transform_tabindex, "input", given, expected, context=context
         )

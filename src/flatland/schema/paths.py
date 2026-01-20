@@ -1,7 +1,6 @@
 import re
 
-from flatland._compat import PY2, bytestring_type, text_type, xrange
-from flatland.util import decode_repr, symbol
+from flatland.util import symbol
 
 __all__ = ["pathexpr"]
 
@@ -41,9 +40,7 @@ _unescape_re = re.compile(r"\\(/|\[|\]|\.)")
 def pathexpr(expr):
     if isinstance(expr, PathExpression):
         return expr
-    elif PY2 and isinstance(expr, bytestring_type):
-        expr = text_type(expr)
-    elif isinstance(expr, text_type):
+    elif isinstance(expr, str):
         pass
     elif hasattr(expr, "__iter__"):
         expr = "/".join(expr)
@@ -68,7 +65,7 @@ class PathExpression:
         contexts = [(self.ops, element)]
 
         for _ops, el in contexts:
-            for idx in xrange(len(_ops)):
+            for idx in range(len(_ops)):
                 op, data = _ops[idx]
                 if op is TOP:
                     el = el.root
@@ -84,13 +81,13 @@ class PathExpression:
                         if strict:
                             if el.name:
                                 type_ = "{} element {}".format(
-                                    el.__class__.__name__, decode_repr(el.name)
+                                    el.__class__.__name__, repr(el.name)
                                 )
                             else:
                                 type_ = "Unnamed element %s" % (el.__class__.__name__)
                             raise LookupError(
                                 "{} has no child {} in expression {}".format(
-                                    type_, decode_repr(data), decode_repr(self.expr)
+                                    type_, repr(data), repr(self.expr)
                                 )
                             )
                         break
@@ -103,8 +100,6 @@ class PathExpression:
         return found
 
     def __str__(self):
-        if PY2:
-            return self.expr.encode("utf8")
         return self.expr
 
     def __unicode__(self):

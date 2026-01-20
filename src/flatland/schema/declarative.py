@@ -1,6 +1,5 @@
 """Class attribute-style declarative schema construction."""
 
-from flatland._compat import PY2, with_metaclass
 from .base import Element
 from .containers import Dict, SparseDict
 
@@ -38,13 +37,9 @@ class _MetaSchema(type):
         # add / replace fields declared as attributes on this class
         declared_fields = []
         for name, value in list(members.items()):
-            if PY2:
-                text_name = name.decode("ascii")
-            else:
-                text_name = name
             if isinstance(value, type) and issubclass(value, Element):
-                if text_name != value.name:
-                    value = value.named(text_name)
+                if name != value.name:
+                    value = value.named(name)
                 declared_fields.append(value)
                 del members[name]
         fields.add_and_overwrite(declared_fields)
@@ -81,7 +76,7 @@ class _ElementCollection:
             self.elements.append(field)
 
 
-class Schema(with_metaclass(_MetaSchema, Dict)):
+class Schema(Dict, metaclass=_MetaSchema):
     """A declarative collection of named elements.
 
     Schemas behave like |Dict|, but are defined with Python class syntax:
@@ -106,7 +101,7 @@ class Schema(with_metaclass(_MetaSchema, Dict)):
       ...
       >>> helloworld = HelloSchema()
       >>> sorted(helloworld.keys())
-      [u'hello', u'world']
+      ['hello', 'world']
 
     Schemas may embed other container fields and other schemas:
 
@@ -138,14 +133,14 @@ class Schema(with_metaclass(_MetaSchema, Dict)):
       >>> hasattr(HelloSchema, 'hello')
       False
       >>> sorted([field.name for field in HelloSchema.field_schema])
-      [u'hello', u'world']
+      ['hello', 'world']
 
     The order of ``field_schema`` is undefined.
 
     """
 
 
-class SparseSchema(with_metaclass(_MetaSchema, SparseDict)):
+class SparseSchema(SparseDict, metaclass=_MetaSchema):
     """A sparse variant of `~flatland.schema.declarative.Schema`.
 
     Exactly as ``Schema``, but based upon
@@ -154,5 +149,5 @@ class SparseSchema(with_metaclass(_MetaSchema, SparseDict)):
     """
 
 
-class Form(with_metaclass(_MetaSchema, Dict)):
+class Form(Dict, metaclass=_MetaSchema):
     """An alias for Schema, for older flatland version compatibility."""

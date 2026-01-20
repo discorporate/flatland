@@ -5,7 +5,6 @@ from flatland import (
     Unset,
     element_set,
 )
-from flatland._compat import xrange, text_type
 from flatland.schema.base import Unspecified
 
 
@@ -272,7 +271,7 @@ def test_set():
     assert el.value == [0, 1, 2]
 
     el = schema()
-    assert el.set(xrange(3))
+    assert el.set(range(3))
     assert el.value == [0, 1, 2]
 
     el = schema([0, 1, 2])
@@ -373,7 +372,7 @@ def test_mutation():
     def order_ok():
         slot_names = list(_.name for _ in el._slots)
         for idx, name in enumerate(slot_names):
-            assert name == text_type(str(idx))
+            assert name == str(idx)
 
     assert not el
     order_ok()
@@ -476,7 +475,7 @@ def test_slots():
 def test_u():
     schema = List.of(String)
     el = schema(["x", "x"])
-    assert el.u == "[u'x', u'x']"
+    assert el.u == "['x', 'x']"
 
 
 def test_value():

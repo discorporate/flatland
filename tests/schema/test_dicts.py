@@ -6,15 +6,9 @@ from flatland import (
     Unset,
     element_set,
 )
-from flatland._compat import PY2, iteritems
 from flatland.util import Unspecified, keyslice_pairs
 
 import pytest
-from tests._util import (
-    asciistr,
-    udict,
-    unicode_coercion_available,
-)
 
 
 def test_dict():
@@ -77,41 +71,30 @@ def test_dict_update():
     el = schema()
 
     def value_dict(element):
-        return {k: v.value for k, v in iteritems(element)}
+        return {k: v.value for k, v in element.items()}
 
-    try:
-        el.update(x=20, y=30)
-    except UnicodeError:
-        assert not unicode_coercion_available()
-        el.update(udict(x=20, y=30))
-    assert udict(x=20, y=30) == el.value
+    el.update(x=20, y=30)
+    assert {"x": 20, "y": 30} == el.value
 
     el.update({"y": 40})
-    assert udict(x=20, y=40) == el.value
+    assert {"x": 20, "y": 40} == el.value
 
     el.update()
-    assert udict(x=20, y=40) == el.value
+    assert {"x": 20, "y": 40} == el.value
 
     el.update((_, 100) for _ in "xy")
-    assert udict(x=100, y=100) == el.value
+    assert {"x": 100, "y": 100} == el.value
 
-    try:
-        el.update([("x", 1)], y=2)
-        assert udict(x=1, y=2) == el.value
-    except UnicodeError:
-        assert not unicode_coercion_available()
+    el.update([("x", 1)], y=2)
+    assert {"x": 1, "y": 2} == el.value
 
-    try:
-        el.update([("x", 10), ("y", 10)], x=20, y=20)
-        assert udict(x=20, y=20) == el.value
-    except UnicodeError:
-        assert not unicode_coercion_available()
+    el.update([("x", 10), ("y", 10)], x=20, y=20)
+    assert {"x": 20, "y": 20} == el.value
 
-    if unicode_coercion_available():
-        with pytest.raises(TypeError):
-            el.update(z=1)
-        with pytest.raises(TypeError):
-            el.update(x=1, z=1)
+    with pytest.raises(TypeError):
+        el.update(z=1)
+    with pytest.raises(TypeError):
+        el.update(x=1, z=1)
     with pytest.raises(TypeError):
         el.update({"z": 1})
     with pytest.raises(TypeError):
@@ -198,7 +181,7 @@ class DictSetTest:
         assert el.value == wanted
 
         el = self.new_element()
-        el.set(udict(x=101, y=102))
+        el.set({"x": 101, "y": 102})
         assert el.value == wanted
 
         el = self.new_element()
@@ -372,7 +355,7 @@ def test_dict_as_unicode():
     schema = Dict.of(Integer.named("x"), Integer.named("y"))
     el = schema({"x": 1, "y": 2})
 
-    assert el.u in ("{u'x': u'1', u'y': u'2'}", "{u'y': u'2', u'x': u'1'}")
+    assert el.u in ("{'x': '1', 'y': '2'}", "{'y': '2', 'x': '1'}")
 
 
 def test_nested_dict_as_unicode():
@@ -380,7 +363,7 @@ def test_nested_dict_as_unicode():
     el = schema.from_defaults()
 
     assert el.value == {"d": {"x": 10}}
-    assert el.u == "{u'd': {u'x': u'10'}}"
+    assert el.u == "{'d': {'x': '10'}}"
 
 
 def test_nested_unicode_dict_as_unicode():
@@ -389,7 +372,7 @@ def test_nested_unicode_dict_as_unicode():
     )
     el = schema.from_defaults()
     assert el.value == {"d": {"x": "\u2308\u2309"}}
-    assert el.u == "{u'd': {u'x': u'\u2308\u2309'}}"
+    assert el.u == "{'d': {'x': '\u2308\u2309'}}"
 
 
 def test_dict_find():
@@ -420,7 +403,7 @@ def test_update_object():
     def updated_(obj_factory, initial_value, wanted=None, **update_kw):
         el = schema(initial_value)
         obj = obj_factory()
-        keyfunc = lambda x: (asciistr(x) if PY2 else x)
+        keyfunc = lambda x: x
         update_kw.setdefault("key", keyfunc)
         el.update_object(obj, **update_kw)
         if wanted is None:
@@ -449,7 +432,7 @@ def test_slice():
         assert {type(_) for _ in sliced.keys()} == {type(_) for _ in wanted.keys()}
 
     same_({"x": "X", "y": "Y"}, {})
-    same_({"x": "X", "y": "Y"}, dict(key=asciistr))
+    same_({"x": "X", "y": "Y"}, dict(key=lambda s: s.encode("ascii")))
     same_({"x": "X", "y": "Y"}, dict(include=["x"]))
     same_({"x": "X", "y": "Y"}, dict(omit=["x"]))
     same_({"x": "X", "y": "Y"}, dict(omit=["x"], rename={"y": "z"}))

@@ -1,16 +1,6 @@
 from collections import defaultdict
 import re
 
-from flatland._compat import (
-    PY2,
-    identifier_transform,
-    iteritems,
-    iterkeys,
-    itervalues,
-    bytestring_type,
-    text_type,
-    xrange,
-)
 from flatland.util import (
     Unspecified,
     assignable_class_property,
@@ -19,7 +9,6 @@ from flatland.util import (
     keyslice_pairs,
     re_uescape,
     to_pairs,
-    decode_repr,
 )
 from flatland.signals import element_set
 from .base import Element, Unevaluated, Slot, validate_element
@@ -178,7 +167,7 @@ class Sequence(Container, list):
           <class 'flatland.schema.scalars.String'>
           >>> el = Names(['Bob', 'Biff'])
           >>> el
-          [<String u'name'; value=u'Bob'>, <String u'name'; value=u'Biff'>]
+          [<String 'name'; value='Bob'>, <String 'name'; value='Biff'>]
 
         If more than one `~flatland.schema.base.Element` is specified in
         *\*schema*, an anonymous :class:`Dict` is created to hold them.
@@ -192,9 +181,9 @@ class Sequence(Container, list):
           >>> el = Points([dict(x=1, y=2)])
           >>> point = el[0]
           >>> point['x']
-          <Integer u'x'; value=1>
+          <Integer 'x'; value=1>
           >>> point['y']
-          <Integer u'y'; value=2>
+          <Integer 'y'; value=2>
 
         """
         for field in schema:
@@ -379,7 +368,7 @@ class Sequence(Container, list):
     @property
     def u(self):
         return "[%s]" % ", ".join(
-            element.u if isinstance(element, Container) else decode_repr(element.u)
+            element.u if isinstance(element, Container) else repr(element.u)
             for element in self.children
         )
 
@@ -451,11 +440,9 @@ class List(Sequence):
 
     def _new_slot(self, value=Unspecified):
         """Wrap *value* in a Slot named as the element's index in the list."""
-        # avoid direct text_type() here so that test suite unicode coercion
-        # detector isn't triggered
         new_idx = len(self)
         name = str(new_idx)
-        if not isinstance(name, text_type):
+        if not isinstance(name, str):
             name = name.decode("ascii")
         return self.slot_type(name=name, parent=self, element=self._as_element(value))
 
@@ -529,11 +516,7 @@ class List(Sequence):
 
     def _renumber(self):
         for idx, slot in enumerate(self._slots):
-            # don't trigger naive unicode coercion (for test suite)
-            name = str(idx)
-            if not isinstance(name, text_type):
-                name = name.decode("ascii")
-            slot.name = name
+            slot.name = str(idx)
 
     @property
     def children(self):
@@ -590,7 +573,7 @@ class List(Sequence):
         #           schema-configured maximum. flat + python indexes match.
         else:
             max_index = min(max(indexes) + 1, self.maximum_set_flat_members)
-            for index in xrange(0, max_index):
+            for index in range(0, max_index):
                 slot = self._new_slot()
                 list.append(self, slot)
                 flat = indexes.get(index, None)
@@ -617,7 +600,7 @@ class List(Sequence):
 
         del self[:]
         if isinstance(default, int):
-            for _ in xrange(0, default):
+            for _ in range(0, default):
                 slot = self._new_slot()
                 list.append(self, slot)
                 slot.element.set_default()
@@ -796,7 +779,7 @@ class Mapping(Container, dict):
         elif dictish:
             for key, value in to_pairs(dictish[0]):
                 self[key] = value
-        for key, value in iteritems(kwargs):
+        for key, value in kwargs.items():
             self[key] = value
 
     def setdefault(self, key, default=None):
@@ -816,7 +799,7 @@ class Mapping(Container, dict):
     @property
     def children(self):
         # order not guaranteed
-        return itervalues(self)
+        return self.values()
 
     def set(self, value):
         """.. TODO:: doc set()"""
@@ -835,7 +818,7 @@ class Mapping(Container, dict):
                 )
             converted &= self[key].set(value)
             seen.add(key)
-        required = set(iterkeys(self))
+        required = set(self.keys())
         if seen != required:
             missing = required - seen
             raise TypeError(
@@ -891,15 +874,15 @@ class Mapping(Container, dict):
     def u(self):
         """A string repr of the element."""
         pairs = (
-            (key, value.u if isinstance(value, Container) else decode_repr(value.u))
-            for key, value in iteritems(self)
+            (key, value.u if isinstance(value, Container) else repr(value.u))
+            for key, value in self.items()
         )
-        return "{%s}" % ", ".join(f"{decode_repr(k)}: {v}" for k, v in pairs)
+        return "{%s}" % ", ".join(f"{repr(k)}: {v}" for k, v in pairs)
 
     @property
     def value(self):
         """The element as a regular Python dictionary."""
-        return {key: value.value for key, value in iteritems(self)}
+        return {key: value.value for key, value in self.items()}
 
     @property
     def is_empty(self):
@@ -1002,9 +985,7 @@ class Dict(Mapping, dict):
         if policy is None:
             policy = self.policy
         if policy not in ("strict", "subset", "duck", None):
-            raise RuntimeError(
-                f"Unknown {self.__class__.__name__} policy {policy!r}"
-            )
+            raise RuntimeError(f"Unknown {self.__class__.__name__} policy {policy!r}")
 
         if policy == "strict":
             missing, extra = _evaluate_dict_strict_policy(self, pairs)
@@ -1039,8 +1020,6 @@ class Dict(Mapping, dict):
         fields = self.field_schema_mapping
         converted = True
         for key, value in pairs:
-            if PY2 and isinstance(key, bytestring_type):
-                key = key.decode("ascii", "replace")
             if key not in fields:
                 continue
             if dict.__contains__(self, key):
@@ -1097,18 +1076,18 @@ class Dict(Mapping, dict):
           >>> form = UserForm()
           >>> form.set_by_object(user)
           >>> form['login'].value
-          u'biff'
-          >>> form['password'] = u'new-password'
+          'biff'
+          >>> form['password'] = 'new-password'
           >>> form.update_object(user, omit=['verify_password'])
           >>> user.password
-          u'new-password'
+          'new-password'
           >>> user_keywords = form.slice(omit=['verify_password'], key=str)
           >>> sorted(user_keywords.keys())
           ['login', 'password']
           >>> new_user = User(**user_keywords)
 
         """
-        fields = set(iterkeys(self))
+        fields = set(self.keys())
         attributes = fields.copy()
         if rename:
             rename = list(to_pairs(rename))
@@ -1127,9 +1106,7 @@ class Dict(Mapping, dict):
         final = {key: value for key, value in sliced if key in fields}
         self.set(final)
 
-    def update_object(
-        self, obj, include=None, omit=None, rename=None, key=identifier_transform
-    ):
+    def update_object(self, obj, include=None, omit=None, rename=None, key=lambda x: x):
         """Update an object's attributes using the element's values.
 
         Produces a :meth:`slice` using *include*, *omit*, *rename* and
@@ -1140,12 +1117,12 @@ class Dict(Mapping, dict):
 
         """
         data = self.slice(include=include, omit=omit, rename=rename, key=key)
-        for attribute, value in iteritems(data):
+        for attribute, value in data.items():
             setattr(obj, attribute, value)
 
     def slice(self, include=None, omit=None, rename=None, key=None):
         """Return a ``dict`` containing a subset of the element's values."""
-        pairs = ((key, element.value) for key, element in sorted(iteritems(self)))
+        pairs = ((key, element.value) for key, element in sorted(self.items()))
         sliced = keyslice_pairs(
             pairs, include=include, omit=omit, rename=rename, key=key
         )
@@ -1250,7 +1227,9 @@ class SparseDict(Dict):
     def setdefault(self, key, default=None):
         if not self.may_contain(key):
             raise TypeError(
-                "Key {!r} not allowed in {} {!r}".format(key, type(self).__name__, self.name)
+                "Key {!r} not allowed in {} {!r}".format(
+                    key, type(self).__name__, self.name
+                )
             )
 
         if key in self:
@@ -1264,7 +1243,7 @@ class SparseDict(Dict):
 
     @property
     def is_empty(self):
-        for _ in iterkeys(self):
+        for _ in self:
             return False
         return True
 
@@ -1289,8 +1268,6 @@ class SparseDict(Dict):
 def _textset(iterable):
     values = set()
     for value in iterable:
-        if PY2 and isinstance(value, bytestring_type):
-            value = value.decode("ascii", "replace")
         values.add(value)
     return values
 

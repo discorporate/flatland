@@ -7,7 +7,6 @@ from flatland import (
 )
 
 import pytest
-from tests._util import udict
 
 
 def test_set_flat_pruned():
@@ -160,7 +159,7 @@ def test_mutation():
     el.pop()
     assert el.value == ["f"]
     assert el[0].u == "f"
-    assert el.u == "[u'f']"
+    assert el.u == "['f']"
 
     del el[:]
     assert list(el) == []

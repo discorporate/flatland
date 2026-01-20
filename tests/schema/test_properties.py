@@ -1,5 +1,4 @@
 from flatland import String
-from flatland._compat import PY2, iterkeys, itervalues
 from flatland.schema.properties import Properties
 import pytest
 
@@ -42,10 +41,8 @@ def test_dictlike():
     assert sorted(props.items()) == [("abc", 123), ("def", 456)]
 
     assert sorted(props.keys()) == ["abc", "def"]
-    assert sorted(iterkeys(props)) == ["abc", "def"]
 
     assert sorted(props.values()) == [123, 456]
-    assert sorted(itervalues(props)) == [123, 456]
 
     assert props.get("abc") == 123
     assert props.get("abc", "blah") == 123
@@ -282,21 +279,6 @@ def test_perverse():
     broken.update(abc=123)
     assert broken == {"abc": 123}
     assert Broken.properties == "something else"
-
-
-# python3 immediately raises an exception if there is such a name clash
-if PY2:
-
-    def test_perverse_slots():
-
-        class Base:
-            __slots__ = ("properties",)
-            properties = Properties()
-
-        b = Base()
-        with pytest.raises(AttributeError):
-            # noinspection PyStatementEffect
-            b.properties["abc"]
 
 
 def test_dsl():

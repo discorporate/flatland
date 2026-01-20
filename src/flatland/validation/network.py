@@ -1,14 +1,9 @@
 """Network address and URL validation."""
 
-from flatland._compat import PY2
 import re
 
-if PY2:
-    import urlparse
-else:
-    from urllib import parse as urlparse
+from urllib import parse as urlparse
 
-from flatland._compat import identifier_transform, text_transform
 from .base import N_, Validator
 
 
@@ -173,11 +168,10 @@ class URLValidator(Validator):
         except Exception:
             return self.note_error(element, state, "bad_format")
 
-        scheme_name = identifier_transform(url.scheme)
-        if scheme_name == "":
+        if url.scheme == "":
             return self.note_error(element, state, "blocked_scheme")
         elif self.allowed_schemes != ("*",):
-            if scheme_name not in self.allowed_schemes:
+            if url.scheme not in self.allowed_schemes:
                 return self.note_error(element, state, "blocked_scheme")
 
         for part in _url_parts:
@@ -271,7 +265,7 @@ class HTTPURLValidator(Validator):
             try:
                 value = getattr(parsed, part)
                 if part == "port":
-                    value = None if value is None else text_transform(value)
+                    value = None if value is None else str(value)
             except ValueError:
                 return self.note_error(element, state, "bad_format")
             required = self.required_parts.get(part)

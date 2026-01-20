@@ -46,15 +46,15 @@ Example:
 
   >>> from flatland import List, String
   >>> Names = List.named('names').of(String.named('name'))
-  >>> names = Names([u'a', u'b'])
+  >>> names = Names(['a', 'b'])
   >>> names.value
-  [u'a', u'b']
+  ['a', 'b']
   >>> names.flatten()
-  [(u'names_0_name', u'a'), (u'names_1_name', u'b')]
+  [('names_0_name', 'a'), ('names_1_name', 'b')]
   >>> names[1].value
-  u'b'
+  'b'
   >>> names.find_one('1').value
-  u'b'
+  'b'
 
 Validation
 ----------

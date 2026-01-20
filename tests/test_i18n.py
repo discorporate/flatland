@@ -98,7 +98,7 @@ def test_builtin_gettext():
 
     try:
         # translators can go into the builtins
-        from flatland._compat import builtins
+        import builtins
 
         builtins.ugettext = catalog.ugettext
         builtins.ungettext = catalog.ungettext

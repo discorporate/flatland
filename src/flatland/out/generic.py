@@ -1,6 +1,5 @@
 import re
 
-from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.out.util import parse_trool
 from flatland.schema import Array, Boolean
 from flatland.util import Maybe, to_pairs
@@ -48,9 +47,7 @@ class Context:
 
     def __setitem__(self, key, value):
         if key not in self:
-            raise KeyError(
-                f"{key!r} not permitted in this {self.__class__.__name__}"
-            )
+            raise KeyError(f"{key!r} not permitted in this {self.__class__.__name__}")
         self._frames[-1][key] = value
 
     def __contains__(self, key):
@@ -65,16 +62,14 @@ class Context:
             source = to_pairs(iterable[0])
             for key, value in source:
                 self[key] = value
-        for key, value in iteritems(kwargs):
-            if PY2:
-                key = key.decode("ascii")
+        for key, value in kwargs.items():
             self[key] = value
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self._frames[-1]!r})"
 
 
-class Markup(text_type):
+class Markup(str):
     """A string of HTML markup that should not be escaped in output."""
 
     __slots__ = ()
@@ -162,7 +157,7 @@ def transform_value(tagname, attributes, contents, context, bind):
         current = attributes.get("value")
         if current is not None:
             value = current
-        elif isinstance(contents, text_type):
+        elif isinstance(contents, str):
             value = contents.strip()
         elif contents is None:
             value = ""
@@ -231,7 +226,7 @@ def transform_tabindex(tagname, attributes, contents, context, bind):
 
     current = attributes.get("tabindex")
     if forced or current is None and tagname in _auto_tags["tabindex"]:
-        attributes["tabindex"] = text_type(str(tabindex))
+        attributes["tabindex"] = str(tabindex)
         if tabindex > 0:
             context["tabindex"] = tabindex + 1
     return contents
@@ -310,9 +305,9 @@ def _sanitize_domid_suffix(string):
 def _unpack(html_string):
     """Extract HTML from a __html__() interface."""
     unpacked = html_string.__html__()
-    if unpacked.__class__ is text_type:
+    if unpacked.__class__ is str:
         return unpacked
-    return text_type(unpacked)
+    return str(unpacked)
 
 
 def _markup_escape(string):

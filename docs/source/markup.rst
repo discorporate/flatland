@@ -178,7 +178,7 @@ participate in ``tabindex=`` generation.
    >>> print(html.textarea(auto_tabindex=True))
    <textarea tabindex="100"></textarea>
    >>> html.set(auto_tabindex=True)
-   u''
+   ''
    >>> print(html.textarea())
    <textarea tabindex="101"></textarea>
 

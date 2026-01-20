@@ -3,8 +3,6 @@ from functools import wraps
 
 import pytest
 
-from flatland._compat import bytestring_type
-
 
 class Capabilities(dict):
 
@@ -70,7 +68,7 @@ class desired_output:
 
     def __call__(self, fn):
         self.expected = inspect.cleandoc(fn.__doc__).strip()
-        if isinstance(self.expected, bytestring_type):
+        if isinstance(self.expected, bytes):
             self.expected = self.expected.decode("utf8")
         self.alternate_expectations = getattr(fn, "alternates", {})
         return self

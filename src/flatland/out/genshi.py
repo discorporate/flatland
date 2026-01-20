@@ -12,7 +12,6 @@ from genshi.template.eval import Expression
 from genshi.template.directives import Directive
 from genshi.template.interpolation import interpolate
 
-from flatland._compat import bytestring_type, iteritems, text_type
 from flatland.out.generic import _unpack, transform, Context
 
 __all__ = ("setup",)
@@ -125,7 +124,7 @@ class ControlAttribute(AttributeOnly):
     def inject(self, mapping, ctxt, vars):
         """Inject the translated key and interpolated value into *mapping*."""
         raw = self.raw_value
-        if raw.__class__ is text_type:
+        if raw.__class__ is str:
             final_value = raw
         else:
             parts = []
@@ -134,7 +133,7 @@ class ControlAttribute(AttributeOnly):
                     parts.append(value)
                 else:
                     value = _eval_expr(value, ctxt, vars)
-                    parts.append(text_type(value))
+                    parts.append(str(value))
             final_value = "".join(parts)
         mapping[_to_context.get(self._name, self._name)] = final_value
 
@@ -280,7 +279,7 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
     existing_attributes = {}
     for qname, value in attrs:
         if qname.namespace is None:
-            if not isinstance(value, text_type):
+            if not isinstance(value, str):
                 value = _simplify_stream(value, ctxt, vars)
                 attrs |= ((qname, value),)
             existing_attributes[qname.localname] = qname
@@ -297,10 +296,10 @@ def _rewrite_stream(stream, directives, ctxt, vars, bind):
 
     if new_contents is None:
         new_contents = ()
-    elif isinstance(new_contents, text_type):
+    elif isinstance(new_contents, str):
         new_contents = [(TEXT, new_contents, (None, -1, -1))]
 
-    pairs = sorted(iteritems(mutable_attrs), key=_attribute_sort_key)
+    pairs = sorted(mutable_attrs.items(), key=_attribute_sort_key)
     for attribute_name, value in pairs:
         if attribute_name in existing_attributes:
             qname = existing_attributes.pop(attribute_name)
@@ -377,15 +376,15 @@ def _simplify_stream(stream, ctxt, vars):
                 while hasattr(value, "__next__") or hasattr(value, "next"):
                     value = list(value)
                     value = _simplify_stream(value, ctxt, vars)
-                if not isinstance(value, text_type):
+                if not isinstance(value, str):
                     stream[idx : idx + 1] = value
                     return stream
                 else:
                     stream[idx] = (TEXT, value, pos)
-            elif isinstance(value, bytestring_type):
+            elif isinstance(value, bytes):
                 value = value.decode("utf8", "replace")
-            elif not isinstance(value, text_type):
-                value = text_type(value)
+            elif not isinstance(value, str):
+                value = str(value)
             parts.append(value)
         else:
             return stream

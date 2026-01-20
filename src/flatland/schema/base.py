@@ -2,7 +2,6 @@ import collections
 import itertools
 import operator
 
-from flatland._compat import PY2, bytestring_type, iteritems, text_type
 from flatland.schema.paths import pathexpr
 from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
@@ -168,8 +167,8 @@ class Element:
         :returns: a new class
 
         """
-        if not isinstance(name, (text_type, NoneType)):
-            name = text_type(name)
+        if not isinstance(name, (str, NoneType)):
+            name = str(name)
         cls.name = name
         return cls
 
@@ -192,7 +191,7 @@ class Element:
             if not isinstance(overrides["properties"], Properties):
                 overrides["properties"] = Properties(overrides["properties"])
 
-        for attribute, value in iteritems(overrides):
+        for attribute, value in overrides.items():
             # TODO: must make better
             if callable(value):
                 value = staticmethod(value)
@@ -396,17 +395,17 @@ class Element:
         :attr:`Element.root` (``/``) down to the element.
 
           >>> from flatland import Dict, Integer
-          >>> Point = Dict.named(u'point').of(Integer.named(u'x'),
-          ...                                 Integer.named(u'y'))
+          >>> Point = Dict.named('point').of(Integer.named('x'),
+          ...                                Integer.named('y'))
           >>> p = Point(dict(x=10, y=20))
           >>> p.name
-          u'point'
+          'point'
           >>> p.fq_name()
-          u'/'
+          '/'
           >>> p['x'].name
-          u'x'
+          'x'
           >>> p['x'].fq_name()
-          u'/x'
+          '/x'
 
         The index used in a path may not be the :attr:`.name` of the
         element.  For example, sequence members are referenced by their
@@ -414,15 +413,15 @@ class Element:
 
           >>> from flatland import List, String
           >>> Addresses = List.named('addresses').of(String.named('address'))
-          >>> form = Addresses([u'uptown', u'downtown'])
+          >>> form = Addresses(['uptown', 'downtown'])
           >>> form.name
-          u'addresses'
+          'addresses'
           >>> form.fq_name()
-          u'/'
+          '/'
           >>> form[0].name
-          u'address'
+          'address'
           >>> form[0].fq_name()
-          u'/0'
+          '/0'
 
         """
         if self.parent is None:
@@ -489,9 +488,9 @@ class Element:
 
           >>> cities = form.find('/contact/addresses[:]/city')
           >>> [el.value for el in cities]
-          [u'Kingsport', u'Dunwich']
+          ['Kingsport', 'Dunwich']
           >>> form.find('/contact/name', single=True)
-          <String u'name'; value=u'Obed Marsh'>
+          <String 'name'; value='Obed Marsh'>
 
         """
         expr = pathexpr(path)
@@ -501,10 +500,8 @@ class Element:
         elif not results:
             return None
         elif len(results) > 1 and strict:
-            display_path = repr(path).lstrip("u")
             raise LookupError(
-                "Path %s matched multiple elements; single "
-                "result expected." % display_path
+                "Path %r matched multiple elements; single result expected." % path
             )
         else:
             return results[0]
@@ -544,11 +541,11 @@ class Element:
           >>> form = flatland.List('addresses',
           ...                      flatland.String('address'))
           >>> element = form()
-          >>> element.set([u'uptown', u'downtown'])
+          >>> element.set(['uptown', 'downtown'])
           >>> element[0].value
-          u'uptown'
+          'uptown'
           >>> element['0'].flattened_name()
-          u'addresses_0_address'
+          'addresses_0_address'
 
         """
         return sep.join(parent.name for parent in self.path if parent.name is not None)
@@ -572,25 +569,25 @@ class Element:
 
           >>> from flatland import Schema, Dict, String
           >>> class Nested(Schema):
-          ...     contact = Dict.of(String.named(u'name'),
-          ...                       Dict.named(u'address').
-          ...                            of(String.named(u'email')))
+          ...     contact = Dict.of(String.named('name'),
+          ...                       Dict.named('address').
+          ...                            of(String.named('email')))
           ...
           >>> element = Nested()
           >>> element.flatten()
-          [(u'contact_name', u''), (u'contact_address_email', u'')]
+          [('contact_name', ''), ('contact_address_email', '')]
 
         The value of each pair can be customized with the *value* callable::
 
           >>> element.flatten(value=operator.attrgetter('u'))
-          [(u'contact_name', u''), (u'contact_address_email', u'')]
+          [('contact_name', ''), ('contact_address_email', '')]
           >>> element.flatten(value=lambda el: el.value)
-          [(u'contact_name', None), (u'contact_address_email', None)]
+          [('contact_name', None), ('contact_address_email', None)]
 
         Solo elements will return a sequence containing a single pair::
 
           >>> element['name'].flatten()
-          [(u'contact_name', u'')]
+          [('contact_name', '')]
 
         """
         if self.flattenable:
@@ -617,32 +614,32 @@ class Element:
         native value of None will be represented as u'' in :attr:`u`.
 
         If adaptation fails, :attr:`value` will be ``None`` and :attr:`u` will
-        contain ``str(value)`` (or unicode), or ``u''`` for None.
+        contain ``str(value)``, or ``''`` for None.
 
           >>> from flatland import Integer
           >>> el = Integer()
           >>> el.u, el.value
-          (u'', None)
+          ('', None)
 
           >>> el.set('123')
           True
           >>> el.u, el.value
-          (u'123', 123)
+          ('123', 123)
 
           >>> el.set(456)
           True
           >>> el.u, el.value
-          (u'456', 456)
+          ('456', 456)
 
           >>> el.set('abc')
           False
           >>> el.u, el.value
-          (u'abc', None)
+          ('abc', None)
 
           >>> el.set(None)
           True
           >>> el.u, el.value
-          (u'', None)
+          ('', None)
 
         """
         raise NotImplementedError()

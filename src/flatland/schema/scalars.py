@@ -2,13 +2,6 @@ import datetime
 import decimal
 import re
 
-from flatland._compat import (
-    PY2,
-    long_type,
-    string_types,
-    text_type,
-    text_transform,
-)
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
 from flatland.util import (
@@ -71,7 +64,7 @@ class Scalar(Element):
         of ``None`` will be represented as ``u''`` in ``.u``.
 
         If adaptation fails, ``.value`` will be ``None`` and ``.u`` will
-        contain ``str(obj)`` (or unicode), or ``u''`` for none.
+        contain ``str(obj)``, or ``''`` for none.
 
         """
         self.raw = obj
@@ -83,15 +76,15 @@ class Scalar(Element):
             # but, still try to textify it
             if obj is None:
                 self.u = ""
-            elif isinstance(obj, text_type):
+            elif isinstance(obj, str):
                 self.u = obj
             else:
                 try:
-                    self.u = text_transform(obj)
+                    self.u = str(obj)
                 except TypeError:
                     self.u = ""
                 except UnicodeDecodeError:
-                    self.u = text_type(obj, errors="replace")
+                    self.u = str(obj, errors="replace")
             element_set.send(self, adapted=False)
             return False
 
@@ -123,10 +116,10 @@ class Scalar(Element):
         compatible type.
 
         This semi-abstract method is called by :meth:`set`.  The base
-        implementation returns ``str(obj)`` (or unicode).
+        implementation returns ``str(obj)``.
 
         """
-        return text_transform(obj)
+        return str(obj)
 
     def _index(self, name):
         raise IndexError(name)
@@ -148,8 +141,6 @@ class Scalar(Element):
     __nonzero__ = __bool__
 
     def __str__(self):
-        if PY2:
-            return self.u.encode("utf8", "replace")
         return self.u
 
     def __unicode__(self):
@@ -178,8 +169,8 @@ class String(Scalar):
         """
         if value is None:
             return None
-        if not isinstance(value, text_type):
-            value = text_transform(value)
+        if not isinstance(value, str):
+            value = str(value)
 
         if self.strip:
             return value.strip()
@@ -197,8 +188,8 @@ class String(Scalar):
         """
         if value is None:
             return ""
-        if not isinstance(value, text_type):
-            value = text_transform(value)
+        if not isinstance(value, str):
+            value = str(value)
 
         if self.strip:
             return value.strip()
@@ -238,7 +229,7 @@ class Number(Scalar):
         """
         if value is None:
             return None
-        if isinstance(value, string_types):
+        if isinstance(value, (str, bytes)):
             value = value.strip()  # decimal.Decimal doesn't like whitespace
         try:
             native = self.type_(value)
@@ -253,9 +244,8 @@ class Number(Scalar):
     def serialize(self, value):
         """Generic numeric serialization.
 
-        :returns: Unicode text formatted with :attr:`format` or the
-          ``str()`` (or unicode) of *value* if *value* is not of
-          :attr:`type_`
+        :returns: Text formatted with :attr:`format` or the
+          ``str()`` of *value* if *value* is not of :attr:`type_`
 
         Converts *value* to a string using Python's string formatting function
         and the :attr:`format` as the template.  The *value* is provided to
@@ -264,7 +254,7 @@ class Number(Scalar):
         """
         if type(value) is self.type_:
             return self.format % value
-        return text_transform(value)
+        return str(value)
 
 
 class Integer(Number):
@@ -274,17 +264,17 @@ class Integer(Number):
     """``int``"""
 
     format = "%i"
-    """``u'%i'``"""
+    """``'%i'``"""
 
 
 class Long(Number):
-    """Element type for Python's long."""
+    """Element type for Python's integer."""
 
-    type_ = long_type
-    """``long``, or ``int`` on Python 3."""
+    type_ = int
+    """``int``"""
 
     format = "%i"
-    """``u'%i'``"""
+    """``'%i'``"""
 
 
 class Float(Number):
@@ -294,7 +284,7 @@ class Float(Number):
     """``float``"""
 
     format = "%f"
-    """``u'%f'``"""
+    """``'%f'``"""
 
 
 class Decimal(Number):
@@ -304,28 +294,28 @@ class Decimal(Number):
     """``decimal.Decimal``"""
 
     format = "%f"
-    """``u'%f'``"""
+    """``'%f'``"""
 
 
 class Boolean(Scalar):
     """Element type for Python's ``bool``."""
 
     true = "1"
-    """The text serialization for ``True``: ``u'1'``."""
+    """The text serialization for ``True``: ``'1'``."""
 
     true_synonyms = ("on", "true", "True", "1")
     """A sequence of acceptable string equivalents for True.
 
-    Defaults to ``(u'on', u'true', u'True', u'1')``
+    Defaults to ``('on', 'true', 'True', '1')``
     """
 
     false = ""
-    """The text serialization for ``False``: ``u''``."""
+    """The text serialization for ``False``: ``''``."""
 
     false_synonyms = ("off", "false", "False", "0", "")
     """A sequence of acceptable string equivalents for False.
 
-    Defaults to ``(u'off', u'false', u'False', u'0', u'')``
+    Defaults to ``('off', 'false', 'False', '0', '')``
     """
 
     def adapt(self, value):
@@ -340,7 +330,7 @@ class Boolean(Scalar):
         For non-text values, equivalent to ``bool(value)``.
 
         """
-        if not isinstance(value, text_type):
+        if not isinstance(value, str):
             return bool(value)
         elif value == self.true or value in self.true_synonyms:
             return True
@@ -379,11 +369,11 @@ class Constrained(Scalar):
       ...
       >>> schema = Constrained.using(child_type=Integer, valid_value=is_valid)
       >>> element = schema()
-      >>> element.set(u'2')
+      >>> element.set('2')
       True
       >>> element.value
       2
-      >>> element.set(u'5')
+      >>> element.set('5')
       False
       >>> element.value is None
       True
@@ -481,7 +471,7 @@ class Temporal(Scalar):
             return value
         elif isinstance(value, self.type_):
             return value
-        elif isinstance(value, string_types):
+        elif isinstance(value, (str, bytes)):
             if self.strip:
                 value = value.strip()
             match = self.regex.match(value)
@@ -499,14 +489,13 @@ class Temporal(Scalar):
         """Serializes value to string.
 
         If *value* is an instance of :attr:`type`, formats it as described in
-        the attribute documentation.  Otherwise returns ``str(value)`` (or
-        unicode).
+        the attribute documentation.  Otherwise returns ``str(value)``.
 
         """
         if isinstance(value, self.type_):
             return self.format % as_mapping(value)
         else:
-            return text_transform(value)
+            return str(value)
 
 
 class DateTime(Temporal):

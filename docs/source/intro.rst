@@ -65,7 +65,7 @@ blank, using default values, or with values taken from your objects.
 
   form = SignInForm.from_flat(request.POST)
   if form.validate():
-      logging.info(u"sign-in: %s" % form['username'].value)
+      logging.info("sign-in: %s" % form['username'].value)
       redirect('/app/')
   else:
       render('login.html', form=form)
@@ -81,6 +81,6 @@ used as-is in output templates for form layout, redisplay and error reporting.
   >>> isinstance(as_regular_python_data, dict)
   True
   >>> as_regular_python_data['username']
-  u'jek'
+  'jek'
   >>> form2 = SignInForm(as_regular_python_data)
   >>> assert form['username'].value == form2['username'].value

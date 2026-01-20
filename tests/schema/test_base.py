@@ -5,10 +5,8 @@ from flatland import (
     SkipAllFalse,
     Unevaluated,
 )
-from flatland._compat import xrange
 
 import pytest
-from tests._util import requires_unicode_coercion
 
 
 def test_cloning():
@@ -18,7 +16,6 @@ def test_cloning():
     assert "test_base" in new_element.__module__
 
 
-@requires_unicode_coercion
 def test_naming():
     for arg in ("unicode", "sysencoding", None):
         schema = Element.named(arg)
@@ -40,11 +37,11 @@ def test_validators():
     el = Element(validators=(123, 456))
     assert el.validators == [123, 456]
 
-    el = Element(validators=xrange(3))
-    assert el.validators == list(xrange(3))
+    el = Element(validators=range(3))
+    assert el.validators == list(range(3))
 
-    schema = Element.using(validators=xrange(3))
-    assert schema.validators == list(xrange(3))
+    schema = Element.using(validators=range(3))
+    assert schema.validators == list(range(3))
 
 
 def test_dsl_validated_by():

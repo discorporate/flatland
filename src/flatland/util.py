@@ -7,19 +7,6 @@ try:
 except ImportError:  # pragma:nocover
     import dummy_threading as threading
 
-from flatland._compat import PY2, text_type
-
-
-def decode_repr(x):
-    """create a unicode string representation (as a unicode string)
-    for py2 and py3 that looks the same: u'example'
-    """
-    r = repr(x)
-    if PY2:
-        return r.decode("raw_unicode_escape")
-    else:
-        return "u" + r
-
 
 # derived from ASPN Cookbook (#36302)
 class lazy_property:
@@ -183,18 +170,11 @@ class as_mapping:
 
     def __getitem__(self, item):
         try:
-            if PY2 and isinstance(item, text_type):
-                return getattr(self.target, item.encode("ascii"))
             return getattr(self.target, item)
         except (AttributeError, UnicodeError):
             raise KeyError(item)
 
     def __contains__(self, item):
-        if PY2 and isinstance(item, text_type):
-            try:
-                return hasattr(self.target, item.encode("ascii"))
-            except UnicodeError:
-                return False
         return hasattr(self.target, item)
 
     def __iter__(self):
@@ -216,9 +196,7 @@ def re_ucompile(pattern, flags=0):
     return re.compile(pattern, flags | re.UNICODE)
 
 
-_alphanum = set(
-    text_type(string.digits + string.ascii_lowercase + string.ascii_uppercase)
-)
+_alphanum = set(str(string.digits + string.ascii_lowercase + string.ascii_uppercase))
 
 
 def re_uescape(pattern):
@@ -240,12 +218,12 @@ def to_pairs(dictlike):
     "dictlike".
 
     """
-    if hasattr(dictlike, "iteritems"):
-        return dictlike.iteritems()
+    if hasattr(dictlike, "items"):
+        return dictlike.items()
     elif hasattr(dictlike, "keys"):
         return ((key, dictlike[key]) for key in dictlike.keys())
     elif hasattr(dictlike, "_asdict"):  # namedtuple interface
-        return dictlike._asdict().iteritems()
+        return dictlike._asdict().items()
     else:
         return ((key, value) for key, value in dictlike)
 
@@ -269,8 +247,8 @@ def keyslice_pairs(pairs, include=None, omit=None, rename=None, key=None):
 
     :param key: optional, a function of one argument that is used to extract a
         comparison key from the first item of each pair.  Similar to the
-        ``key`` parameter to Python's ``sort`` and ``sorted``.  Useful for
-        transforming unicode keys to bytestrings with ```key=str``, adding or
+        ``key`` parameter to Python's ``sort`` and ``sorted``.
+        Useful for transforming keys to other types ```key=type``, adding or
         removing prefixes en masse, etc.
 
     :returns: yields ``(key, value)`` pairs.

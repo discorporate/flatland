@@ -25,7 +25,7 @@ has a bit of variety in its structure.
     'location': {'x': 10, 'y': 20},
   }
 
-  ann1 = Annotation(sample_data, name=u'ann1')
+  ann1 = Annotation(sample_data, name='ann1')
 
 
 Going Raw
@@ -38,7 +38,7 @@ application.  An element's :attr:`~base.Element.value` is a full & recursive
 .. doctest::
 
   >>> ann1['title']     # ann1 is a flatland structure
-  <String u'title'; value=u'Interesting Spot'>
+  <String 'title'; value='Interesting Spot'>
   >>> isinstance(ann1.value, dict)  # but its .value is not
   True
   >>> ann1.value == sample_data
@@ -59,12 +59,12 @@ For example, ``Form`` and ``Dict`` can be indexed and used like ``dict``:
 .. doctest::
 
   >>> ann1['title'].value
-  u'Interesting Spot'
+  'Interesting Spot'
   >>> ann1['location']['x'].value
   10
   >>> sorted(ann1['location'].items())
-  [(u'x', <Integer u'x'; value=10>), (u'y', <Integer u'y'; value=20>)]
-  >>> u'title' in ann1
+  [('x', <Integer 'x'; value=10>), ('y', <Integer 'y'; value=20>)]
+  >>> 'title' in ann1
   True
 
 And ``List`` and similar types can be used like lists:
@@ -108,9 +108,9 @@ to related elements: :attr:`~base.Element.root`,
   >>> list(ann1['title'].children)  # title is a String and has no children
   []
   >>> sorted(el.name for el in ann1.all_children if el.name)
-  [u'flags', u'location', u'title', u'x', u'y']
+  ['flags', 'location', 'title', 'x', 'y']
   >>> [el.name for el in ann1['location']['x'].parents]
-  [u'location', u'ann1']
+  ['location', 'ann1']
 
 Each of these properties (excepting ``root``) returns an iterator of
 elements.
@@ -128,28 +128,28 @@ use when authoring flexible & reusable validators.
 .. doctest::
 
    >>> ann1.find('title')   # find 'ann1's child named 'title'
-   [<String u'title'; value=u'Interesting Spot'>]
+   [<String 'title'; value='Interesting Spot'>]
 
 Paths are evaluated relative to the element:
 
 .. doctest::
 
    >>> ann1['location'].find('x')
-   [<Integer u'x'; value=10>]
+   [<Integer 'x'; value=10>]
 
 Referencing parents is possible with ``..``:
 
 .. doctest::
 
    >>> ann1['location']['x'].find('../../title')
-   [<String u'title'; value=u'Interesting Spot'>]
+   [<String 'title'; value='Interesting Spot'>]
 
 Absolute paths begin with a ``/``.
 
 .. doctest::
 
    >>> ann1['location']['x'].find('/title')
-   [<String u'title'; value=u'Interesting Spot'>]
+   [<String 'title'; value='Interesting Spot'>]
 
 Members of sequences can be selected like any other child (their index number
 is their name), or you can use Python-like slicing:
@@ -181,7 +181,7 @@ needed to illustrate this:
   >>> p = Points([[dict(x=1, y=1), dict(x=2, y=2)],
   ...             [dict(x=3, y=3)]])
   >>> p.find('[:][:]/x')
-  [<Integer u'x'; value=1>, <Integer u'x'; value=2>, <Integer u'x'; value=3>]
+  [<Integer 'x'; value=1>, <Integer 'x'; value=2>, <Integer 'x'; value=3>]
 
 The equivalent straight Python to select the same set of elements is quite a
 bit more wordy.

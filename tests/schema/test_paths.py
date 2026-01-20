@@ -201,15 +201,15 @@ def test_find_strict_messaging():
     el = Mixed.from_defaults()
 
     message = _find_message(el, "bogus")
-    expected = "Unnamed element Mixed has no child u'bogus' " "in expression u'bogus'"
+    expected = "Unnamed element Mixed has no child 'bogus' " "in expression 'bogus'"
     assert expected in message
 
     message = _find_message(el, "d1/bogus")
-    expected = "Dict element u'd1' has no child u'bogus' " "in expression u'd1/bogus'"
+    expected = "Dict element 'd1' has no child 'bogus' " "in expression 'd1/bogus'"
     assert expected in message
 
     message = _find_message(el, "l1[5]")
-    expected = "List element u'l1' has no child u'5' " "in expression u'l1[5]'"
+    expected = "List element 'l1' has no child '5' " "in expression 'l1[5]'"
     assert expected in message
 
 
