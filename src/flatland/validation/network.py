@@ -4,7 +4,7 @@ import re
 
 from urllib import parse as urlparse
 
-from flatland._compat import identifier_transform, text_transform
+from flatland._compat import identifier_transform
 from .base import N_, Validator
 
 
@@ -267,7 +267,7 @@ class HTTPURLValidator(Validator):
             try:
                 value = getattr(parsed, part)
                 if part == "port":
-                    value = None if value is None else text_transform(value)
+                    value = None if value is None else str(value)
             except ValueError:
                 return self.note_error(element, state, "bad_format")
             required = self.required_parts.get(part)

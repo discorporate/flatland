@@ -12,7 +12,6 @@ __all__ = [
 import builtins
 
 identifier_transform = lambda i: i
-text_transform = str
 iterkeys = lambda d: iter(d.keys())
 itervalues = lambda d: iter(d.values())
 iteritems = lambda d: iter(d.items())

@@ -3,7 +3,6 @@ from flatland import (
     Enum,
     Integer,
 )
-from flatland._compat import text_transform
 
 
 def test_constrained_no_default_validity():
@@ -102,9 +101,9 @@ def test_typed_enum():
 
     for good_val in good_values:
         el = schema()
-        assert el.set(text_transform(good_val))
+        assert el.set(str(good_val))
         assert el.value == good_val
-        assert el.u == text_transform(good_val)
+        assert el.u == str(good_val)
         assert not el.errors
 
     el = schema()

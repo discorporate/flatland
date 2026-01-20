@@ -4,7 +4,6 @@ import re
 
 from flatland._compat import (
     string_types,
-    text_transform,
 )
 from flatland.exc import AdaptationError
 from flatland.signals import element_set
@@ -84,7 +83,7 @@ class Scalar(Element):
                 self.u = obj
             else:
                 try:
-                    self.u = text_transform(obj)
+                    self.u = str(obj)
                 except TypeError:
                     self.u = ""
                 except UnicodeDecodeError:
@@ -123,7 +122,7 @@ class Scalar(Element):
         implementation returns ``str(obj)`` (or unicode).
 
         """
-        return text_transform(obj)
+        return str(obj)
 
     def _index(self, name):
         raise IndexError(name)
@@ -174,7 +173,7 @@ class String(Scalar):
         if value is None:
             return None
         if not isinstance(value, str):
-            value = text_transform(value)
+            value = str(value)
 
         if self.strip:
             return value.strip()
@@ -193,7 +192,7 @@ class String(Scalar):
         if value is None:
             return ""
         if not isinstance(value, str):
-            value = text_transform(value)
+            value = str(value)
 
         if self.strip:
             return value.strip()
@@ -259,7 +258,7 @@ class Number(Scalar):
         """
         if type(value) is self.type_:
             return self.format % value
-        return text_transform(value)
+        return str(value)
 
 
 class Integer(Number):
@@ -501,7 +500,7 @@ class Temporal(Scalar):
         if isinstance(value, self.type_):
             return self.format % as_mapping(value)
         else:
-            return text_transform(value)
+            return str(value)
 
 
 class DateTime(Temporal):
