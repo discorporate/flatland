@@ -318,22 +318,6 @@ class SetWithKnownFields(Validator):
       from flatland import Dict, Integer
       from flatland.validation import SetWithKnownFields
 
-      schema = Dict.of(Integer.named('x'), Integer.named('y')).\\
-                    validated_by(SetWithKnownFields())
-      schema.policy = None
-      element = schema()
-
-      element.set({'x': 123, 'y': 456})
-      assert element.validate()
-
-      element.set({'x': 123, 'y': 456, 'z': 789})
-      assert not element.validate()
-
-    .. testcode::
-
-      from flatland import Dict, Integer
-      from flatland.validation import SetWithKnownFields
-
       Int = Integer.using(optional=True)
       schema = Dict.of(Int.named('x'), Int.named('y')).\\
                     validated_by(SetWithKnownFields())
