@@ -7,18 +7,13 @@ try:
 except ImportError:  # pragma:nocover
     import dummy_threading as threading
 
-from flatland._compat import PY2, text_type
+from flatland._compat import text_type
 
 
 def decode_repr(x):
-    """create a unicode string representation (as a unicode string)
-    for py2 and py3 that looks the same: u'example'
-    """
+    """create a unicode string representation (as a unicode string): u'example'"""
     r = repr(x)
-    if PY2:
-        return r.decode("raw_unicode_escape")
-    else:
-        return "u" + r
+    return "u" + r
 
 
 # derived from ASPN Cookbook (#36302)
@@ -183,18 +178,11 @@ class as_mapping:
 
     def __getitem__(self, item):
         try:
-            if PY2 and isinstance(item, text_type):
-                return getattr(self.target, item.encode("ascii"))
             return getattr(self.target, item)
         except (AttributeError, UnicodeError):
             raise KeyError(item)
 
     def __contains__(self, item):
-        if PY2 and isinstance(item, text_type):
-            try:
-                return hasattr(self.target, item.encode("ascii"))
-            except UnicodeError:
-                return False
         return hasattr(self.target, item)
 
     def __iter__(self):

@@ -1,6 +1,6 @@
 """Class attribute-style declarative schema construction."""
 
-from flatland._compat import PY2, with_metaclass
+from flatland._compat import with_metaclass
 from .base import Element
 from .containers import Dict, SparseDict
 
@@ -38,13 +38,9 @@ class _MetaSchema(type):
         # add / replace fields declared as attributes on this class
         declared_fields = []
         for name, value in list(members.items()):
-            if PY2:
-                text_name = name.decode("ascii")
-            else:
-                text_name = name
             if isinstance(value, type) and issubclass(value, Element):
-                if text_name != value.name:
-                    value = value.named(text_name)
+                if name != value.name:
+                    value = value.named(name)
                 declared_fields.append(value)
                 del members[name]
         fields.add_and_overwrite(declared_fields)

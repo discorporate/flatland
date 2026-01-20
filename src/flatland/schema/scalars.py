@@ -3,7 +3,6 @@ import decimal
 import re
 
 from flatland._compat import (
-    PY2,
     long_type,
     string_types,
     text_type,
@@ -148,8 +147,6 @@ class Scalar(Element):
     __nonzero__ = __bool__
 
     def __str__(self):
-        if PY2:
-            return self.u.encode("utf8", "replace")
         return self.u
 
     def __unicode__(self):

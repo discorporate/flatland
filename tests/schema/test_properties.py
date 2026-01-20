@@ -1,5 +1,5 @@
 from flatland import String
-from flatland._compat import PY2, iterkeys, itervalues
+from flatland._compat import iterkeys, itervalues
 from flatland.schema.properties import Properties
 import pytest
 
@@ -282,21 +282,6 @@ def test_perverse():
     broken.update(abc=123)
     assert broken == {"abc": 123}
     assert Broken.properties == "something else"
-
-
-# python3 immediately raises an exception if there is such a name clash
-if PY2:
-
-    def test_perverse_slots():
-
-        class Base:
-            __slots__ = ("properties",)
-            properties = Properties()
-
-        b = Base()
-        with pytest.raises(AttributeError):
-            # noinspection PyStatementEffect
-            b.properties["abc"]
 
 
 def test_dsl():

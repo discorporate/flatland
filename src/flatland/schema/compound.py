@@ -2,7 +2,6 @@ from functools import wraps, reduce
 import operator
 
 from flatland._compat import (
-    PY2,
     identifier_transform,
     string_types,
     with_metaclass,
@@ -77,10 +76,7 @@ class _MetaCompound(type):
 def _wrap_compound_init(fn):
     """Decorate __compound_init__ with a status setter & classmethod."""
     if isinstance(fn, classmethod):
-        if PY2:
-            fn = fn.__get__(str).__func__  # type doesn't matter here
-        else:
-            fn = fn.__func__
+        fn = fn.__func__
 
     @wraps(fn)
     def __compound_init__(cls):

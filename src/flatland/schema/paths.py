@@ -1,6 +1,6 @@
 import re
 
-from flatland._compat import PY2, bytestring_type, text_type, xrange
+from flatland._compat import bytestring_type, text_type, xrange
 from flatland.util import decode_repr, symbol
 
 __all__ = ["pathexpr"]
@@ -41,8 +41,6 @@ _unescape_re = re.compile(r"\\(/|\[|\]|\.)")
 def pathexpr(expr):
     if isinstance(expr, PathExpression):
         return expr
-    elif PY2 and isinstance(expr, bytestring_type):
-        expr = text_type(expr)
     elif isinstance(expr, text_type):
         pass
     elif hasattr(expr, "__iter__"):
@@ -103,8 +101,6 @@ class PathExpression:
         return found
 
     def __str__(self):
-        if PY2:
-            return self.expr.encode("utf8")
         return self.expr
 
     def __unicode__(self):

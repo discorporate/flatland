@@ -15,7 +15,7 @@ from flatland import (
     Unset,
     element_set,
 )
-from flatland._compat import PY2, long_type
+from flatland._compat import long_type
 
 import pytest
 from tests._util import requires_unicode_coercion
@@ -123,8 +123,8 @@ def test_scalar_set():
     ):
         validate_element_set(Integer, *spec)
 
-    if PY2:
-        # TODO: test below fails on py3 and it is unclear what it is about.
+    # TODO: test below fails on py3 and it is unclear what it is about.
+    if False:
         for spec in (("\xef\xf0", None, "\ufffd\ufffd"),):
             coerced_validate_element_set(Integer, *spec)
 

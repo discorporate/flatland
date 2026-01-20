@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from flatland._compat import PY2, bytestring_type, iteritems, text_type
+from flatland._compat import bytestring_type, iteritems, text_type
 from flatland.out.generic import Context, transform, _unpack
 from flatland.out.util import parse_trool
 
@@ -67,8 +67,6 @@ class Generator(Context):
         """
 
         for key, value in settings.items():
-            if PY2:
-                key = key.decode("ascii")
             if key not in self:
                 raise TypeError("%r is not a valid argument." % key)
             if key.startswith("auto_"):
@@ -317,8 +315,6 @@ def _attribute_escape(string):
 def _transform_keys(d):
     rekeyed = {}
     for key, value in d.items():
-        if PY2:
-            key = key.decode("ascii")
         key = key.rstrip("_")
         rekeyed[key] = value
     return rekeyed

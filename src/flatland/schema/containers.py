@@ -2,7 +2,6 @@ from collections import defaultdict
 import re
 
 from flatland._compat import (
-    PY2,
     identifier_transform,
     iteritems,
     iterkeys,
@@ -1039,8 +1038,6 @@ class Dict(Mapping, dict):
         fields = self.field_schema_mapping
         converted = True
         for key, value in pairs:
-            if PY2 and isinstance(key, bytestring_type):
-                key = key.decode("ascii", "replace")
             if key not in fields:
                 continue
             if dict.__contains__(self, key):
@@ -1289,8 +1286,6 @@ class SparseDict(Dict):
 def _textset(iterable):
     values = set()
     for value in iterable:
-        if PY2 and isinstance(value, bytestring_type):
-            value = value.decode("ascii", "replace")
         values.add(value)
     return values
 

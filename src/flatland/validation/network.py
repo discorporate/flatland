@@ -1,12 +1,8 @@
 """Network address and URL validation."""
 
-from flatland._compat import PY2
 import re
 
-if PY2:
-    import urlparse
-else:
-    from urllib import parse as urlparse
+from urllib import parse as urlparse
 
 from flatland._compat import identifier_transform, text_transform
 from .base import N_, Validator

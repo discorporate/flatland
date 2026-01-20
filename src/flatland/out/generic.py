@@ -1,6 +1,6 @@
 import re
 
-from flatland._compat import PY2, bytestring_type, iteritems, text_type
+from flatland._compat import bytestring_type, iteritems, text_type
 from flatland.out.util import parse_trool
 from flatland.schema import Array, Boolean
 from flatland.util import Maybe, to_pairs
@@ -66,8 +66,6 @@ class Context:
             for key, value in source:
                 self[key] = value
         for key, value in iteritems(kwargs):
-            if PY2:
-                key = key.decode("ascii")
             self[key] = value
 
     def __repr__(self):

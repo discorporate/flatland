@@ -2,7 +2,7 @@ import collections
 import itertools
 import operator
 
-from flatland._compat import PY2, bytestring_type, iteritems, text_type
+from flatland._compat import bytestring_type, iteritems, text_type
 from flatland.schema.paths import pathexpr
 from flatland.schema.properties import Properties
 from flatland.signals import validator_validated
