@@ -9,7 +9,6 @@ from flatland import (
 from flatland.util import Unspecified, keyslice_pairs
 
 import pytest
-from tests._util import fails
 
 
 def test_dict():
