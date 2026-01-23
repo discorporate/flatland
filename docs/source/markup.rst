@@ -190,7 +190,7 @@ that normally would not be transformed.
 .. doctest:: transforms1
 
    >>> print(html.tag('squiznart', auto_tabindex=True))
-   <squiznart tabindex="102" />
+   <squiznart tabindex="102"></squiznart>
 
 The Python APIs and the Generator tags use "_"-separated transform names
 (valid Python identifiers) as shown below, however please note that Genshi

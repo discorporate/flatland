@@ -6,6 +6,31 @@ from flatland.out.util import parse_trool
 _default_settings = {"ordered_attributes": True}
 _static_attribute_order = ["type", "name", "value"]
 
+# HTML5 void elements that should never have separate closing tags.
+# These are elements that cannot have content and should be:
+# - self-closing in X(HT)ML, like <br />, or
+# - dangling (no closing tag) in HTML5, like <br>
+# If an element is not in this set, it should have a separate closing
+# tag, like: <div>content</div>
+VOID_ELEMENTS = frozenset(
+    [
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+    ]
+)
+
 
 class Generator(Context):
     """General XML/HTML tag generator"""
@@ -84,7 +109,7 @@ class Generator(Context):
         If provided with a bind, form tags can generate the *name* attribute.
 
         """
-        return self._tag("form", False, True)
+        return self._tag("form")
 
     @property
     def input(self):
@@ -98,7 +123,7 @@ class Generator(Context):
         and *id* attributes.  Input tags support *tabindex* attributes.
 
         """
-        return self._tag("input", True)
+        return self._tag("input")
 
     @property
     def textarea(self):
@@ -115,7 +140,7 @@ class Generator(Context):
         :meth:`~Tag.open` and :meth:`~Tag.close` method of the returned tag.
 
         """
-        return self._tag("textarea", False, True)
+        return self._tag("textarea")
 
     @property
     def button(self):
@@ -143,7 +168,7 @@ class Generator(Context):
         attributes.  Select tags support *tabindex* attributes.
 
         """
-        return self._tag("select", False, True)
+        return self._tag("select")
 
     @property
     def option(self):
@@ -162,7 +187,7 @@ class Generator(Context):
            print(generator.option.close())
 
         """
-        return self._tag("option", False, True)
+        return self._tag("option")
 
     @property
     def label(self):
@@ -199,10 +224,10 @@ class Generator(Context):
         else:
             return self._tag(tagname)(bind, **attributes)
 
-    def _tag(self, tagname, empty_in_html=False, always_paired=False):
+    def _tag(self, tagname):
         if self._tags[tagname]:
             return self._tags[tagname][-1]
-        return Tag(tagname, self, empty_in_html, always_paired)
+        return Tag(tagname, self)
 
 
 class Tag:
@@ -222,13 +247,11 @@ class Tag:
 
     """
 
-    __slots__ = ("tagname", "contents", "_context", "_html_dangle", "_always_paired")
+    __slots__ = ("tagname", "contents", "_context")
 
-    def __init__(self, tagname, context, dangle, paired):
+    def __init__(self, tagname, context):
         self.tagname = tagname
         self._context = context
-        self._html_dangle = dangle
-        self._always_paired = paired
         self.contents = None
 
     def open(self, bind=None, **attributes):
@@ -238,12 +261,24 @@ class Tag:
         :param \*\*attributes: any desired tag attributes.
 
         """
+        if self.tagname in VOID_ELEMENTS:
+            raise ValueError(
+                f"Cannot call open() on void element '<{self.tagname}>'. "
+                f"Void elements must be generated as complete tags. "
+                f"Use: gen.{self.tagname}(...) instead of gen.{self.tagname}.open(...)"
+            )
         if self not in self._context._tags[self.tagname]:
             self._context._tags[self.tagname].append(self)
         return self._markup(self._open(bind, attributes) + ">")
 
     def close(self):
         """Return the closing half of the tag, e.g. ``</p>``."""
+        if self.tagname in VOID_ELEMENTS:
+            raise ValueError(
+                f"Cannot call close() on void element '<{self.tagname}>'. "
+                f"Void elements cannot have closing tags. "
+                f"Use: gen.{self.tagname}(...) instead of gen.{self.tagname}.open(...) + gen.{self.tagname}.close()"
+            )
         try:
             self._context._tags[self.tagname].remove(self)
         except ValueError:
@@ -282,13 +317,10 @@ class Tag:
     def __call__(self, bind=None, **attributes):
         """Return a complete, closed markup string."""
         header = self._open(bind, attributes)
+        if self.tagname in VOID_ELEMENTS:
+            # we ignore self.contents here, there must not be any.
+            return self._markup(header + (" />" if self._context.xml else ">"))
         contents = self.contents
-        if not contents:
-            if not self._always_paired:
-                if self._context.xml:
-                    return self._markup(header + " />")
-                elif self._html_dangle:
-                    return self._markup(header + ">")
         if hasattr(contents, "__html__"):
             contents = _unpack(contents)
         return self._markup(header + ">" + contents + self._close())
