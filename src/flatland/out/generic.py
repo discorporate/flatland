@@ -201,15 +201,15 @@ def transform_domid(tagname, attributes, contents, context, bind):
 @defaults({"auto_for": False})
 def transform_for(tagname, attributes, contents, context, bind):
     proceed, forced = _pop_toggle("auto_for", attributes, context)
-    if not proceed or bind is None:
-        return contents
-
-    current = attributes.get("for")
-    if forced or current is None and tagname in _auto_tags["for"]:
-        raw_id = _generate_raw_domid(tagname, attributes, bind)
-        if raw_id:
-            fmt = context["domid_format"]
-            attributes["for"] = fmt % raw_id
+    if proceed and bind is not None:
+        current = attributes.get("for")
+        if forced or current is None and tagname in _auto_tags["for"]:
+            raw_id = _generate_raw_domid(tagname, attributes, bind)
+            if raw_id:
+                fmt = context["domid_format"]
+                attributes["for"] = fmt % raw_id
+    if tagname == "label":
+        attributes.pop("value", None)
     return contents
 
 
@@ -282,11 +282,17 @@ def _generate_raw_domid(tagname, attributes, bind):
     if not basis:
         return
 
+    suffix = None
     # add the value="" to CHECKBOX and RADIO to produce a unique ID
     if tagname == "input" and attributes.get("type") in ("checkbox", "radio"):
         suffix = _sanitize_domid_suffix(attributes.get("value", ""))
-        if suffix:
-            basis += "_" + suffix
+    # when the value attribute is supplied for a LABEL, add it to domid.
+    # this is used to produce LABELs with matching for="..." attribute values
+    # corresponding to input checkbox/radio IDs.
+    if tagname == "label":
+        suffix = _sanitize_domid_suffix(attributes.get("value", ""))
+    if suffix:
+        basis += "_" + suffix
     return basis
 
 
