@@ -63,10 +63,19 @@ def test_detached_reuse(el):
     tag.close()
 
 
+def test_input_open(el, xmlgen):
+    """Test that open() raises ValueError for void element input."""
+    with pytest.raises(ValueError) as exc_info:
+        xmlgen.input.open(type="text", bind=el)
+    assert "Cannot call open() on void element '<input>'" in str(exc_info.value)
+
+
 def test_input_close(el, xmlgen):
-    """</input>"""
+    """Test that close() raises ValueError for void element input."""
     xmlgen.input(type="text", bind=el)
-    assert xmlgen.input.close() == """</input>"""
+    with pytest.raises(ValueError) as exc_info:
+        xmlgen.input.close()
+    assert "Cannot call close() on void element '<input>'" in str(exc_info.value)
 
 
 def test_textarea_escaped(xmlgen, el):
