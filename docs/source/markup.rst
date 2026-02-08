@@ -465,6 +465,32 @@ uses XML-friendly "-"-separated attribute names in markup.
        </fieldset>
      </form:with>
 
+   **Targeting Radio Buttons and Checkboxes:**
+
+   When working with radio buttons or checkboxes, each input element with a
+   different ``value=`` attribute gets a unique ``id`` by appending the value
+   to the base id (e.g., ``f_choice_a``, ``f_choice_b``).  To generate a
+   label that targets a specific radio button or checkbox, provide a
+   ``value=`` attribute on the label tag:
+
+   .. doctest:: transforms2
+
+     >>> from flatland import String
+     >>> from flatland.out.markup import Generator
+     >>> html = Generator(auto_domid=True, auto_for=True)
+     >>> choice = String.named('choice')('b')
+     >>> print(html.label(choice, value='a', contents='Option A'))
+     <label for="f_choice_a">Option A</label>
+     >>> print(html.input(choice, type='radio', value='a'))
+     <input type="radio" name="choice" value="a" id="f_choice_a" />
+     >>> print(html.label(choice, value='b', contents='Option B'))
+     <label for="f_choice_b">Option B</label>
+     >>> print(html.input(choice, type='radio', value='b'))
+     <input type="radio" name="choice" value="b" checked="checked" id="f_choice_b" />
+
+   The ``value=`` attribute is automatically removed from the rendered label
+   tag and is only used to generate the correct ``for=`` attribute.
+
 
 .. describe:: auto-tabindex
 
