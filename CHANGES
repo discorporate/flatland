@@ -1,9 +1,8 @@
 Changes
 =======
 
-
-Release 1.0.0 (not released yet)
---------------------------------
+Release 1.0.0 (2026-02-08)
+--------------------------
 
 Potentially breaking changes:
 
@@ -20,6 +19,8 @@ Fixes:
 - `Sequence.prune_empty`: fix docstring, #23
 - `Dict`: improve exception handling, #6
 - suppress Genshi deprecation warnings, #67
+- fix markup generation, reject Tag.open/close for void elements
+- fix label 'for' attribute ID generation, #9
 
 Other changes:
 
@@ -34,6 +35,8 @@ Other changes:
 - convert some docstrings to raw strings
 - update intersphinx mapping
 - update i18n, #36
+- fix repository links in docs
+- fix readthedocs build, add .readthedocs.yaml
 
 Release 0.9.1 (2019-07-26)
 --------------------------
