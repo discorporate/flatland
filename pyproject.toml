@@ -14,7 +14,7 @@ maintainers = [
     { name = "Thomas Waldmann", email = "tw@waldmann-edv.de" }
 ]
 keywords = ["schema", "validation", "data", "web", "form", "forms", "roundtrip"]
-license = "MIT"
+license = {text = "MIT"}
 license-files = ["LICENSE", "AUTHORS"]
 classifiers = [
     "Development Status :: 4 - Beta",
